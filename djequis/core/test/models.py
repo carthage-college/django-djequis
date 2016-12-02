@@ -42,8 +42,8 @@ class FooBar(models.Model):
     )
     phile = models.FileField(
         upload_to=upload_to_path,
-        validators=[MimetypeValidator('application/pdf')],
-        help_text="PDF format",
+        validators=[MimetypeValidator('image/jpeg')],
+        help_text="JPEG format (.jpg)",
         max_length = '768',
     )
     status = models.BooleanField(

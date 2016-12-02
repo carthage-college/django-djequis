@@ -5,6 +5,7 @@ from django.http import HttpResponseRedirect, Http404
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render_to_response, get_object_or_404
 
+from djequis.core.test.models import FooBar
 from djequis.core.test.forms import FooBarForm
 
 from djtools.utils.mail import send_mail
@@ -72,7 +73,7 @@ def update_form(request, fid):
     # simple permission check
     # you can do more fine grain checks with groups. see:
     # djsani/insurance/views.py
-    if foobar.user != request.user and not request.user.is_superuser:
+    if foobar.created_by != request.user and not request.user.is_superuser:
         raise Http404
 
     if request.method=='POST':
@@ -113,12 +114,15 @@ def update_form(request, fid):
 def detail(request, fid):
 
     foobar = FooBar.objects.get(id=fid)
-    if foobar.user != request.user:
+    # simple permission check
+    # you can do more fine grain checks with groups. see:
+    # djsani/insurance/views.py
+    if foobar.created_by != request.user and not request.user.is_superuser:
         raise Http404
 
     return render_to_response(
         "foobar/detail.html",
-        {"foobar":foobar},
+        {"data":foobar},
         context_instance=RequestContext(request)
     )
 
