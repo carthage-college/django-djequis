@@ -5,7 +5,16 @@
         {{ data.created_by.first_name }}
     </dd>
     <dt {{dl_dt}}>Title:</dt>
-    <dd {{dl_dd}}>{{ data.title }}</dd>
+    <dd {{dl_dd}}>
+        {{ data.title }}
+        {% if user.is_staff %}
+          &nbsp;
+          <a class="jqmodal" title="edit this note"
+            href="{% url 'foobar_update_form' data.id %}">
+            <i class="fa fa-pencil"></i>
+          </a>
+        {% endif %}
+    </dd>
 </dl>
 <br>
 <h3>Description</h3>

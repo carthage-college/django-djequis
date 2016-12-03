@@ -1,16 +1,23 @@
 {% extends "foobar/done.html" %}
 {% block content %}
-    <h2>Submissions</h2>
-    <ul>
-    {% for d in data %}
-        {% if d.status or user.is_staff %}
-            <li>
-                <a href="{% url 'foobar_detail' d.id %}">{{d.title}}</a>
-                by
-                {{d.created_by.last_name}},
-                {{d.created_by.first_name}}
-            </li>
+<h2>Submissions</h2>
+<ul>
+  {% for d in data %}
+    {% if d.status or user.is_staff %}
+      <li>
+        <a href="{% url 'foobar_detail' d.id %}">{{d.title}}</a>
+        by
+        {{d.created_by.last_name}},
+        {{d.created_by.first_name}}
+        {% if user.is_staff %}
+          &nbsp;
+          <a class="jqmodal" title="edit this note"
+            href="{% url 'foobar_update_form' d.id %}">
+            <i class="fa fa-pencil"></i>
+          </a>
         {% endif %}
-    {% endfor %}
-    </ul>
+      </li>
+    {% endif %}
+  {% endfor %}
+</ul>
 {% endblock %}
