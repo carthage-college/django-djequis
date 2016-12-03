@@ -113,7 +113,7 @@ def update_form(request, fid):
 @login_required
 def detail(request, fid):
 
-    foobar = FooBar.objects.get(id=fid)
+    foobar = get_object_or_404(FooBar,id=fid)
     # simple permission check
     # you can do more fine grain checks with groups. see:
     # djsani/insurance/views.py

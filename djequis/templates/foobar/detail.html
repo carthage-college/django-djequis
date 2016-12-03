@@ -1,6 +1,6 @@
 {% extends "foobar/done.html" %}
 {% block extra_style %}
-<link rel="stylesheet" href="//www.carthage.edu/static/vendor/jquery/plugins/wowwindow/wowwindow.css"
+<link rel="stylesheet" href="//www.carthage.edu/static/vendor/jquery/plugins/magnific/popup.css"
     type="text/css" />
 <style>
 .jqmClose{
@@ -13,16 +13,22 @@
 </style>
 {% endblock %}
 {% block extra_javascript %}
-<script src="//www.carthage.edu/static/vendor/jquery/plugins/wowwindow/jquery.wowwindow.min.js"
-    type="text/javascript" charset="utf-8"></script>
+<script src="//www.carthage.edu/static/vendor/jquery/plugins/magnific/popup.js"
+  type="text/javascript" charset="utf-8"></script>
 <script type="text/javascript">
-    $(function() {
-        $('a[rel=popupfoto]').wowwindow({
-            draggable: true,
-            videoIframe: false,
-            rotate: false
-        });
+  $(function() {
+    $('a[rel=popupfoto]').magnificPopup({type:'image'});
+    $('.jqmodal').magnificPopup({
+      type: 'iframe',
+      iframe: {
+        patterns: {
+          dashboard: {
+            src: $(this).attr('href')
+          }
+        }
+      }
     });
+  });
 </script>
 {% endblock %}
 {% block content %}
