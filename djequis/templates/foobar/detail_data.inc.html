@@ -1,0 +1,21 @@
+<dl {{dl_detail}}>
+    <dt {{dl_dt}}>Name:</dt>
+    <dd {{dl_dd}}>
+        {{ data.created_by.last_name }},
+        {{ data.created_by.first_name }}
+    </dd>
+    <dt {{dl_dt}}>Title:</dt>
+    <dd {{dl_dd}}>{{ data.title }}</dd>
+</dl>
+<br>
+<h3>Description</h3>
+<div>{{ data.description }}</div>
+<br>
+<h3>Phile</h3>
+<p>
+  <a rel="popupfoto" class="popupfoto"
+    href="https://{{server_url}}{{data.phile.url}}">
+    <img src="{{ data.phile.url }}" style="width:100px !important;"
+      alt="{{ data.title }}" />
+  </a>
+</p>

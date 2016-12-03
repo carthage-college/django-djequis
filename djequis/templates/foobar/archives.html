@@ -1,0 +1,16 @@
+{% extends "foobar/done.html" %}
+{% block content %}
+    <h2>Submissions</h2>
+    <ul>
+    {% for d in data %}
+        {% if d.status or user.is_staff %}
+            <li>
+                <a href="{% url 'foobar_detail' d.id %}">{{d.title}}</a>
+                by
+                {{d.created_by.last_name}},
+                {{d.created_by.first_name}}
+            </li>
+        {% endif %}
+    {% endfor %}
+    </ul>
+{% endblock %}
