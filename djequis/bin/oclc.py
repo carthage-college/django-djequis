@@ -105,7 +105,7 @@ def main():
             settings.XTRNL_SRVR, settings.XTRNL_USER, settings.XTRNL_PASS
         )
         ftp.cwd(settings.XTRNL_PATH)
-        phile = "carthage_personas_draft_{}.xml".format(NOW)
+        phile = "carthage_personas_draft_{:%Y%m%d%H%M%S}.xml".format(NOW)
         ftp.storlines(phile, temp)
         ftp.quit()
 
