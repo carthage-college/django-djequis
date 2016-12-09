@@ -106,7 +106,7 @@ def main():
         )
         ftp.cwd(settings.XTRNL_PATH)
         phile = "carthage_personas_draft_{:%Y%m%d%H%M%S}.xml".format(NOW)
-        ftp.storlines(phile, temp)
+        ftp.storlines("STOR" + phile, temp)
         ftp.quit()
 
 if __name__ == "__main__":

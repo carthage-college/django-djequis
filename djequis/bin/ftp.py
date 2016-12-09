@@ -19,16 +19,15 @@ from django.conf import settings
 def main():
     # transfer the PDFs to scripsafe
 
-
     ftp = ftplib.FTP(
         settings.XTRNL_SRVR, settings.XTRNL_USER, settings.XTRNL_PASS
     )
     ftp.cwd(settings.XTRNL_PATH)
-    print ftp_conn.pwd()
-    ftp.retrlines('LIST')
-    #phile = open('/home/skirk/carthage_personas_draft_20161204020018.xml','rb')
-    #ftp.storlines('carthage_personas_draft_20161204020018.xml', phile)
-    #phile.close()
+    print ftp.pwd()
+    #ftp.retrlines('LIST')
+    phile = open('/home/skirk/carthage_personas_draft_20161204020018.xml','rb')
+    ftp.storlines("STOR " + 'carthage_personas_draft_20161204020018.xml', phile)
+    phile.close()
     ftp.quit()
 
     print "end"
