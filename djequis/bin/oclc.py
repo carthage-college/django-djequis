@@ -2,8 +2,11 @@ import io
 import os
 import re
 import sys
-import pysftp
+import ftplib
 import argparse
+
+from dateutil.relativedelta import relativedelta
+from StringIO import StringIO
 
 sys.path.append('/usr/lib/python2.7/dist-packages/')
 sys.path.append('/usr/lib/python2.7/')
@@ -13,8 +16,18 @@ sys.path.append('/data2/django_projects/')
 sys.path.append('/data2/django_third/')
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 
+import django
+django.setup()
+
 from django.conf import settings
+from django.template import loader, Context
+from django.utils.encoding import smart_bytes
+
 from djzbar.utils.informix import do_sql
+from djtools.fields import NOW
+
+EARL = settings.INFORMIX_EARL
+NEXT_YEAR = NOW + relativedelta(years=1)
 
 # set up command-line options
 desc = """
@@ -29,45 +42,15 @@ parser.add_argument(
     help="Dry run?",
     dest="test"
 )
-'''
-def paint_pdf(phile):
 
-    buf = io.BytesIO()
+def paint_xml(data):
 
-    # Setup the document with paper size and margins
-    doc = SimpleDocTemplate(
-        buf,
-        rightMargin=0.25*inch,
-        leftMargin=0.075*inch,
-        topMargin=.40*inch,
-        bottomMargin=.40*inch,
-        pagesize = portrait(letter)
-    )
+    t = loader.get_template('oclc/personas.xml')
+    c = Context({ 'objs': data, 'next_year':NEXT_YEAR })
+    output = t.render(c)
+    #print output
+    return output
 
-    # Styling
-    styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(
-        name='CodeSmall', parent=styles['Code'], fontSize=7.5, leading=10
-    ))
-
-    lines = []
-    # line break at Page n of n
-    reg = re.compile("(Page) (\d+) (of) (\d+)")
-    for line in phile.readlines():
-        if reg.search(line):
-            lines.append(PageBreak())
-        lines.append(
-            #Preformatted(line, styles['SmallFont'])
-            Preformatted(line, styles['CodeSmall'])
-        )
-    doc.build(lines)
-
-    # Write the PDF to a file
-    with open('{}.pdf'.format(phile.name), 'w') as fd:
-        fd.write(buf.getvalue())
-
-    return
-'''
 def main():
     sql = '''
         SELECT
@@ -89,59 +72,42 @@ def main():
         ORDER BY
             lastname, firstname, email
     '''
-    print sql
-    sqlresult = do_sql(sql)
-    '''
-    # go to our storage directory on this server
-    os.chdir(settings.LOCAL_PATH)
-    # obtain a list of file names from transcript spool
-    philes = []
-    with pysftp.Connection(**settings.LOCAL_CONNECTION) as sftp:
-        sftp.cwd(settings.LOCAL_SPOOL)
-        for attr in sftp.listdir_attr():
-            phile = attr.filename
-            if phile.startswith(settings.FILE_PREFIX, 0):
-                try:
-                    sftp.get(phile, preserve_mtime=True)
-                    # generate PDFs
-                    fo = open(phile, "r") # safer than w mode
-                    paint_pdf(fo)
-                    fo.close()
-                    philes.append(phile)
-                    # delete original since we have a copy
-                    sftp.remove(phile)
-                except IOError as e:
-                    print "I/O error({0}): {1}".format(e.errno, e.strerror)
-                    #e = sys.exc_info()[0]
-
-    # transfer the PDFs to scripsafe
-    with pysftp.Connection(**settings.XTRNL_CONNECTION) as sftp:
-        for f in philes:
-            sftp.put("{}.pdf".format(f), preserve_mtime=True)
-
-    # backup and cleanup
-    with pysftp.Connection(**settings.LOCAL_CONNECTION) as sftp:
-        for f in philes:
-            sftp.cwd(settings.LOCAL_BACKUP)
-            # copy transcripts to archive
-            try:
-                sftp.put(f, preserve_mtime=True)
-            except:
-                print "failed to transfer file to local backup: {}".format(f)
-
-            # remove files fetched from local server and generated PDFs
-            try:
-                os.remove(f)
-                os.remove("{}.pdf".format(f))
-                print "removed files: {}, {}.pdf".format(f,f)
-            except OSError:
-                print """
-                    failed to remove files from local file system: {}
-                """.format(f)
-
-    print "files sent to script safe:\n{}".format(philes)
-    '''
-    print "end"
+    folks = []
+    #print sql
+    sqlresult = do_sql(sql, earl=EARL)
+    for s in sqlresult:
+        if test:
+            print "[{}] {}, {}: {} {}".format(
+                s.id, s.lastname, s.firstname, s.email, s[12]
+            )
+        else:
+            folks.append({
+                'lastname':s.lastname.decode('cp1252').encode('utf-8'),
+                'firstname':s.firstname.decode('cp1252').encode('utf-8'),
+                'middlename':s.middlename.decode('cp1252').encode('utf-8'),
+                'id':s.id,
+                'addr_line1':s.addr_line1,
+                'addr_line2':s.addr_line2,
+                'city':s.city.decode('cp1252').encode('utf-8'),
+                'st':s.st,
+                'ctry':s.ctry.decode('cp1252').encode('utf-8'),
+                'zip':s.zip,
+                'phone':s.phone,
+                'email':s.email,
+                'groupIndex':s[12]
+            })
+    xml = paint_xml(folks)
+    if test:
+        print xml
+    else:
+        temp = StringIO(xml)
+        ftp = ftplib.FTP(
+            settings.XTRNL_SRVR, settings.XTRNL_USER, settings.XTRNL_PASS
+        )
+        ftp.cwd(settings.XTRNL_PATH)
+        phile = "carthage_personas_draft_{}.xml".format(NOW)
+        ftp.storlines(phile, temp)
+        ftp.quit()
 
 if __name__ == "__main__":
     args = parser.parse_args()
