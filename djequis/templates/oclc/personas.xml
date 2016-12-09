@@ -1,6 +1,4 @@
-{% load filters %}
-<?xml version="1.0" encoding="UTF-8"?>
-<oclcPersonas xmlns="http://worldcat.org/xmlschemas/IDMPersonas-1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://worldcat.org/xmlschemas/IDMPersonas-1.1 http://worldcat.org/xmlschemas/IDMPersonas/1.1/IDMPersonas-1.1.xsd ">
+{% load filters %}<?xml version="1.0" encoding="UTF-8"?><oclcPersonas xmlns="http://worldcat.org/xmlschemas/IDMPersonas-1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://worldcat.org/xmlschemas/IDMPersonas-1.1 http://worldcat.org/xmlschemas/IDMPersonas/1.1/IDMPersonas-1.1.xsd ">
     {% for o in objs %}
         {% spaceless %}
         {% if o.groupIndex == "3" %}

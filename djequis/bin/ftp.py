@@ -24,10 +24,14 @@ def main():
     )
     ftp.cwd(settings.XTRNL_PATH)
     print ftp.pwd()
-    #ftp.retrlines('LIST')
-    phile = open('/home/skirk/carthage_personas_draft_20161204020018.xml','rb')
-    ftp.storlines("STOR " + 'carthage_personas_draft_20161204020018.xml', phile)
-    phile.close()
+    #phile = open('/home/skirk/carthage_personas_draft_20161204020018.xml','rb')
+    #ftp.storlines("STOR " + 'carthage_personas_draft_20161204020018.xml', phile)
+    #ftp.delete('carthage_personas_draft_20161204020018.xml')
+    phile = 'carthage_personas_draft_20161208212252.xml'
+    ftp.delete(phile)
+    print ftp.retrlines('LIST')
+    print ftp.nlst()
+    #phile.close()
     ftp.quit()
 
     print "end"

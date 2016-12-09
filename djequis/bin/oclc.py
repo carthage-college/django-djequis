@@ -100,13 +100,13 @@ def main():
     if test:
         print xml
     else:
-        temp = StringIO(xml)
+        temp = StringIO(xml.encode('utf-8'))
         ftp = ftplib.FTP(
             settings.XTRNL_SRVR, settings.XTRNL_USER, settings.XTRNL_PASS
         )
         ftp.cwd(settings.XTRNL_PATH)
         phile = "carthage_personas_draft_{:%Y%m%d%H%M%S}.xml".format(NOW)
-        ftp.storlines("STOR" + phile, temp)
+        ftp.storlines("STOR " + phile, temp)
         ftp.quit()
 
 if __name__ == "__main__":
