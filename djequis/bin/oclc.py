@@ -73,7 +73,8 @@ def main():
             lastname, firstname, email
     '''
     folks = []
-    #print sql
+    if test:
+        print sql
     sqlresult = do_sql(sql, earl=EARL)
     for s in sqlresult:
         if test:
