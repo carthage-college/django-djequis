@@ -22,7 +22,7 @@ def main():
     cnopts.hostkeys = None
     XTRNL_CONNECTION = {
     'host':'sftp-us-03.terradotta.com', 'username':'CARTHAGE-SA',
-    'private_key':'/data2/www/keys/terradotta_rsa', 'password':'HRDxt3Qp?DJ+jG5&',
+    'private_key':'/data2/www/keys/terradotta_rsa', 'password':''
     'cnopts':cnopts
     }
     # transfer the CSV to scripsafe
