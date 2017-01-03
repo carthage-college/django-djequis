@@ -21,9 +21,11 @@ def main():
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
     XTRNL_CONNECTION = {
-    'host':'sftp-us-03.terradotta.com', 'username':'CARTHAGE-SA',
-    'private_key':'/data2/www/keys/terradotta_rsa', 'password':''
-    'cnopts':cnopts
+        'host':settings.TERRADOTTA_HOST,
+        'username':settings.TERRADOTTA_USER,
+        'private_key':settings.TERRADOTTA_PKEY,
+        'password':settings.TERRADOTTA_PASS,
+        'cnopts':cnopts
     }
     # transfer the CSV to scripsafe
     with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
