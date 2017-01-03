@@ -30,8 +30,9 @@ def main():
     # transfer the CSV to scripsafe
     with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
         sftp.put("sis_hr_user_info.txt", preserve_mtime=True)
-
+        
     print "done"
-
+    
 if __name__ == "__main__":
+
     sys.exit(main())
