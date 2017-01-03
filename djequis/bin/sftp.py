@@ -24,16 +24,14 @@ def main():
         'host':settings.TERRADOTTA_HOST,
         'username':settings.TERRADOTTA_USER,
         'private_key':settings.TERRADOTTA_PKEY,
-        'password':settings.TERRADOTTA_PASS,
+        'private_key_pass':settings.TERRADOTTA_PASS,
         'cnopts':cnopts
     }
     # transfer the CSV to scripsafe
     with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
         sftp.put("sis_hr_user_info.txt", preserve_mtime=True)
 
-
-    print "files sent to script safe:\n{}".format(philes)
+    print "done"
 
 if __name__ == "__main__":
-
     sys.exit(main())
