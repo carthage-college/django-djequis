@@ -1,23 +1,29 @@
-import io
 import os
-import re
 import sys
 import pysftp
 import csv
 import time
-import argparse
 import shutil
 
-from dateutil.relativedelta import relativedelta
-from StringIO import StringIO
-
+# python paths
 sys.path.append('/usr/lib/python2.7/dist-packages/')
 sys.path.append('/usr/lib/python2.7/')
 sys.path.append('/usr/local/lib/python2.7/dist-packages/')
 sys.path.append('/data2/django_1.9/')
 sys.path.append('/data2/django_projects/')
 sys.path.append('/data2/django_third/')
+# django settings
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
+# informix
+os.environ['INFORMIXSERVER'] = 'wilson'
+os.environ['DBSERVERNAME'] = 'wilson'
+os.environ['INFORMIXDIR'] = '/opt/ibm/informix'
+os.environ['ODBCINI'] = '/etc/odbc.ini'
+os.environ['ONCONFIG'] = 'onconf.cars'
+#os.environ['ONCONFIG'] = 'onconf.carstrain'
+os.environ['INFORMIXSQLHOSTS'] = '/opt/ibm/informix/etc/sqlhosts'
+os.environ['LD_LIBRARY_PATH'] = '$INFORMIXDIR/lib:$INFORMIXDIR/lib/esql:$INFORMIXDIR/lib/tools:/usr/lib/apache2/modules:$INFORMIXDIR/lib/cli'
+os.environ['LD_RUN_PATH'] = '/opt/ibm/informix/lib:/opt/ibm/informix/lib/esql:/opt/ibm/informix/lib/tools:/usr/lib/apache2/modules'
 
 import django
 django.setup()
@@ -30,14 +36,10 @@ from djzbar.utils.informix import do_sql
 from djtools.fields import NOW
 
 EARL = settings.INFORMIX_EARL
-NEXT_YEAR = NOW + relativedelta(years=1)
 
-# set up command-line options
-desc = """
-    Terradotta Synchronization
 """
-parser = argparse.ArgumentParser(description=desc)
-
+Terradotta Synchronization
+"""
 def main():
     sql = '''
         SELECT
@@ -212,28 +214,34 @@ def main():
     sqlresult = do_sql(sql, earl=EARL)
 
     datetimestr = time.strftime("%Y%m%d-%H%M%S")
-    filename=('{}terradotta_{}.csv'.format(settings.TERRADOTTA_CSV_OUTPUT,datetimestr))
-    new_filename=('{}sis_hr_user_info.txt'.format(settings.TERRADOTTA_CSV_OUTPUT))
+    filename=('{}terradotta_{}.csv'.format(
+        settings.TERRADOTTA_CSV_OUTPUT,datetimestr
+    ))
+    new_filename=('{}sis_hr_user_info.txt'.format(
+        settings.TERRADOTTA_CSV_OUTPUT
+    ))
 
     phile=open(filename,"w");
     output=csv.writer(phile, dialect='excel-tab')
 
     sqlresult = do_sql(sql, earl=EARL)
-    output.writerow(["UUUID", "Last Name", "First Name", "Middle Name", "Email",
-                     "DOB", "Gender", "Confidentiality Indicator", "Major 1",
-                     "Major 2", "Minor 1", "Minor 2", "GPA", "Home Address 1",
-                     "Home Address 2", "Home Address 3", "Home Address City",
-                     "Home Address State", "Home Address Zip",
-                     "Home Address Country", "Phone Number", "Class Standing",
-                     "Emergency Contact Name", "Emergency Contact Phone",
-                     "Emergency Contact Relationship", "Country of Citizenship",
-                     "Ethnicity", "Pell Grant Status", "HR Title", "HR Campus Phone",
-                     "HR Flag", "Place Holder 1", "Place Holder 2",
-                     "Place Holder 3", "Place Holder 4", "Place Holder 5",
-                     "Place Holder 6", "Place Holder 7", "Place Holder 8",
-                     "Place Holder 9", "Place Holder 10", "Place Holder 11",
-                     "Place Holder 12", "Place Holder 13", "Place Holder 14",
-                     "Place Holder 15"])
+    output.writerow([
+        "UUUID", "Last Name", "First Name", "Middle Name", "Email",
+        "DOB", "Gender", "Confidentiality Indicator", "Major 1",
+        "Major 2", "Minor 1", "Minor 2", "GPA", "Home Address 1",
+        "Home Address 2", "Home Address 3", "Home Address City",
+        "Home Address State", "Home Address Zip",
+        "Home Address Country", "Phone Number", "Class Standing",
+        "Emergency Contact Name", "Emergency Contact Phone",
+        "Emergency Contact Relationship", "Country of Citizenship",
+        "Ethnicity", "Pell Grant Status", "HR Title", "HR Campus Phone",
+        "HR Flag", "Place Holder 1", "Place Holder 2",
+        "Place Holder 3", "Place Holder 4", "Place Holder 5",
+        "Place Holder 6", "Place Holder 7", "Place Holder 8",
+        "Place Holder 9", "Place Holder 10", "Place Holder 11",
+        "Place Holder 12", "Place Holder 13", "Place Holder 14",
+        "Place Holder 15
+    "])
     for row in sqlresult:
         output.writerow(row)
     phile.close()
@@ -257,6 +265,5 @@ def main():
     print "Done"
 
 if __name__ == "__main__":
-    args = parser.parse_args()
 
     sys.exit(main())
