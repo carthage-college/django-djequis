@@ -103,9 +103,9 @@ def main():
     else:
         temp = StringIO(xml.encode('utf-8'))
         ftp = ftplib.FTP(
-            settings.XTRNL_SRVR, settings.XTRNL_USER, settings.XTRNL_PASS
+            settings.OCLC_XTRNL_SRVR, settings.OCLC_XTRNL_USER, settings.OCLC_XTRNL_PASS
         )
-        ftp.cwd(settings.XTRNL_PATH)
+        ftp.cwd(settings.OCLC_XTRNL_PATH)
         phile = "carthage_personas_draft_{:%Y%m%d%H%M%S}.xml".format(NOW)
         ftp.storlines("STOR " + phile, temp)
         ftp.quit()
