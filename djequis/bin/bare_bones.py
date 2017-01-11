@@ -16,8 +16,14 @@ from django.conf import settings
 
 def main():
     """
-    Find all students who have staff attribute in LDAP
     """
+
+    try:
+        # do something
+    except Exception, e:
+        print >> sys.stderr, "does not exist"
+        print >> sys.stderr, "Exception: %s" % str(e)
+        sys.exit(1)
 
 ######################
 # shell command line
