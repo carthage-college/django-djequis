@@ -34,6 +34,7 @@ from django.utils.encoding import smart_bytes
 from djequis.sql.everbridge import STUDENT_UPLOAD
 from djequis.sql.everbridge import ADULT_UPLOAD
 from djequis.sql.everbridge import FACSTAFF_UPLOAD
+from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 from djtools.fields import NOW
 
@@ -43,7 +44,7 @@ EARL = settings.INFORMIX_EARL
 desc = """
     Everbridge Upload
 """
-
+#We currently send all records but future development may require for script to just update records
 def main():
     #set dictionary
     dict = {'Student': STUDENT_UPLOAD, 'Adult': ADULT_UPLOAD, 'FacStaff': FACSTAFF_UPLOAD}
@@ -73,32 +74,40 @@ def main():
 
         if key == 'FacStaff':
             output.writerow([
-            "First Name", "Middle Initial", "Last Name", "Suffix",
-            "External ID", "Country", "Business Name", "Record Type",
-            "Phone1", "Phone Country1", "Phone2", "Phonecountry2",
-            "Email Address1", "Emailaddress2", "SMS1", "SMS1 Country",
-            "Custom Field1", "Custom Value1", "Custom Field2",
-            "Custom Value2", "Custom Field3", "Custom Value3", "End"
+                "First Name", "Middle Initial", "Last Name", "Suffix",
+                "External ID", "Country", "Business Name", "Record Type",
+                "Phone1", "Phone Country1", "Phone2", "Phonecountry2",
+                "Email Address1", "Emailaddress2", "SMS1", "SMS1 Country",
+                "Custom Field1", "Custom Value1", "Custom Field2",
+                "Custom Value2", "Custom Field3", "Custom Value3", "End"
             ])
         else:
             output.writerow([
-            "First Name", "Middle Initial", "Last Name", "Suffix",
-            "External ID", "Country", "Business Name", "Record Type",
-            "Phone1", "Phone Country1", "Email Address1", "Emailaddress2",
-            "SMS1", "SMS1 Country", "Custom Field1", "Custom Value1",
-            "Custom Field2", "Custom Value2", "Custom Field3",
-            "Custom Value3", "End"
-        ])
+                "First Name", "Middle Initial", "Last Name", "Suffix",
+                "External ID", "Country", "Business Name", "Record Type",
+                "Phone1", "Phone Country1", "Email Address1", "Emailaddress2",
+                "SMS1", "SMS1 Country", "Custom Field1", "Custom Value1",
+                "Custom Field2", "Custom Value2", "Custom Field3",
+                "Custom Value3", "End"
+            ])
 
         for row in sqlresult:
             output.writerow(row)
 
         # transfer the CSV
-        with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
-            sftp.chdir("replace/")
+        try:
+            with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
+                sftp.chdir("replace/")
 
-            sftp.put(filename, preserve_mtime=True)
-            sftp.close()
+                sftp.put(filename, preserve_mtime=True)
+                sftp.close()
+        except Exception, e:
+            SUBJECT = '[Everbridge SFTP] {} failed'.format(key)
+            BODY = 'Unable to PUT upload to Everbridge server.\n\n{}'.format(str(e))
+            sendmail(
+                settings.EVERBRIDGE_TO_EMAIL,settings.EVERBRIDGE_FROM_EMAIL,
+                SUBJECT
+            )
         phile.close()
         print "success: {}".format(key)
 
