@@ -45,9 +45,22 @@ desc = """
 """
 
 def main():
+    #set dictionary
     dict = {'Student': STUDENT_UPLOAD, 'Adult': ADULT_UPLOAD, 'FacStaff': FACSTAFF_UPLOAD}
-    for key, value in dict.items():
 
+    # go to our storage directory on this server
+    os.chdir(settings.EVERBRIDGE_CSV_OUTPUT)
+    cnopts = pysftp.CnOpts()
+    cnopts.hostkeys = None
+    XTRNL_CONNECTION = {
+       'host':settings.EVERBRIDGE_HOST,
+       'username':settings.EVERBRIDGE_USER,
+       'private_key':settings.EVERBRIDGE_PKEY,
+       'cnopts':cnopts
+    }
+
+    for key, value in dict.items():
+        print key
         sqlresult = do_sql(value, earl=EARL)
 
         datetimestr = time.strftime("%Y%m%d%H%M%S")
@@ -80,24 +93,16 @@ def main():
         for row in sqlresult:
             output.writerow(row)
 
-        # go to our storage directory on this server
-        os.chdir(settings.EVERBRIDGE_CSV_OUTPUT)
-        cnopts = pysftp.CnOpts()
-        cnopts.hostkeys = None
-        XTRNL_CONNECTION = {
-           'host':settings.EVERBRIDGE_HOST,
-           'username':settings.EVERBRIDGE_USER,
-           'private_key':settings.EVERBRIDGE_PKEY,
-           'cnopts':cnopts
-        }
         # transfer the CSV
         with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
             sftp.chdir("replace/")
 
-        sftp.put(filename, preserve_mtime=True)
+            sftp.put(filename, preserve_mtime=True)
+            sftp.close()
+        phile.close()
+        print "success: {}".format(key)
 
-    sftp.close()
-    phile.close()
+    print "Done"
 
 if __name__ == "__main__":
 
