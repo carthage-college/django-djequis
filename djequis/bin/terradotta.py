@@ -240,8 +240,8 @@ def main():
         "Place Holder 6", "Place Holder 7", "Place Holder 8",
         "Place Holder 9", "Place Holder 10", "Place Holder 11",
         "Place Holder 12", "Place Holder 13", "Place Holder 14",
-        "Place Holder 15
-    "])
+        "Place Holder 15"
+    ])
     for row in sqlresult:
         output.writerow(row)
     phile.close()
@@ -261,6 +261,8 @@ def main():
     # transfer the CSV to scripsafe
     with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
         sftp.put("sis_hr_user_info.txt", preserve_mtime=True)
+
+    sftp.close()
 
     print "Done"
 
