@@ -20,18 +20,9 @@ def main():
     #os.chdir('/data2/www/data/terradotta/')
     #filename = 'sis_hr_user_info.txt'
     os.chdir('/data2/www/data/everbridge/')
-    filename = 'Student-20170105081228.csv'
+    filename = 'FacStaffUpload-20170111095440.csv'
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
-    '''
-    XTRNL_CONNECTION = {
-        'host':settings.TERRADOTTA_HOST,
-        'username':settings.TERRADOTTA_USER,
-        'private_key':settings.TERRADOTTA_PKEY,
-        'private_key_pass':settings.TERRADOTTA_PASS,
-        'cnopts':cnopts
-    }
-    '''
     XTRNL_CONNECTION = {
         'host':settings.EVERBRIDGE_HOST,
         'username':settings.EVERBRIDGE_USER,
@@ -40,7 +31,10 @@ def main():
     }
     # transfer the CSV to scripsafe
     with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
+        sftp.chdir("replace/")
+        #sftp.put(filename, remotepath="replace/", preserve_mtime=True)
         sftp.put(filename, preserve_mtime=True)
+        sftp.close()
 
     print "done"
 
