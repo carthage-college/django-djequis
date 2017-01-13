@@ -44,12 +44,16 @@ EARL = settings.INFORMIX_EARL
 desc = """
     Everbridge Upload
 """
-#We currently send all records but future development may require for script to just update records
+# We currently send all records but future development may require for script to just update records
 def main():
-    #set dictionary
-    dict = {'Student': STUDENT_UPLOAD, 'Adult': ADULT_UPLOAD, 'FacStaff': FACSTAFF_UPLOAD}
+    # set dictionary
+    dict = {
+        'Student': STUDENT_UPLOAD,
+        'Adult': ADULT_UPLOAD,
+        'FacStaff': FACSTAFF_UPLOAD
+        }
 
-    # go to our storage directory on this server
+    # go to our storage directory on the server
     os.chdir(settings.EVERBRIDGE_CSV_OUTPUT)
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
@@ -72,7 +76,7 @@ def main():
         phile=open(filename,"w");
         output=csv.writer(phile, dialect='excel')
 
-        if key == 'FacStaff':
+        if key == 'FacStaff': # write header row for FacStaff 
             output.writerow([
                 "First Name", "Middle Initial", "Last Name", "Suffix",
                 "External ID", "Country", "Business Name", "Record Type",
@@ -81,7 +85,7 @@ def main():
                 "Custom Field1", "Custom Value1", "Custom Field2",
                 "Custom Value2", "Custom Field3", "Custom Value3", "End"
             ])
-        else:
+        else: # write header row for Student and Adult
             output.writerow([
                 "First Name", "Middle Initial", "Last Name", "Suffix",
                 "External ID", "Country", "Business Name", "Record Type",
@@ -93,8 +97,22 @@ def main():
 
         for row in sqlresult:
             output.writerow(row)
+            # checking for Bad match in either Student or FacStaff query
+            if row.customvalue1 and "Bad match:" in row.customvalue1:
+                print (row)
+                SUBJECT = '[Everbridge] Bad match: {}, {}'.format(
+                    row.lastname, row.firstname
+                )
+                BODY = '''
+                    A bad match exists in the file we are sending to Everbridge.
+                    \n\r\n\r{}
+                '''.format(str(row))
+                sendmail(
+                    settings.EVERBRIDGE_TO_EMAIL,
+                    settings.EVERBRIDGE_FROM_EMAIL, BODY, SUBJECT
+                )
 
-        # transfer the CSV
+        # SFTP the CSV
         try:
             with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
                 sftp.chdir("replace/")
@@ -106,8 +124,9 @@ def main():
             BODY = 'Unable to PUT upload to Everbridge server.\n\n{}'.format(str(e))
             sendmail(
                 settings.EVERBRIDGE_TO_EMAIL,settings.EVERBRIDGE_FROM_EMAIL,
-                SUBJECT
+                SUBJECT, BODY
             )
+
         phile.close()
         print "success: {}".format(key)
 
