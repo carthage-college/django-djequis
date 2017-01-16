@@ -5,30 +5,34 @@ import csv
 import time
 import shutil
 
-# python paths
+# python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
 sys.path.append('/usr/lib/python2.7/')
 sys.path.append('/usr/local/lib/python2.7/dist-packages/')
 sys.path.append('/data2/django_1.9/')
 sys.path.append('/data2/django_projects/')
 sys.path.append('/data2/django_third/')
-# django settings
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
-# informix
-os.environ['INFORMIXSERVER'] = 'wilson'
-os.environ['DBSERVERNAME'] = 'wilson'
-os.environ['INFORMIXDIR'] = '/opt/ibm/informix'
-os.environ['ODBCINI'] = '/etc/odbc.ini'
-os.environ['ONCONFIG'] = 'onconf.cars'
-#os.environ['ONCONFIG'] = 'onconf.carstrain'
-os.environ['INFORMIXSQLHOSTS'] = '/opt/ibm/informix/etc/sqlhosts'
-os.environ['LD_LIBRARY_PATH'] = '$INFORMIXDIR/lib:$INFORMIXDIR/lib/esql:$INFORMIXDIR/lib/tools:/usr/lib/apache2/modules:$INFORMIXDIR/lib/cli'
-os.environ['LD_RUN_PATH'] = '/opt/ibm/informix/lib:/opt/ibm/informix/lib/esql:/opt/ibm/informix/lib/tools:/usr/lib/apache2/modules'
 
+# django settings for shell environment
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
+
+# prime django
 import django
 django.setup()
 
+# django settings for script
 from django.conf import settings
+
+# informix environment
+os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
+os.environ['DBSERVERNAME'] = settings.DBSERVERNAME
+os.environ['INFORMIXDIR'] = settings.INFORMIXDIR
+os.environ['ODBCINI'] = settings.ODBCINI
+os.environ['ONCONFIG'] = settings.ONCONFIG
+os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
+os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
+os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
+
 from django.template import loader, Context
 from django.utils.encoding import smart_bytes
 from djequis.sql.everbridge import STUDENT_UPLOAD
