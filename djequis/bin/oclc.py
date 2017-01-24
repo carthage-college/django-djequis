@@ -115,18 +115,18 @@ def main():
                 'groupIndex':s[12]
             })
     xml = paint_xml(folks)
-    if test:
-        print xml
-    else:
-        temp = StringIO(xml.encode('utf-8'))
-        ftp = ftplib.FTP(
-            settings.OCLC_XTRNL_SRVR, settings.OCLC_XTRNL_USER,
-            settings.OCLC_XTRNL_PASS
-        )
-        ftp.cwd(settings.OCLC_XTRNL_PATH)
-        phile = "carthage_personas_draft_{:%Y%m%d%H%M%S}.xml".format(NOW)
-        ftp.storlines("STOR " + phile, temp)
-        ftp.quit()
+    #if test:
+    #    print xml
+    #else:
+    #    temp = StringIO(xml.encode('utf-8'))
+    #    ftp = ftplib.FTP(
+    #        settings.OCLC_XTRNL_SRVR, settings.OCLC_XTRNL_USER,
+    #        settings.OCLC_XTRNL_PASS
+    #    )
+    #    ftp.cwd(settings.OCLC_XTRNL_PATH)
+    #    phile = "carthage_personas_draft_{:%Y%m%d%H%M%S}.xml".format(NOW)
+    #    ftp.storlines("STOR " + phile, temp)
+    #    ftp.quit()
 
 if __name__ == "__main__":
     args = parser.parse_args()
