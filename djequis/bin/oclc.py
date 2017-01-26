@@ -46,8 +46,6 @@ from djtools.fields import NOW
 EARL = settings.INFORMIX_EARL
 NEXT_YEAR = NOW + relativedelta(years=1)
 
-GROUPS = ['Other','Student','Staff','Faculty']
-
 # set up command-line options
 desc = """
     OCLC Synchronization
@@ -74,7 +72,9 @@ def main():
     sql = '''
         SELECT
             lastname, firstname, middlename, id, addr_line1, addr_line2,
-            city, st, ctry, zip, phone, email,
+            city, st,
+            TRIM(NVL(INITCAP(ctry_table.txt), directory_vw.ctry)) AS ctry,
+            zip, phone, email,
                 MAX(
                     CASE grouping
                         WHEN    'Faculty'   THEN    3
@@ -82,12 +82,13 @@ def main():
                         WHEN    'Student'   THEN    1
                                             ELSE    0
                     END
-                    ) AS groupIndex
+                    ) AS groupIndex, grouping
         FROM
             directory_vw
+        LEFT JOIN ctry_table ON directory_vw.ctry = ctry_table.ctry
         GROUP BY
             lastname, firstname, middlename, id, addr_line1, addr_line2,
-            city, st, ctry, zip, phone, email
+            city, st, ctry, zip, phone, email, grouping
         ORDER BY
             lastname, firstname, email
     '''
@@ -109,11 +110,18 @@ def main():
             'zip':s.zip,
             'phone':s.phone,
             'email':s.email,
-            'group':GROUPS[s[12]]
+            'groupIndex':s[12],
+            'grouping':s.grouping.decode('cp1252').encode('utf-8')
         })
     xml = paint_xml(folks)
     if test:
         print xml
+        phile = "{}carthage_personas_draft_{:%Y%m%d%H%M%S}.xml".format(
+            settings.OCLC_LOCAL_PATH,NOW
+        )
+        f = io.open(phile, 'w', encoding='utf8')
+        f.write(xml)
+        f.close()
     else:
         temp = StringIO(xml.encode('utf-8'))
         ftp = ftplib.FTP(

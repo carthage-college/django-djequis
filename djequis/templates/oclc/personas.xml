@@ -12,7 +12,7 @@
             </nameInfo>
             <wmsCircPatronInfo>
                 <barcode>{{o.id|stringformat:"010d"}}</barcode>
-                <borrowerCategory>{{ o.group }}</borrowerCategory>
+                <borrowerCategory>{{ o.grouping }}</borrowerCategory>
                 <circRegistrationDate>2010-01-01T12:00:00</circRegistrationDate>
                 <circExpirationDate>{{next_year|date:"c"}}</circExpirationDate>
                 <homeBranch>131408</homeBranch>
