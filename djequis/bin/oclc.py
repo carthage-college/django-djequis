@@ -46,6 +46,8 @@ from djtools.fields import NOW
 EARL = settings.INFORMIX_EARL
 NEXT_YEAR = NOW + relativedelta(years=1)
 
+GROUPS = ['Other','Student','Staff','Faculty']
+
 # set up command-line options
 desc = """
     OCLC Synchronization
@@ -65,7 +67,7 @@ def paint_xml(data):
     t = loader.get_template('oclc/personas.xml')
     c = Context({ 'objs': data, 'next_year':NEXT_YEAR })
     output = t.render(c)
-    #print output
+
     return output
 
 def main():
@@ -94,39 +96,34 @@ def main():
         print sql
     sqlresult = do_sql(sql, earl=EARL)
     for s in sqlresult:
-        if test:
-            print "[{}] {}, {}: {} {}".format(
-                s.id, s.lastname, s.firstname, s.email, s[12]
-            )
-        else:
-            folks.append({
-                'lastname':s.lastname.decode('cp1252').encode('utf-8'),
-                'firstname':s.firstname.decode('cp1252').encode('utf-8'),
-                'middlename':s.middlename.decode('cp1252').encode('utf-8'),
-                'id':s.id,
-                'addr_line1':s.addr_line1,
-                'addr_line2':s.addr_line2,
-                'city':s.city.decode('cp1252').encode('utf-8'),
-                'st':s.st,
-                'ctry':s.ctry.decode('cp1252').encode('utf-8'),
-                'zip':s.zip,
-                'phone':s.phone,
-                'email':s.email,
-                'groupIndex':s[12]
-            })
+        folks.append({
+            'lastname':s.lastname.decode('cp1252').encode('utf-8'),
+            'firstname':s.firstname.decode('cp1252').encode('utf-8'),
+            'middlename':s.middlename.decode('cp1252').encode('utf-8'),
+            'id':s.id,
+            'addr_line1':s.addr_line1,
+            'addr_line2':s.addr_line2,
+            'city':s.city.decode('cp1252').encode('utf-8'),
+            'st':s.st,
+            'ctry':s.ctry.decode('cp1252').encode('utf-8'),
+            'zip':s.zip,
+            'phone':s.phone,
+            'email':s.email,
+            'group':GROUPS[s[12]]
+        })
     xml = paint_xml(folks)
-    #if test:
-    #    print xml
-    #else:
-    #    temp = StringIO(xml.encode('utf-8'))
-    #    ftp = ftplib.FTP(
-    #        settings.OCLC_XTRNL_SRVR, settings.OCLC_XTRNL_USER,
-    #        settings.OCLC_XTRNL_PASS
-    #    )
-    #    ftp.cwd(settings.OCLC_XTRNL_PATH)
-    #    phile = "carthage_personas_draft_{:%Y%m%d%H%M%S}.xml".format(NOW)
-    #    ftp.storlines("STOR " + phile, temp)
-    #    ftp.quit()
+    if test:
+        print xml
+    else:
+        temp = StringIO(xml.encode('utf-8'))
+        ftp = ftplib.FTP(
+            settings.OCLC_XTRNL_SRVR, settings.OCLC_XTRNL_USER,
+            settings.OCLC_XTRNL_PASS
+        )
+        ftp.cwd(settings.OCLC_XTRNL_PATH)
+        phile = "carthage_personas_draft_{:%Y%m%d%H%M%S}.xml".format(NOW)
+        ftp.storlines("STOR " + phile, temp)
+        ftp.quit()
 
 if __name__ == "__main__":
     args = parser.parse_args()
