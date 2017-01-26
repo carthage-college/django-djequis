@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://worldcat.org/xmlschemas/IDMPersonas-1.1" targetNamespace="http://worldcat.org/xmlschemas/IDMPersonas-1.1" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="oclcPersonas" type="OclcPersonas"/>
+	<xs:complexType name="OclcPersonas">
+		<xs:sequence maxOccurs="unbounded">
+			<xs:element name="persona" type="Persona">
+				<xs:annotation>
+					<xs:documentation>A person at an institution plus some WMS contextual roles and prefs.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Persona">
+		<xs:sequence>
+			<xs:element name="correlationInfo" type="CorrelationInfo" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Contains either the identification of the user at the external system to allow correlation with an existing idm user for update if one exists (the IDatSource) and possibly a login username to assign the user. OR the identification of a user specific to an individual system using UDS data (the PPID).</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="nameInfo" type="NameInfo"/>
+			<xs:element name="dateOfBirth" type="xs:date" minOccurs="0"/>
+			<xs:element name="gender" type="xs:string" minOccurs="0"/>
+			<xs:element name="wmsCircPatronInfo" type="WmsCircPatronInfo" minOccurs="0"/>
+			<xs:element name="preferences" type="Preferences" minOccurs="0"/>
+			<xs:element name="contactInfo" type="ContactInfo" minOccurs="1" maxOccurs="unbounded"/>
+			<xs:element name="role" type="Role" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Could be derived from data kept as additionalInfo; mappingcomes from profile.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="relationship" type="Relationship" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="note" type="Note" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Existing notes must not be replaced or overwritten on update.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="additionalInfo" type="KeyValuePair" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="cancelledBarcode" type="OldBarcode" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Carries barcodes that have been cancelled; e.g. because a library card was lost and replaced; however, the old barcode might still be referenced as a patron key in outstanding circulation transactions and must therefore be retained.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="oclcUserName" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>This the user's login name for use in OCLC-managed authentication.  Absent (or empty)  if the userName is to be derived from some other piece of information, such as a barcode.  Absent if OCLC is not providing authenication for this institution.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="oclcExpirationDate" type="xs:dateTime" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>The date on which the user's account expires; the user will no longer be authenticated to use the system for any purposeafter this date; distinct from circulation expiration date.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+        <xs:attribute name="institutionId" use="required">
+            <xs:annotation>
+                <xs:documentation>The insitution id in the OCLC Institution Registry.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+		<xs:attribute name="optimisticLockId" type="xs:string"/>
+		<xs:attribute name="ppid" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>A type-4 UUID.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="relyingParty" type="xs:string"/>
+		<xs:attribute name="createdOn" type="xs:dateTime"/>
+		<xs:attribute name="createdBy" type="xs:string"/>
+		<xs:attribute name="lastUpdatedOn" type="xs:dateTime"/>
+		<xs:attribute name="lastUpdatedBy" type="xs:string"/>
+	</xs:complexType>
+	<xs:complexType name="NameInfo">
+		<xs:sequence>
+			<xs:element name="prefix" type="xs:string" minOccurs="0"/>
+			<xs:element name="givenName" type="xs:string" minOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Added from validation/parsing if not provided in this form.  Profile tells us how to parse a fullname if we need to. Put unparseable data here.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="middleName" type="xs:string" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="familyName" type="xs:string" minOccurs="0"/>
+			<xs:element name="suffix" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>A generation indicator such as Jr, III, and/or an epithet such as PhD, FRS.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="fullName" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Stored for archival/audit purposes if provided in this form.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="nickname" type="xs:string" minOccurs="0"/>
+			<xs:element name="otherNameInfo" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Could contain names of other people, e.g. additional names on a "family" library card for libraries that do not wish to give every patron their own card (and thus user record).</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="WmsCircPatronInfo">
+		<xs:sequence>
+			<xs:element name="barcode" type="xs:string" minOccurs="0"/>
+			<xs:element name="barcodeStatus" type="xs:string" minOccurs="0"/>
+			<xs:element name="pin" type="xs:string" minOccurs="0"/>
+			<xs:element name="borrowerCategory" type="xs:string" minOccurs="0"/>
+			<xs:element name="circRegistrationDate" type="xs:dateTime" minOccurs="0"/>
+			<xs:element name="circExpirationDate" type="xs:dateTime" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Possibly default value from profile.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="homeBranch" type="xs:string" minOccurs="0"/>
+			<xs:element name="isCircBlocked" type="xs:boolean" minOccurs="0"/>
+			<xs:element name="isCollectionExempt" type="xs:boolean" minOccurs="0"/>
+			<xs:element name="isFineExempt" type="xs:boolean" minOccurs="0"/>
+			<xs:element name="isVerified" type="xs:boolean" minOccurs="0"/>
+			<xs:element name="storeCheckoutHistory" type="xs:boolean" minOccurs="0"/>
+			<xs:element name="claimedLostCount" type="xs:nonNegativeInteger" minOccurs="0"/>
+			<xs:element name="claimedReturnedCount" type="xs:nonNegativeInteger" minOccurs="0"/>
+			<xs:element name="claimedNeverHadCount" type="xs:nonNegativeInteger" minOccurs="0"/>
+			<xs:element name="waivedAmount" type="xs:decimal" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ContactInfo">
+		<xs:sequence>
+			<xs:choice>
+				<xs:element name="physicalLocation" type="PhysicalLocation"/>
+				<xs:element name="email" type="EmailAddress">
+					<xs:annotation>
+						<xs:documentation>Absence of email address should be noted as part of validation.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="phone" type="Phone">
+					<xs:annotation>
+						<xs:documentation>A telephone number not associated with a physical address is assumed to be a mobile number.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:choice>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:string" use="optional"/>
+	</xs:complexType>
+	<xs:complexType name="PhysicalLocation">
+		<xs:sequence>
+			<xs:element name="postalAddress" type="PostalAddress" minOccurs="0"/>
+			<xs:element name="phone" type="Phone" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="isPermanent" type="xs:boolean" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Profile needs to say how to determine permanence.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="validFrom" type="xs:dateTime" minOccurs="0"/>
+			<xs:element name="validTo" type="xs:dateTime" minOccurs="0"/>
+			<!-- Why do we care about a range of dates for a location? -->
+			<!-- Because many students are in temporary accommodation, such as halls of residence.  You don't want to send notices there after term ends. -->
+			<xs:element name="label" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>A user-supplied label to identify the contact info.  E.g. "home", "assistant", etc.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="isPrimary" type="xs:boolean" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>an indication as to whether ths physical location is the user's primary address.  A user may have a primary physical location and a primary email and a primary phone </xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="EmailAddress">
+		<xs:sequence>
+			<xs:element name="emailAddress" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Structural check required.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="isValid" type="xs:boolean" minOccurs="0"/>
+			<xs:element name="verified" type="xs:date" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Lets us store a timestamp on which the email address was verified.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="isPrimary" type="xs:boolean" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Phone">
+		<xs:sequence>
+			<xs:element name="number" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Needs to be checked for structural soundness.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="isValid" type="xs:boolean" minOccurs="0"/>
+			<xs:element name="verified" type="xs:date" minOccurs="0"/>
+			<xs:element name="isPrimary" type="xs:boolean" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Loading profile needs to say how to pick primary.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="PostalAddress">
+		<xs:sequence>
+			<xs:element name="streetAddressLine1" type="xs:string"/>
+			<xs:element name="streetAddressLine2" type="xs:string" minOccurs="0"/>
+			<xs:element name="cityOrLocality" type="xs:string"/>
+			<xs:element name="stateOrProvince" type="xs:string" minOccurs="0"/>
+			<xs:element name="postalCode" type="xs:string"/>
+			<xs:element name="country" type="xs:string" minOccurs="0"/>
+			<!-- Not restricting to ISO codes. -->
+			<xs:element name="isValid" type="xs:boolean" minOccurs="0"/>
+			<xs:element name="verified" type="xs:date" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="CorrelationInfo">
+		<xs:sequence>
+			<xs:element name="sourceSystem" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>An entity id - provided by OCLC implementation team.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="idAtSource" type="xs:string"/>
+			<xs:element name="lastLoginDate" type="xs:dateTime" minOccurs="0"/>
+			<xs:element name="isBlocked" type="xs:boolean" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Whether the user's account is blocked or suspended - i.e. not allowed to use any OCLC services (as opposed to circulation activities being blocked).</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="id"/>
+	</xs:complexType>
+	<xs:complexType name="Note">
+		<xs:sequence>
+			<xs:element name="businessContext" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Comes from authZ context when creating note.  Needs UDS schema change!</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="authorId" type="xs:string" minOccurs="0"/>
+			<xs:element name="flag" type="xs:string" minOccurs="0"/>
+			<xs:element name="isPublic" type="xs:boolean" minOccurs="0"/>
+			<xs:element name="modifiedDate" type="xs:dateTime" minOccurs="0"/>
+			<xs:element name="text" type="xs:string"/>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:string" use="optional"/>
+	</xs:complexType>
+	<xs:complexType name="KeyValuePair">
+		<xs:sequence>
+			<xs:element name="businessContext" type="xs:string" minOccurs="0"/>
+			<xs:element name="key" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Assumes that business context can be inferred from the key name if necessary; and key names need to be unique within the UDS.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="value" type="xs:string"/>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:string" use="optional"/>
+	</xs:complexType>
+	<xs:complexType name="Role">
+		<xs:sequence>
+			<xs:element name="authorityId" type="xs:string" minOccurs="0"/>
+			<xs:element name="authorityIdType" type="xs:string" minOccurs="0"/>
+			<xs:element name="isExplicit" type="xs:boolean" minOccurs="0"/>
+			<xs:element name="roleName" type="xs:string"/>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:string" use="optional"/>
+	</xs:complexType>
+	<xs:complexType name="Preferences">
+		<xs:sequence>
+			<xs:element name="locale" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Intended to allow overriding the value  supplied from the institution profile; not currently actioned.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="noTelephoneCalls" type="xs:boolean" minOccurs="0"/>
+			<xs:element name="preferredNotificationMethod" type="NotificationMethod" minOccurs="0"/>
+			<xs:element name="timezone" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>Intended to allow overriding the value  supplied from the institution profile; not currently actioned.</xs:documentation>
+				</xs:annotation>
+				<!-- Assumption is that this has to be a value from the set returned by the "getRegionId()" method of the Java "java.javax.time.calendar.TimeZone" class.  This is a subset of the TZ database available at "http://www.twinsun.com/tz/tz-link.htm".  There are some 400 timezone names in this database.  Timezone names generally take the form  continent/city, e.g. "America/Los_Angeles", "Europe/London", "Asia/Shanghai". -->
+			</xs:element>
+			<xs:element name="useHighContrastDisplay" type="xs:boolean" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="NotificationMethod">
+		<xs:sequence>
+			<xs:element name="label" type="xs:string"/>
+			<xs:element name="businessContext" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>The context in which the user has specified their preference.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Relationship">
+		<xs:sequence>
+			<xs:element name="relationshipType" type="xs:string"/>
+			<!-- Unrestricted because we don't know the set of possible values to be supported by the applications. -->
+			<xs:element name="targetUserId" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>On loading this wil not be the id stored within the database!  Loading will need to build a temporary table for processing after all loading is finished.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:string" use="optional"/>
+	</xs:complexType>
+	<xs:complexType name="OldBarcode">
+		<xs:sequence>
+			<xs:element name="barcode" type="xs:string"/>
+			<xs:element name="cancelledOn" type="xs:dateTime"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>
