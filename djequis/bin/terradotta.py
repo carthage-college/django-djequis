@@ -230,21 +230,21 @@ def main():
 
     sqlresult = do_sql(sql, earl=EARL)
     output.writerow([
-        "UUUID", "Last Name", "First Name", "Middle Name", "Email",
-        "DOB", "Gender", "Confidentiality Indicator", "Major 1",
-        "Major 2", "Minor 1", "Minor 2", "GPA", "Home Address 1",
-        "Home Address 2", "Home Address 3", "Home Address City",
-        "Home Address State", "Home Address Zip",
-        "Home Address Country", "Phone Number", "Class Standing",
-        "Emergency Contact Name", "Emergency Contact Phone",
-        "Emergency Contact Relationship", "Country of Citizenship",
-        "Ethnicity", "Pell Grant Status", "HR Title", "HR Campus Phone",
-        "HR Flag", "Place Holder 1", "Place Holder 2",
-        "Place Holder 3", "Place Holder 4", "Place Holder 5",
-        "Place Holder 6", "Place Holder 7", "Place Holder 8",
-        "Place Holder 9", "Place Holder 10", "Place Holder 11",
-        "Place Holder 12", "Place Holder 13", "Place Holder 14",
-        "Place Holder 15"
+        "UUUID", "LAST_NAME", "FIRST_NAME", "MIDDLE_NAME", "EMAIL",
+        "DOB", "GENDER", "CONFIDENTIALITY_INDICATOR", "MAJOR_1",
+        "MAJOR_2", "MINOR_1", "MINOR_2", "GPA", "HOME_ADDRESS_LINE1",
+        "HOME_ADDRESS_LINE2", "HOME_ADDRESS_LINE3", "HOME_ADDRESS_CITY",
+        "HOME_ADDRESS_STATE", "HOME_ADDRESS_ZIP",
+        "HOME_ADDRESS_COUNTRY", "PHONE_NUMBER", "CLASS_STANDING",
+        "EMERGENCY_CONTACT_NAME", "EMERGENCY_CONTACT_PHONE",
+        "EMERGENCY_CONTACT_RELATIONSHIP", "COUNTRY_OF_CITIZENSHIP",
+        "ETHNICITY", "PELL_GRANT_STATUS", "HR_TITLE", "HR_CAMPUS_PHONE",
+        "HR_FLAG", "PLACE_HOLDER_1", "PLACE_HOLDER_2",
+        "PLACE_HOLDER_3", "PLACE_HOLDER_4", "PLACE_HOLDER_5",
+        "PLACE_HOLDER_6", "PLACE_HOLDER_7", "PLACE_HOLDER_8",
+        "PLACE_HOLDER_9", "PLACE_HOLDER_10", "PLACE_HOLDER_11",
+        "PLACE_HOLDER_12", "PLACE_HOLDER_13", "PLACE_HOLDER_14",
+        "PLACE_HOLDER_15"
     ])
     for row in sqlresult:
         output.writerow(row)
