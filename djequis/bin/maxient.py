@@ -43,7 +43,7 @@ EARL = settings.INFORMIX_EARL
 
 # set up command-line options
 desc = """
-    Maxient Upload
+    Maxient Upload via sftp
 """
 parser = argparse.ArgumentParser(description=desc)
 
