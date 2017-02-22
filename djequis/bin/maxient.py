@@ -2,7 +2,7 @@ import os
 import sys
 import pysftp
 import csv
-import shutil
+import argparse
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -45,6 +45,15 @@ EARL = settings.INFORMIX_EARL
 desc = """
     Maxient Upload
 """
+parser = argparse.ArgumentParser(description=desc)
+
+parser.add_argument(
+    "--test",
+    action='store_true',
+    help="Dry run?",
+    dest="test"
+)
+
 def main():
     # go to our storage directory on the server
     os.chdir(settings.MAXIENT_CSV_OUTPUT)
@@ -66,20 +75,21 @@ def main():
     # create txt file using pipe delimiter
     phile=open(filename,"w");
     output=csv.writer(phile, delimiter="|")
-    # No Header required but used for testing
-    #output.writerow([
-    #    "Carthage ID", "Username", "Last Name", "First Name",
-    #    "Middle Name", "Date of Birth", "Gender", "Ethnicity",
-    #    "Building", "Room Number", "Local Mailing Address",
-    #    "Local City", "Local State", "Local Zip", "Local Phone",
-    #    "Cell Phone", "Permanent Address", "Permanent City",
-    #    "Permanent State", "Permanent Zip", "Permanent Country",
-    #    "Permanent Phone", "Emergency Contact", "Email Address",
-    #    "Classification", "Academic Major", "Academic Advisor",
-    #    "GPA Recent", "GPA Cumulative", "Athlete", "Greek", "Honors",
-    #    "ROTC Vet", "Last Update"
-    #])
-    #print (sqlresult)
+
+    if test:
+        # No Header required but used for testing
+        output.writerow([
+            "Carthage ID", "Username", "Last Name", "First Name",
+            "Middle Name", "Date of Birth", "Gender", "Ethnicity",
+            "Building", "Room Number", "Local Mailing Address",
+            "Local City", "Local State", "Local Zip", "Local Phone",
+            "Cell Phone", "Permanent Address", "Permanent City",
+            "Permanent State", "Permanent Zip", "Permanent Country",
+            "Permanent Phone", "Emergency Contact", "Email Address",
+            "Classification", "Academic Major", "Academic Advisor",
+            "GPA Recent", "GPA Cumulative", "Athlete", "Greek", "Honors",
+            "ROTC Vet", "Last Update"
+        ])
     # create file
     if sqlresult is not None:
         for row in sqlresult:
@@ -103,5 +113,7 @@ def main():
     print "success: MAXIENT UPLOAD"
 
 if __name__ == "__main__":
+    args = parser.parse_args()
+    test = args.test
 
     sys.exit(main())
