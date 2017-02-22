@@ -64,6 +64,7 @@ def main():
        'host':settings.MAXIENT_HOST,
        'username':settings.MAXIENT_USER,
        'private_key':settings.MAXIENT_PKEY,
+       'private_key_pass':settings.MAXIENT_PASS,
        'cnopts':cnopts
     }
     # Run SQL statement
@@ -103,14 +104,18 @@ def main():
             sftp.chdir("incoming/")
             sftp.put(filename, preserve_mtime=True)
             sftp.close()
+        if test:
+            print "success: MAXIENT UPLOAD"
     except Exception, e:
-        SUBJECT = '[Maxient SFTP] MAXIENT UPLOAD failed'
-        BODY = 'Unable to PUT upload to Maxient server.\n\n{}'.format(str(e))
-        sendmail(
-            settings.MAXIENT_TO_EMAIL,settings.MAXIENT_FROM_EMAIL,
-            SUBJECT, BODY
-        )
-    print "success: MAXIENT UPLOAD"
+        if test:
+            print e
+        else:
+            SUBJECT = '[Maxient SFTP] MAXIENT UPLOAD failed'
+            BODY = 'Unable to PUT upload to Maxient server.\n\n{}'.format(str(e))
+            sendmail(
+                settings.MAXIENT_TO_EMAIL,settings.MAXIENT_FROM_EMAIL,
+                SUBJECT, BODY
+            )
 
 if __name__ == "__main__":
     args = parser.parse_args()
