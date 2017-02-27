@@ -21,7 +21,7 @@ django.setup()
 from django.conf import settings
 from django.db.models import Q
 
-from djequis.rt.models import Users
+from djequis.rt.models import Tickets, Users
 from djtools.utils.mail import validateEmail
 
 # set up command-line options
