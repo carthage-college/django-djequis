@@ -21,13 +21,13 @@ django.setup()
 from django.conf import settings
 from django.db.models import Q
 
-from djequis.rt.models import Tickets, Users
+from djequis.rt.models import Users
 from djtools.utils.mail import validateEmail
 
 # set up command-line options
 
 desc = """
-    Update request track data
+    Update request tracker Users data
 """
 
 parser = argparse.ArgumentParser(description=desc)
@@ -41,7 +41,7 @@ parser.add_argument(
 
 def main():
     """
-    Update request track data
+    Update request tracker Users data
     """
 
     # exclude admin users
@@ -85,20 +85,6 @@ def main():
         if save and not test:
             u.save()
             save = False
-
-    # tickets
-    '''
-    UPDATE
-        Tickets
-    SET
-        Tickets.TimeEstimated = [TimeWorked]+[TimeLeft]+1
-    WHERE
-        (((Tickets.Status) In ("open (Unchanged)","open","new","stalled"))
-    AND
-        ((IIf([TimeEstimated]=0 Or [TimeEstimated]<[TimeWorked]+[TimeLeft],"DoIt","Skip"))="DoIt")
-    AND
-        ((Tickets.Type)<>"reminder"));
-    '''
 
 ######################
 # shell command line
