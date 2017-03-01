@@ -51,11 +51,14 @@ def main():
     ).exclude(type = "reminder")
 
     for t in tickets:
-        if t.timeestimated==0 or (t.timeestimated < (t.timeworked + t.timeleft)):
+        # see Tickets 1 incantation
+        if t.timeestimated==0 or \
+          (t.timeestimated < (t.timeworked + t.timeleft)):
             if test:
                 print t
             else:
                 t.timeestimated = t.timeworked + t.timeleft + 1
+        # see Tickets 2 incantation
         if not test:
             t.timeleft = t.timeestimated - t.timeworked
 

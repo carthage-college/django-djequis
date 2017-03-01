@@ -27,7 +27,7 @@ from djtools.utils.mail import validateEmail
 # set up command-line options
 
 desc = """
-    Update request tracker Users data
+    Update request tracker Users table data
 """
 
 parser = argparse.ArgumentParser(description=desc)
@@ -41,7 +41,7 @@ parser.add_argument(
 
 def main():
     """
-    Update request tracker Users data
+    Update request tracker Users table data
     """
 
     # exclude admin users
@@ -59,6 +59,7 @@ def main():
         elist = u.name.split('@')
         if (len(elist) == 2 and elist[1] == 'carthage.edu'):
             # convert user name from email to username
+            # see Users 1 incantation
             if test:
                 print "Users.name {} will become {}".format(u.name,elist[0])
             else:
@@ -69,6 +70,7 @@ def main():
                     u.name = elist[0]
 
             # set email to carthage address if no email present
+            # see Users 2 incantation
             if not validateEmail(u.emailaddress) or not u.emailaddress:
                 email = '{}@carthage.edu'.format(elist[0])
                 if test:

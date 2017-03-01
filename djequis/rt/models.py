@@ -4,15 +4,33 @@ from django.db import models
 
 
 class Acl(models.Model):
-    principaltype = models.CharField(db_column='PrincipalType', max_length=25)
-    principalid = models.IntegerField(db_column='PrincipalId')
-    rightname = models.CharField(db_column='RightName', max_length=25)
-    objecttype = models.CharField(db_column='ObjectType', max_length=25)
-    objectid = models.IntegerField(db_column='ObjectId')
-    creator = models.IntegerField(db_column='Creator')
-    created = models.DateTimeField(db_column='Created', blank=True, null=True)
-    lastupdatedby = models.IntegerField(db_column='LastUpdatedBy')
-    lastupdated = models.DateTimeField(db_column='LastUpdated', blank=True, null=True)
+    principaltype = models.CharField(
+        db_column='PrincipalType', max_length=25
+    )
+    principalid = models.IntegerField(
+        db_column='PrincipalId'
+    )
+    rightname = models.CharField(
+        db_column='RightName', max_length=25
+    )
+    objecttype = models.CharField(
+        db_column='ObjectType', max_length=25
+    )
+    objectid = models.IntegerField(
+        db_column='ObjectId'
+    )
+    creator = models.IntegerField(
+        db_column='Creator'
+    )
+    created = models.DateTimeField(
+        db_column='Created', blank=True, null=True
+    )
+    lastupdatedby = models.IntegerField(
+        db_column='LastUpdatedBy'
+    )
+    lastupdated = models.DateTimeField(
+        db_column='LastUpdated', blank=True, null=True
+    )
 
     class Meta:
         managed = False
