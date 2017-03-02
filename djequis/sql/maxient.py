@@ -1,3 +1,4 @@
+DEMOGRAPHIC_DATA = '''
     SELECT DISTINCT DIR.id AS Carthage_ID, TRIM(REPLACE(DIR.email, '@carthage.edu', '')) AS Username,
     DIR.lastname AS Last_Name, DIR.firstname AS First_Name, DIR.middlename AS Middle_Name,
     TO_CHAR(PROF.birth_date, '%Y-%m-%d') AS Date_of_Birth,
@@ -67,8 +68,8 @@
                                     ELSE TRIM(DIR.zip)
     END AS Permanent_Zip,
     CASE
-        WHEN PERM.aa_no IS NOT NULL THEN CASE NVL(PERM.ctry,'') WHEN 'US' THEN '' WHEN 'USA' THEN '' ELSE TRIM(NVL(PERM.ctry,'')) END
-                                    ELSE TRIM(DIR.ctry)
+        WHEN PERM.aa_no IS NOT NULL THEN CASE TRIM(NVL(PERM.ctry,'')) WHEN 'US' THEN '' WHEN 'USA' THEN '' ELSE TRIM(NVL(PERM.ctry,'')) END
+                                    ELSE CASE TRIM(DIR.ctry) WHEN 'US' THEN '' WHEN 'USA' THEN '' ELSE TRIM(NVL(DIR.ctry,'')) END
     END AS Permanent_Country, '' AS Permanent_Phone,
     --  EMERGENCY CONTACT INFORMATION
     CASE
@@ -95,9 +96,9 @@
         WHEN NVL(ATH.sport_name,'') <> '' AND NVL(pastAth.sport_name,'') =  '' THEN ATH.sport_name
         WHEN NVL(ATH.sport_name,'') <> '' AND NVL(pastAth.sport_name,'') <> '' THEN ATH.sport_name || ', ' || pastAth.sport_name
         WHEN NVL(ATH.sport_name,'') =  '' AND NVL(pastAth.sport_name,'') <> '' THEN pastAth.sport_name
-                                                                               ELSE ''
+                                                                               ELSE 'Not Athlete'
     END AS Athlete,
-    NVL(GRK.greek_name,'') AS Greek, '' AS Honors, PROF.vet AS ROTC_Vet, TO_CHAR(TODAY, '%Y-%m-%d') AS Last_Update
+    NVL(GRK.greek_name,'Not Greek') AS Greek, 'N/A' AS Honors, 'N/A' AS ROTC, TO_CHAR(TODAY, '%Y-%m-%d') AS Last_Update
 FROM
     directory_vw DIR
         INNER JOIN profile_rec PROF ON DIR.id = PROF.id
@@ -198,9 +199,10 @@ FROM
                                 GROUP BY
                                     involve_rec.id, greek_name
                               ) GRK ON DIR.id = GRK.id
-WHERE
-    DIR.grouping = 'Student'
-AND
-    DIR.class_year <> 'GR'
-ORDER BY
-    DIR.lastname, DIR.firstname
+    WHERE
+        DIR.grouping = 'Student'
+    AND
+        DIR.class_year <> 'GR'
+    ORDER BY
+        DIR.lastname, DIR.firstname
+'''
