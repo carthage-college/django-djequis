@@ -90,7 +90,7 @@ DEMOGRAPHIC_DATA = '''
             WHEN TRIM(NVL(MAJ3.major,'')) <> '' THEN ', ' || TRIM(NVL(MAJ3.txt,''))
                                                 ELSE ''
         END
-        ) AS Academic_Major, TRIM(TRIM(NVL(ADV.firstname,'')) || ' ' || TRIM(NVL(ADV.lastname,''))) AS Academic_Advisor, GPA.gpa AS GPA_Recent, TO_CHAR(SSR.cum_gpa,'&.***') AS GPA_Cumulative,
+        ) AS Academic_Major, TRIM(TRIM(NVL(ADV.firstname,'')) || ' ' || TRIM(NVL(ADV.lastname,''))) AS Academic_Advisor, TO_CHAR(GPA.gpa,'&.***') AS GPA_Recent, TO_CHAR(SSR.cum_gpa,'&.***') AS GPA_Cumulative,
     --  ATHLETIC INFORMATION
     CASE
         WHEN NVL(ATH.sport_name,'') <> '' AND NVL(pastAth.sport_name,'') =  '' THEN ATH.sport_name
@@ -98,7 +98,7 @@ DEMOGRAPHIC_DATA = '''
         WHEN NVL(ATH.sport_name,'') =  '' AND NVL(pastAth.sport_name,'') <> '' THEN pastAth.sport_name
                                                                                ELSE 'Not Athlete'
     END AS Athlete,
-    NVL(GRK.greek_name,'Not Greek') AS Greek, 'N/A' AS Honors, 'N/A' AS ROTC, TO_CHAR(TODAY, '%Y-%m-%d') AS Last_Update
+    NVL(GRK.greek_name,'Not Greek') AS Greek, 'N/A' AS Honors, '' AS ROTC, TO_CHAR(TODAY, '%Y-%m-%d') AS Last_Update
 FROM
     directory_vw DIR
         INNER JOIN profile_rec PROF ON DIR.id = PROF.id
