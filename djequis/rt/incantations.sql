@@ -10,11 +10,11 @@ WHERE
 
 -- equivalent SELECT statement
 SELECT
-    Users.name, Left( Users.Name, InStr(Users.Name,"@car") -1 )
+    Users.name, Left( Users.Name, InStr(Users.Name,'@car') -1 )
 FROM
     Users
 WHERE
-    ((Users.Name Like "%@carthage.edu") AND (Users.id Not In (449,455)));
+    ((Users.Name Like '%@carthage.edu') AND (Users.id Not In (449,455)));
 
 -- --------------------------------------------------
 -- Users 2: update email address if need be
@@ -34,16 +34,16 @@ WHERE
 
 -- equivalent SELECT statement
 SELECT
-    Users.id, Users.name, Users.EmailAddress, InStr(EmailAddress,"@")
+    Users.id, Users.name, Users.EmailAddress, InStr(EmailAddress,'@')
 FROM
     Users
 WHERE
     (
-        ((Users.EmailAddress Not Like "%@%") OR (Users.EmailAddress Is Null))
+        ((Users.EmailAddress Not Like '%@%') OR (Users.EmailAddress Is Null))
         AND
         (Users.id>12 And Users.id Not In (1,6,93,449,455,707))
         AND
-        (Users.Name Like "%carthage%")
+        (Users.Name Like '%carthage%')
     );
 
 -- --------------------------------------------------
@@ -55,7 +55,7 @@ UPDATE
 SET
     Tickets.TimeEstimated = Tickets.TimeWorked + Tickets.TimeLeft + 1
 WHERE (
-    (Tickets.Status In ("open (Unchanged)","open","new","stalled"))
+    (Tickets.Status In ('open (Unchanged)','open','new','stalled'))
 AND
     (
         (
@@ -77,9 +77,9 @@ SELECT
 FROM
     Tickets
 WHERE (
-    (Tickets.Status In ("open (Unchanged)","open","new","stalled"))
+    (Tickets.Status In ('open (Unchanged)','open','new','stalled'))
 AND
-    (Tickets.Type <> "reminder")
+    (Tickets.Type <> 'reminder')
 AND
     (Tickets.TimeEstimated = 0 OR Tickets.TimeEstimated < (Tickets.TimeWorked + Tickets.TimeLeft))
 );
@@ -104,9 +104,9 @@ SELECT
 FROM
     Tickets
 WHERE
-    Tickets.Status In ("open (Unchanged)","open","new","stalled")
+    Tickets.Status In ('open (Unchanged)','open','new','stalled')
 AND
-    Tickets.Type <> "reminder"
+    Tickets.Type <> 'reminder'
 
 -- --------------------------------------------------
 -- Tickets 3: update custom field 'Need by Date'
@@ -114,22 +114,37 @@ AND
 UPDATE
     Tickets
 INNER JOIN
-    custom_field_need_by_date ON Tickets.id = custom_field_need_by_date.TicketNumber
+    custom_field_need_by_date
+ON
+    Tickets.id = custom_field_need_by_date.TicketNumber
 SET
-    custom_field_need_by_date.NeedByDate = Format(CVDate(custom_field_need_by_date.NeedByDate),"mm/dd/yyyy")
+    custom_field_need_by_date.NeedByDate =
+    DATE_FORMAT(
+        STR_TO_DATE(
+            custom_field_need_by_date.NeedByDate, '%m/%d/%Y'
+        ),
+        '%m/%d/%Y'
+    )
 WHERE
-    (((Tickets.Status) Not In ("resolved","rejected")));
+    Tickets.Status Not In ("resolved","rejected")
 
 -- equivalent SELECT statement
 SELECT
     custom_field_need_by_date.TicketNumber,
-    Format(CVDate(custom_field_need_by_date.NeedByDate),"mm/dd/yyyy")
+    DATE_FORMAT(
+        STR_TO_DATE(
+            custom_field_need_by_date.NeedByDate, '%m/%d/%Y'
+        ),
+        '%m/%d/%Y'
+    )
 FROM
     Tickets
 INNER JOIN
-    custom_field_need_by_date ON Tickets.id = custom_field_need_by_date.TicketNumber
+    custom_field_need_by_date
+ON
+    Tickets.id = custom_field_need_by_date.TicketNumber
 WHERE
-    (((Tickets.Status) Not In ("resolved","rejected")));
+    Tickets.Status Not In ('resolved','rejected')
 
 -- --------------------------------------------------
 -- Tickets 4: update custom field 'Percent Complete'
@@ -137,39 +152,73 @@ WHERE
 UPDATE
     Tickets
 INNER JOIN
-    custom_field_percent_complete ON Tickets.id = custom_field_percent_complete.TicketNumber
+    custom_field_percent_complete
+ON
+    Tickets.id = custom_field_percent_complete.TicketNumber
 SET
-    custom_field_percent_complete.PercentComplete = "100"
+    custom_field_percent_complete.PercentComplete = '100'
 WHERE
-    custom_field_percent_complete.PercentComplete <> "100"
+    custom_field_percent_complete.PercentComplete <> '100'
 AND
     Tickets.Queue In (26,49,45,44,39,50,7,32)
 AND
     CVDate([Resolved]) > #11/30/2015#
+    Tickets.Resolved > '2015-11-30'
 AND
-    Tickets.Status In ("resolved");
+    Tickets.Status In ('resolved');
 
 -- equivalent SELECT statement
-
+SELECT
+    custom_field_percent_complete.PercentComplete
+FROM
+    Tickets
+INNER JOIN
+    custom_field_percent_complete
+ON
+    Tickets.id = custom_field_percent_complete.TicketNumber
+WHERE
+    custom_field_percent_complete.PercentComplete <> '100'
+AND
+    Tickets.Queue In (26,49,45,44,39,50,7,32)
+AND
+    Tickets.Resolved > '2015-11-30'
+AND
+    Tickets.Status In ('resolved');
 
 -- --------------------------------------------------
 -- Tickets 5: update custom field Time Remaining
 -- --------------------------------------------------
-
 UPDATE
     Tickets
 INNER JOIN
-    custom_field_time_remaining ON Tickets.id = custom_field_time_remaining.TicketNumber
+    custom_field_time_remaining
+ON
+    Tickets.id = custom_field_time_remaining.TicketNumber
 SET
-    custom_field_time_remaining.TimeRemaining = "0"
+    custom_field_time_remaining.TimeRemaining = '0'
 WHERE
-    custom_field_time_remaining.TimeRemaining <> "0"
+    custom_field_time_remaining.TimeRemaining <> '0'
 AND
     Tickets.Queue In (26,49,45,44,39,50,7,32)
 AND
-    CVDate([Resolved]) > #11/30/2015#
+    Tickets.Resolved > '2015-11-30'
 AND
-    Tickets.Status In ("resolved");
+    Tickets.Status In ('resolved');
 
 -- equivalent SELECT statement
-
+SELECT
+    custom_field_time_remaining.TimeRemaining, Tickets.Resolved
+FROM
+    Tickets
+INNER JOIN
+    custom_field_time_remaining
+ON
+    Tickets.id = custom_field_time_remaining.TicketNumber
+WHERE
+    custom_field_time_remaining.TimeRemaining <> '0'
+AND
+    Tickets.Queue In (26,49,45,44,39,50,7,32)
+AND
+    Tickets.Resolved > '2015-11-30'
+AND
+    Tickets.Status In ('resolved');
