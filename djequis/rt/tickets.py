@@ -10,7 +10,6 @@ sys.path.append('/usr/local/lib/python2.7/dist-packages/')
 sys.path.append('/data2/django_1.9/')
 sys.path.append('/data2/django_projects/')
 sys.path.append('/data2/django_third/')
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djpsilobus.settings")
 # django settings for shell environment
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 
@@ -19,7 +18,7 @@ django.setup()
 
 # django settings for script
 from django.conf import settings
-from django.db.models import Q
+from django.db import connection
 
 from djequis.rt.models import Tickets
 
@@ -45,7 +44,8 @@ def main():
 
     status_include = settings.RT_TICKET_STATUS_INCLUDE
 
-    # obtain all tickets in the Tsers table
+    # obtain all tickets in the Tickets table that have a certain status,
+    # while excluding some
     tickets = Tickets.objects.using('rt4').filter(
         status__in=status_include
     ).exclude(type = "reminder")
@@ -61,6 +61,10 @@ def main():
         # see Tickets 2 incantation
         if not test:
             t.timeleft = t.timeestimated - t.timeworked
+
+    # new need to execute raw SQL
+    cursor = connections['rt4'].cursor()
+
 
 
 ######################
