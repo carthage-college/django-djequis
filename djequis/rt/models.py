@@ -5,16 +5,19 @@ from django.db import models
 
 class Acl(models.Model):
     principaltype = models.CharField(
-        db_column='PrincipalType', max_length=25
+        db_column='PrincipalType',
+        max_length=25
     )
     principalid = models.IntegerField(
         db_column='PrincipalId'
     )
     rightname = models.CharField(
-        db_column='RightName', max_length=25
+        db_column='RightName',
+        max_length=25
     )
     objecttype = models.CharField(
-        db_column='ObjectType', max_length=25
+        db_column='ObjectType',
+        max_length=25
     )
     objectid = models.IntegerField(
         db_column='ObjectId'
@@ -23,13 +26,15 @@ class Acl(models.Model):
         db_column='Creator'
     )
     created = models.DateTimeField(
-        db_column='Created', blank=True, null=True
+        db_column='Created',
+        blank=True, null=True
     )
     lastupdatedby = models.IntegerField(
         db_column='LastUpdatedBy'
     )
     lastupdated = models.DateTimeField(
-        db_column='LastUpdated', blank=True, null=True
+        db_column='LastUpdated',
+        blank=True, null=True
     )
 
     class Meta:
@@ -502,36 +507,6 @@ class Templates(models.Model):
         db_table = 'Templates'
 
 
-class Tickets(models.Model):
-    effectiveid = models.IntegerField(db_column='EffectiveId')
-    queue = models.IntegerField(db_column='Queue')
-    type = models.CharField(db_column='Type', max_length=16, blank=True, null=True)
-    owner = models.IntegerField(db_column='Owner')
-    subject = models.CharField(db_column='Subject', max_length=200, blank=True, null=True)
-    initialpriority = models.IntegerField(db_column='InitialPriority')
-    finalpriority = models.IntegerField(db_column='FinalPriority')
-    priority = models.IntegerField(db_column='Priority')
-    timeestimated = models.IntegerField(db_column='TimeEstimated')
-    timeworked = models.IntegerField(db_column='TimeWorked')
-    status = models.CharField(db_column='Status', max_length=64, blank=True, null=True)
-    timeleft = models.IntegerField(db_column='TimeLeft')
-    told = models.DateTimeField(db_column='Told', blank=True, null=True)
-    starts = models.DateTimeField(db_column='Starts', blank=True, null=True)
-    started = models.DateTimeField(db_column='Started', blank=True, null=True)
-    due = models.DateTimeField(db_column='Due', blank=True, null=True)
-    resolved = models.DateTimeField(db_column='Resolved', blank=True, null=True)
-    lastupdatedby = models.IntegerField(db_column='LastUpdatedBy')
-    lastupdated = models.DateTimeField(db_column='LastUpdated', blank=True, null=True)
-    creator = models.IntegerField(db_column='Creator')
-    created = models.DateTimeField(db_column='Created', blank=True, null=True)
-    ismerged = models.SmallIntegerField(db_column='IsMerged', blank=True, null=True)
-    sla = models.CharField(db_column='SLA', max_length=64, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'Tickets'
-
-
 class Topics(models.Model):
     parent = models.IntegerField(db_column='Parent')
     name = models.CharField(db_column='Name', max_length=255)
@@ -565,35 +540,246 @@ class Transactions(models.Model):
 
 
 class Users(models.Model):
-    name = models.CharField(db_column='Name', unique=True, max_length=200)
-    password = models.CharField(db_column='Password', max_length=256, blank=True, null=True)
-    comments = models.TextField(db_column='Comments', blank=True, null=True)
-    signature = models.TextField(db_column='Signature', blank=True, null=True)
-    emailaddress = models.CharField(db_column='EmailAddress', max_length=120, blank=True, null=True)
-    freeformcontactinfo = models.TextField(db_column='FreeformContactInfo', blank=True, null=True)
-    organization = models.CharField(db_column='Organization', max_length=200, blank=True, null=True)
-    realname = models.CharField(db_column='RealName', max_length=120, blank=True, null=True)
-    nickname = models.CharField(db_column='NickName', max_length=16, blank=True, null=True)
-    lang = models.CharField(db_column='Lang', max_length=16, blank=True, null=True)
-    gecos = models.CharField(db_column='Gecos', max_length=16, blank=True, null=True)
-    homephone = models.CharField(db_column='HomePhone', max_length=30, blank=True, null=True)
-    workphone = models.CharField(db_column='WorkPhone', max_length=30, blank=True, null=True)
-    mobilephone = models.CharField(db_column='MobilePhone', max_length=30, blank=True, null=True)
-    pagerphone = models.CharField(db_column='PagerPhone', max_length=30, blank=True, null=True)
-    address1 = models.CharField(db_column='Address1', max_length=200, blank=True, null=True)
-    address2 = models.CharField(db_column='Address2', max_length=200, blank=True, null=True)
-    city = models.CharField(db_column='City', max_length=100, blank=True, null=True)
-    state = models.CharField(db_column='State', max_length=100, blank=True, null=True)
-    zip = models.CharField(db_column='Zip', max_length=16, blank=True, null=True)
-    country = models.CharField(db_column='Country', max_length=50, blank=True, null=True)
-    timezone = models.CharField(db_column='Timezone', max_length=50, blank=True, null=True)
-    creator = models.IntegerField(db_column='Creator')
-    created = models.DateTimeField(db_column='Created', blank=True, null=True)
-    lastupdatedby = models.IntegerField(db_column='LastUpdatedBy')
-    lastupdated = models.DateTimeField(db_column='LastUpdated', blank=True, null=True)
-    authtoken = models.CharField(db_column='AuthToken', max_length=16, blank=True, null=True)
-    smimecertificate = models.TextField(db_column='SMIMECertificate', blank=True, null=True)
+    name = models.CharField(
+        db_column='Name',
+        unique=True,
+        max_length=200
+    )
+    password = models.CharField(
+        db_column='Password',
+        max_length=256,
+        blank=True, null=True
+    )
+    comments = models.TextField(
+        db_column='Comments',
+        blank=True, null=True
+    )
+    signature = models.TextField(
+        db_column='Signature',
+        blank=True, null=True
+    )
+    emailaddress = models.CharField(
+        db_column='EmailAddress',
+        max_length=120,
+        blank=True, null=True
+    )
+    freeformcontactinfo = models.TextField(
+        db_column='FreeformContactInfo',
+        blank=True, null=True
+    )
+    organization = models.CharField(
+        db_column='Organization',
+        max_length=200,
+        blank=True, null=True
+    )
+    realname = models.CharField(
+        db_column='RealName',
+        max_length=120,
+        blank=True, null=True
+    )
+    nickname = models.CharField(
+        db_column='NickName',
+        max_length=16,
+        blank=True, null=True
+    )
+    lang = models.CharField(
+        db_column='Lang',
+        max_length=16,
+        blank=True, null=True
+    )
+    gecos = models.CharField(
+        db_column='Gecos',
+        max_length=16,
+        blank=True, null=True
+    )
+    homephone = models.CharField(
+        db_column='HomePhone',
+        max_length=30,
+        blank=True, null=True
+    )
+    workphone = models.CharField(
+        db_column='WorkPhone',
+        max_length=30,
+        blank=True, null=True
+    )
+    mobilephone = models.CharField(
+        db_column='MobilePhone',
+        max_length=30,
+        blank=True, null=True
+    )
+    pagerphone = models.CharField(
+        db_column='PagerPhone',
+        max_length=30,
+        blank=True, null=True
+    )
+    address1 = models.CharField(
+        db_column='Address1',
+        max_length=200,
+        blank=True, null=True
+    )
+    address2 = models.CharField(
+        db_column='Address2',
+        max_length=200,
+        blank=True, null=True
+    )
+    city = models.CharField(
+        db_column='City',
+        max_length=100,
+        blank=True, null=True
+    )
+    state = models.CharField(
+        db_column='State',
+        max_length=100,
+        blank=True, null=True
+    )
+    postal_code = models.CharField(
+        db_column='Zip',
+        max_length=16,
+        blank=True, null=True
+    )
+    country = models.CharField(
+        db_column='Country',
+        max_length=50,
+        blank=True, null=True
+    )
+    timezone = models.CharField(
+        db_column='Timezone',
+        max_length=50,
+        blank=True, null=True
+    )
+    creator = models.IntegerField(
+        db_column='Creator',
+        unique=True
+    )
+    created = models.DateTimeField(
+        db_column='Created',
+        blank=True, null=True
+    )
+    lastupdatedby = models.IntegerField(
+        db_column='LastUpdatedBy'
+    )
+    lastupdated = models.DateTimeField(
+        db_column='LastUpdated',
+        blank=True, null=True
+    )
+    authtoken = models.CharField(
+        db_column='AuthToken',
+        max_length=16,
+        blank=True, null=True
+    )
+    smimecertificate = models.TextField(
+        db_column='SMIMECertificate',
+        blank=True, null=True
+    )
 
     class Meta:
         managed = False
         db_table = 'Users'
+
+    def __unicode__(self):
+        '''
+        Default data for display
+        '''
+        return "{}: {}".format(
+            self.name,
+            self.emailaddress
+        )
+
+
+class Tickets(models.Model):
+    effectiveid = models.IntegerField(
+        db_column='EffectiveId'
+    )
+    queue = models.IntegerField(
+        db_column='Queue'
+    )
+    ticket_type = models.CharField(
+        db_column='Type',
+        max_length=16,
+        blank=True, null=True
+    )
+    owner = models.IntegerField(
+        db_column='Owner'
+    )
+    subject = models.CharField(
+        db_column='Subject',
+        max_length=200,
+        blank=True, null=True
+    )
+    initialpriority = models.IntegerField(
+        db_column='InitialPriority'
+    )
+    finalpriority = models.IntegerField(
+        db_column='FinalPriority'
+    )
+    priority = models.IntegerField(
+        db_column='Priority'
+    )
+    timeestimated = models.IntegerField(
+        db_column='TimeEstimated'
+    )
+    timeworked = models.IntegerField(
+        db_column='TimeWorked'
+    )
+    status = models.CharField(
+        db_column='Status',
+        max_length=64,
+        blank=True, null=True
+    )
+    timeleft = models.IntegerField(
+        db_column='TimeLeft'
+    )
+    told = models.DateTimeField(
+        db_column='Told',
+        blank=True, null=True
+    )
+    starts = models.DateTimeField(
+        db_column='Starts',
+        blank=True, null=True
+    )
+    started = models.DateTimeField(
+        db_column='Started',
+        blank=True, null=True
+    )
+    due = models.DateTimeField(
+        db_column='Due',
+        blank=True, null=True
+    )
+    resolved = models.DateTimeField(
+        db_column='Resolved',
+        blank=True, null=True
+    )
+    lastupdatedby = models.IntegerField(
+        db_column='LastUpdatedBy'
+    )
+    lastupdated = models.DateTimeField(
+        db_column='LastUpdated',
+        blank=True, null=True
+    )
+    creator = models.ForeignKey(
+        Users,
+        db_column='Creator'
+    )
+    created = models.DateTimeField(
+        db_column='Created',
+        blank=True, null=True
+    )
+    ismerged = models.SmallIntegerField(
+        db_column='IsMerged',
+        blank=True, null=True
+    )
+    sla = models.CharField(
+        db_column='SLA',
+        max_length=64,
+        blank=True, null=True
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'Tickets'
+
+    def __unicode__(self):
+        '''
+        Default data for display
+        '''
+        return self.subject
