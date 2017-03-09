@@ -18,9 +18,10 @@ django.setup()
 
 # django settings for script
 from django.conf import settings
-from django.db import connection
+from django.db import connections
 
 from djequis.rt.models import Tickets
+from djequis.sql.rt import *
 
 # set up command-line options
 
@@ -42,6 +43,9 @@ def main():
     Update request tracker tickets
     """
 
+    # we need this for our SQL incantations
+    globs = globals()
+
     status_include = settings.RT_TICKET_STATUS_INCLUDE
 
     # obtain all tickets in the Tickets table that have a certain status,
@@ -50,21 +54,33 @@ def main():
         status__in=status_include
     ).exclude(type = "reminder")
 
-    for t in tickets:
-        # see Tickets 1 incantation
-        if t.timeestimated==0 or \
-          (t.timeestimated < (t.timeworked + t.timeleft)):
-            if test:
-                print t
-            else:
-                t.timeestimated = t.timeworked + t.timeleft + 1
-        # see Tickets 2 incantation
-        if not test:
-            t.timeleft = t.timeestimated - t.timeworked
+    for idx, t in enumerate(tickets):
+
+        # Tickets 1 incantation
+        if t.timeestimated==0 or t.timeestimated < (t.timeworked + t.timeleft):
+            t.timeestimated = t.timeworked + t.timeleft + 1
+
+        # Tickets 2 incantation
+        t.timeleft = t.timeestimated - t.timeworked
+
+        if test:
+            print "{} Ticket: {}".format(idx, t.creator)
+        else:
+            t.save()
 
     # new need to execute raw SQL
     cursor = connections['rt4'].cursor()
+    for idx in [3,4,5]:
+        if test:
+            sql = globs['TICKETS_{}_{}'.format('SELECT',idx)]
+            print sql
+        else:
+            sql = globs['TICKETS_{}_{}'.format('UPDATE',idx)]
 
+        cursor.execute(sql)
+        if test:
+            results = cursor.fetchall()
+            print results
 
 
 ######################
