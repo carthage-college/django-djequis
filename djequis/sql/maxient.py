@@ -98,7 +98,7 @@ DEMOGRAPHIC_DATA = '''
         WHEN NVL(ATH.sport_name,'') =  '' AND NVL(pastAth.sport_name,'') <> '' THEN pastAth.sport_name
                                                                                ELSE 'Not Athlete'
     END AS Athlete,
-    NVL(GRK.greek_name,'Not Greek') AS Greek, 'N/A' AS Honors, '' AS ROTC, TO_CHAR(TODAY, '%Y-%m-%d') AS Last_Update
+    NVL(GRK.greek_name,'Not Greek') AS Greek, 'N/A' AS Honors, 'N/A' AS ROTC, TO_CHAR(TODAY, '%Y-%m-%d') AS Last_Update
 FROM
     directory_vw DIR
         INNER JOIN profile_rec PROF ON DIR.id = PROF.id
