@@ -39,7 +39,7 @@ os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 from django.template import loader, Context
 from django.utils.encoding import smart_bytes
-
+from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 from djtools.fields import NOW
 
@@ -122,6 +122,13 @@ def main():
         f = io.open(phile, 'w', encoding='utf8')
         f.write(xml)
         f.close()
+        # send email that OCLC script has completed
+        SUBJECT = '[OCLC SFTP] completed'
+        BODY = 'OCLC SFTP process has been completed.\n\n'
+        sendmail(
+                settings.OCLC_TO_EMAIL,settings.OCLC_FROM_EMAIL,
+                SUBJECT, BODY
+            )
     else:
         temp = StringIO(xml.encode('utf-8'))
         ftp = ftplib.FTP(
@@ -132,6 +139,13 @@ def main():
         phile = "carthage_personas_draft_{:%Y%m%d%H%M%S}.xml".format(NOW)
         ftp.storlines("STOR " + phile, temp)
         ftp.quit()
+        # send email that OCLC script has completed
+        SUBJECT = '[OCLC SFTP] completed'
+        BODY = 'OCLC SFTP process has been completed.\n\n'
+        sendmail(
+                settings.OCLC_TO_EMAIL,settings.OCLC_FROM_EMAIL,
+                SUBJECT, BODY
+            )
 
 if __name__ == "__main__":
     args = parser.parse_args()
