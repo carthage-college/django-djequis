@@ -13,3 +13,6 @@ with the Jenzabar databases, and over time will replace maquettes in /jics.
     00 00 * * 1 (python /d2/django_projects/djequis/bin/everbridge.py 2>&1 | mail -s "[Everbridge] SFTP process" webtech@carthage.edu) >> /dev/null 2>&1
     # OCLC: weekly, monday morning at 2h, push out a fresh copy of the OCLC xml
     00 02 * * 1 (python /d2/django_projects/djequis/bin/oclc.py 2>&1 | mail -s "[OCLC] FTP process" webtech@carthage.edu) >> /dev/null 2>&1
+
+    # maxient
+    30 01 * * * (python /d2/django_projects/djequis/bin/maxient.py 2>&1 | mail -s "[Maxient] something" webtech@carthage.edu) >> /dev/null 2>&1

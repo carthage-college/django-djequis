@@ -32,12 +32,9 @@ os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
-from django.template import loader, Context
-from django.utils.encoding import smart_bytes
 from djequis.sql.maxient import DEMOGRAPHIC_DATA
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
-from djtools.fields import NOW
 
 EARL = settings.INFORMIX_EARL
 
@@ -91,6 +88,7 @@ def main():
             "GPA Recent", "GPA Cumulative", "Athlete", "Greek", "Honors",
             "ROTC Vet", "Last Update"
         ])
+
     # create file
     if sqlresult is not None:
         for row in sqlresult:
@@ -98,6 +96,7 @@ def main():
     else:
         print ("No values in list")
     phile.close()
+
     # SFTP the .txt file
     try:
         with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
