@@ -6,7 +6,7 @@ def sendmail(to, frum, body, subject, debug=False):
 
     # Create the message
     msg = MIMEText(body)
-    msg['To'] = email.utils.formataddr(('Recipient', to))
+    msg['To'] = ','.join(to)
     msg['From'] = email.utils.formataddr(('DJ Equis', frum))
     msg['Subject'] = subject
 
