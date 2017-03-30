@@ -68,7 +68,7 @@ def main():
         else:
             t.save()
 
-    # new need to execute raw SQL
+    # now need to execute raw SQL
     cursor = connections['rt4'].cursor()
     for idx in [3,4,5]:
         if test:
