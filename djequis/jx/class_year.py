@@ -14,26 +14,15 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 
 from django.conf import settings
 
-from djczech.reconciliation.data.models import Cheque
 from djzbar.utils.informix import get_session
-from djtools.fields import TODAY
 
-from datetime import date, datetime
-from itertools import islice
-
-from sqlalchemy import exc
-
-
-"""
-"""
 
 import csv
 
-EARL = settings.JX_EARL_PROD
-#EARL = settings.JX_EARL_TEST
-
 # set up command-line options
 desc = """
+    updates the class_year table,
+    setting it to 0 where it equals 9999
 """
 
 parser = argparse.ArgumentParser(description=desc)
@@ -43,7 +32,11 @@ parser.add_argument(
     help="select or update.",
     dest="action"
 )
-
+parser.add_argument(
+    "-d", "--database",
+    help="database name.",
+    dest="database"
+)
 parser.add_argument(
     "--test",
     action='store_true',
@@ -55,6 +48,13 @@ def main():
     """
     main function
     """
+
+    if database == 'jxtest':
+        EARL = settings.JX_EARL_TEST
+    elif database == 'jxlive':
+        EARL = settings.JX_EARL_PROD
+    else:
+        EARL = None
 
     session = get_session(EARL)
     if action == 'update':
@@ -101,12 +101,19 @@ def main():
 if __name__ == "__main__":
     args = parser.parse_args()
     action = args.action
+    database = args.database
     test = args.test
 
-    if action:
-        action = action.lower()
+    if not action or not database:
+        print "mandatory options are missing: database and action\n"
+        parser.print_help()
+        exit(-1)
     else:
-        print "mandatory option is missing: action\n"
+        action = action.lower()
+        database = database.lower()
+
+    if database != 'jxlive' and database != 'jxtest':
+        print "database must be: 'jxlive' or 'jxtest'\n"
         parser.print_help()
         exit(-1)
 
@@ -114,5 +121,6 @@ if __name__ == "__main__":
         print "action must be: 'select' or 'update'\n"
         parser.print_help()
         exit(-1)
+
     sys.exit(main())
 
