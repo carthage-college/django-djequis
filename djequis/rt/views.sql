@@ -39,5 +39,3 @@ WHERE
     ObjectCustomFieldValues.CustomField  = 59
 AND
     ObjectCustomFieldValues.Disabled <> 1;
-
--- custom field view ''
