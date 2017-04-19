@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-import os, sys
+import os
+import sys
 import django
 import argparse
 
@@ -52,35 +53,49 @@ def main():
     # while excluding some
     tickets = Tickets.objects.using('rt4').filter(
         status__in=status_include
-    ).exclude(type = "reminder")
+    ).exclude(ticket_type = "reminder")
 
+    # Tickets 1 incantation
+    print("Tickets 1 incantation\n")
     for idx, t in enumerate(tickets):
 
-        # Tickets 1 incantation
         if t.timeestimated==0 or t.timeestimated < (t.timeworked + t.timeleft):
             t.timeestimated = t.timeworked + t.timeleft + 1
 
-        # Tickets 2 incantation
+            if test:
+                print( "{} Ticket: {} | est={} | wrkd={} | left={}".format(
+                    idx, t.creator, t.timeestimated, t.timeworked, t.timeleft
+                ))
+            else:
+                t.save()
+
+    # Tickets 2 incantation
+    print("Tickets 2 incantation\n")
+    for idx, t in enumerate(tickets):
+
         t.timeleft = t.timeestimated - t.timeworked
 
         if test:
-            print "{} Ticket: {}".format(idx, t.creator)
+            print( "{} Ticket: {} | est={} | wrkd={} | left={}".format(
+                idx, t.creator, t.timeestimated, t.timeworked, t.timeleft
+            ))
         else:
             t.save()
 
     # now need to execute raw SQL
+    print("Execute raw SQL\n")
     cursor = connections['rt4'].cursor()
     for idx in [3,4,5]:
         if test:
             sql = globs['TICKETS_{}_{}'.format('SELECT',idx)]
-            print sql
+            print(sql)
         else:
             sql = globs['TICKETS_{}_{}'.format('UPDATE',idx)]
 
         cursor.execute(sql)
         if test:
             results = cursor.fetchall()
-            print results
+            print(results)
 
 
 ######################
