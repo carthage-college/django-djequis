@@ -99,14 +99,7 @@ SET
 WHERE (
     (Tickets.Status In ('open (Unchanged)','open','new','stalled'))
 AND
-    -- (
-    --    (
-    --        IIf (
-    --            Tickets.TimeEstimated=0 Or Tickets.TimeEstimated < Tickets.TimeWorked + Tickets.TimeLeft,"DoIt","Skip"
-    --        )
-    --    )="DoIt"
-    -- )
-    -- Not certain if you can do this in standard SQL
+    (Tickets.TimeEstimated = 0 OR Tickets.TimeEstimated < (Tickets.TimeWorked + Tickets.TimeLeft))
 AND
     (Tickets.Type <> "reminder")
 );
@@ -155,6 +148,7 @@ AND
 SELECT
     Tickets.TimeWorked,
     Tickets.TimeLeft,
+    Tickets.TimeEstimated,
     Tickets.TimeEstimated - Tickets.TimeWorked as TicketsTimeLeft
 FROM
     Tickets
