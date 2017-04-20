@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-import django
 import argparse
 
 # env
@@ -14,6 +13,7 @@ sys.path.append('/data2/django_third/')
 # django settings for shell environment
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 
+import django
 # prime django
 django.setup()
 
