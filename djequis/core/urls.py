@@ -1,6 +1,6 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 
-urlpatterns = patterns('',
+urlpatterns = [
     # admissions
     url(
         r'^admissions/', include("djequis.core.admissions.urls")
@@ -13,4 +13,4 @@ urlpatterns = patterns('',
     url(
         r'^test/', include("djequis.core.test.urls")
     ),
-)
+]

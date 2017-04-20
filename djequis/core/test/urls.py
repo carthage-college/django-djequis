@@ -1,13 +1,14 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from django.views.generic import TemplateView
 
+from djequis.core.test import views
 from djequis.core.test.models import FooBar
 
 
-urlpatterns = patterns('djequis.core.test.views',
+urlpatterns = [
     # foobar crud
     url(
-        r'^foobar/$', 'create_form', name='foobar_create_form'
+        r'^foobar/$', views.create_form, name='foobar_create_form'
     ),
     # foobar succes view after submit
     url(
@@ -20,12 +21,12 @@ urlpatterns = patterns('djequis.core.test.views',
     # foobar update
     url(
         r'^foobar/(?P<fid>\d+)/update/$',
-        'update_form', name='foobar_update_form'
+        views.update_form, name='foobar_update_form'
     ),
     # foobar detail
     url(
         r'^foobar/(?P<fid>\d+)/detail/$',
-        'detail', name='foobar_detail'
+        views.detail, name='foobar_detail'
     ),
     # archives
     url(
@@ -36,4 +37,4 @@ urlpatterns = patterns('djequis.core.test.views',
         {"data":FooBar.objects.all()},
         name="foobar_archives"
     ),
-)
+]
