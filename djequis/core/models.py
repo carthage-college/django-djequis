@@ -7,7 +7,7 @@ class EventLog(models.Model):
     '''
     shell scripts and views log their events here
     '''
-    TEventID = models.IntegerField(
+    TEventID = models.AutoField(
         primary_key=True
     )
     TEvntTimeStamp = models.DateTimeField(
