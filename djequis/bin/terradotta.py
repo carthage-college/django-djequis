@@ -9,7 +9,7 @@ import shutil
 sys.path.append('/usr/lib/python2.7/dist-packages/')
 sys.path.append('/usr/lib/python2.7/')
 sys.path.append('/usr/local/lib/python2.7/dist-packages/')
-sys.path.append('/data2/django_1.9/')
+sys.path.append('/data2/django_1.11/')
 sys.path.append('/data2/django_projects/')
 sys.path.append('/data2/django_third/')
 
@@ -34,11 +34,8 @@ os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 from djequis.sql.terradotta import SQL_DATA
-from django.template import loader, Context
-from django.utils.encoding import smart_bytes
 
 from djzbar.utils.informix import do_sql
-from djtools.fields import NOW
 
 EARL = settings.INFORMIX_EARL
 

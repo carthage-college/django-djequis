@@ -3,13 +3,12 @@ import sys
 import pysftp
 import csv
 import time
-import shutil
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
 sys.path.append('/usr/lib/python2.7/')
 sys.path.append('/usr/local/lib/python2.7/dist-packages/')
-sys.path.append('/data2/django_1.9/')
+sys.path.append('/data2/django_1.11/')
 sys.path.append('/data2/django_projects/')
 sys.path.append('/data2/django_third/')
 
@@ -33,14 +32,11 @@ os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
-from django.template import loader, Context
-from django.utils.encoding import smart_bytes
 from djequis.sql.everbridge import STUDENT_UPLOAD
 from djequis.sql.everbridge import ADULT_UPLOAD
 from djequis.sql.everbridge import FACSTAFF_UPLOAD
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
-from djtools.fields import NOW
 
 EARL = settings.INFORMIX_EARL
 
