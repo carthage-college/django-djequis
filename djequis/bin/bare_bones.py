@@ -12,6 +12,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 
 from django.conf import settings
 
+
 # set up command-line options
 
 def main():
@@ -21,9 +22,10 @@ def main():
     try:
         # do something
     except Exception, e:
-        print >> sys.stderr, "does not exist"
-        print >> sys.stderr, "Exception: %s" % str(e)
+        print "does not exist"
+        print "Exception: {}".format(str(e))
         sys.exit(1)
+
 
 ######################
 # shell command line
