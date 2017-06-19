@@ -46,22 +46,23 @@ def main():
         print "database connection URL = {}".format(EARL)
 
     #...........................................
-    if test:
-        print "drop temp tables, just in case"
+    # drop temp table, just in case
 
-    drop1 = "DROP TABLE adm_records"
-    if not test:
-        try:
-            session.execute(drop1(
-            print "adm_records dropped"
-        except:
-            print "no temp table: adm_records"
-    else:
+    drop1 = 'DROP TABLE adm_records'
+    if test:
         print drop1
+
+    try:
+        session.execute(drop1)
+        print "adm_records dropped"
+    except:
+        print "no temp table: adm_records"
 
     Sel1SQL = '''
         SELECT
-            app_no, id from adm_rec
+            app_no, id
+        FROM
+            adm_rec
         WHERE
             primary_app = 'Y'
         AND
@@ -72,17 +73,30 @@ def main():
             prog = 'UNDG'
         AND
             subprog = 'TRAD'
-        INTO
+        INTO TEMP
             adm_records
     '''
 
-    if not test:
-        session.execute(Sel1SQL)
-    else:
+    if test:
         print Sel1SQL
 
+    session.execute(Sel1SQL)
+
+    #...........................................
+    # drop temp table, just in case
+
+    drop2 = 'DROP TABLE naf_records'
+    if test:
+        print drop2
+
+    try:
+        session.execute(drop2)
+        print "naf_records dropped"
+    except:
+        print "no temp table: naf_records"
+
     Sel2SQL = '''
-        Select
+        SELECT
             id,
             CASE
                 WHEN
@@ -97,14 +111,13 @@ def main():
             naf1718_rec
         WHERE
             method = 'FM'
-        INTO
+        INTO TEMP
             naf_records
     '''
-
-    if not test:
-        session.execute(Sel2SQL)
-    else:
+    if test:
         print Sel2SQL
+
+    session.execute(Sel2SQL)
 
     Sel3SQL = '''
         SELECT
@@ -114,12 +127,10 @@ def main():
         WHERE
             adm_records.id = naf_records.id
     '''
-
-    if not test:
-        results = session.execute(Sel3SQL)
-    else:
+    if test:
         print Sel3SQL
 
+    results = session.execute(Sel3SQL)
 
     for row in results:
 
@@ -139,6 +150,16 @@ def main():
         else:
             print updSQL
 
+    drop3 = 'DROP TABLE naf_recordsfms'
+    if test:
+        print drop3
+
+    try:
+        session.execute(drop3)
+        print "naf_recordsfms dropped"
+    except:
+        print "no temp table: naf_recordsfms"
+
     Sel7SQL = '''
         SELECT
             id,
@@ -154,14 +175,14 @@ def main():
              naf1718_rec
         WHERE
             method = 'FMS'
-        INTO
+        INTO TEMP
             naf_recordsfms
     '''
 
-    if not test:
-        session.execute(Sel7SQL)
-    else:
+    if test:
         print Sel7SQL
+
+    session.execute(Sel7SQL)
 
     if not test:
         try:
@@ -183,5 +204,8 @@ def main():
 ######################
 
 if __name__ == "__main__":
+
+    args = parser.parse_args()
+    test = args.test
 
     sys.exit(main())
