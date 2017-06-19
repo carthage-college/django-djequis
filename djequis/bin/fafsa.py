@@ -146,7 +146,11 @@ def main():
         '''.format(row[1], row[0], row[1])
 
         if not test:
-            session.execute(updSQL)
+            try:
+                session.execute(updSQL)
+            except Exception, e:
+                print "Update failed"
+                print "Exception: {}".format(str(e))
         else:
             print updSQL
 
@@ -188,8 +192,8 @@ def main():
         try:
             session.commit()
         except Exception, e:
-            print >> sys.stderr, "Commit failed"
-            print >> sys.stderr, "Exception: %s" % str(e)
+            print "Commit failed"
+            print "Exception: {}".format(str(e))
             sys.exit(1)
     else:
         # end time
