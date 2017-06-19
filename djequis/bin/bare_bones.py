@@ -5,10 +5,10 @@ import os, sys
 sys.path.append('/usr/lib/python2.7/dist-packages/')
 sys.path.append('/usr/lib/python2.7/')
 sys.path.append('/usr/local/lib/python2.7/dist-packages/')
-sys.path.append('/data2/django_1.9/')
+sys.path.append('/data2/django_1.11/')
 sys.path.append('/data2/django_projects/')
 sys.path.append('/data2/django_third/')
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djpsilobus.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 
 from django.conf import settings
 
