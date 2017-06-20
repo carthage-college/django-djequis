@@ -1,5 +1,5 @@
 {% load filters %}<?xml version="1.0" encoding="UTF-8"?>
-<oclcPersonas xmlns="http://worldcat.org/xmlschemas/IDMPersonas-1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://worldcat.org/xmlschemas/IDMPersonas-1.1 http://worldcat.org/xmlschemas/IDMPersonas/1.1/IDMPersonas-1.1.xsd ">
+<oclcPersonas xmlns="http://worldcat.org/xmlschemas/IDMPersonas-2.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://worldcat.org/xmlschemas/IDMPersonas-2.2 http://worldcat.org/xmlschemas/IDMPersonas/2.2/IDMPersonas-2.2.xsd ">
 {% for o in objs %}{% if o.email %}
         <persona institutionId="3164">
             <correlationInfo>
@@ -14,30 +14,28 @@
                 <barcode>{{o.id|stringformat:"010d"}}</barcode>
                 <borrowerCategory>{{ o.grouping }}</borrowerCategory>
                 <circRegistrationDate>2010-01-01T12:00:00</circRegistrationDate>
-                <circExpirationDate>{{next_year|date:"c"}}</circExpirationDate>
                 <homeBranch>131408</homeBranch>
             </wmsCircPatronInfo>
+            <contactInfo>
+                <postalAddress>
+                    <streetAddressLine1>{{o.addr_line1}}</streetAddressLine1>{% if o.addr_line2 %}<streetAddressLine2>{{o.addr_line2}}</streetAddressLine2>{% endif %}
+                    <cityOrLocality>{{o.city}}</cityOrLocality>
+                    <stateOrProvince>{{o.st}}</stateOrProvince>
+                    <postalCode>{{o.zip}}</postalCode>
+                    <country>{{o.ctry}}</country>
+                </postalAddress>
+            </contactInfo>
+            <contactInfo>
+                <phone>
+                    <number>{{o.phone}}</number>
+                    <isPrimary>true</isPrimary>
+                </phone>
+            </contactInfo>
             <contactInfo>
                 <email>
                     <emailAddress>{{o.email}}</emailAddress>
                     <isPrimary>true</isPrimary>
                 </email>
-            </contactInfo>
-            <contactInfo>
-                <physicalLocation>
-                    <postalAddress>
-                        <streetAddressLine1>{{o.addr_line1}}</streetAddressLine1>{% if o.addr_line2 %}<streetAddressLine2>{{o.addr_line2}}</streetAddressLine2>{% endif %}
-                        <cityOrLocality>{{o.city}}</cityOrLocality>
-                        <stateOrProvince>{{o.st}}</stateOrProvince>
-                        <postalCode>{{o.zip}}</postalCode>
-                        <country>{{o.ctry}}</country>
-                    </postalAddress>
-                    <phone>
-                        <number>{{o.phone}}</number>
-                        <isPrimary>true</isPrimary>
-                    </phone>
-                    <isPrimary>true</isPrimary>
-                </physicalLocation>
             </contactInfo>
         </persona>
     {% endif %}{% endfor %}
