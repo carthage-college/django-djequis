@@ -63,8 +63,7 @@ parser.add_argument(
 def paint_xml(data):
 
     t = loader.get_template('oclc/personas.xml')
-    c = Context({ 'objs': data, 'next_year':NEXT_YEAR })
-    output = t.render(c)
+    output = t.render({ 'objs': data, 'next_year':NEXT_YEAR })
 
     return output
 
