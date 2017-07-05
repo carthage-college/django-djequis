@@ -115,7 +115,7 @@ def main():
     xml = paint_xml(folks)
     if test:
         print xml
-        phile = "{}carthage_personas_draft_{:%Y%m%d%H%M%S}.xml".format(
+        phile = "{}carthage_personas_draft_{:%Y-%m-%d}.xml".format(
             settings.OCLC_LOCAL_PATH,NOW
         )
         f = io.open(phile, 'w', encoding='utf8')
@@ -135,7 +135,7 @@ def main():
             settings.OCLC_XTRNL_PASS
         )
         ftp.cwd(settings.OCLC_XTRNL_PATH)
-        phile = "carthage_personas_draft_{:%Y%m%d%H%M%S}.xml".format(NOW)
+        phile = "carthage_personas_draft_{:%Y-%m-%d}.xml".format(NOW)
         ftp.storlines("STOR " + phile, temp)
         ftp.quit()
         # send email that OCLC script has completed
