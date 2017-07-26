@@ -13,7 +13,6 @@
             <wmsCircPatronInfo>
                 <barcode>{{o.id|stringformat:"010d"}}</barcode>
                 <borrowerCategory>{{ o.grouping }}</borrowerCategory>
-                <circRegistrationDate>2010-01-01T12:00:00</circRegistrationDate>
                 <homeBranch>131408</homeBranch>
             </wmsCircPatronInfo>
             <contactInfo>
