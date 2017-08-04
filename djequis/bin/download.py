@@ -38,7 +38,7 @@ from djzbar.utils.informix import do_sql
 
 # set up command-line options
 desc = """
-    Common Application Download via sftp
+    Download Common Application Download via sftp
 """
 parser = argparse.ArgumentParser(description=desc)
 
