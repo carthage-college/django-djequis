@@ -178,7 +178,7 @@ def main():
             parent1AddressZip = (row[37])
             parent1AddressCountry = (row[38])
             parent1Email = (row[39])
-            parent1Phone = (row[40])
+            parent1Phone = (row[40][3:]) #[3:] removes the +1 area code from phone number
             parent1Occupation = (row[41])
             parent1Employer = (row[42])
             parent1College1NameCeebCode = (row[43])
@@ -195,7 +195,7 @@ def main():
             parent2AddressZip = (row[54])
             parent2AddressCountry = (row[55])
             parent2Email = (row[56])
-            parent2Phone = (row[57])
+            parent2Phone = (row[57][3:]) #[3:] removes the +1 area code from phone number
             parent2Occupation = (row[58])
             parent2Employer = (row[59])
             parent2College1NameCeebCode = (row[60])
@@ -211,7 +211,7 @@ def main():
             legalGuardianAddressZip = (row[69])
             legalGuardianAddressCountry = (row[70])
             legalGuardianEmail = (row[71])
-            legalGuardianPhone = (row[72])
+            legalGuardianPhone = (row[72][3:]) #[3:] removes the +1 area code from phone number
             legalGuardianOccupation = (row[73])
             legalGuardianEmployer = (row[74])
             legalGuardianCollege1NameCeebCode = (row[75])
@@ -321,13 +321,13 @@ def main():
             whiteOther = (row[134])
             religiousPreference = (row[135])
             preferredPhone = (row[136])
-            preferredPhoneNumber = (row[137])
+            preferredPhoneNumber = (row[137][3:]) #[3:] removes the +1 area code from phone number
             permanentAddress2 = (row[138])
-            preferredStartTerm = (row[139])
+            preferredStartTerm = (row[139][18:])
             studentStatus = (row[140])
             admissionPlan = (row[141])
             preferredResidence = (row[142])
-            alternatePhoneNumber = (row[143])
+            alternatePhoneNumber = (row[143][3:]) #[3:] removes the +1 area code from phone number
             alternatePhoneAvailable = (row[144])
             schoolLookupCeebCode = (row[145])
             schoolLookupCeebName = (row[146])
@@ -401,20 +401,21 @@ def main():
             clean_end_date = datetime.date(mail_end_date_year, mail_end_date_month, mail_end_date_day)
             print ('Clean End Date: {0}'.format(clean_end_date))
 
+            scr.write('\n-- INSERT NEW STUDENT APPLICATION for: ' + firstName + ' ' + lastName + "\n\n");
             # insert into apptmp_rec
             q_create_app = '''
                 INSERT INTO apptmp_rec
                     (add_date, add_tm, app_source, stat, reason_txt)
-                VALUES ('{0}',
+                VALUES ("{0}",
                         {1},
-                        'WEBA',
-                        'P',
-                        '{2}'
+                        "WEBA",
+                        "P",
+                        "{2}"
                         );
             ''' .format(now_date, now_time, temp_uuid)
             print (q_create_app)
             scr.write(q_create_app);
-        
+
             # Getting apptmp_no
             lookup_apptmp_no = '''
                 SELECT
@@ -422,7 +423,7 @@ def main():
                 FROM
                     apptmp_rec
                 WHERE
-                    reason_txt = '{0}';
+                    reason_txt = "{0}";
             ''' .format(temp_uuid)
             print (lookup_apptmp_no)
             scr.write(lookup_apptmp_no);
@@ -439,12 +440,13 @@ def main():
                     addr_line2, city, st, zip, ctry, phone, aa, add_date, ofc_add_by,
                     upd_date, purge_date, prsp_no, name_sndx, correct_addr, decsd,
                     valid)
-                VALUES ({0},'{1}','{2}','{3}',{4},'{5}','{6}','{7}','{8}',{9},'{10}','{11}',"PERM",
-                        '{12}',"ADMS",'{12}','{13}',"0","","Y","N","Y");
+                VALUES ({0},"{1}","{2}","{3}","thisisafakeapplication2017","{4}",
+                    "{5}","{6}","{7}",{8},"{9}","{10}","PERM","{11}","ADMS",
+                    "{12}","{12}","0","","Y","N","Y");
             ''' .format(apptmp_no, firstName, lastName, emailAddress,
-                    'thisisafakeapplication2017', permanentAddress1,
-                    permanentAddress2, permanentAddressCity, permanentAddressState,
-                    permanentAddressZip, permanentAddressCountry, preferredPhoneNumber, now_date, purge_date)
+                    permanentAddress1, permanentAddress2, permanentAddressCity,
+                    permanentAddressState, permanentAddressZip, permanentAddressCountry,
+                    preferredPhoneNumber, now_date, purge_date)
             print (q_create_id)
             #apptmp_no+1
             print (apptmp_no)
@@ -457,7 +459,7 @@ def main():
                 VALUES ({0},
                         "Y",
                         "CART",
-                        '{1}'
+                        "{1}"
                         );
             ''' .format(apptmp_no, now_date)
             print (q_create_site)
@@ -471,13 +473,13 @@ def main():
                     emailaddr, prog, subprog, upd_uid, add_uid, upd_date, act_choice,
                     stuint_wt, jics_candidate)
                 VALUES ({0},
-                        'Y',
-                        '{1}',
+                        "Y",
+                        "{1}",
                         {2},
-                        '{3}',
-                        'N',
-                        'FF',
-                        '{4}',
+                        "{3}",
+                        "N",
+                        "FF",
+                        "{4}",
                         "",
                         "0.00",
                         "",
@@ -502,9 +504,9 @@ def main():
                 INSERT INTO app_proftmp_rec
                     (id, birth_date, church_id, prof_last_upd_date)
                 VALUES ({0},
-                        '{1}',
-                        '{2}',
-                        '{3}'
+                        "{1}",
+                        "{2}",
+                        "{3}"
                         );
             ''' .format(apptmp_no, dateOfBirth, religiousPreference, now_date)
             print (q_create_prof)
@@ -565,16 +567,16 @@ def main():
             q_insert_aa_mail = '''
                 INSERT INTO app_aatmp_rec
                     (line1,line2,city,st,zip,ctry,id,aa,beg_date,end_date)
-                VALUES ('{0}',
-                        '{1}',
-                        '{2}',
-                        '{3}',
+                VALUES ("{0}",
+                        "{1}",
+                        "{2}",
+                        "{3}",
                         {4},
-                        '{5}',
+                        "{5}",
                         {6},
-                        'MAIL',
-                        '{7}',
-                        '{8}'
+                        "MAIL",
+                        "{7}",
+                        "{8}"
                         );
             ''' .format(currentAddress1, currentAddress2, currentAddressCity,
                         currentAddressState, currentAddressZip,
@@ -601,16 +603,16 @@ def main():
             q_insert_aa_bill = '''
                 INSERT INTO app_aatmp_rec
                     (line1,line2,city,st,zip,ctry,id,aa,beg_date,end_date)
-                VALUES ('{0}',
-                        '{1}',
-                        '{2}',
-                        '{3}',
+                VALUES ("{0}",
+                        "{1}",
+                        "{2}",
+                        "{3}",
                         {4},
-                        '{5}',
+                        "{5}",
                         {6},
                         "BILL",
-                        '{7}',
-                        '{8}'
+                        "{7}",
+                        "{8}"
                         );
             ''' .format(currentAddress1, currentAddress2, currentAddressCity,
                         currentAddressState, currentAddressZip,
@@ -638,9 +640,9 @@ def main():
                 INSERT INTO app_aatmp_rec
                     (id,aa,beg_date,phone)
                 VALUES ({0},
-                        '{1}',
-                        '{2}',
-                        '{3}'
+                        "{1}",
+                        "{2}",
+                        "{3}"
                         );
             ''' .format(apptmp_no, alternatePhoneAvailable, now_date,
                         alternatePhoneNumber)
@@ -656,18 +658,18 @@ def main():
                     acad_trans)
                 VALUES ({0},
                         {1},
-                        '{2}',
-                        '{3}',
-                        '{4}',
-                        '{5}',
-                        '{6}',
-                        '{7}',
+                        "{2}",
+                        "{3}",
+                        "{4}",
+                        "{5}",
+                        "{6}",
+                        "{7}",
                         0,
                         0,
                         0,
                         0,
                         0,
-                        '{8}',
+                        "{8}",
                         "hs",
                         "HS",
                         "N"
@@ -684,11 +686,11 @@ def main():
                 INSERT INTO app_edtmp_rec
                     (id, tick, add_date, stat, resrc, txt, due_date)
                 VALUES ({0},
-                        'ADM',
+                        "ADM",
                         {1},
-                        'C',
-                        'I20',
-                        'Applicant expects to need an I-20',
+                        "C",
+                        "I20",
+                        "Applicant expects to need an I-20",
                         {1}
                         );
             ''' .format(apptmp_no, now_date)
@@ -697,70 +699,77 @@ def main():
 
             if relative1FullName.strip():
                 # insert into app_edtmp_rec
-                q_alumni = "INSERT INTO app_edtmp_rec (id, rel_id, rel, fullname, phone_ext, aa, zip) VALUES ({0}, 0, 5, '{1}', {2}, 'ALUM', 0)" .format(apptmp_no, relative1FullName, relative1GradYear1)
+                q_alumni = "INSERT INTO app_edtmp_rec (id, rel_id, rel, fullname, phone_ext, aa, zip) VALUES ({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)" .format(apptmp_no, relative1FullName, relative1GradYear1)
                 if relative2FullName.strip():
-                    q_alumni += ",({0}, 0, 5, '{1}', {2}, 'ALUM', 0)" .format(apptmp_no, relative2FullName, relative2GradYear1)
+                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)" .format(apptmp_no, relative2FullName, relative2GradYear1)
                 if relative3FullName.strip():
-                    q_alumni += ",({0}, 0, 5, '{1}', {2}, 'ALUM', 0)" .format(apptmp_no, relative3FullName, relative3GradYear1)
+                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)" .format(apptmp_no, relative3FullName, relative3GradYear1)
                 if relative4FullName.strip():
-                    q_alumni += ",({0}, 0, 5, '{1}', {2}, 'ALUM', 0)" .format(apptmp_no, relative4FullName, relative4GradYear1)
+                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)" .format(apptmp_no, relative4FullName, relative4GradYear1)
                 if relative5FullName.strip():
-                    q_alumni += ",({0}, 0, 5, '{1}', {2}, 'ALUM', 0);" .format(apptmp_no, relative5FullName, relative5GradYear1)
+                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0);" .format(apptmp_no, relative5FullName, relative5GradYear1)
                 print (q_alumni)
                 scr.write(q_alumni);
             else:  
                 print ("Nothing to insert")
+                scr.write('--There were no relatives for this application.\n\n');
             # Need to discuss the fields being captured for Siblings, Common App does not have any information about a Sibling if they did not attend college
             if sibling1FullName.strip():
                 # insert into app_reltmp_rec
-                q_sibing_name = "INSERT INTO app_reltmp_rec (id, rel_id, rel, fullname, phone_ext, aa, zip, prim, addr_line2, suffix) VALUES ({0}, 0, 'SIB', '{1}', {2}, 'SBSB', 0, 'Y', {3}, {4})" .format(apptmp_no, sibling1FullName, sibling1Age, sibling1CollegeCeebCode, sibling1EducationLevel)
+                q_sibing_name = "INSERT INTO app_reltmp_rec (id, rel_id, rel, fullname, phone_ext, aa, zip, prim, addr_line2, suffix) VALUES ({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", {3}, {4})" .format(apptmp_no, sibling1FullName, sibling1Age, sibling1CollegeCeebCode, sibling1EducationLevel)
+                scr.write('\n');
                 if sibling2FullName.strip():
-                    q_sibing_name += ",({0}, 0, 'SIB', '{1}', {2}, 'SBSB', 0, 'Y', {3}, {4})" .format(apptmp_no, sibling2FullName, sibling2Age, sibling2CollegeCeebCode, sibling2EducationLevel)
+                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", {3}, {4})" .format(apptmp_no, sibling2FullName, sibling2Age, sibling2CollegeCeebCode, sibling2EducationLevel)
+                    scr.write('\n');
                 if sibling3FullName.strip():
-                    q_sibing_name += ",({0}, 0, 'SIB', '{1}', {2}, 'SBSB', 0, 'Y', {3}, {4})" .format(apptmp_no, sibling3FullName, sibling3Age, sibling3CollegeCeebCode, sibling3EducationLevel)
+                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", {3}, {4})" .format(apptmp_no, sibling3FullName, sibling3Age, sibling3CollegeCeebCode, sibling3EducationLevel)
                 if sibling4FullName.strip():
-                    q_sibing_name += ",({0}, 0, 'SIB', '{1}', {2}, 'SBSB', 0, 'Y', {3}, {4})" .format(apptmp_no, sibling4FullName, sibling4Age, sibling4CollegeCeebCode, sibling4EducationLevel)
+                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", {3}, {4})" .format(apptmp_no, sibling4FullName, sibling4Age, sibling4CollegeCeebCode, sibling4EducationLevel)
                 if sibling5FullName.strip():
-                    q_sibing_name += ",({0}, 0, 'SIB', '{1}', {2}, 'SBSB', 0, 'Y', {3}, {4})" .format(apptmp_no, sibling5FullName, sibling5Age, sibling5CollegeCeebCode, sibling5EducationLevel)
+                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", {3}, {4})" .format(apptmp_no, sibling5FullName, sibling5Age, sibling5CollegeCeebCode, sibling5EducationLevel)
                 print (q_sibing_name)
-                scr.write(q_sibing_name);
+                scr.write(q_sibing_name+'\n\n');
             else:  
                 print ("There are not any siblings to insert.")
+                scr.write('--There are not any siblings to insert.\n\n');
 
             # insert into partmp_rec
             if parent1Type == 'Father':
-                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, f_first_name, f_last_name, f_zip) VALUES (0, {0}, '{1}', '{2}', 0);" .format(apptmp_no, parent1FirstName, parent1LastName)
+                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, f_first_name, f_last_name, f_zip) VALUES (0, {0}, \"{1}\", \"{2}\", 0);" .format(apptmp_no, parent1FirstName, parent1LastName)
                 print (q_insert_partmp_rec)
-                scr.write(q_insert_partmp_rec);
+                scr.write(q_insert_partmp_rec+'\n');
             elif parent1Type == 'Mother':
-                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, m_first_name, m_last_name, m_zip) VALUES (0, {0}, '{1}', '{2}', 0);" .format(apptmp_no, parent1FirstName, parent1LastName)
+                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, m_first_name, m_last_name, m_zip) VALUES (0, {0}, \"{1}\", \"{2}\", 0);" .format(apptmp_no, parent1FirstName, parent1LastName)
                 print (q_insert_partmp_rec)
-                scr.write(q_insert_partmp_rec);
+                scr.write(q_insert_partmp_rec+'\n');
             else:
                 print ("There is no Parent 1")
+                scr.write('--There is no Parent 1.\n\n');
 
             if parent2Type == 'Mother':
-                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, m_first_name, m_last_name, m_zip) VALUES (0, {0}, '{1}', '{2}', 0);" .format(apptmp_no, parent2FirstName, parent2LastName)
+                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, m_first_name, m_last_name, m_zip) VALUES (0, {0}, \"{1}\", \"{2}\", 0);" .format(apptmp_no, parent2FirstName, parent2LastName)
                 print (q_insert_partmp_rec)
-                scr.write(q_insert_partmp_rec);
+                scr.write(q_insert_partmp_rec+'\n');
             elif parent2Type == 'Father':
-                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, f_first_name, f_last_name, f_zip) VALUES (0, {0}, '{1}', '{2}', 0);" .format(apptmp_no, parent2FirstName, parent2LastName)
+                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, f_first_name, f_last_name, f_zip) VALUES (0, {0}, \"{1}\", \"{2}\", 0);" .format(apptmp_no, parent2FirstName, parent2LastName)
                 print (q_insert_partmp_rec)
-                scr.write(q_insert_partmp_rec);
+                scr.write(q_insert_partmp_rec+'\n');
             else:
                 print ("There is no Parent 2")
+                scr.write('--There is no Parent 2.\n\n');
 
             if legalGuardianFullName.strip():
-                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, g_first_name, g_last_name, g_zip) VALUES (0, {0}, '{1}', '{2}', 0);" .format(apptmp_no, legalGuardianFirstName, legalGuardianLastName)
+                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, g_first_name, g_last_name, g_zip) VALUES (0, {0}, \"{1}\", \"{2}\", 0);" .format(apptmp_no, legalGuardianFirstName, legalGuardianLastName)
                 print (q_insert_partmp_rec)
-                scr.write(q_insert_partmp_rec);
+                scr.write(q_insert_partmp_rec+'\n');
             else:
                 print ("There is no legal guardian.")
+                scr.write('--There is no legal guardian.\n\n');
 
             # Need to discuss with Mike to show him the activities and within the CommonApp tab Activities can help a college better understand your life outside of the classroom. Your activities may include arts, athletics, clubs, employment, personal commitments, and other pursuits. Do you have any activities that you wish to report?
             # insert into app_inttmp_rec
             if activity1.strip():
-                insert_interests = "INSERT INTO app_inttmp_rec (id, prsp_no, interest, ctgry, cclevel) VALUES ({0}, 0, '{1}', "", 'Y')" .format(apptmp_no, activity1)
+                insert_interests = "INSERT INTO app_inttmp_rec (id, prsp_no, interest, ctgry, cclevel) VALUES ({0}, 0, \"{1}\", "", \"Y\")" .format(apptmp_no, activity1)
                 if activity2.strip():
                     insert_interests += ",({0}, 0, '{1}', "", 'Y')" .format(apptmp_no, activity2)
                 if activity3.strip():
@@ -773,6 +782,7 @@ def main():
                 scr.write(insert_interests);
             else:  
                 print ("Zero interests")
+                scr.write('--They do not have any interests.\n\n');
             
             for race in converted:
                 # insert into app_mracetmp_rec
@@ -780,7 +790,7 @@ def main():
                     INSERT INTO app_mracetmp_rec
                         (id, race)
                     VALUES ({0},
-                            {1}
+                            "{1}"
                             );
                 ''' .format(apptmp_no, race)
                 print (insert_races)
@@ -788,22 +798,22 @@ def main():
     
             for race in converted:
                 # insert into app_proftmp_rec
-                q_optional = "INSERT INTO app_proftmp_rec (id, ethnic_code, race, hispanic, denom_code) VALUES ({0}, {1}, {2}, {3})" .format(apptmp_no, race, race, hispanicLatino)
+                q_optional = "INSERT INTO app_proftmp_rec (id, ethnic_code, race, hispanic) VALUES ({0}, \"{1}\", \"{2}\", \"{3}\")" .format(apptmp_no, race, race, hispanicLatino)
                 if ethnic_code == 'UN':
-                    q_optional += ",({0}, {1}, {2}, {3})" .format(apptmp_no, 'UN', race, hispanicLatino)
+                    q_optional += ",({0}, \"UN\", \"{1}\", \"{2}\")" .format(apptmp_no, race, hispanicLatino)
                 if ethnic_code == 'MU':
-                    q_optional += ",({0}, {1}, {2}, {3})" .format(apptmp_no, 'MU', race, hispanicLatino)
+                    q_optional += ",({0}, \"MU\", \"{1}\", \"{2}\")" .format(apptmp_no, race, hispanicLatino)
                 print (q_optional)
                 print (race)
                 scr.write(q_optional);
-
-        if ACTNumber == 1:
-            # insert into app_examtmp_rec
-            q_exam = "INSERT INTO app_examtmp_rec (id, ctgry, cmpl_date, self_rpt, site, score1, score2, score3, score4, score5, score6) VALUES ({0}, 'ACT', {1}, 'Y', 'CART', '{2}', '{3}', '{4}', '{5}', '{6}')" .format(apptmp_no, actCompositeDate, ACTCompositeScore, ACTEnglishScore, ACTMathScore, ACTReadingScore, ACTScienceScore, ACTWritingScore)
-            if SATNumber == 1:
-                q_exam += ",({0}, 'SAT', {1}, 'Y', 'CART', '', '{2}', '{3}', '{4}', '{6}', '')" .format(apptmp_no, SATRWDate, SATRWScore, SATMathScore, SATEssayScore)
-            print (q_exam)
-            scr.write(q_exam);
+    
+            if ACTNumber == 1:
+                # insert into app_examtmp_rec
+                q_exam = "INSERT INTO app_examtmp_rec (id, ctgry, cmpl_date, self_rpt, site, score1, score2, score3, score4, score5, score6) VALUES ({0}, \"ACT\", {1}, \"Y\", \"CART\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\")" .format(apptmp_no, actCompositeDate, ACTCompositeScore, ACTEnglishScore, ACTMathScore, ACTReadingScore, ACTScienceScore, ACTWritingScore)
+                if SATNumber == 1:
+                    q_exam += ",({0}, \"SAT\", \"{1}\", \"Y\", \"CART\", \"\", \"{2}\" \"{3}\", \"{4}\", \"{6}\", \"\")" .format(apptmp_no, SATRWDate, SATRWScore, SATMathScore, SATEssayScore)
+                print (q_exam)
+                scr.write(q_exam);
         f.close()
 
 if __name__ == "__main__":
