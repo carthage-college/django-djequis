@@ -96,6 +96,7 @@ def main():
     
     # Read file
     with open(filename, 'rb') as f:
+
         reader = csv.reader(f)
         #for row in reader:
             #print row[1]
@@ -141,43 +142,43 @@ def main():
             commonAppID = (row[0])
             startYear = (row[1])
             studentType = (row[2])
-            firstName = (row[3])
-            middleName = (row[4])
-            lastName = (row[5])
-            emailAddress = (row[6])
+            firstName = (row[3]) # max character length = 25
+            middleName = (row[4]) # max character length = 25
+            lastName = (row[5]) # max character length = 30
+            emailAddress = (row[6]) # max character length = 60
             suffix = (row[7])
-            preferredName = (row[8])
-            formerLastName = (row[9])
+            preferredName = (row[8]) # max character length = 20
+            formerLastName = (row[9]) # max character length = 50
             sex = (row[10])
             armedForcesStatus = (row[11])
-            ssn = (row[12])
+            ssn = (row[12]) # max character length = 11
             dateOfBirth = (row[13])
             birthCity = (row[14])
             birthState = (row[15])
             birthCountry = (row[16])
-            permanentAddress1 = (row[17])
-            permanentAddressCity = (row[18])
-            permanentAddressState = (row[19])
-            permanentAddressZip = (row[20])
-            permanentAddressCountry = (row[21])
-            currentAddress1 = (row[22])
-            currentAddress2 = (row[23])
-            currentAddressCity = (row[24])
-            currentAddressState = (row[25])
-            currentAddressZip = (row[26])
-            currentAddressCountry = (row[27])
+            permanentAddress1 = (row[17]) # max character length = 60
+            permanentAddressCity = (row[18]) # max character length = 60
+            permanentAddressState = (row[19]) # max character length = 60
+            permanentAddressZip = (row[20]) # max character length = 60
+            permanentAddressCountry = (row[21]) # max character length = 60
+            currentAddress1 = (row[22]) # max character length = 60
+            currentAddress2 = (row[23]) # max character length = 60
+            currentAddressCity = (row[24]) # max character length = 60
+            currentAddressState = (row[25]) # max character length = 60
+            currentAddressZip = (row[26]) # max character length = 60
+            currentAddressCountry = (row[27]) # max character length = 60
             parent1Type = (row[28])
             parent1Title = (row[29])
-            parent1FirstName = (row[30])
-            parent1LastName = (row[31])
+            parent1FirstName = (row[30]) # max character length = 24
+            parent1LastName = (row[31]) # max character length = 24
             parent1Suffix = (row[32])
-            parent1Address1 = (row[33])
-            parent1Address2 = (row[34])
-            parent1AddressCity = (row[35])
-            parent1AddressState = (row[36])
-            parent1AddressZip = (row[37])
-            parent1AddressCountry = (row[38])
-            parent1Email = (row[39])
+            parent1Address1 = (row[33]) # max character length = 60
+            parent1Address2 = (row[34]) # max character length = 60
+            parent1AddressCity = (row[35]) # max character length = 60
+            parent1AddressState = (row[36]) # max character length = 60
+            parent1AddressZip = (row[37]) # max character length = 60
+            parent1AddressCountry = (row[38]) # max character length = 60
+            parent1Email = (row[39]) # max character length = 60
             parent1Phone = (row[40][3:]) #[3:] removes the +1 area code from phone number
             parent1Occupation = (row[41])
             parent1Employer = (row[42])
@@ -185,68 +186,68 @@ def main():
             parent1EducationLevel = (row[44])
             parent2Type = (row[45])
             parent2Title = (row[46])
-            parent2FirstName = (row[47])
-            parent2LastName = (row[48])
+            parent2FirstName = (row[47]) # max character length = 24
+            parent2LastName = (row[48]) # max character length = 24
             parent2Suffix = (row[49])
-            parent2Address1 = (row[50])
-            parent2Address2 = (row[51])
-            parent2AddressCity = (row[52])
-            parent2AddressState = (row[53])
-            parent2AddressZip = (row[54])
-            parent2AddressCountry = (row[55])
-            parent2Email = (row[56])
+            parent2Address1 = (row[50]) # max character length = 30
+            parent2Address2 = (row[51]) # max character length = 30
+            parent2AddressCity = (row[52]) # max character length = 30
+            parent2AddressState = (row[53]) # max character length = 30
+            parent2AddressZip = (row[54]) # max character length = 30
+            parent2AddressCountry = (row[55]) # max character length = 30
+            parent2Email = (row[56]) # max character length = 60
             parent2Phone = (row[57][3:]) #[3:] removes the +1 area code from phone number
             parent2Occupation = (row[58])
             parent2Employer = (row[59])
             parent2College1NameCeebCode = (row[60])
             parent2EducationLevel = (row[61])
-            legalGuardianFirstName = (row[62])
-            legalGuardianLastName = (row[63])
+            legalGuardianFirstName = (row[62]) # max character length = 24
+            legalGuardianLastName = (row[63]) # max character length = 24
             legalGuardianFullName = (legalGuardianFirstName + ' ' + legalGuardianLastName)
             legalGuardianSuffix = (row[64])
-            legalGuardianAddress1 = (row[65])
-            legalGuardianAddress2 = (row[66])
-            legalGuardianAddressCity = (row[67])
-            legalGuardianAddressState = (row[68])
-            legalGuardianAddressZip = (row[69])
-            legalGuardianAddressCountry = (row[70])
-            legalGuardianEmail = (row[71])
+            legalGuardianAddress1 = (row[65]) # max character length = 30
+            legalGuardianAddress2 = (row[66]) # max character length = 30
+            legalGuardianAddressCity = (row[67]) # max character length = 30
+            legalGuardianAddressState = (row[68]) # max character length = 30
+            legalGuardianAddressZip = (row[69]) # max character length = 30
+            legalGuardianAddressCountry = (row[70]) # max character length = 30
+            legalGuardianEmail = (row[71]) # max character length = 60
             legalGuardianPhone = (row[72][3:]) #[3:] removes the +1 area code from phone number
             legalGuardianOccupation = (row[73])
             legalGuardianEmployer = (row[74])
             legalGuardianCollege1NameCeebCode = (row[75])
             legalGuardianEducationLevel = (row[76])
             sibling1Relationship = (row[77])
-            sibling1FirstName = (row[78])
-            sibling1LastName = (row[79])
+            sibling1FirstName = (row[78]) # max character length = 15
+            sibling1LastName = (row[79]) # max character length = 15
             sibling1FullName = (sibling1FirstName + ' ' + sibling1LastName)
             sibling1Age = (row[80])
             sibling1EducationLevel = (row[81])
             sibling1CollegeCeebCode = (row[82])
             sibling2Relationship = (row[83])
-            sibling2FirstName = (row[84])
-            sibling2LastName = (row[85])
+            sibling2FirstName = (row[84]) # max character length = 15
+            sibling2LastName = (row[85]) # max character length = 15
             sibling2FullName = (sibling2FirstName + ' ' + sibling2LastName)
             sibling2Age = (row[86])
             sibling2CollegeCeebCode = (row[87])
             sibling2EducationLevel = (row[88])
             sibling3Relationship = (row[89])
-            sibling3FirstName = (row[90])
-            sibling3LastName = (row[91])
+            sibling3FirstName = (row[90]) # max character length = 15
+            sibling3LastName = (row[91]) # max character length = 15
             sibling3FullName = (sibling3FirstName + ' ' + sibling3LastName)
             sibling3Age = (row[92])
             sibling3EducationLevel = (row[93])
             sibling3CollegeCeebCode = (row[94])
             sibling4Relationship = (row[95])
-            sibling4FirstName = (row[96])
-            sibling4LastName = (row[97])
+            sibling4FirstName = (row[96]) # max character length = 15
+            sibling4LastName = (row[97]) # max character length = 15
             sibling4FullName = (sibling4FirstName + ' ' + sibling4LastName)
             sibling4Age = (row[98])
             sibling4EducationLevel = (row[99])
             sibling4CollegeCeebCode = (row[100])
             sibling5Relationship = (row[101])
-            sibling5FirstName = (row[102])
-            sibling5LastName = (row[103])
+            sibling5FirstName = (row[102]) # max character length = 15
+            sibling5LastName = (row[103]) # max character length = 15
             sibling5FullName = (sibling5FirstName + ' ' + sibling5LastName)
             sibling5Age = (row[104])
             sibling5EducationLevel = (row[105])
@@ -264,7 +265,7 @@ def main():
             activity3 = (row[117])
             activity4 = (row[118])
             activity5 = (row[119])
-            etracurricularActivities = (row[120])
+            extracurricularActivities = (row[120])
             hispanicLatino = (row[121])
             # removing space when there are multiple ethnic backgrounds
             background = (row[122].replace(' ', '')) 
@@ -322,7 +323,7 @@ def main():
             religiousPreference = (row[135])
             preferredPhone = (row[136])
             preferredPhoneNumber = (row[137][3:]) #[3:] removes the +1 area code from phone number
-            permanentAddress2 = (row[138])
+            permanentAddress2 = (row[138]) # max character length = 60
             preferredStartTerm = (row[139][18:])
             studentStatus = (row[140])
             admissionPlan = (row[141])
@@ -336,24 +337,24 @@ def main():
             schoolLookupState = (row[149])
             schoolLookupZip = (row[150])
             relativesAttended = (row[151])
-            relative1FirstName = (row[152])
-            relative1LastName = (row[153])
+            relative1FirstName = (row[152]) # max character length = 24
+            relative1LastName = (row[153]) # max character length = 24
             relative1FullName = (relative1FirstName + ' ' + relative1LastName)
             relative1GradYear1 = (row[154])
-            relative2FirstName = (row[155])
-            relative2LastName = (row[156])
+            relative2FirstName = (row[155]) # max character length = 24
+            relative2LastName = (row[156]) # max character length = 24
             relative2FullName = (relative2FirstName + ' ' + relative2LastName)
             relative2GradYear1 = (row[157])
-            relative3FirstName = (row[158])
-            relative3LastName = (row[159])
+            relative3FirstName = (row[158]) # max character length = 24
+            relative3LastName = (row[159]) # max character length = 24
             relative3FullName = (relative3FirstName + ' ' + relative3LastName)
             relative3GradYear1 = (row[160])
-            relative4FirstName = (row[161])
-            relative4LastName = (row[162])
+            relative4FirstName = (row[161]) # max character length = 24
+            relative4LastName = (row[162]) # max character length = 24
             relative4FullName = (relative4FirstName + ' ' + relative4LastName)
             relative4GradYear1 = (row[163])
-            relative5FirstName = (row[164])
-            relative5LastName = (row[165])
+            relative5FirstName = (row[164]) # max character length = 24
+            relative5LastName = (row[165]) # max character length = 24
             relative5FullName = (relative5FirstName + ' ' + relative5LastName)
             relative5GradYear1 = (row[166])
             numberOfSiblings = (row[167])
@@ -371,12 +372,17 @@ def main():
             SATMathScore = (row[179])
             SATRWScore = (row[180])
             SATEssayScore = (row[181])
-            SATRWDate = (row[182])
-            SATMathDate = (row[183])
-            SATEssayDate = (row[184])
+            totalTestsTaken = (row[182])
+            SATRWDate = (row[183])
+            SATMathDate = (row[184])
+            SATEssayDate = (row[185])
+            feeWaiverCode = (row[186]) # max character length = 50
+            #permanentAddress3 = (row[187]) # max character length = 60
+            #currentAddress3 = (row[23]) # max character length = 60
 
-
-
+            print ('Contact Consent: {0}'.format(contactConsent))
+            print ('Total Tests Taken: {0}'.format(totalTestsTaken))
+            print ('Fee Waiver Code: {0}'.format(feeWaiverCode))
             now_date = (date.today())
             print ('Now Date: {0}'.format(now_date))
             purge_date = (now_date.replace(year = now_date.year + 2))
@@ -401,20 +407,17 @@ def main():
             clean_end_date = datetime.date(mail_end_date_year, mail_end_date_month, mail_end_date_day)
             print ('Clean End Date: {0}'.format(clean_end_date))
 
-            scr.write('\n-- INSERT NEW STUDENT APPLICATION for: ' + firstName + ' ' + lastName + "\n\n");
+            scr.write('--------------------------------------------------------------------------------\n')
+            scr.write('-- START INSERT NEW STUDENT APPLICATION for: ' + firstName + ' ' + lastName + "\n")
+            scr.write('--------------------------------------------------------------------------------\n')
             # insert into apptmp_rec
             q_create_app = '''
                 INSERT INTO apptmp_rec
                     (add_date, add_tm, app_source, stat, reason_txt)
-                VALUES ("{0}",
-                        {1},
-                        "WEBA",
-                        "P",
-                        "{2}"
-                        );
+                VALUES ("{0}", {1}, "WEBA", "P", "{2}");
             ''' .format(now_date, now_time, temp_uuid)
             print (q_create_app)
-            scr.write(q_create_app);
+            scr.write(q_create_app+'\n');
 
             # Getting apptmp_no
             lookup_apptmp_no = '''
@@ -426,12 +429,17 @@ def main():
                     reason_txt = "{0}";
             ''' .format(temp_uuid)
             print (lookup_apptmp_no)
-            scr.write(lookup_apptmp_no);
+            scr.write(lookup_apptmp_no+'\n');
 
-            sqlresult = do_sql(lookup_apptmp_no, earl=EARL)
-            for row in sqlresult:
-                apptmp_no = row[0]
-                print ('apptmp_no: {0}'.format(apptmp_no))
+            #######################################################################
+            # We might have an issue that we may have when we actually start to
+            # interact with the database. This code caused the script to slow down to a crawl
+            #######################################################################
+    
+            #sqlresult = do_sql(lookup_apptmp_no, earl=EARL)
+            #for row in sqlresult:
+                #apptmp_no = row[0]
+                #print ('apptmp_no: {0}'.format(apptmp_no))
 
             # insert into app_idtmp_rec
             q_create_id = '''
@@ -440,9 +448,9 @@ def main():
                     addr_line2, city, st, zip, ctry, phone, aa, add_date, ofc_add_by,
                     upd_date, purge_date, prsp_no, name_sndx, correct_addr, decsd,
                     valid)
-                VALUES ({0},"{1}","{2}","{3}","thisisafakeapplication2017","{4}",
-                    "{5}","{6}","{7}",{8},"{9}","{10}","PERM","{11}","ADMS",
-                    "{12}","{12}","0","","Y","N","Y");
+                VALUES ({0}, "{1}", "{2}", "{3}", {0}, "{4}", "{5}", "{6}", "{7}",
+                    {8},"{9}","{10}","PERM","{11}","ADMS", "{12}","{12}","0","",
+                    "Y","N","Y");
             ''' .format(apptmp_no, firstName, lastName, emailAddress,
                     permanentAddress1, permanentAddress2, permanentAddressCity,
                     permanentAddressState, permanentAddressZip, permanentAddressCountry,
@@ -450,20 +458,16 @@ def main():
             print (q_create_id)
             #apptmp_no+1
             print (apptmp_no)
-            scr.write(q_create_id);
+            scr.write(q_create_id+'\n');
 
             # insert into app_sitetmp_rec
             q_create_site = '''
                 INSERT INTO app_sitetmp_rec
                     (id, home, site, beg_date)
-                VALUES ({0},
-                        "Y",
-                        "CART",
-                        "{1}"
-                        );
+                VALUES ({0}, "Y", "CART", "{1}");
             ''' .format(apptmp_no, now_date)
             print (q_create_site)
-            scr.write(q_create_site);
+            scr.write(q_create_site+'\n');
 
             # insert into app_admtmp_rec
             q_create_adm = '''
@@ -472,45 +476,21 @@ def main():
                     trnsfr, cl, add_date, parent_contr, enrstat, rank, wisconsin_coven,
                     emailaddr, prog, subprog, upd_uid, add_uid, upd_date, act_choice,
                     stuint_wt, jics_candidate)
-                VALUES ({0},
-                        "Y",
-                        "{1}",
-                        {2},
-                        "{3}",
-                        "N",
-                        "FF",
-                        "{4}",
-                        "",
-                        "0.00",
-                        "",
-                        "0",
-                        {5},
-                        "UNDG",
-                        "TRAD",
-                        "0",
-                        "0",
-                        "",
-                        "",
-                        "0",
-                        "N"
-                        );
+                VALUES ({0}, "Y", "{1}", {2}, "{3}", "N", "FF", "{4}", "", "0.00",
+                    "", "0", {5}, "UNDG", "TRAD", "0", "0", "", "", "0", "N");
             ''' .format(apptmp_no, preferredStartTerm, startYear, admissionPlan, now_date,
                         emailAddress)
             print (q_create_adm)
-            scr.write(q_create_adm);
+            scr.write(q_create_adm+'\n');
 
             # insert into app_proftmp_rec
             q_create_prof = '''
                 INSERT INTO app_proftmp_rec
                     (id, birth_date, church_id, prof_last_upd_date)
-                VALUES ({0},
-                        "{1}",
-                        "{2}",
-                        "{3}"
-                        );
+                VALUES ({0}, "{1}", "{2}", "{3}");
             ''' .format(apptmp_no, dateOfBirth, religiousPreference, now_date)
             print (q_create_prof)
-            scr.write(q_create_prof);
+            scr.write(q_create_prof+'\n');
 
             # select alt_name from app_adretmp_rec
             test_adre = '''
@@ -524,7 +504,7 @@ def main():
                      style = "P";
              ''' .format(apptmp_no)
             print (test_adre)
-            scr.write(test_adre);
+            scr.write(test_adre+'\n');
 
             # display result for alt_name
             # sqlresult = do_sql(test_adre, earl=EARL)
@@ -555,7 +535,7 @@ def main():
                     aa = "MAIL";
             ''' .format(apptmp_no)
             print (test_aa_mail)
-            scr.write(test_aa_mail);
+            scr.write(test_aa_mail+'\n');
 
             # display result for app_aatmp_no
             # sqlresult = do_sql(test_aa_mail, earl=EARL)
@@ -567,23 +547,13 @@ def main():
             q_insert_aa_mail = '''
                 INSERT INTO app_aatmp_rec
                     (line1,line2,city,st,zip,ctry,id,aa,beg_date,end_date)
-                VALUES ("{0}",
-                        "{1}",
-                        "{2}",
-                        "{3}",
-                        {4},
-                        "{5}",
-                        {6},
-                        "MAIL",
-                        "{7}",
-                        "{8}"
-                        );
+                VALUES ("{0}", "{1}", "{2}", "{3}", {4}, "{5}", {6}, "MAIL",
+                    "{7}", "{8}");
             ''' .format(currentAddress1, currentAddress2, currentAddressCity,
-                        currentAddressState, currentAddressZip,
-                        currentAddressCountry, apptmp_no, clean_beg_date,
-                        clean_end_date)
+                    currentAddressState, currentAddressZip, currentAddressCountry,
+                    apptmp_no, clean_beg_date, clean_end_date)
             print (q_insert_aa_mail)
-            scr.write(q_insert_aa_mail);
+            scr.write(q_insert_aa_mail+'\n');
         
             # select app_aatmp_no from app_aatmp_rec (BILL)
             test_aa_bill = '''
@@ -597,29 +567,20 @@ def main():
                     aa = "BILL";
             ''' .format(apptmp_no)
             print (test_aa_bill)
-            scr.write(test_aa_bill);
+            scr.write(test_aa_bill+'\n');
         
             # insert into app_aatmp_rec (BILL)
             q_insert_aa_bill = '''
                 INSERT INTO app_aatmp_rec
                     (line1,line2,city,st,zip,ctry,id,aa,beg_date,end_date)
-                VALUES ("{0}",
-                        "{1}",
-                        "{2}",
-                        "{3}",
-                        {4},
-                        "{5}",
-                        {6},
-                        "BILL",
-                        "{7}",
-                        "{8}"
-                        );
+                VALUES ("{0}", "{1}", "{2}", "{3}", {4}, "{5}", {6}, "BILL",
+                    "{7}", "{8}");
             ''' .format(currentAddress1, currentAddress2, currentAddressCity,
                         currentAddressState, currentAddressZip,
                         currentAddressCountry, apptmp_no, clean_beg_date,
                         clean_end_date)
             print (q_insert_aa_bill)
-            scr.write(q_insert_aa_bill);
+            scr.write(q_insert_aa_bill+'\n');
         
             # select app_aatmp_no from app_aatmp_rec (CELL)
             test_aa_cell = '''
@@ -633,21 +594,17 @@ def main():
                     aa = "CELL";
             ''' .format(apptmp_no)
             print (test_aa_cell)
-            scr.write(test_aa_cell);
+            scr.write(test_aa_cell+'\n');
         
             # insert into app_aatmp_rec (CELL)
             q_insert_aa_cell = '''
                 INSERT INTO app_aatmp_rec
                     (id,aa,beg_date,phone)
-                VALUES ({0},
-                        "{1}",
-                        "{2}",
-                        "{3}"
-                        );
+                VALUES ({0}, "{1}", "{2}", "{3}");
             ''' .format(apptmp_no, alternatePhoneAvailable, now_date,
                         alternatePhoneNumber)
             print (q_insert_aa_cell)
-            scr.write(q_insert_aa_cell);
+            scr.write(q_insert_aa_cell+'\n');
             
             # queries from the library.cfc
             # insert into app_idtmp_rec
@@ -656,164 +613,159 @@ def main():
                     (id, ceeb, fullname, city, st, grad_date, enr_date, dep_date,
                     stu_id, sch_id, app_reltmp_no, rel_id, priority, zip, aa, ctgry,
                     acad_trans)
-                VALUES ({0},
-                        {1},
-                        "{2}",
-                        "{3}",
-                        "{4}",
-                        "{5}",
-                        "{6}",
-                        "{7}",
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        "{8}",
-                        "hs",
-                        "HS",
-                        "N"
-                        );
+                VALUES ({0}, {1}, "{2}", "{3}", "{4}", "{5}", "{6}", "{7}",
+                    0, 0, 0, 0, 0, "{8}", "hs", "HS", "N");
             ''' .format(apptmp_no, schoolLookupCeebCode, schoolLookupCeebName,
                         schoolLookupCity, schoolLookupState, graduationDate,
                         entryDate, exitDate, schoolLookupZip)
             print (q_create_school)
-            scr.write(q_create_school);
+            scr.write(q_create_school+'\n\n');
             
             # insert into app_edtmp_rec
             # There is some if logic that might need to be added
             q_text = '''
                 INSERT INTO app_edtmp_rec
                     (id, tick, add_date, stat, resrc, txt, due_date)
-                VALUES ({0},
-                        "ADM",
-                        {1},
-                        "C",
-                        "I20",
-                        "Applicant expects to need an I-20",
-                        {1}
-                        );
+                VALUES ({0}, "ADM", {1}, "C", "I20",
+                        "Applicant expects to need an I-20", {1});
             ''' .format(apptmp_no, now_date)
             print (q_text)
-            scr.write(q_text);
+            scr.write(q_text+'\n');
 
             if relative1FullName.strip():
                 # insert into app_edtmp_rec
-                q_alumni = "INSERT INTO app_edtmp_rec (id, rel_id, rel, fullname, phone_ext, aa, zip) VALUES ({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)" .format(apptmp_no, relative1FullName, relative1GradYear1)
+                q_alumni = "INSERT INTO app_edtmp_rec (id, rel_id, rel, fullname, phone_ext, aa, zip)\n VALUES\n ({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)" .format(apptmp_no, relative1FullName, relative1GradYear1)
                 if relative2FullName.strip():
-                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)" .format(apptmp_no, relative2FullName, relative2GradYear1)
+                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)\n" .format(apptmp_no, relative2FullName, relative2GradYear1)
                 if relative3FullName.strip():
-                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)" .format(apptmp_no, relative3FullName, relative3GradYear1)
+                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)\n" .format(apptmp_no, relative3FullName, relative3GradYear1)
                 if relative4FullName.strip():
-                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)" .format(apptmp_no, relative4FullName, relative4GradYear1)
+                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)\n" .format(apptmp_no, relative4FullName, relative4GradYear1)
                 if relative5FullName.strip():
-                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0);" .format(apptmp_no, relative5FullName, relative5GradYear1)
+                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)\n" .format(apptmp_no, relative5FullName, relative5GradYear1)
                 print (q_alumni)
-                scr.write(q_alumni);
+                scr.write(q_alumni+'\n\n');
             else:  
                 print ("Nothing to insert")
                 scr.write('--There were no relatives for this application.\n\n');
             # Need to discuss the fields being captured for Siblings, Common App does not have any information about a Sibling if they did not attend college
             if sibling1FullName.strip():
                 # insert into app_reltmp_rec
-                q_sibing_name = "INSERT INTO app_reltmp_rec (id, rel_id, rel, fullname, phone_ext, aa, zip, prim, addr_line2, suffix) VALUES ({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", {3}, {4})" .format(apptmp_no, sibling1FullName, sibling1Age, sibling1CollegeCeebCode, sibling1EducationLevel)
+                q_sibing_name = "INSERT INTO app_reltmp_rec (id, rel_id, rel, fullname, phone_ext, aa, zip, prim, addr_line2, suffix)\n VALUES ({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", {3}, \"{4}\")\n" .format(apptmp_no, sibling1FullName, sibling1Age, sibling1CollegeCeebCode, sibling1EducationLevel)
                 scr.write('\n');
                 if sibling2FullName.strip():
-                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", {3}, {4})" .format(apptmp_no, sibling2FullName, sibling2Age, sibling2CollegeCeebCode, sibling2EducationLevel)
-                    scr.write('\n');
+                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", {3}, \"{4}\")\n" .format(apptmp_no, sibling2FullName, sibling2Age, sibling2CollegeCeebCode, sibling2EducationLevel)
                 if sibling3FullName.strip():
-                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", {3}, {4})" .format(apptmp_no, sibling3FullName, sibling3Age, sibling3CollegeCeebCode, sibling3EducationLevel)
+                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", {3}, \"{4}\")\n" .format(apptmp_no, sibling3FullName, sibling3Age, sibling3CollegeCeebCode, sibling3EducationLevel)
                 if sibling4FullName.strip():
-                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", {3}, {4})" .format(apptmp_no, sibling4FullName, sibling4Age, sibling4CollegeCeebCode, sibling4EducationLevel)
+                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", {3}, \"{4}\")\n" .format(apptmp_no, sibling4FullName, sibling4Age, sibling4CollegeCeebCode, sibling4EducationLevel)
                 if sibling5FullName.strip():
-                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", {3}, {4})" .format(apptmp_no, sibling5FullName, sibling5Age, sibling5CollegeCeebCode, sibling5EducationLevel)
+                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", {3}, \"{4}\")\n" .format(apptmp_no, sibling5FullName, sibling5Age, sibling5CollegeCeebCode, sibling5EducationLevel)
                 print (q_sibing_name)
                 scr.write(q_sibing_name+'\n\n');
             else:  
                 print ("There are not any siblings to insert.")
-                scr.write('--There are not any siblings to insert.\n\n');
+                scr.write('--There were no siblings for this application.\n\n');
 
             # insert into partmp_rec
             if parent1Type == 'Father':
-                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, f_first_name, f_last_name, f_zip) VALUES (0, {0}, \"{1}\", \"{2}\", 0);" .format(apptmp_no, parent1FirstName, parent1LastName)
+                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, f_first_name, f_last_name, f_zip)\n VALUES (0, {0}, \"{1}\", \"{2}\", 0);\n" .format(apptmp_no, parent1FirstName, parent1LastName)
                 print (q_insert_partmp_rec)
                 scr.write(q_insert_partmp_rec+'\n');
             elif parent1Type == 'Mother':
-                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, m_first_name, m_last_name, m_zip) VALUES (0, {0}, \"{1}\", \"{2}\", 0);" .format(apptmp_no, parent1FirstName, parent1LastName)
+                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, m_first_name, m_last_name, m_zip)\n VALUES (0, {0}, \"{1}\", \"{2}\", 0);\n" .format(apptmp_no, parent1FirstName, parent1LastName)
                 print (q_insert_partmp_rec)
                 scr.write(q_insert_partmp_rec+'\n');
             else:
                 print ("There is no Parent 1")
-                scr.write('--There is no Parent 1.\n\n');
+                scr.write('--There was no Parent 1 for this application.\n\n');
 
             if parent2Type == 'Mother':
-                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, m_first_name, m_last_name, m_zip) VALUES (0, {0}, \"{1}\", \"{2}\", 0);" .format(apptmp_no, parent2FirstName, parent2LastName)
+                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, m_first_name, m_last_name, m_zip)\n VALUES (0, {0}, \"{1}\", \"{2}\", 0);\n" .format(apptmp_no, parent2FirstName, parent2LastName)
                 print (q_insert_partmp_rec)
                 scr.write(q_insert_partmp_rec+'\n');
             elif parent2Type == 'Father':
-                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, f_first_name, f_last_name, f_zip) VALUES (0, {0}, \"{1}\", \"{2}\", 0);" .format(apptmp_no, parent2FirstName, parent2LastName)
+                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, f_first_name, f_last_name, f_zip)\n VALUES (0, {0}, \"{1}\", \"{2}\", 0);\n" .format(apptmp_no, parent2FirstName, parent2LastName)
                 print (q_insert_partmp_rec)
                 scr.write(q_insert_partmp_rec+'\n');
             else:
                 print ("There is no Parent 2")
-                scr.write('--There is no Parent 2.\n\n');
+                scr.write('--There was no Parent 2 for this application.\n\n');
 
             if legalGuardianFullName.strip():
-                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, g_first_name, g_last_name, g_zip) VALUES (0, {0}, \"{1}\", \"{2}\", 0);" .format(apptmp_no, legalGuardianFirstName, legalGuardianLastName)
+                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, g_first_name, g_last_name, g_zip)\n VALUES (0, {0}, \"{1}\", \"{2}\", 0);\n" .format(apptmp_no, legalGuardianFirstName, legalGuardianLastName)
                 print (q_insert_partmp_rec)
                 scr.write(q_insert_partmp_rec+'\n');
             else:
                 print ("There is no legal guardian.")
-                scr.write('--There is no legal guardian.\n\n');
+                scr.write('--There was no legal guardian for this application.\n\n');
 
             # Need to discuss with Mike to show him the activities and within the CommonApp tab Activities can help a college better understand your life outside of the classroom. Your activities may include arts, athletics, clubs, employment, personal commitments, and other pursuits. Do you have any activities that you wish to report?
             # insert into app_inttmp_rec
             if activity1.strip():
-                insert_interests = "INSERT INTO app_inttmp_rec (id, prsp_no, interest, ctgry, cclevel) VALUES ({0}, 0, \"{1}\", "", \"Y\")" .format(apptmp_no, activity1)
+                insert_interests = "INSERT INTO app_inttmp_rec (id, prsp_no, interest, ctgry, cclevel)\n VALUES ({0}, 0, \"{1}\", "", \"Y\");\n" .format(apptmp_no, activity1)
                 if activity2.strip():
-                    insert_interests += ",({0}, 0, '{1}', "", 'Y')" .format(apptmp_no, activity2)
+                    insert_interests += ",({0}, 0, \"{1}\", "", \"Y\")\n" .format(apptmp_no, activity2)
                 if activity3.strip():
-                    insert_interests += ",({0}, 0, '{1}', "", 'Y')" .format(apptmp_no, activity3)
+                    insert_interests += ",({0}, 0, \"{1}\", "", \"Y\")\n" .format(apptmp_no, activity3)
                 if activity4.strip():
-                    insert_interests += ",({0}, 0, '{1}', "", 'Y')" .format(apptmp_no, activity4)
+                    insert_interests += ",({0}, 0, \"{1}\", "", \"Y\")\n" .format(apptmp_no, activity4)
                 if activity5.strip():
-                    insert_interests += ",({0}, 0, '{1}', "", 'Y')" .format(apptmp_no, activity5)
+                    insert_interests += ",({0}, 0, \"{1}\", "", \"Y\")\n" .format(apptmp_no, activity5)
                 print (insert_interests)
-                scr.write(insert_interests);
+                scr.write(insert_interests+'\n');
             else:  
                 print ("Zero interests")
-                scr.write('--They do not have any interests.\n\n');
+                scr.write('--The was no activities for this application.\n\n');
             
             for race in converted:
                 # insert into app_mracetmp_rec
                 insert_races = '''
                     INSERT INTO app_mracetmp_rec
                         (id, race)
-                    VALUES ({0},
-                            "{1}"
-                            );
+                    VALUES ({0}, "{1}");\n
                 ''' .format(apptmp_no, race)
                 print (insert_races)
-                scr.write(insert_races);
-    
+                scr.write(insert_races+'\n');
+
+            q_optional_1 = '''
+                INSERT INTO app_proftmp_rec (id, ethnic_code, race, hispanic, option1)
+                VALUES ({0}, \"{1}\", \"{2}\", \"{3}\", "");
+            ''' .format(apptmp_no, race, race, hispanicLatino)
+            print (q_optional_1)
+            scr.write(q_optional_1+'\n');
+            
             for race in converted:
                 # insert into app_proftmp_rec
-                q_optional = "INSERT INTO app_proftmp_rec (id, ethnic_code, race, hispanic) VALUES ({0}, \"{1}\", \"{2}\", \"{3}\")" .format(apptmp_no, race, race, hispanicLatino)
+                q_optional_2 = "INSERT INTO app_proftmp_rec (id, ethnic_code, race, hispanic, option2)"
                 if ethnic_code == 'UN':
-                    q_optional += ",({0}, \"UN\", \"{1}\", \"{2}\")" .format(apptmp_no, race, hispanicLatino)
+                    q_optional_2 += " VALUES ({0}, \"UN\", \"{1}\", \"{2}\", "")" .format(apptmp_no, race, hispanicLatino)
                 if ethnic_code == 'MU':
-                    q_optional += ",({0}, \"MU\", \"{1}\", \"{2}\")" .format(apptmp_no, race, hispanicLatino)
-                print (q_optional)
+                    q_optional_2 += " VALUES ({0}, \"MU\", \"{1}\", \"{2}\", "")" .format(apptmp_no, race, hispanicLatino)
+                print (q_optional_2)
                 print (race)
-                scr.write(q_optional);
-    
-            if ACTNumber == 1:
-                # insert into app_examtmp_rec
-                q_exam = "INSERT INTO app_examtmp_rec (id, ctgry, cmpl_date, self_rpt, site, score1, score2, score3, score4, score5, score6) VALUES ({0}, \"ACT\", {1}, \"Y\", \"CART\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\")" .format(apptmp_no, actCompositeDate, ACTCompositeScore, ACTEnglishScore, ACTMathScore, ACTReadingScore, ACTScienceScore, ACTWritingScore)
-                if SATNumber == 1:
-                    q_exam += ",({0}, \"SAT\", \"{1}\", \"Y\", \"CART\", \"\", \"{2}\" \"{3}\", \"{4}\", \"{6}\", \"\")" .format(apptmp_no, SATRWDate, SATRWScore, SATMathScore, SATEssayScore)
-                print (q_exam)
-                scr.write(q_exam);
+                scr.write(q_optional_2+'\n');
+
+            # creating Testing Scores array for ACT, SAT_New
+            tests_array = []
+            for test in totalTestsTaken.split(','):
+                tests_array.append(test.strip())
+                print(tests_array)
+
+            for tests in tests_array:
+                q_exam = "INSERT INTO app_examtmp_rec (id, ctgry, cmpl_date, self_rpt, site, score1, score2, score3, score4, score5, score6)\n"
+                if tests == 'ACT' and ACTCompositeScore != '':
+                    # insert into app_examtmp_rec
+                    q_exam += " VALUES ({0}, \"ACT\", {1}, \"Y\", \"CART\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\")" .format(apptmp_no, actCompositeDate, ACTCompositeScore, ACTEnglishScore, ACTMathScore, ACTReadingScore, ACTScienceScore, ACTWritingScore)
+                    print (q_exam)
+                    scr.write(q_exam+'\n');
+                if tests == 'SAT_New' and (SATRWScore != '' or SATMathScore != '' or SATEssayScore != ''):
+                    q_exam += " VALUES ({0}, \"SAT\", \"{1}\", \"Y\", \"CART\", "", \"{2}\" \"{3}\", \"{4}\", "", "")" .format(apptmp_no, SATRWDate, SATRWScore, SATMathScore, SATEssayScore)
+                    print (q_exam)
+                    scr.write(q_exam+'\n');
+            scr.write('--------------------------------------------------------------------------------\n')
+            scr.write('-- END INSERT NEW STUDENT APPLICATION for: ' + firstName + ' ' + lastName + "\n")
+            scr.write('--------------------------------------------------------------------------------\n\n')
         f.close()
 
 if __name__ == "__main__":
