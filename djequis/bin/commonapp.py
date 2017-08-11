@@ -93,7 +93,7 @@ def main():
     scr.write('--------------------------------------------------------------------------------\n' )
     scr.write('-- COMMON APPLICATION - RESULTS IN TEMP TABLE \n' )
     scr.write('--------------------------------------------------------------------------------\n' )
-    
+
     # Read file
     with open(filename, 'rb') as f:
 
@@ -142,6 +142,10 @@ def main():
             commonAppID = (row[0])
             startYear = (row[1])
             studentType = (row[2])
+            if studentType == 'FY':
+                studentType = 'FF'
+            elif studentType == 'TR':
+                studentType = 'UT'
             firstName = (row[3]) # max character length = 25
             middleName = (row[4]) # max character length = 25
             lastName = (row[5]) # max character length = 30
@@ -152,7 +156,8 @@ def main():
             sex = (row[10])
             armedForcesStatus = (row[11])
             ssn = (row[12]) # max character length = 11
-            dateOfBirth = (row[13])
+            #dateOfBirth = (row[13])
+            dateOfBirth = datetime.datetime.strptime(row[13], '%m/%d/%Y').strftime('%Y-%m-%d')
             birthCity = (row[14])
             birthState = (row[15])
             birthCountry = (row[16])
@@ -179,7 +184,7 @@ def main():
             parent1AddressZip = (row[37]) # max character length = 60
             parent1AddressCountry = (row[38]) # max character length = 60
             parent1Email = (row[39]) # max character length = 60
-            parent1Phone = (row[40][3:]) #[3:] removes the +1 area code from phone number
+            parent1Phone = (row[40].replace('+1.', '')) # removes the +1. from phone number
             parent1Occupation = (row[41])
             parent1Employer = (row[42])
             parent1College1NameCeebCode = (row[43])
@@ -196,7 +201,7 @@ def main():
             parent2AddressZip = (row[54]) # max character length = 30
             parent2AddressCountry = (row[55]) # max character length = 30
             parent2Email = (row[56]) # max character length = 60
-            parent2Phone = (row[57][3:]) #[3:] removes the +1 area code from phone number
+            parent2Phone = (row[57].replace('+1.', '')) # removes the +1. from phone number
             parent2Occupation = (row[58])
             parent2Employer = (row[59])
             parent2College1NameCeebCode = (row[60])
@@ -212,7 +217,7 @@ def main():
             legalGuardianAddressZip = (row[69]) # max character length = 30
             legalGuardianAddressCountry = (row[70]) # max character length = 30
             legalGuardianEmail = (row[71]) # max character length = 60
-            legalGuardianPhone = (row[72][3:]) #[3:] removes the +1 area code from phone number
+            legalGuardianPhone = (row[72].replace('+1.', '')) # removes the +1. from phone number
             legalGuardianOccupation = (row[73])
             legalGuardianEmployer = (row[74])
             legalGuardianCollege1NameCeebCode = (row[75])
@@ -253,8 +258,11 @@ def main():
             sibling5EducationLevel = (row[105])
             sibling5CollegeCeebCode = (row[106])
             entryDate = (row[107])
+            #entryDate = datetime.datetime.strptime(row[107], '%m/%Y').strftime('%Y-%m-01')
             exitDate = (row[108])
+            #exitDate = datetime.datetime.strptime(row[108], '%m/%Y').strftime('%Y-%m-01')
             graduationDate = (row[109])
+            #graduationDate = datetime.datetime.strptime(row[109], '%m/%Y').strftime('%Y-%m-01')
             actCompositeDate = (row[110])
             major1 = (row[111])
             major2 = (row[112])
@@ -322,13 +330,17 @@ def main():
             whiteOther = (row[134])
             religiousPreference = (row[135])
             preferredPhone = (row[136])
-            preferredPhoneNumber = (row[137][3:]) #[3:] removes the +1 area code from phone number
+            preferredPhoneNumber = (row[137].replace('+1.', '')) # removes the +1. from phone number
             permanentAddress2 = (row[138]) # max character length = 60
             preferredStartTerm = (row[139][18:])
             studentStatus = (row[140])
+            if studentStatus == 'Full Time':
+                studentStatus = 'TRAD'
+            elif studentStatus == 'Part Time':
+                studentStatus = 'TRAP'
             admissionPlan = (row[141])
             preferredResidence = (row[142])
-            alternatePhoneNumber = (row[143][3:]) #[3:] removes the +1 area code from phone number
+            alternatePhoneNumber = (row[143].replace('+1.', '')) # removes the +1. from phone number
             alternatePhoneAvailable = (row[144])
             schoolLookupCeebCode = (row[145])
             schoolLookupCeebName = (row[146])
@@ -377,9 +389,26 @@ def main():
             SATMathDate = (row[184])
             SATEssayDate = (row[185])
             feeWaiverCode = (row[186]) # max character length = 50
-            #permanentAddress3 = (row[187]) # max character length = 60
-            #currentAddress3 = (row[23]) # max character length = 60
-
+            permanentAddress3 = (row[187]) # max character length = 60
+            currentAddress3 = (row[188]) # max character length = 60
+            freshmanNursing = (row[189])
+            if studentType == 'FF' and freshmanNursing == 'Y':
+                studentType = 'FN'
+            #######################################################################
+            # Below are Transfer Student variables coming from Common App
+            #######################################################################
+            preferredStartTerm = (row[190][18:])
+            admissionPlan = (row[191])
+            transferStudentStatus = (row[192])
+            if transferStudentStatus == 'Full Time':
+                studentStatus = 'TRAD'
+            elif transferStudentStatus == 'Part Time':
+                studentStatus = 'TRAP'
+            
+            print ('Student Type: {0}'.format(studentType))
+            print ('Student Status: {0}'.format(studentStatus))
+            print ('Admission Plan: {0}'.format(admissionPlan))
+            print ('Freshman Nursing: {0}'.format(freshmanNursing))
             print ('Contact Consent: {0}'.format(contactConsent))
             print ('Total Tests Taken: {0}'.format(totalTestsTaken))
             print ('Fee Waiver Code: {0}'.format(feeWaiverCode))
@@ -456,7 +485,6 @@ def main():
                     permanentAddressState, permanentAddressZip, permanentAddressCountry,
                     preferredPhoneNumber, now_date, purge_date)
             print (q_create_id)
-            #apptmp_no+1
             print (apptmp_no)
             scr.write(q_create_id+'\n');
 
@@ -476,10 +504,10 @@ def main():
                     trnsfr, cl, add_date, parent_contr, enrstat, rank, wisconsin_coven,
                     emailaddr, prog, subprog, upd_uid, add_uid, upd_date, act_choice,
                     stuint_wt, jics_candidate)
-                VALUES ({0}, "Y", "{1}", {2}, "{3}", "N", "FF", "{4}", "", "0.00",
-                    "", "0", {5}, "UNDG", "TRAD", "0", "0", "", "", "0", "N");
-            ''' .format(apptmp_no, preferredStartTerm, startYear, admissionPlan, now_date,
-                        emailAddress)
+                VALUES ({0}, "Y", "{1}", {2}, "{3}", "N", "{4}", "{5}", "", "0.00",
+                    "", "0", "{6}", "UNDG", "{7}", "0", "0", "", "", "0", "N");
+            ''' .format(apptmp_no, preferredStartTerm, startYear, admissionPlan,
+                        studentType, now_date, emailAddress, studentStatus)
             print (q_create_adm)
             scr.write(q_create_adm+'\n');
 
@@ -524,18 +552,18 @@ def main():
             # print (q_create_site)
             
             # select app_aatmp_no from app_aatmp_rec (MAIL)
-            test_aa_mail = '''
-                SELECT
-                    app_aatmp_no
-                FROM
-                    app_aatmp_rec
-                WHERE
-                    id = {0}
-                AND
-                    aa = "MAIL";
-            ''' .format(apptmp_no)
-            print (test_aa_mail)
-            scr.write(test_aa_mail+'\n');
+            # test_aa_mail = '''
+            #     SELECT
+            #         app_aatmp_no
+            #     FROM
+            #         app_aatmp_rec
+            #     WHERE
+            #         id = {0}
+            #     AND
+            #         aa = "MAIL";
+            # ''' .format(apptmp_no)
+            # print (test_aa_mail)
+            # scr.write(test_aa_mail+'\n');
 
             # display result for app_aatmp_no
             # sqlresult = do_sql(test_aa_mail, earl=EARL)
@@ -556,47 +584,47 @@ def main():
             scr.write(q_insert_aa_mail+'\n');
         
             # select app_aatmp_no from app_aatmp_rec (BILL)
-            test_aa_bill = '''
-                SELECT
-                    app_aatmp_no
-                FROM
-                    app_aatmp_rec
-                WHERE
-                    id = {0}
-                AND
-                    aa = "BILL";
-            ''' .format(apptmp_no)
-            print (test_aa_bill)
-            scr.write(test_aa_bill+'\n');
+            # test_aa_bill = '''
+            #     SELECT
+            #         app_aatmp_no
+            #     FROM
+            #         app_aatmp_rec
+            #     WHERE
+            #         id = {0}
+            #     AND
+            #         aa = "BILL";
+            # ''' .format(apptmp_no)
+            # print (test_aa_bill)
+            # scr.write(test_aa_bill+'\n');
         
             # insert into app_aatmp_rec (BILL)
-            q_insert_aa_bill = '''
-                INSERT INTO app_aatmp_rec
-                    (line1,line2,city,st,zip,ctry,id,aa,beg_date,end_date)
-                VALUES ("{0}", "{1}", "{2}", "{3}", {4}, "{5}", {6}, "BILL",
-                    "{7}", "{8}");
-            ''' .format(currentAddress1, currentAddress2, currentAddressCity,
-                        currentAddressState, currentAddressZip,
-                        currentAddressCountry, apptmp_no, clean_beg_date,
-                        clean_end_date)
-            print (q_insert_aa_bill)
-            scr.write(q_insert_aa_bill+'\n');
+            # q_insert_aa_bill = '''
+            #     INSERT INTO app_aatmp_rec
+            #         (line1,line2,city,st,zip,ctry,id,aa,beg_date,end_date)
+            #     VALUES ("{0}", "{1}", "{2}", "{3}", {4}, "{5}", {6}, "BILL",
+            #         "{7}", "{8}");
+            # ''' .format(currentAddress1, currentAddress2, currentAddressCity,
+            #             currentAddressState, currentAddressZip,
+            #             currentAddressCountry, apptmp_no, clean_beg_date,
+            #             clean_end_date)
+            # print (q_insert_aa_bill)
+            # scr.write(q_insert_aa_bill+'\n');
         
             # select app_aatmp_no from app_aatmp_rec (CELL)
-            test_aa_cell = '''
-                SELECT
-                    app_aatmp_no
-                FROM
-                    app_aatmp_rec
-                WHERE
-                    id = {0}
-                AND
-                    aa = "CELL";
-            ''' .format(apptmp_no)
-            print (test_aa_cell)
-            scr.write(test_aa_cell+'\n');
+            # test_aa_cell = '''
+            #     SELECT
+            #         app_aatmp_no
+            #     FROM
+            #         app_aatmp_rec
+            #     WHERE
+            #         id = {0}
+            #     AND
+            #         aa = "CELL";
+            # ''' .format(apptmp_no)
+            # print (test_aa_cell)
+            # scr.write(test_aa_cell+'\n');
         
-            # insert into app_aatmp_rec (CELL)
+            # insert into app_aatmp_rec (CELL) *** add CELL for aa
             q_insert_aa_cell = '''
                 INSERT INTO app_aatmp_rec
                     (id,aa,beg_date,phone)
@@ -666,7 +694,23 @@ def main():
             else:  
                 print ("There are not any siblings to insert.")
                 scr.write('--There were no siblings for this application.\n\n');
-
+            """
+                #type#_addr_line1 = <cfqueryparam value="#arguments.form['#parent#_line1']#" CFSQLType="CF_SQL_VARCHAR" />,
+                #type#_addr_line2 = <cfqueryparam value="#arguments.form['#parent#_line2']#" CFSQLType="CF_SQL_VARCHAR" />,
+                #type#_city = <cfqueryparam value="#arguments.form['#parent#_city']#" CFSQLType="CF_SQL_VARCHAR" />,
+                #type#_st = <cfqueryparam value="#arguments.form['#parent#_st']#" CFSQLType="CF_SQL_VARCHAR" />,
+                #type#_zip = <cfqueryparam value="#arguments.form['#parent#_zip']#" CFSQLType="CF_SQL_VARCHAR" />,
+                #type#_ctry = <cfqueryparam value="#arguments.form['#parent#_ctry']#" CFSQLType="CF_SQL_VARCHAR" />,
+                #type#_college = <cfqueryparam value="#arguments.form['#parent#_college']#" CFSQLType="CF_SQL_VARCHAR" />,
+                #type#_deg_earn = <cfqueryparam value="#arguments.form['#parent#_education']#" CFSQLType="CF_SQL_VARCHAR" />,
+                #type#_title = <cfqueryparam value="#arguments.form['#parent#_prefix']#" CFSQLType="CF_SQL_VARCHAR" />,
+                #type#_suffix = <cfqueryparam value="#arguments.form['#parent#_suffix']#" CFSQLType="CF_SQL_VARCHAR" />,
+                #type#_email = <cfqueryparam value="#arguments.form['#parent#_email']#" CFSQLType="CF_SQL_VARCHAR" />,
+                #type#_phone = <cfqueryparam value="#arguments.form['#parent#_phone']#" CFSQLType="CF_SQL_VARCHAR" />,
+                #type#_work_ctc = <cfqueryparam value="#arguments.form['#parent#_permit_contact']#" CFSQLType="CF_SQL_VARCHAR" />,
+                #type#_job = <cfqueryparam value="#arguments.form['#parent#_pos']#" CFSQLType="CF_SQL_VARCHAR" />,
+                #type#_employer = <cfqueryparam value="#arguments.form['#parent#_bus']#" CFSQLType="CF_SQL_VARCHAR" />
+            """
             # insert into partmp_rec
             if parent1Type == 'Father':
                 q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, f_first_name, f_last_name, f_zip)\n VALUES (0, {0}, \"{1}\", \"{2}\", 0);\n" .format(apptmp_no, parent1FirstName, parent1LastName)
@@ -717,34 +761,35 @@ def main():
             else:  
                 print ("Zero interests")
                 scr.write('--The was no activities for this application.\n\n');
-            
-            for race in converted:
+            ## if list of converted > 1
+            for eth_race in converted:
                 # insert into app_mracetmp_rec
                 insert_races = '''
                     INSERT INTO app_mracetmp_rec
                         (id, race)
                     VALUES ({0}, "{1}");\n
-                ''' .format(apptmp_no, race)
+                ''' .format(apptmp_no, eth_race)
                 print (insert_races)
                 scr.write(insert_races+'\n');
 
-            q_optional_1 = '''
-                INSERT INTO app_proftmp_rec (id, ethnic_code, race, hispanic, option1)
-                VALUES ({0}, \"{1}\", \"{2}\", \"{3}\", "");
-            ''' .format(apptmp_no, race, race, hispanicLatino)
+            
+            # remove ethinc_code just keep race
+            # insert into app_proftmp_rec
+            if ethnic_code == 'UN':
+                q_optional_2 = "INSERT INTO app_proftmp_rec (id, ethnic_code, race, hispanic) VALUES ({0}, \"UN\", \"{1}\", \"{2}\")" .format(apptmp_no, eth_race, hispanicLatino)
+                print (q_optional_2)
+                scr.write(q_optional_2+'\n');
+            elif ethnic_code == 'MU':
+                q_optional_2 = "INSERT INTO app_proftmp_rec (id, ethnic_code, race, hispanic) VALUES ({0}, \"MU\", \"{1}\", \"{2}\")" .format(apptmp_no, eth_race, hispanicLatino)
+                print (q_optional_2)
+                scr.write(q_optional_2+'\n');
+            else:
+                q_optional_1 = '''
+                INSERT INTO app_proftmp_rec (id, ethnic_code, race, hispanic)
+                VALUES ({0}, \"{1}\", \"{2}\", \"{3}\");
+            ''' .format(apptmp_no, eth_race, eth_race, hispanicLatino)
             print (q_optional_1)
             scr.write(q_optional_1+'\n');
-            
-            for race in converted:
-                # insert into app_proftmp_rec
-                q_optional_2 = "INSERT INTO app_proftmp_rec (id, ethnic_code, race, hispanic, option2)"
-                if ethnic_code == 'UN':
-                    q_optional_2 += " VALUES ({0}, \"UN\", \"{1}\", \"{2}\", "")" .format(apptmp_no, race, hispanicLatino)
-                if ethnic_code == 'MU':
-                    q_optional_2 += " VALUES ({0}, \"MU\", \"{1}\", \"{2}\", "")" .format(apptmp_no, race, hispanicLatino)
-                print (q_optional_2)
-                print (race)
-                scr.write(q_optional_2+'\n');
 
             # creating Testing Scores array for ACT, SAT_New
             tests_array = []
@@ -760,7 +805,7 @@ def main():
                     print (q_exam)
                     scr.write(q_exam+'\n');
                 if tests == 'SAT_New' and (SATRWScore != '' or SATMathScore != '' or SATEssayScore != ''):
-                    q_exam += " VALUES ({0}, \"SAT\", \"{1}\", \"Y\", \"CART\", "", \"{2}\" \"{3}\", \"{4}\", "", "")" .format(apptmp_no, SATRWDate, SATRWScore, SATMathScore, SATEssayScore)
+                    q_exam += " VALUES ({0}, \"SAT\", \"{1}\", \"Y\", \"CART\", \"\", \"{2}\", \"{3}\", \"{4}\", \"\", \"\")" .format(apptmp_no, SATRWDate, SATRWScore, SATMathScore, SATEssayScore)
                     print (q_exam)
                     scr.write(q_exam+'\n');
             scr.write('--------------------------------------------------------------------------------\n')
