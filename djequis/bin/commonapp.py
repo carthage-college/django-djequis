@@ -695,21 +695,21 @@ def main():
                 print ("There are not any siblings to insert.")
                 scr.write('--There were no siblings for this application.\n\n');
             """
-                #type#_addr_line1 = <cfqueryparam value="#arguments.form['#parent#_line1']#" CFSQLType="CF_SQL_VARCHAR" />,
-                #type#_addr_line2 = <cfqueryparam value="#arguments.form['#parent#_line2']#" CFSQLType="CF_SQL_VARCHAR" />,
-                #type#_city = <cfqueryparam value="#arguments.form['#parent#_city']#" CFSQLType="CF_SQL_VARCHAR" />,
-                #type#_st = <cfqueryparam value="#arguments.form['#parent#_st']#" CFSQLType="CF_SQL_VARCHAR" />,
-                #type#_zip = <cfqueryparam value="#arguments.form['#parent#_zip']#" CFSQLType="CF_SQL_VARCHAR" />,
-                #type#_ctry = <cfqueryparam value="#arguments.form['#parent#_ctry']#" CFSQLType="CF_SQL_VARCHAR" />,
-                #type#_college = <cfqueryparam value="#arguments.form['#parent#_college']#" CFSQLType="CF_SQL_VARCHAR" />,
-                #type#_deg_earn = <cfqueryparam value="#arguments.form['#parent#_education']#" CFSQLType="CF_SQL_VARCHAR" />,
-                #type#_title = <cfqueryparam value="#arguments.form['#parent#_prefix']#" CFSQLType="CF_SQL_VARCHAR" />,
-                #type#_suffix = <cfqueryparam value="#arguments.form['#parent#_suffix']#" CFSQLType="CF_SQL_VARCHAR" />,
-                #type#_email = <cfqueryparam value="#arguments.form['#parent#_email']#" CFSQLType="CF_SQL_VARCHAR" />,
-                #type#_phone = <cfqueryparam value="#arguments.form['#parent#_phone']#" CFSQLType="CF_SQL_VARCHAR" />,
-                #type#_work_ctc = <cfqueryparam value="#arguments.form['#parent#_permit_contact']#" CFSQLType="CF_SQL_VARCHAR" />,
-                #type#_job = <cfqueryparam value="#arguments.form['#parent#_pos']#" CFSQLType="CF_SQL_VARCHAR" />,
-                #type#_employer = <cfqueryparam value="#arguments.form['#parent#_bus']#" CFSQLType="CF_SQL_VARCHAR" />
+                addr_line1 = <cfqueryparam value="#arguments.form['#parent#_line1']#" CFSQLType="CF_SQL_VARCHAR" />,
+                addr_line2 = <cfqueryparam value="#arguments.form['#parent#_line2']#" CFSQLType="CF_SQL_VARCHAR" />,
+                city = <cfqueryparam value="#arguments.form['#parent#_city']#" CFSQLType="CF_SQL_VARCHAR" />,
+                st = <cfqueryparam value="#arguments.form['#parent#_st']#" CFSQLType="CF_SQL_VARCHAR" />,
+                zip = <cfqueryparam value="#arguments.form['#parent#_zip']#" CFSQLType="CF_SQL_VARCHAR" />,
+                ctry = <cfqueryparam value="#arguments.form['#parent#_ctry']#" CFSQLType="CF_SQL_VARCHAR" />,
+                college = <cfqueryparam value="#arguments.form['#parent#_college']#" CFSQLType="CF_SQL_VARCHAR" />,
+                deg_earn = <cfqueryparam value="#arguments.form['#parent#_education']#" CFSQLType="CF_SQL_VARCHAR" />,
+                title = <cfqueryparam value="#arguments.form['#parent#_prefix']#" CFSQLType="CF_SQL_VARCHAR" />,
+                suffix = <cfqueryparam value="#arguments.form['#parent#_suffix']#" CFSQLType="CF_SQL_VARCHAR" />,
+                email = <cfqueryparam value="#arguments.form['#parent#_email']#" CFSQLType="CF_SQL_VARCHAR" />,
+                phone = <cfqueryparam value="#arguments.form['#parent#_phone']#" CFSQLType="CF_SQL_VARCHAR" />,
+                work_ctc = <cfqueryparam value="#arguments.form['#parent#_permit_contact']#" CFSQLType="CF_SQL_VARCHAR" />,
+                job = <cfqueryparam value="#arguments.form['#parent#_pos']#" CFSQLType="CF_SQL_VARCHAR" />,
+                employer = <cfqueryparam value="#arguments.form['#parent#_bus']#" CFSQLType="CF_SQL_VARCHAR" />
             """
             # insert into partmp_rec
             if parent1Type == 'Father':
