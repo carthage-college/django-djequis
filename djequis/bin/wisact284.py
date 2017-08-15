@@ -7,6 +7,7 @@ from datetime import date
 from datetime import timedelta
 import time
 import argparse
+import decimal
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -71,28 +72,58 @@ def main():
     print ('File Name: {0}{1}'.format(century,datetimestr))
 
     # run SQL statement
-    sqlresult = do_sql(WIS_ACT_284_SQL, earl=EARL)
+    sqlresults = do_sql(WIS_ACT_284_SQL, earl=EARL)
+    #filename=('wisact284.csv')
+    
+    #phile = open(filename,"w");
+    #writer = csv.writer(phile)
+    #writer.writerow(('OPEID', 'StudentID', 'SSN', 'First Name', 'Last Name', 'Address Line 1', 'Address Line 2', 'Address Line 3', 'City', 'State', 'Zip', 'Country', 'Email', 'CTUFE', 'CRMBD', 'CBOOK', 'CTRAN', 'CMISC', 'CLOAN', 'ACADYR'))
+    csv_line = ("OPEID", "StudentID", "SSN", "First Name", "Last Name",
+                "Address Line 1", "Address Line 2", "Address Line 3", "City",
+                "State", "Zip", "Country", "Email", "CTUFE", "CRMBD", "CBOOK",
+                "CTRAN", "CMISC", "CLOAN", "ACADYR", "Aid Code 1", "Loan Name 1",
+                "Aid Amount 1", "Instgrants 1", "Instscholar 1", "Fedgrants 1",
+                "Stegrants 1", "Outside Aid 1", "Beginning Date 1", "Aid Code 2",
+                "Loan Name 2", "Aid Amount 2", "Instgrants 2", "Instscholar 2",
+                "Fedgrants 2", "Stegrants 2", "Outside Aid 2", "Beginning Date 2",
+                "Aid Code 3", "Loan Name 3", "Aid Amount 3", "Instgrants 3",
+                "Instscholar 3", "Fedgrants 3", "Stegrants 3", "Outside Aid 3",
+                "Beginning Date 3", "Aid Code 4", "Loan Name 4", "Aid Amount 4",
+                "Instgrants 4", "Instscholar 4", "Fedgrants 4", "Stegrants 4",
+                "Outside Aid 4", "Beginning Date 4", "Aid Code 5", "Loan Name 5",
+                "Aid Amount 5", "Instgrants 5", "Instscholar 5", "Fedgrants 5",
+                "Stegrants 5", "Outside Aid 5", "Beginning Date 5", "Aid Code 6",
+                "Loan Name 6", "Aid Amount 6", "Instgrants 6", "Instscholar 6",
+                "Fedgrants 6", "Stegrants 6", "Outside Aid 6", "Beginning Date 6"
+                )
+    currentID = 0
 
-    control = None
-    line = None
+    for row in sqlresults:
+        if row["student_id_number"] != currentID:
+            #print (row["student_id_number"])
+            #print ('Write line to csv')
+            print (csv_line)
+            #writer.writerow(row["student_id_number"])
+            currentID = row["student_id_number"]
+            csv_line = (row["opeid"], row["student_id_number"],
+                         row["social_security_number"], str(row["student_first_name"]),
+                         row["student_last_name"], row["student_address_line_1"],
+                         row["student_address_line_2"], row["student_address_line_3"],
+                         row["student_city"], row["student_state_code"],
+                         row["student_postal_code"], row["student_country_code"],
+                         row["student_email"], row["c_tufe"], row["c_rmbd"],
+                         row["c_book"], row["c_tran"], row["c_misc"],
+                         row["c_loan"], row["acadyear"])
+            print ('Current ID: {0}'.format(currentID))
+        csv_line += (row["aid_code"], row["loan_name"], (row["aid_amount"]),
+                      (row["c_instgrants"]), row["c_instscholar"],
+                      row["c_fedgrants"], row["c_stegrants"], row["c_outsideaid"],
+                      row["beginning_date"])
+    print (csv_line)
+        #writer.writerow((row["aid_code"], row["loan_name"], row["aid_amount"], row["c_instgrants"], row["c_instscholar"], row["c_fedgrants"], row["c_stegrants"], row["c_outsideaid"], row["beginning_date"]))
 
-    for x in sqlresult:
-        #print(x)
-        if x[1] == control:
-            line =+ x[1]
-            print(control)
-        else:
-            line = x[1]
-            control = x[1]
-            #print(line)
-        #print(control)
-
-    #where control is the value in your row that you will use to determine if you have the same student and thus you put the data on the same line or it is a different student and you create a new line
-
-    # for row in sqlresult:
-    #     #print (row)
-    #     if row[1] == row[1]:
-    #         print(row[1])
+    #phile.close()
+    #print open(filename, "r").read()
 
 if __name__ == "__main__":
     args = parser.parse_args()
