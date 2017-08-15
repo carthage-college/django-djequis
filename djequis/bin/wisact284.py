@@ -119,7 +119,7 @@ def main():
                       (row["c_instgrants"]), row["c_instscholar"],
                       row["c_fedgrants"], row["c_stegrants"], row["c_outsideaid"],
                       row["beginning_date"])
-    print (csv_line)
+    print (str(csv_line))
         #writer.writerow((row["aid_code"], row["loan_name"], row["aid_amount"], row["c_instgrants"], row["c_instscholar"], row["c_fedgrants"], row["c_stegrants"], row["c_outsideaid"], row["beginning_date"]))
 
     #phile.close()
