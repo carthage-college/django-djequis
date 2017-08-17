@@ -71,20 +71,15 @@ def main():
     # Looks at queries and determines if aid has been despersed
     if dispersed:
         getaid_sql = getaid(True)
-        #print (getaid_sql)
         getcount_sql = getaidcount(True)
-        #print (getcount_sql)
     else:
         getaid_sql = getaid(False)
-        #print (getaid_sql)
         getcount_sql = getaidcount(False)
-        #print (getcount_sql)
 
     # run SQL statement
     sqlresults = do_sql(getaid_sql, earl=EARL)
-    # if there are no results
+    # if there are no results sned email
     if sqlresults is None:
-        print ("Funds have not been dispersed.")
         # send email
         SUBJECT = '[Wisconsin Act 284]'
         BODY = 'Funds have not been dispersed.\n\n'
@@ -97,19 +92,24 @@ def main():
         sqlcountresults = do_sql(getcount_sql, earl=EARL)
         # fetch the first row and get max loan number from the number of loans column
         maxaidcount = (sqlcountresults.fetchone()["number_of_loans"]) 
-        print ('Highest Number of loans: {0}'.format(maxaidcount))
+        # if command line --test prints out number of loans
+        if test:
+            print ('Highest Number of loans: {0}'.format(maxaidcount))
         # set directory and filename to be stored
         filename=('{0}CCM-{1}.csv'.format(
             settings.WISACT_CSV_OUTPUT,datetimestr
         ))
         phile = open(filename,"w");
         writer = csv.writer(phile)
-        # creates non-dynamic file header
+        # sets non-dynamic file header
         header = ["File Name", "School OPEID", "File Date"]
+        # writes file header
         writer.writerow(header)
+        # sets file header elements
         header_detail = ("CCM", "00383900", datetimestr)
+        # writes file header elements
         writer.writerow(header_detail)
-        # creates non-dynamic part of the file detail header
+        # sets non-dynamic part of the file detail header
         csv_line = ["School OPEID", "Academic Year", "Student SSN", "Student First Name",
                     "Student Last Name", "School Student ID", "Student Address Line 1",
                     "student Address Line 2", "Student Address Line 3", "Student City",
@@ -127,16 +127,20 @@ def main():
                         'Institutional Scholarship'+ ' ' +str(aidindex), 'Federal Grants'+ ' ' +str(aidindex),
                         'State Grants'+ ' ' +str(aidindex), 'Outside Aid'+ ' ' +str(aidindex),
                         'Loan Date'+ ' ' +str(aidindex)))
-        print (csv_line)
+        # if command line --test prints out csv_line
+        if test:
+            print (csv_line)
         # initializing currentID 0
         currentID = 0
         for row in sqlresults:
             if row["student_id_number"] != currentID:
-                print (csv_line)
-                # creates header in .csv
+                # if command line --test prints out csv_line
+                if test:
+                    print (csv_line)
+                # writes file detail header
                 writer.writerow(csv_line)
                 currentID = row["student_id_number"]
-                # creates non-dynamic detail file data of the student record
+                # writes non-dynamic detail file data of the student record
                 csv_line = (row["opeid"], row["acadyear"], row["social_security_number"],
                         row["student_first_name"], row["student_last_name"],
                         row["student_id_number"], row["student_address_line_1"],
@@ -146,7 +150,9 @@ def main():
                         row["student_email"], row["c_tufe"], row["c_rmbd"],
                         row["c_book"], row["c_tran"], row["c_misc"],
                         row["c_loan"])
-                print ('Current ID: {0}'.format(currentID))
+                # if command line --test prints out student ID
+                if test:
+                    print ('Current ID: {0}'.format(currentID))
                 #######################################################################
                     # adds each financial aid loan record to row for student
                     # to the backend of the file. The % .2f is to keep the format of decimals
@@ -155,10 +161,12 @@ def main():
                           "% .2f" % row["c_instgrants"], "% .2f" % row["c_instscholar"],
                           "% .2f" % row["c_fedgrants"], "% .2f" % row["c_stegrants"],
                           "% .2f" % row["c_outsideaid"], row["loan_date"])
-        print (csv_line)
-        # this writes the last line for the last student loan record
+        # if command line --test prints out csv_line
+        if test:
+            print (csv_line)
+        # writes the last line for the last student loan record
         writer.writerow(csv_line)
-        # close file
+        # closes file
         phile.close()
 
 if __name__ == "__main__":
