@@ -7,6 +7,7 @@ from datetime import date
 from datetime import timedelta
 import time
 import argparse
+from decimal import Decimal
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -122,11 +123,11 @@ def main():
            # It will add as many extra loans as found in the max aid count
         #######################################################################
         for aidindex in range (1, maxaidcount+1):
-            csv_line.extend(('Private Loan Code'+ ' ' +str(aidindex), 'Private Loan Name'+ ' ' +str(aidindex),
-                        'Private Loan Amount'+ ' ' +str(aidindex), 'Institutional Grants'+ ' ' +str(aidindex),
-                        'Institutional Scholarship'+ ' ' +str(aidindex), 'Federal Grants'+ ' ' +str(aidindex),
-                        'State Grants'+ ' ' +str(aidindex), 'Outside Aid'+ ' ' +str(aidindex),
-                        'Loan Date'+ ' ' +str(aidindex)))
+            csv_line.extend(('Private Loan Code'+ ' ' +str(aidindex),
+            'Private Loan Name'+ ' ' +str(aidindex), 'Private Loan Amount'+ ' ' +str(aidindex),
+            'Institutional Grants'+ ' ' +str(aidindex), 'Institutional Scholarship'+ ' ' +str(aidindex),
+            'Federal Grants'+ ' ' +str(aidindex), 'State Grants'+ ' ' +str(aidindex), 'Outside Aid'+ ' ' +str(aidindex),
+            'Loan Date'+ ' ' +str(aidindex)))
         # if command line --test prints out csv_line
         if test:
             print (csv_line)
@@ -155,7 +156,7 @@ def main():
                     print ('Current ID: {0}'.format(currentID))
                 #######################################################################
                     # adds each financial aid loan record to row for student
-                    # to the backend of the file. The % .2f is to keep the format of decimals
+                    # to the backend of the file. The % .2f is to keep the decimal format
                  #######################################################################
             csv_line += (row["aid_code"], row["loan_name"], "% .2f" % row["aid_amount"],
                           "% .2f" % row["c_instgrants"], "% .2f" % row["c_instscholar"],
