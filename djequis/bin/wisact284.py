@@ -83,7 +83,6 @@ def main():
     # run SQL statement
     sqlresults = do_sql(getaid_sql, earl=EARL)
     # if there are no results
-
     if sqlresults is None:
         print ("Funds have not been dispersed.")
         # send email
@@ -96,16 +95,21 @@ def main():
     else:
         # run SQL statement
         sqlcountresults = do_sql(getcount_sql, earl=EARL)
-        # gets the first record 
-        maxaidcount = (sqlcountresults.fetchone()["number_of_loans"]) # fetch the max loan number
-        print ('Highest Number of loans: {0}'.format(maxaidcount)) # fetch the first row only
+        # fetch the first row and get max loan number from the number of loans column
+        maxaidcount = (sqlcountresults.fetchone()["number_of_loans"]) 
+        print ('Highest Number of loans: {0}'.format(maxaidcount))
         # set directory and filename to be stored
         filename=('{0}CCM-{1}.csv'.format(
             settings.WISACT_CSV_OUTPUT,datetimestr
         ))
         phile = open(filename,"w");
         writer = csv.writer(phile)
-        # creates non-dynamic part of the header
+        # creates non-dynamic file header
+        header = ["File Name", "School OPEID", "File Date"]
+        writer.writerow(header)
+        header_detail = ("CCM", "00383900", datetimestr)
+        writer.writerow(header_detail)
+        # creates non-dynamic part of the file detail header
         csv_line = ["School OPEID", "Academic Year", "Student SSN", "Student First Name",
                     "Student Last Name", "School Student ID", "Student Address Line 1",
                     "student Address Line 2", "Student Address Line 3", "Student City",
@@ -113,14 +117,18 @@ def main():
                     "Tuition", "Room & Board", "Books & Supplies", "Transportation",
                     "Other Education Costs", "Loan Fees"
                     ]
-        for aidindex in range (1, maxaidcount):
+        #######################################################################
+           # loops through maxaidcount to dynamically add file detail header for loans.
+           # It will add as many extra loans as found in the max aid count
+        #######################################################################
+        for aidindex in range (1, maxaidcount+1):
             csv_line.extend(('Private Loan Code'+ ' ' +str(aidindex), 'Private Loan Name'+ ' ' +str(aidindex),
                         'Private Loan Amount'+ ' ' +str(aidindex), 'Institutional Grants'+ ' ' +str(aidindex),
                         'Institutional Scholarship'+ ' ' +str(aidindex), 'Federal Grants'+ ' ' +str(aidindex),
                         'State Grants'+ ' ' +str(aidindex), 'Outside Aid'+ ' ' +str(aidindex),
                         'Loan Date'+ ' ' +str(aidindex)))
         print (csv_line)
-        # set currentID 0
+        # initializing currentID 0
         currentID = 0
         for row in sqlresults:
             if row["student_id_number"] != currentID:
@@ -128,7 +136,7 @@ def main():
                 # creates header in .csv
                 writer.writerow(csv_line)
                 currentID = row["student_id_number"]
-                # creates non-dynamic data of student record
+                # creates non-dynamic detail file data of the student record
                 csv_line = (row["opeid"], row["acadyear"], row["social_security_number"],
                         row["student_first_name"], row["student_last_name"],
                         row["student_id_number"], row["student_address_line_1"],
@@ -139,14 +147,18 @@ def main():
                         row["c_book"], row["c_tran"], row["c_misc"],
                         row["c_loan"])
                 print ('Current ID: {0}'.format(currentID))
-                # adds each financial aid record to row for student
+                #######################################################################
+                    # adds each financial aid loan record to row for student
+                    # to the backend of the file. The % .2f is to keep the format of decimals
+                 #######################################################################
             csv_line += (row["aid_code"], row["loan_name"], "% .2f" % row["aid_amount"],
                           "% .2f" % row["c_instgrants"], "% .2f" % row["c_instscholar"],
                           "% .2f" % row["c_fedgrants"], "% .2f" % row["c_stegrants"],
                           "% .2f" % row["c_outsideaid"], row["loan_date"])
         print (csv_line)
+        # this writes the last line for the last student loan record
         writer.writerow(csv_line)
-
+        # close file
         phile.close()
 
 if __name__ == "__main__":
