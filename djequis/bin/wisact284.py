@@ -65,20 +65,9 @@ parser.add_argument(
 )
 
 def main():
-    #
-    #now_date = (date.today())
-    #print ('Now Date: {0}'.format(now_date))
-    # set century and date string 
+    # set date and time to be added to the filename
     datetimestr = time.strftime("%Y%m%d")
-    print ('File Name: {0}'.format(datetimestr))
-    #year = datetime.date.today().year
-    #print ('Year: {0}'.format(year))
-    #century = int(year/100)
-    #print ('Century: {0}'.format(century))
-    #decade = int(year%100)
-    #print ('Decade: {0}'.format(decade))
-    #print ('File Name: {0}{1}'.format(century,datetimestr))
-    
+
     # Looks at queries and determines if aid has been despersed
     if dispersed:
         getaid_sql = getaid(True)
@@ -110,25 +99,26 @@ def main():
         # gets the first record 
         maxaidcount = (sqlcountresults.fetchone()["number_of_loans"]) # fetch the max loan number
         print ('Highest Number of loans: {0}'.format(maxaidcount)) # fetch the first row only
-        # creates .csv file in directory
-        filename=('{0}wisact284-{1}.csv'.format(
+        # set directory and filename to be stored
+        filename=('{0}CCM-{1}.csv'.format(
             settings.WISACT_CSV_OUTPUT,datetimestr
         ))
         phile = open(filename,"w");
         writer = csv.writer(phile)
         # creates non-dynamic part of the header
-        csv_line = ["OPEID", "Academic Year", "Student SSN", "Student First Name",
+        csv_line = ["School OPEID", "Academic Year", "Student SSN", "Student First Name",
                     "Student Last Name", "School Student ID", "Student Address Line 1",
                     "student Address Line 2", "Student Address Line 3", "Student City",
                     "Student State", "Student Zip", "Student Country", "Student Email",
-                    "CTUFE", "CRMBD", "CBOOK", "CTRAN", "CMISC", "CLOAN"
+                    "Tuition", "Room & Board", "Books & Supplies", "Transportation",
+                    "Other Education Costs", "Loan Fees"
                     ]
-        for aidindex in range (maxaidcount):
-            csv_line.extend(('Aid Code'+str(aidindex), 'Loan Name'+str(aidindex),
-                        'Aid Amount'+str(aidindex), 'Instgrants'+str(aidindex),
-                        'Instscholar'+str(aidindex), 'Fedgrants'+str(aidindex),
-                        'Stegrants'+str(aidindex), 'Outside Aid'+str(aidindex),
-                        'Loan Date'+str(aidindex)))
+        for aidindex in range (1, maxaidcount):
+            csv_line.extend(('Private Loan Code'+ ' ' +str(aidindex), 'Private Loan Name'+ ' ' +str(aidindex),
+                        'Private Loan Amount'+ ' ' +str(aidindex), 'Institutional Grants'+ ' ' +str(aidindex),
+                        'Institutional Scholarship'+ ' ' +str(aidindex), 'Federal Grants'+ ' ' +str(aidindex),
+                        'State Grants'+ ' ' +str(aidindex), 'Outside Aid'+ ' ' +str(aidindex),
+                        'Loan Date'+ ' ' +str(aidindex)))
         print (csv_line)
         # set currentID 0
         currentID = 0
