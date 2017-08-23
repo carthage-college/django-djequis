@@ -75,50 +75,23 @@ def main():
         reader = csv.DictReader(f, delimiter=',')
         for row in reader:
             print([col+'='+row[col] for col in reader.fieldnames])
-            print ('Student Type: {0}'.format(row["commonAppID"]))
 
             # Set apptmp_no counter to generate fake application number
             apptmp_no = random.randint(100000, 500000)
-
-            today = date.today()
-            print ('Today\'s Date: {0}'.format(today))
-            purge_date = (today.replace(year = today.year + 2))
-            print ('Purge Date: {0}'.format(purge_date))
-            #default_birthdate = (date(now_date.year - 18, 01, 01))
-            #print ('Default BirthDate: {0}'.format(default_birthdate))
-            d_date = (datetime.datetime.now())
-            now_time = (d_date.strftime("%H%M"))
-            print ('Now Time: {0}'.format(now_time))
+            # Creating the UUID
             temp_uuid = (uuid.uuid4())
             print ('UUID: {0}'.format(temp_uuid))
-            # I added clean beg and clean end date here to show that variables
-            # can be used to create them.
-            mail_beg_date_year = 2017
-            mail_beg_date_month = 05
-            mail_beg_date_day = 24
-            clean_beg_date = datetime.date(mail_beg_date_year, mail_beg_date_month, mail_beg_date_day)
-            print ('Clean Beg Date: {0}'.format(clean_beg_date))
-            mail_end_date_year = 2020
-            mail_end_date_month = 05
-            mail_end_date_day = 25
-            clean_end_date = datetime.date(mail_end_date_year, mail_end_date_month, mail_end_date_day)
-            print ('Clean End Date: {0}'.format(clean_end_date))
-            print ('Preferred Phone Number: {0}'.format(row["preferredPhoneNumber"]))
-            print ('Preferred Phone: {0}'.format(row["preferredPhone"]))
-            print ('Alternate Phone Available: {0}'.format(row["alternatePhoneAvailable"]))
-            print ('Alternate Phone: {0}'.format(row["alternatePhoneNumber"]))
 
             scr.write('--------------------------------------------------------------------------------\n')
             scr.write('-- START INSERT NEW STUDENT APPLICATION for: ' + row["firstName"] + ' ' + row["lastName"] + "\n")
             scr.write('--------------------------------------------------------------------------------\n')
-            scr.write('Start Year: ' + row["startYear"] + '\n');
 
             # insert into apptmp_rec
             q_create_app = '''
                 INSERT INTO apptmp_rec
                     (add_date, add_tm, app_source, stat, reason_txt)
-                VALUES ("{0}", {1}, "WEBA", "P", "{2}");
-            ''' .format(today, now_time, temp_uuid)
+                VALUES ("TODAY", TO_CHAR(CURRENT, '%H%M'), "WEBA", "H", "{0}");
+            ''' .format(temp_uuid)
             print (q_create_app)
             scr.write(q_create_app+'\n');
 
@@ -134,89 +107,170 @@ def main():
             print (lookup_apptmp_no)
             scr.write(lookup_apptmp_no+'\n');
 
-            # insert into app_idtmp_rec
-            q_create_id = '''
-                INSERT INTO app_idtmp_rec
-                    (id, firstname, lastname, cc_username, cc_password, addr_line1,
-                    addr_line2, city, st, zip, ctry, phone, aa, add_date, ofc_add_by,
-                    upd_date, purge_date, prsp_no, name_sndx, correct_addr, decsd,
-                    valid)
-                VALUES ({0}, "{1}", "{2}", "{3}", "{0}", "{4}", "{5}", "{6}", "{7}",
-                    {8},"{9}","{10}","PERM","{11}","ADMS", "{12}","{12}","0","",
-                    "Y","N","Y");
-            ''' .format(apptmp_no, row["firstName"], row["lastName"],
-                        row["emailAddress"],row["permanentAddress1"],
-                        row["permanentAddress2"], row["permanentAddressCity"],
-                    row["permanentAddressState"], row["permanentAddressZip"],
-                    row["permanentAddressCountry"],row["preferredPhoneNumber"].replace('+1.', ''),
-                    today,purge_date)
-            print (q_create_id)
-            print (apptmp_no)
-            scr.write(q_create_id+'\n');
+            ##################################################################################
+            # The Y/N value of contactConsent may seem a little backwards intuitively.
+            # Y = The student has opted out meaning Carthage does NOT have permission to text
+            # N = The student has opted in meaning Carthage does have permission to text
+            #################################################################################
+            if row["preferredPhone"] != '':
+                if row["preferredPhone"] == 'Mobile':
+                    if row["contactConsent"] == 'Y' or row["transferContactConsent"] == 'Y':
+                        contactConsent = 'N'
+                    elif row["contactConsent"] == 'N' or row["transferContactConsent"] == 'N':
+                        contactConsent = 'Y'
+                    q_insert_aa_cell = '''
+                        INSERT INTO app_aatmp_rec
+                        (id,aa,beg_date,phone,opt_out)
+                        VALUES ({0}, "CELL", "TODAY", "{1}", "{2}");
+                    ''' .format(apptmp_no, row["preferredPhoneNumber"].replace('+1.', ''),
+                                row["contactConsent"])
+                    print (q_insert_aa_cell)
+                    scr.write(q_insert_aa_cell+'\n');
+                if row["alternatePhoneAvailable"] == 'Mobile':
+                    q_create_id = '''
+                        INSERT INTO app_idtmp_rec
+                            (id, firstname, lastname, cc_username, cc_password,
+                            addr_line1, addr_line2, city, st, zip, ctry, phone,
+                            aa, add_date, ofc_add_by, upd_date, purge_date,
+                            prsp_no, name_sndx, correct_addr, decsd, valid)
+                        VALUES ({0}, "{1}", "{2}", "{3}", "{0}", "{4}", "{5}",
+                            "{6}", "{7}", {8},"{9}","{10}","PERM","TODAY","ADMS",
+                            "TODAY","TODAY + 2 UNITS YEAR","0","", "Y","N","Y");
+                    ''' .format(apptmp_no, row["firstName"], row["lastName"],
+                                row["emailAddress"],row["permanentAddress1"],
+                                row["permanentAddress2"], row["permanentAddressCity"],
+                            row["permanentAddressState"], row["permanentAddressZip"],
+                            row["permanentAddressCountry"],
+                            row["preferredPhoneNumber"].replace('+1.', ''))
+                    print (q_create_id)
+                    print (apptmp_no)
+                    scr.write(q_create_id+'\n');
+                else:
+                    # insert into app_idtmp_rec
+                    q_create_id = '''
+                        INSERT INTO app_idtmp_rec
+                            (id, firstname, lastname, cc_username, cc_password,
+                            addr_line1, addr_line2, city, st, zip, ctry, phone,
+                            aa, add_date, ofc_add_by, upd_date, purge_date,
+                            prsp_no, name_sndx, correct_addr, decsd, valid)
+                        VALUES ({0}, "{1}", "{2}", "{3}", "{0}", "{4}", "{5}",
+                            "{6}", "{7}", "{8}","{9}","{10}","PERM","TODAY","ADMS",
+                            "TODAY","TODAY + 2 UNITS YEAR","0","", "Y","N","Y");
+                    ''' .format(apptmp_no, row["firstName"], row["lastName"],
+                                row["emailAddress"],row["permanentAddress1"],
+                                row["permanentAddress2"], row["permanentAddressCity"],
+                            row["permanentAddressState"], row["permanentAddressZip"],
+                            row["permanentAddressCountry"],
+                            row["preferredPhoneNumber"].replace('+1.', ''))
+                    print (q_create_id)
+                    print (apptmp_no)
+                    scr.write(q_create_id+'\n');
             
             q_create_site = '''
                 INSERT INTO app_sitetmp_rec
                     (id, home, site, beg_date)
-                VALUES ({0}, "Y", "CART", "{1}");
-            ''' .format(apptmp_no, today)
+                VALUES ({0}, "Y", "CART", "TODAY");
+            ''' .format(apptmp_no)
             print (q_create_site)
             scr.write(q_create_site+'\n');
 
-            # Determine the type of studentStatus
+            # Determine the type of studentStatus and Hours Enrolled
             if row["studentStatus"] == 'Full Time' or row["transferStudentStatus"] == 'Full Time':
                 studentStatus = 'TRAD'
+                intendHoursEnrolled = 16
             elif row["studentStatus"] == 'Part Time' or row["transferStudentStatus"] == 'Part Time':
                 studentStatus = 'TRAP'
+                intendHoursEnrolled = 4
+
+            # Determine the type of preferredStartTerm
+            if row["preferredStartTerm"] == 'ADM-PLAN_ENR_SESS-RA' or row["transferPreferredStartTerm"] == 'ADM-PLAN_ENR_SESS-RA':
+                preferredStartTerm = 'RA'
+            elif row["preferredStartTerm"] == 'ADM-PLAN_ENR_SESS-RC' or row["transferPreferredStartTerm"] == 'ADM-PLAN_ENR_SESS-RC':
+                preferredStartTerm = 'RC'
+            elif row["preferredStartTerm"] == 'ADM-PLAN_ENR_SESS-RB' or row["transferPreferredStartTerm"] == 'ADM-PLAN_ENR_SESS-RB':
+                preferredStartTerm = 'RB'
 
             # Determine the type of studentType
             if row["studentType"] == 'FY':
                 studentType = 'FF'
+                transfer = 'N'
             elif row["studentType"] == 'TR':
                 studentType = 'UT'
+                transfer = 'Y'
+
             # insert into app_admtmp_rec
             q_create_adm = '''
                 INSERT INTO app_admtmp_rec
                     (id, primary_app, plan_enr_sess, plan_enr_yr, intend_hrs_enr,
                     trnsfr, cl, add_date, parent_contr, enrstat, rank, wisconsin_coven,
-                    emailaddr, prog, subprog, upd_uid, add_uid, upd_date, act_choice,
-                    stuint_wt, jics_candidate)
-                VALUES ({0}, "Y", "{1}", {2}, "{3}", "N", "{4}", "{5}", "", "0.00",
-                    "", "0", "{6}", "UNDG", "{7}", "0", "0", "", "", "0", "N");
-            ''' .format(apptmp_no, row["preferredStartTerm"], row["startYear"],
-                        row["admissionPlan"],studentType, today,
+                    emailaddr, prog, subprog, upd_date, act_choice, stuint_wt,
+                    jics_candidate)
+                VALUES ({0}, "Y", "{1}", {2}, "{3}", "{4}", "{5}", "TODAY", "0.00",
+                    "", "0", "", "{6}", "UNDG", "{7}", "TODAY", "", "0", "N");
+            ''' .format(apptmp_no, preferredStartTerm, row["startYear"],
+                        intendHoursEnrolled, transfer, studentType,
                         row["emailAddress"], studentStatus)
             print (q_create_adm)
             scr.write(q_create_adm+'\n');
 
-            q_insert_aa_mail = '''
-                INSERT INTO app_aatmp_rec
-                    (line1,line2,city,st,zip,ctry,id,aa,beg_date,end_date)
-                VALUES ("{0}", "{1}", "{2}", "{3}", {4}, "{5}", {6}, "MAIL",
-                    "{7}", "{8}");
-            ''' .format(row["currentAddress1"],row["currentAddress2"],
-                    row["currentAddressCity"],row["currentAddressState"],
-                    row["currentAddressZip"],row["currentAddressCountry"],
-                    apptmp_no,clean_beg_date,clean_end_date)
-            print (q_insert_aa_mail)
-            scr.write(q_insert_aa_mail+'\n');
+            if row["alternateAddressAvailable"] == 'Y':
+                q_insert_aa_mail = '''
+                    INSERT INTO app_aatmp_rec
+                        (line1,line2,city,st,zip,ctry,id,aa)
+                    VALUES ("{0}", "{1}", "{2}", "{3}", {4}, "{5}", {6}, "MAIL");
+                ''' .format(row["currentAddress1"],row["currentAddress2"],
+                        row["currentAddressCity"],row["currentAddressState"],
+                        row["currentAddressZip"],row["currentAddressCountry"],
+                        apptmp_no)
+                print (q_insert_aa_mail)
+                scr.write(q_insert_aa_mail+'\n');
+            else:
+                print ("There were no alternate addresses for this application.")
+                scr.write('--There were no alternate addresses for this application.\n\n');
 
+            ##################################################################################
+            # The Y/N value of contactConsent may seem a little backwards intuitively.
+            # Y = The student has opted out meaning Carthage does NOT have permission to text
+            # N = The student has opted in meaning Carthage does have permission to text
+            #################################################################################
             # Determine the type of contactConsent
-            if row["contactConsent"] == 'Y':
-                contactConsent = 'N'
-            elif row["contactConsent"] == 'N':
-                contactConsent = 'Y'
-            # insert into app_aatmp_rec (CELL)
-            q_insert_aa_cell = '''
-                INSERT INTO app_aatmp_rec
-                    (id,aa,beg_date,phone,opt_out)
-                VALUES ({0}, "CELL", "{1}", "{2}", "{3}");
-            ''' .format(apptmp_no, today, row["alternatePhoneNumber"].replace('+1.', ''),
-                        row["contactConsent"])
-            print (q_insert_aa_cell)
-            scr.write(q_insert_aa_cell+'\n');
+            if row["alternatePhoneNumber"] != '' and row["alternatePhoneNumber"] != 'N':
+                if row["contactConsent"] == 'Y' or row["transferContactConsent"] == 'Y':
+                    contactConsent = 'N'
+                elif row["contactConsent"] == 'N' or row["transferContactConsent"] == 'N':
+                    contactConsent = 'Y'
+                if row["alternatePhoneAvailable"] == 'Mobile':
+                    # insert into app_aatmp_rec (CELL)
+                    q_insert_aa_cell = '''
+                        INSERT INTO app_aatmp_rec
+                            (id,aa,beg_date,phone,opt_out)
+                        VALUES ({0}, "CELL", "TODAY", "{1}", "{2}");
+                    ''' .format(apptmp_no, row["alternatePhoneNumber"].replace('+1.', ''),
+                                row["contactConsent"])
+                    print (q_insert_aa_cell)
+                    scr.write(q_insert_aa_cell+'\n');
+                else:
+                    q_create_id = '''
+                        INSERT INTO app_idtmp_rec
+                            (id, firstname, lastname, cc_username, cc_password,
+                            addr_line1, addr_line2, city, st, zip, ctry, phone,
+                            aa, add_date, ofc_add_by, upd_date, purge_date,
+                            prsp_no, name_sndx, correct_addr, decsd, valid)
+                        VALUES ({0}, "{1}", "{2}", "{3}", "{0}", "{4}", "{5}",
+                            "{6}", "{7}", "{8}","{9}","{10}","PERM","TODAY","ADMS",
+                            "TODAY","TODAY + 2 UNITS YEAR","0","", "Y","N","Y");
+                    ''' .format(apptmp_no, row["firstName"], row["lastName"],
+                                row["emailAddress"],row["permanentAddress1"],
+                                row["permanentAddress2"], row["permanentAddressCity"],
+                            row["permanentAddressState"], row["permanentAddressZip"],
+                            row["permanentAddressCountry"],
+                            row["preferredPhoneNumber"].replace('+1.', ''))
+                    print (q_create_id)
+                    print (apptmp_no)
+                    scr.write(q_create_id+'\n');
 
             # formatting the graduationDate
-            if row["graduationDate"] =='':
+            if row["graduationDate"] == '':
                 graduationDate = ''
             else:
                 graduationDate = datetime.datetime.strptime(row["graduationDate"], '%m/%Y').strftime('%Y-%m-01')
@@ -240,20 +294,10 @@ def main():
                 VALUES ({0}, {1}, "{2}", "{3}", "{4}", "{5}", "{6}", "{7}",
                     0, 0, 0, 0, 0, "{8}", "hs", "HS", "N");
             ''' .format(apptmp_no,row["schoolLookupCeebCode"],row["schoolLookupCeebName"],
-                    row["schoolLookupCity"],row["schoolLookupState"],graduationDate,
-                    entryDate,exitDate,row["schoolLookupZip"])
+                    row["schoolLookupCity"], row["schoolLookupState"], graduationDate,
+                    entryDate, exitDate, row["schoolLookupZip"])
             print (q_create_school)
             scr.write(q_create_school+'\n\n');
-
-            # insert into app_edtmp_rec
-            q_text = '''
-                INSERT INTO app_edtmp_rec
-                    (id, tick, add_date, stat, resrc, txt, due_date)
-                VALUES ({0}, "ADM", {1}, "C", "I20",
-                        "Applicant expects to need an I-20", {1});
-            ''' .format(apptmp_no, today)
-            print (q_text)
-            scr.write(q_text+'\n');
 
             # Setting Relative First Name
             relative1FirstName = row["relative1FirstName"] or row["transferRelative1FirstName"]
@@ -273,6 +317,22 @@ def main():
             relative3FullName = (relative3FirstName + ' ' + relative3LastName)
             relative4FullName = (relative4FirstName + ' ' + relative4LastName)
             relative5FullName = (relative5FirstName + ' ' + relative5LastName)
+            # Setting Relative Graduation Year
+            relative1GradYear1 = row["relative1GradYear1"].strip()
+            if len(row["transferRelative1GradYear1"]):
+                relative1GradYear1 = row["transferRelative1GradYear1"].strip()
+            relative2GradYear1 = row["relative2GradYear1"].strip()
+            if len(row["transferRelative2GradYear1"]):
+                relative2GradYear1 = row["transferRelative2GradYear1"].strip()
+            relative3GradYear1 = row["relative3GradYear1"].strip()
+            if len(row["transferRelative3GradYear1"]):
+                relative3GradYear1 = row["transferRelative3GradYear1"].strip()
+            relative4GradYear1 = row["relative4GradYear1"].strip()
+            if len(row["transferRelative4GradYear1"]):
+                relative4GradYear1 = row["transferRelative4GradYear1"].strip()
+            relative5GradYear1 = row["relative5GradYear1"].strip()
+            if len(row["transferRelative5GradYear1"]):
+                relative5GradYear1 = row["transferRelative5GradYear1"].strip()
 
             if relative1FullName.strip():
                 # insert into app_edtmp_rec
@@ -311,6 +371,7 @@ def main():
 
             # Set dictionary for Sibling education level
             educationLevel = {
+                'None': 'None',
                 'Some grade school': 'Elem',
                 'Completed grade school': 'HS',
                 'Some secondary school': 'HS',
@@ -339,13 +400,13 @@ def main():
                 # insert into app_reltmp_rec
                 q_sibing_name = "INSERT INTO app_reltmp_rec (id, rel_id, rel, fullname, phone_ext, aa, zip, prim, addr_line2, suffix)\n VALUES ({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", {3}, \"{4}\")\n" .format(apptmp_no, sibling1FullName, row["sibling1Age"], row["sibling1CollegeCeebName"],sibling1EducationLevel)
                 if sibling2FullName.strip():
-                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", {3}, \"{4}\")\n" .format(apptmp_no, sibling2FullName, row["sibling2Age"], row["sibling2CollegeCeebName"], sibling2EducationLevel)
+                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", \"{3}\", \"{4}\")\n" .format(apptmp_no, sibling2FullName, row["sibling2Age"], row["sibling2CollegeCeebName"], sibling2EducationLevel)
                 if sibling3FullName.strip():
-                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", {3}, \"{4}\")\n" .format(apptmp_no, sibling3FullName, row["sibling3Age"], row["sibling3CollegeCeebName"], sibling3EducationLevel)
+                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", \"{3}\", \"{4}\")\n" .format(apptmp_no, sibling3FullName, row["sibling3Age"], row["sibling3CollegeCeebName"], sibling3EducationLevel)
                 if sibling4FullName.strip():
-                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", {3}, \"{4}\")\n" .format(apptmp_no, sibling4FullName, row["sibling4Age"], row["sibling4CollegeCeebName"], sibling4EducationLevel)
+                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", \"{3}\", \"{4}\")\n" .format(apptmp_no, sibling4FullName, row["sibling4Age"], row["sibling4CollegeCeebName"], sibling4EducationLevel)
                 if sibling5FullName.strip():
-                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", {3}, \"{4}\")\n" .format(apptmp_no, sibling5FullName, row["sibling5Age"], row["sibling5CollegeCeebName"], sibling5EducationLevel)
+                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", \"{3}\", \"{4}\")\n" .format(apptmp_no, sibling5FullName, row["sibling5Age"], row["sibling5CollegeCeebName"], sibling5EducationLevel)
                 print (q_sibing_name)
                 scr.write(q_sibing_name+'\n\n');
             else:  
@@ -473,25 +534,39 @@ def main():
                 print (insert_races)
                 scr.write(insert_races+'\n');
 
+            # formatting the dateOfBirth
+            dateOfBirth = datetime.datetime.strptime(row["dateOfBirth"], '%m/%d/%Y').strftime('%Y-%m-%d')
+
+            if row["armedForcesStatus"] == 'Currently_serving':
+                armedForcesStatus = 'Y'
+            elif row["armedForcesStatus"] == 'Previously_served':
+                armedForcesStatus = 'Y'
+            elif row["armedForcesStatus"] == 'Current_Dependent':
+                armedForcesStatus = 'Unknown'
+            else:
+                armedForcesStatus = 'N'
+
             # insert into app_proftmp_rec
             if ethnic_code == 'UN':
-                q_create_prof = "INSERT INTO app_proftmp_rec (id, birth_date, church_id, prof_last_upd_date, mrtl, sex, birthplace_city, birthplace_st, birthplace_ctry, visa_code, citz, res_st, res_cty, race, hispanic, denom_code, vet, news1_id) VALUES ({0}, \"{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\", \"{8}\", \"{9}\", \"{10}\", \"{11}\", \"{12}\", \"UN\", \"{13}\", \"{14}\", \"{15}\", \"{16}\")" .format(apptmp_no, row["dateOfBirth"], "churchid", today, "maritalstatus", row["sex"], row["birthCity"], row["birthState"], row["birthCountry"], "visacode", "citz", "res_st", "res_cty", row["hispanicLatino"], row["religiousPreference"], row["armedForcesStatus"], "newspaper")
+                q_create_prof = "INSERT INTO app_proftmp_rec (id, birth_date, church_id, prof_last_upd_date, sex, birthplace_city, birthplace_st, birthplace_ctry, visa_code, citz, res_st, res_cty, race, hispanic, denom_code, vet) VALUES ({0}, \"{1}\", 0, \"TODAY\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"\", \"{6}\", \"\", \"\", \"UN\", \"{7}\", \"{8}\", \"{9}\")" .format(apptmp_no, dateOfBirth, row["sex"], row["birthCity"], row["birthState"], row["birthCountry"], row["citizenships"], row["hispanicLatino"], row["religiousPreference"], armedForcesStatus)
                 print (q_create_prof)
                 scr.write(q_create_prof+'\n');
             elif ethnic_code == 'MU':
-                q_create_prof = "INSERT INTO app_proftmp_rec (id, birth_date, church_id, prof_last_upd_date, mrtl, sex, birthplace_city, birthplace_st, birthplace_ctry, visa_code, citz, res_st, res_cty, race, hispanic, denom_code, vet, news1_id) VALUES ({0}, \"{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\", \"{8}\", \"{9}\", \"{10}\", \"{11}\", \"{12}\", \"MU\", \"{13}\", \"{14}\", \"{15}\", \"{16}\")" .format(apptmp_no, row["dateOfBirth"], "churchid", today, "maritalstatus", row["sex"], row["birthCity"], row["birthState"], row["birthCountry"], "visacode", "citz", "res_st", "res_cty", row["hispanicLatino"], row["religiousPreference"], row["armedForcesStatus"], "newspaper")
+                q_create_prof = "INSERT INTO app_proftmp_rec (id, birth_date, church_id, prof_last_upd_date, sex, birthplace_city, birthplace_st, birthplace_ctry, visa_code, citz, res_st, res_cty, race, hispanic, denom_code, vet) VALUES ({0}, \"{1}\", 0, \"TODAY\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"\", \"{6}\", \"\", \"\", \"MU\", \"{7}\", \"{8}\", \"{9}\")" .format(apptmp_no, dateOfBirth, row["sex"], row["birthCity"], row["birthState"], row["birthCountry"], row["citizenships"], row["hispanicLatino"], row["religiousPreference"], armedForcesStatus)
                 print (q_create_prof)
                 scr.write(q_create_prof+'\n');
             else:
                 q_create_prof = '''
                     INSERT INTO app_proftmp_rec (id, birth_date, church_id,
-                    prof_last_upd_date, mrtl, sex, birthplace_city, birthplace_st,
+                    prof_last_upd_date, sex, birthplace_city, birthplace_st,
                     birthplace_ctry, visa_code, citz, res_st, res_cty, race,
-                    hispanic, denom_code, vet, news1_id)
-                    VALUES ({0}, \"{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\",
-                    \"{6}\", \"{7}\", \"{8}\", \"{9}\", \"{10}\", \"{11}\",
-                    \"{12}\", \"{13}\", \"{14}\", \"{15}\", \"{16}\", \"{17}\");
-                ''' .format(apptmp_no, row["dateOfBirth"], "churchid", today, "maritalstatus", row["sex"], row["birthCity"], row["birthState"], row["birthCountry"], "visacode", "citz", "res_st", "res_cty", eth_race, row["hispanicLatino"], row["religiousPreference"], row["armedForcesStatus"], "newspaper")
+                    hispanic, denom_code, vet)
+                    VALUES ({0}, "{1}", 0, "TODAY", "{2}", "{3}", "{4}",
+                    "{5}", "", "{6}", "", "", "{7}", "{8}", "{9}", "{10}");
+                ''' .format(apptmp_no, dateOfBirth, row["sex"],
+                        row["birthCity"], row["birthState"], row["birthCountry"],
+                        row["citizenships"], eth_race, row["hispanicLatino"],
+                        row["religiousPreference"], armedForcesStatus)
                 print (q_create_prof)
                 scr.write(q_create_prof+'\n');
 
