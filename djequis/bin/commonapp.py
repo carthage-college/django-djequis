@@ -76,15 +76,15 @@ def main():
         for row in reader:
             print([col+'='+row[col] for col in reader.fieldnames])
 
-            # Set apptmp_no counter to generate fake application number
+            # set apptmp_no counter to generate fake application number
             apptmp_no = random.randint(100000, 500000)
-            # Creating the UUID
+            # create UUID
             temp_uuid = (uuid.uuid4())
             print ('UUID: {0}'.format(temp_uuid))
 
-            scr.write('--------------------------------------------------------------------------------\n')
+            scr.write('---------------------------------------------------------------------------------------------\n')
             scr.write('-- START INSERT NEW STUDENT APPLICATION for: ' + row["firstName"] + ' ' + row["lastName"] + "\n")
-            scr.write('--------------------------------------------------------------------------------\n')
+            scr.write('---------------------------------------------------------------------------------------------\n')
 
             # insert into apptmp_rec
             q_create_app = '''
@@ -95,7 +95,7 @@ def main():
             print (q_create_app)
             scr.write(q_create_app+'\n');
 
-            # Getting apptmp_no
+            # fetch apptmp_no
             lookup_apptmp_no = '''
                 SELECT
                     apptmp_no
@@ -174,7 +174,7 @@ def main():
             print (q_create_site)
             scr.write(q_create_site+'\n');
 
-            # Determine the type of studentStatus and Hours Enrolled
+            # determine the type of studentStatus and Hours Enrolled
             if row["studentStatus"] == 'Full Time' or row["transferStudentStatus"] == 'Full Time':
                 studentStatus = 'TRAD'
                 intendHoursEnrolled = 16
@@ -182,7 +182,7 @@ def main():
                 studentStatus = 'TRAP'
                 intendHoursEnrolled = 4
 
-            # Determine the type of preferredStartTerm
+            # determine the type of preferredStartTerm
             if row["preferredStartTerm"] == 'ADM-PLAN_ENR_SESS-RA' or row["transferPreferredStartTerm"] == 'ADM-PLAN_ENR_SESS-RA':
                 preferredStartTerm = 'RA'
             elif row["preferredStartTerm"] == 'ADM-PLAN_ENR_SESS-RC' or row["transferPreferredStartTerm"] == 'ADM-PLAN_ENR_SESS-RC':
@@ -190,7 +190,7 @@ def main():
             elif row["preferredStartTerm"] == 'ADM-PLAN_ENR_SESS-RB' or row["transferPreferredStartTerm"] == 'ADM-PLAN_ENR_SESS-RB':
                 preferredStartTerm = 'RB'
 
-            # Determine the type of studentType
+            # determine the type of studentType
             if row["studentType"] == 'FY':
                 studentType = 'FF'
                 transfer = 'N'
@@ -233,7 +233,7 @@ def main():
             # Y = The student has opted out meaning Carthage does NOT have permission to text
             # N = The student has opted in meaning Carthage does have permission to text
             #################################################################################
-            # Determine the type of contactConsent
+            # determine the type of contactConsent
             if row["alternatePhoneNumber"] != '' and row["alternatePhoneNumber"] != 'N':
                 if row["contactConsent"] == 'Y' or row["transferContactConsent"] == 'Y':
                     contactConsent = 'N'
@@ -298,121 +298,90 @@ def main():
                     entryDate, exitDate, row["schoolLookupZip"])
             print (q_create_school)
             scr.write(q_create_school+'\n\n');
+            ##################################################################################
+            # If there are no relatives in the application then nothing is inserted
+            ##################################################################################
+            if row["relativesAttended"] == 'Yes':
+                # set Relative Graduation Year
+                relative1GradYear1 = row["relative1GradYear1"].strip()
+                if len(row["transferRelative1GradYear1"]):
+                    relative1GradYear1 = row["transferRelative1GradYear1"].strip()
+                relative2GradYear1 = row["relative2GradYear1"].strip()
+                if len(row["transferRelative2GradYear1"]):
+                    relative2GradYear1 = row["transferRelative2GradYear1"].strip()
+                relative3GradYear1 = row["relative3GradYear1"].strip()
+                if len(row["transferRelative3GradYear1"]):
+                    relative3GradYear1 = row["transferRelative3GradYear1"].strip()
+                relative4GradYear1 = row["relative4GradYear1"].strip()
+                if len(row["transferRelative4GradYear1"]):
+                    relative4GradYear1 = row["transferRelative4GradYear1"].strip()
+                relative5GradYear1 = row["relative5GradYear1"].strip()
+                if len(row["transferRelative5GradYear1"]):
+                    relative5GradYear1 = row["transferRelative5GradYear1"].strip()
 
-            # Setting Relative First Name
-            relative1FirstName = row["relative1FirstName"] or row["transferRelative1FirstName"]
-            relative2FirstName = row["relative1FirstName"] or row["transferRelative2FirstName"]
-            relative3FirstName = row["relative3FirstName"] or row["transferRelative3FirstName"]
-            relative4FirstName = row["relative1FirstName"] or row["transferRelative4FirstName"]
-            relative5FirstName = row["relative5FirstName"] or row["transferRelative5FirstName"]
-            # Setting Relative Last Name
-            relative1LastName = row["relative1LastName"] or row["transferRelative1LastName"]
-            relative2LastName = row["relative2LastName"] or row["transferRelative2LastName"]
-            relative3LastName = row["relative3LastName"] or row["transferRelative3LastName"]
-            relative4LastName = row["relative4LastName"] or row["transferRelative4LastName"]
-            relative5LastName = row["relative5LastName"] or row["transferRelative5LastName"]
-            # Setting Relative Full Name
-            relative1FullName = (relative1FirstName + ' ' + relative1LastName)
-            relative2FullName = (relative2FirstName + ' ' + relative2LastName)
-            relative3FullName = (relative3FirstName + ' ' + relative3LastName)
-            relative4FullName = (relative4FirstName + ' ' + relative4LastName)
-            relative5FullName = (relative5FirstName + ' ' + relative5LastName)
-            # Setting Relative Graduation Year
-            relative1GradYear1 = row["relative1GradYear1"].strip()
-            if len(row["transferRelative1GradYear1"]):
-                relative1GradYear1 = row["transferRelative1GradYear1"].strip()
-            relative2GradYear1 = row["relative2GradYear1"].strip()
-            if len(row["transferRelative2GradYear1"]):
-                relative2GradYear1 = row["transferRelative2GradYear1"].strip()
-            relative3GradYear1 = row["relative3GradYear1"].strip()
-            if len(row["transferRelative3GradYear1"]):
-                relative3GradYear1 = row["transferRelative3GradYear1"].strip()
-            relative4GradYear1 = row["relative4GradYear1"].strip()
-            if len(row["transferRelative4GradYear1"]):
-                relative4GradYear1 = row["transferRelative4GradYear1"].strip()
-            relative5GradYear1 = row["relative5GradYear1"].strip()
-            if len(row["transferRelative5GradYear1"]):
-                relative5GradYear1 = row["transferRelative5GradYear1"].strip()
-
-            if relative1FullName.strip():
-                # insert into app_edtmp_rec
-                q_alumni = "INSERT INTO app_edtmp_rec (id, rel_id, rel, fullname, phone_ext, aa, zip)\n VALUES\n ({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)" .format(apptmp_no, relative1FullName, row["relative1GradYear1"])
-                if relative2FullName.strip():
-                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)\n" .format(apptmp_no, relative2FullName, row["relative2GradYear1"])
-                if relative3FullName.strip():
-                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)\n" .format(apptmp_no, relative3FullName, row["relative3GradYear1"])
-                if relative4FullName.strip():
-                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)\n" .format(apptmp_no, relative4FullName, row["relative4GradYear1"])
-                if relative5FullName.strip():
-                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)\n" .format(apptmp_no, relative5FullName, row["relative5GradYear1"])
+                # insert into realatives app_edtmp_rec
+                if row["relative1FirstName"].strip():
+                    q_alumni = "INSERT INTO app_edtmp_rec (id, rel_id, rel, fullname, phone_ext, aa, zip)\n VALUES\n ({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)" .format(apptmp_no, row["relative1FirstName"] + ' ' + row["relative1LastName"], row["relative1GradYear1"])
+                if row["relative2FirstName"].strip():
+                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)\n" .format(apptmp_no, row["relative2FirstName"] + ' ' + row["relative2LastName"], row["relative2GradYear1"])
+                if row["relative3FirstName"].strip():
+                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)\n" .format(apptmp_no, row["relative3FirstName"] + ' ' + row["relative3LastName"], row["relative3GradYear1"])
+                if row["relative4FirstName"].strip():
+                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)\n" .format(apptmp_no, row["relative4FirstName"] + ' ' + row["relative4LastName"], row["relative4GradYear1"])
+                if row["relative5FirstName"].strip():
+                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)\n" .format(apptmp_no, row["relative5FirstName"] + ' ' + row["relative5LastName"], row["relative5GradYear1"])
                 print (q_alumni)
             else:  
-                print ("Nothing to insert")
+                print ("There were no relatives to insert")
                 scr.write('--There were no relatives for this application.\n\n');
-
-            # Setting Sibling First Name
-            sibling1FirstName = row["sibling1FirstName"]
-            sibling2FirstName = row["sibling2FirstName"]
-            sibling3FirstName = row["sibling3FirstName"]
-            sibling4FirstName = row["sibling4FirstName"]
-            sibling5FirstName = row["sibling5FirstName"]
-            # Setting Sibling Last Name
-            sibling1LastName = row["sibling1LastName"]
-            sibling2LastName = row["sibling2LastName"]
-            sibling3LastName = row["sibling3LastName"]
-            sibling4LastName = row["sibling4LastName"]
-            sibling5LastName = row["sibling5LastName"]
-            # Setting Sibling Full Name
-            sibling1FullName = (sibling1FirstName + ' ' + sibling1LastName)
-            sibling2FullName = (sibling2FirstName + ' ' + sibling2LastName)
-            sibling3FullName = (sibling3FirstName + ' ' + sibling3LastName)
-            sibling4FullName = (sibling4FirstName + ' ' + sibling4LastName)
-            sibling5FullName = (sibling5FirstName + ' ' + sibling5LastName)
-
-            # Set dictionary for Sibling education level
-            educationLevel = {
-                'None': 'None',
-                'Some grade school': 'Elem',
-                'Completed grade school': 'HS',
-                'Some secondary school': 'HS',
-                'Graduated from secondary school': 'HS',
-                'Some trade school or community college': 'Juco',
-                'Graduated from trade school or community college': 'Juco',
-                'Some college': 'Coll',
-                'Graduated from college': 'Bach',
-                'Graduate school': 'Mast'
-            }
-            # create variables for the Siblings education level based on the dictionary
-            for k, v in educationLevel.items():
-                if row["sibling1EducationLevel"] == k:
-                    sibling1EducationLevel = (v)
-                if row["sibling2EducationLevel"] == k:
-                    sibling2EducationLevel = (v)
-                if row["sibling3EducationLevel"] == k:
-                    sibling3EducationLevel = (v)
-                if row["sibling4EducationLevel"] == k:
-                    sibling4EducationLevel = (v)
-                if row["sibling5EducationLevel"] == k:
-                    sibling5EducationLevel = (v)
-
-            # building insert query for Siblings Information
-            if sibling1FullName.strip():
-                # insert into app_reltmp_rec
-                q_sibing_name = "INSERT INTO app_reltmp_rec (id, rel_id, rel, fullname, phone_ext, aa, zip, prim, addr_line2, suffix)\n VALUES ({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", {3}, \"{4}\")\n" .format(apptmp_no, sibling1FullName, row["sibling1Age"], row["sibling1CollegeCeebName"],sibling1EducationLevel)
-                if sibling2FullName.strip():
-                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", \"{3}\", \"{4}\")\n" .format(apptmp_no, sibling2FullName, row["sibling2Age"], row["sibling2CollegeCeebName"], sibling2EducationLevel)
-                if sibling3FullName.strip():
-                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", \"{3}\", \"{4}\")\n" .format(apptmp_no, sibling3FullName, row["sibling3Age"], row["sibling3CollegeCeebName"], sibling3EducationLevel)
-                if sibling4FullName.strip():
-                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", \"{3}\", \"{4}\")\n" .format(apptmp_no, sibling4FullName, row["sibling4Age"], row["sibling4CollegeCeebName"], sibling4EducationLevel)
-                if sibling5FullName.strip():
-                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", \"{3}\", \"{4}\")\n" .format(apptmp_no, sibling5FullName, row["sibling5Age"], row["sibling5CollegeCeebName"], sibling5EducationLevel)
+            ##################################################################################
+            # If there are no siblings in the application then nothing is inserted
+            ##################################################################################
+            if row["numberOfSiblings"] > 0:
+                # set dictionary for Sibling education level
+                educationLevel = {
+                    'None': 'None',
+                    'Some grade school': 'Elem',
+                    'Completed grade school': 'HS',
+                    'Some secondary school': 'HS',
+                    'Graduated from secondary school': 'HS',
+                    'Some trade school or community college': 'Juco',
+                    'Graduated from trade school or community college': 'Juco',
+                    'Some college': 'Coll',
+                    'Graduated from college': 'Bach',
+                    'Graduate school': 'Mast'
+                }
+                # create variables for the Siblings education level based on the dictionary
+                for k, v in educationLevel.items():
+                    if row["sibling1EducationLevel"] == k:
+                        sibling1EducationLevel = (v)
+                    if row["sibling2EducationLevel"] == k:
+                        sibling2EducationLevel = (v)
+                    if row["sibling3EducationLevel"] == k:
+                        sibling3EducationLevel = (v)
+                    if row["sibling4EducationLevel"] == k:
+                        sibling4EducationLevel = (v)
+                    if row["sibling5EducationLevel"] == k:
+                        sibling5EducationLevel = (v)
+    
+                # building insert query for Siblings Information
+                if row["sibling1FirstName"].strip():
+                    # insert siblings into app_reltmp_rec
+                    q_sibing_name = "INSERT INTO app_reltmp_rec (id, rel_id, rel, fullname, phone_ext, aa, zip, prim, addr_line2, suffix)\n VALUES ({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", {3}, \"{4}\")\n" .format(apptmp_no, row["sibling1FirstName"] + ' ' + row["sibling1LastName"], row["sibling1Age"], row["sibling1CollegeCeebName"],sibling1EducationLevel)
+                if row["sibling2FirstName"].strip():
+                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", \"{3}\", \"{4}\")\n" .format(apptmp_no, row["sibling2FirstName"] + ' ' + row["sibling2LastName"], row["sibling2Age"], row["sibling2CollegeCeebName"], sibling2EducationLevel)
+                if row["sibling3FirstName"].strip():
+                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", \"{3}\", \"{4}\")\n" .format(apptmp_no, row["sibling3FirstName"] + ' ' + row["sibling3LastName"], row["sibling3Age"], row["sibling3CollegeCeebName"], sibling3EducationLevel)
+                if row["sibling4FirstName"].strip():
+                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", \"{3}\", \"{4}\")\n" .format(apptmp_no, row["sibling4FirstName"] + ' ' + row["sibling4LastName"], row["sibling4Age"], row["sibling4CollegeCeebName"], sibling4EducationLevel)
+                if row["sibling5FirstName"].strip():
+                    q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", {2}, \"SBSB\", 0, \"Y\", \"{3}\", \"{4}\")\n" .format(apptmp_no, row["sibling5FirstName"] + ' ' + row["sibling5LastName"], row["sibling5Age"], row["sibling5CollegeCeebName"], sibling5EducationLevel)
                 print (q_sibing_name)
                 scr.write(q_sibing_name+'\n\n');
             else:  
-                print ("There are not any siblings to insert.")
+                print ("There were no siblings to insert.")
                 scr.write('--There were no siblings for this application.\n\n');
-
+            """
             # insert into partmp_rec
             if row["parent1Type"] == 'Father':
                 q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, f_first_name, f_last_name, f_addr_line1, f_addr_line2, f_city, f_st, f_zip, f_ctry, f_college, f_deg_earn, f_title, f_suffix, f_email, f_phone, f_job, f_employer)\n VALUES ({0}, 0, \"{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\", \"{8}\", \"{9}\", \"{10}\", \"{11}\", \"{12}\", \"{13}\", \"{14}\", \"{15}\", \"{16}\");\n" .format(apptmp_no,row["parent1FirstName"],row["parent1LastName"],row["parent1Address1"],row["parent1Address2"],row["parent1AddressCity"],row["parent1AddressState"],row["parent1AddressZip"],row["parent1AddressCountry"],row["parent1College1NameCeebName"],row["parent1College1Degree1"],row["parent1Title"],row["parent1Suffix"],row["parent1Email"],row["parent1Phone"].replace('+1.', ''),row["parent1Occupation"],row["parent1Employer"])
@@ -452,7 +421,76 @@ def main():
             else:
                 print ("There is no legal guardian.")
                 scr.write('--There was no legal guardian for this application.\n\n');
+            """
+            fatherIndex = 1
+            motherIndex = 2
+            if row["parent1Type"] == 'Mother':
+                fatherIndex = 2
+                motherIndex = 1
+            print ('fatherIndex: {0}'.format(fatherIndex))
+            print ('motherIndex: {0}'.format(motherIndex))
+            q_insert_partmp_rec = '''
+                INSERT INTO partmp_rec (id, app_no, f_first_name, f_last_name,
+                f_addr_line1, f_addr_line2, f_city, f_st, f_zip, f_ctry,
+                f_college, f_deg_earn, f_title, f_suffix, f_email, f_phone,
+                f_job, f_employer, m_first_name, m_last_name, m_addr_line1,
+                m_addr_line2, m_city, m_st, m_zip, m_ctry, m_college,
+                m_deg_earn, m_title, m_suffix, m_email, m_phone, m_job,
+                m_employer, g_first_name, g_last_name, g_addr_line1, g_addr_line2,
+                g_city, g_st, g_zip, g_ctry, g_college, g_deg_earn, g_title,
+                g_suffix, g_email, g_phone, g_job, g_employer)
+                VALUES ({0}, 0, "{1}", "{2}", "{3}", "{4}", "{5}", "{6}",
+                "{7}", "{8}", "{9}", "{10}", "{11}", "{12}", "{13}", "{14}",
+                "{15}", "{16}", "{17}", "{18}", "{19}", "{20}", "{21}", "{22}",
+                "{23}", "{24}", "{25}", "{26}", "{27}", "{28}", "{29}", "{30}",
+                "{31}", "{32}", "{33}", "{34}", "{35}", "{36}", "{37}", "{38}",
+                "{39}", "{40}", "{41}", "{42}", "{43}", "{44}", "{45}", "{46}",
+                "{47}", "{48}");
+            ''' .format(apptmp_no,
+                    row['parent'+str(fatherIndex)+'FirstName'],
+                    row['parent'+str(fatherIndex)+'LastName'],
+                    row['parent'+str(fatherIndex)+'Address1'],
+                    row['parent'+str(fatherIndex)+'Address2'],
+                    row['parent'+str(fatherIndex)+'AddressCity'],
+                    row['parent'+str(fatherIndex)+'AddressState'],
+                    row['parent'+str(fatherIndex)+'AddressZip'],
+                    row['parent'+str(fatherIndex)+'AddressCountry'],
+                    row['parent'+str(fatherIndex)+'College1NameCeebName'],
+                    row['parent'+str(fatherIndex)+'College1Degree1'],
+                    row['parent'+str(fatherIndex)+'Title'],
+                    row['parent'+str(fatherIndex)+'Suffix'],
+                    row['parent'+str(fatherIndex)+'Email'],
+                    row['parent'+str(fatherIndex)+'Phone'].replace('+1.', ''),
+                    row['parent'+str(fatherIndex)+'Occupation'],
+                    row['parent'+str(fatherIndex)+'Employer'],
+                    row['parent'+str(motherIndex)+'FirstName'],
+                    row['parent'+str(motherIndex)+'LastName'],
+                    row['parent'+str(motherIndex)+'Address1'],
+                    row['parent'+str(motherIndex)+'Address2'],
+                    row['parent'+str(motherIndex)+'AddressCity'],
+                    row['parent'+str(motherIndex)+'AddressState'],
+                    row['parent'+str(motherIndex)+'AddressZip'],
+                    row['parent'+str(motherIndex)+'AddressCountry'],
+                    row['parent'+str(motherIndex)+'College1NameCeebName'],
+                    row['parent'+str(motherIndex)+'College1Degree1'],
+                    row['parent'+str(motherIndex)+'Title'],
+                    row['parent'+str(motherIndex)+'Suffix'],
+                    row['parent'+str(motherIndex)+'Email'],
+                    row['parent'+str(motherIndex)+'Phone'].replace('+1.', ''),
+                    row['parent'+str(motherIndex)+'Occupation'],
+                    row['parent'+str(motherIndex)+'Employer'],
+                    row["legalGuardianFirstName"], row["legalGuardianLastName"],
+                    row["legalGuardianAddress1"], row["legalGuardianAddress2"],
+                    row["legalGuardianAddressCity"], row["legalGuardianAddressState"],
+                    row["legalGuardianAddressZip"], row["legalGuardianAddressCountry"],
+                    row["legalGuardianCollege1NameCeebName"],
+                    row["legalGuardianCollege1Degree1"], row["legalGuardianTitle"],
+                    row["legalGuardianSuffix"], row["legalGuardianEmail"],
+                    row["legalGuardianPhone"].replace('+1.', ''),
+                    row["legalGuardianOccupation"], row["legalGuardianEmployer"])
+            print (q_insert_partmp_rec)
 
+            # setting activities variable
             activity1 = row["activity1"].strip()
             if len(row["transferActivity1"]):
                 activity1 = row["transferActivity1"].strip()
@@ -471,7 +509,7 @@ def main():
 
             # insert into app_inttmp_rec
             if activity1:
-                insert_interests = "INSERT INTO app_inttmp_rec (id, prsp_no, interest, ctgry, cclevel)\n VALUES ({0}, 0, \"{1}\", "", \"Y\");\n" .format(apptmp_no, activity1)
+                insert_interests = "INSERT INTO app_inttmp_rec (id, prsp_no, interest, ctgry, cclevel)\n VALUES ({0}, 0, \"{1}\", "", \"Y\")\n" .format(apptmp_no, activity1)
                 if activity2:
                     insert_interests += ",({0}, 0, \"{1}\", "", \"Y\")\n" .format(apptmp_no, activity2)
                 if activity3:
@@ -483,8 +521,8 @@ def main():
                 print (insert_interests)
                 scr.write(insert_interests+'\n');
             else:  
-                print ("The was no activities for this application.")
-                scr.write('--The was no activities for this application.\n\n');
+                print ("There were no activities for this application.")
+                scr.write('--There were no activities for this application.\n\n');
 
             # removing space when there are multiple ethnic backgrounds
             background = (row["background"].replace(' ', '')) 
@@ -537,6 +575,7 @@ def main():
             # formatting the dateOfBirth
             dateOfBirth = datetime.datetime.strptime(row["dateOfBirth"], '%m/%d/%Y').strftime('%Y-%m-%d')
 
+            # armedForcesStatus variables
             if row["armedForcesStatus"] == 'Currently_serving':
                 armedForcesStatus = 'Y'
             elif row["armedForcesStatus"] == 'Previously_served':
@@ -587,9 +626,10 @@ def main():
                     q_exam += " VALUES ({0}, \"SAT\", \"{1}\", \"Y\", \"CART\", \"\", \"{2}\", \"{3}\", \"{4}\", \"\", \"\")" .format(apptmp_no, row["SATRWDate"], row["SATRWScore"], row["SATMathScore"], row["SATEssayScore"])
                     print (q_exam)
                     scr.write(q_exam+'\n');
-            scr.write('--------------------------------------------------------------------------------\n')
+
+            scr.write('-------------------------------------------------------------------------------------------\n')
             scr.write('-- END INSERT NEW STUDENT APPLICATION for: ' + row["firstName"] + ' ' + row["lastName"] + "\n")
-            scr.write('--------------------------------------------------------------------------------\n\n')
+            scr.write('-----------------------------------------------------------------------------------------\n\n')
 
         f.close()
 
