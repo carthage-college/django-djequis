@@ -363,7 +363,7 @@ def main():
                         sibling4EducationLevel = (v)
                     if row["sibling5EducationLevel"] == k:
                         sibling5EducationLevel = (v)
-    
+
                 # building insert query for Siblings Information
                 if row["sibling1FirstName"].strip():
                     # insert siblings into app_reltmp_rec
@@ -381,47 +381,7 @@ def main():
             else:  
                 print ("There were no siblings to insert.")
                 scr.write('--There were no siblings for this application.\n\n');
-            """
-            # insert into partmp_rec
-            if row["parent1Type"] == 'Father':
-                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, f_first_name, f_last_name, f_addr_line1, f_addr_line2, f_city, f_st, f_zip, f_ctry, f_college, f_deg_earn, f_title, f_suffix, f_email, f_phone, f_job, f_employer)\n VALUES ({0}, 0, \"{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\", \"{8}\", \"{9}\", \"{10}\", \"{11}\", \"{12}\", \"{13}\", \"{14}\", \"{15}\", \"{16}\");\n" .format(apptmp_no,row["parent1FirstName"],row["parent1LastName"],row["parent1Address1"],row["parent1Address2"],row["parent1AddressCity"],row["parent1AddressState"],row["parent1AddressZip"],row["parent1AddressCountry"],row["parent1College1NameCeebName"],row["parent1College1Degree1"],row["parent1Title"],row["parent1Suffix"],row["parent1Email"],row["parent1Phone"].replace('+1.', ''),row["parent1Occupation"],row["parent1Employer"])
-                print (q_insert_partmp_rec)
-                scr.write(q_insert_partmp_rec+'\n');
-            elif row["parent1Type"] == 'Mother':
-                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, m_first_name, m_last_name, m_addr_line1, m_addr_line2, m_city, m_st, m_zip, m_ctry, m_college, m_deg_earn, m_title, m_suffix, m_email, m_phone, m_job, m_employer))\n VALUES ({0}, 0, \"{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\", \"{8}\", \"{9}\", \"{10}\", \"{11}\", \"{12}\", \"{13}\", \"{14}\", \"{15}\", \"{16}\");\n" .format(apptmp_no, "",row["parent1FirstName"],row["parent1LastName"],row["parent1Address1"],row["parent1Address2"],row["parent1AddressCity"],row["parent1AddressState"],row["parent1AddressZip"],row["parent1AddressCountry"],row["parent1College1NameCeebName"],row["parent1College1Degree1"],row["parent1Title"],row["parent1Suffix"],row["parent1Email"],row["parent1Phone"].replace('+1.', ''),row["parent1Occupation"],row["parent1Employer"])
-                print (q_insert_partmp_rec)
-                scr.write(q_insert_partmp_rec+'\n');
-            else:
-                print ("There is no Parent 1")
-                scr.write('--There was no Parent 1 for this application.\n\n');
 
-            if row["parent2Type"] == 'Mother':
-                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, m_first_name, m_last_name, m_addr_line1, m_addr_line2, m_city, m_st, m_zip, m_ctry, m_college, m_deg_earn, m_title, m_suffix, m_email, m_phone, m_job, m_employer))\n VALUES ({0}, 0, \"{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\", \"{8}\", \"{9}\", \"{10}\", \"{11}\", \"{12}\", \"{13}\", \"{14}\", \"{15}\", \"{16}\");\n" .format(apptmp_no, "",row["parent2FirstName"],row["parent2LastName"],row["parent2Address1"],row["parent2Address2"],row["parent2AddressCity"],row["parent2AddressState"],row["parent2AddressZip"],row["parent2AddressCountry"],row["parent2College1NameCeebName"],row["parent2College1Degree1"],row["parent2Title"],row["parent2Suffix"],row["parent2Email"],row["parent2Phone"].replace('+1.', ''),row["parent2Occupation"],row["parent2Employer"])
-                print (q_insert_partmp_rec)
-                scr.write(q_insert_partmp_rec+'\n');
-            elif row["parent2Type"] == 'Father':
-                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, f_first_name, f_last_name, f_addr_line1, f_addr_line2, f_city, f_st, f_zip, f_ctry, f_college, f_deg_earn, f_title, f_suffix, f_email, f_phone, f_job, f_employer)\n VALUES ({0}, 0, \"{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\", \"{8}\", \"{9}\", \"{10}\", \"{11}\", \"{12}\", \"{13}\", \"{14}\", \"{15}\", \"{16}\");\n" .format(apptmp_no,row["parent2FirstName"],row["parent2LastName"],row["parent2Address1"],row["parent2Address2"],row["parent2AddressCity"],row["parent2AddressState"],row["parent2AddressZip"],row["parent2AddressCountry"],row["parent2College1NameCeebName"],row["parent2College1Degree1"],row["parent2Title"],row["parent2Suffix"],row["parent2Email"],row["parent2Phone"].replace('+1.', ''),row["parent2Occupation"],row["parent2Employer"]) 
-                print (q_insert_partmp_rec)
-                scr.write(q_insert_partmp_rec+'\n');
-            else:
-                print ("There is no Parent 2")
-                scr.write('--There was no Parent 2 for this application.\n\n');
-
-            # Setting Legal Guardian First Name
-            legalGuardianFirstName = row["legalGuardianFirstName"]
-            # Setting Legal Guardian Last Name
-            legalGuardianLastName = row["legalGuardianLastName"]
-            # Setting Sibling Full Name
-            legalGuardianFullName = (legalGuardianFirstName + ' ' + legalGuardianLastName)
-
-            if legalGuardianFullName.strip():
-                q_insert_partmp_rec = "INSERT INTO partmp_rec (id, app_no, g_first_name, g_last_name, g_addr_line1, g_addr_line2, g_city, g_st, g_zip, g_ctry, g_college, g_deg_earn, g_title, g_suffix, g_email, g_phone, g_job, g_employer)\n VALUES ({0}, 0, \"{1}\", \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"{6}\", \"{7}\", \"{8}\", \"{9}\", \"{10}\", \"{11}\", \"{12}\", \"{13}\", \"{14}\", \"{15}\", \"{16}\");\n" .format(apptmp_no,row["legalGuardianFirstName"],row["legalGuardianLastName"],row["legalGuardianAddress1"],row["legalGuardianAddress2"],row["legalGuardianAddressCity"],row["legalGuardianAddressState"],row["legalGuardianAddressZip"],row["legalGuardianAddressCountry"],row["legalGuardianCollege1NameCeebName"],row["legalGuardianCollege1Degree1"],row["legalGuardianTitle"],row["legalGuardianSuffix"],row["legalGuardianEmail"],row["legalGuardianPhone"].replace('+1.', ''),row["legalGuardianOccupation"],row["legalGuardianEmployer"])
-                print (q_insert_partmp_rec)
-                scr.write(q_insert_partmp_rec+'\n');
-            else:
-                print ("There is no legal guardian.")
-                scr.write('--There was no legal guardian for this application.\n\n');
-            """
             fatherIndex = 1
             motherIndex = 2
             if row["parent1Type"] == 'Mother':
