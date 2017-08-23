@@ -64,7 +64,7 @@ def main():
        'cnopts':cnopts
     }
 
-    for key, value in dict.items():
+    for key, value in dict.iteritems():
         print key
         sqlresult = do_sql(value, earl=EARL)
 
