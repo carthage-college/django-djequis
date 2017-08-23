@@ -4,9 +4,9 @@ import pysftp
 import csv
 import datetime
 from datetime import date
-from datetime import timedelta
-import time
-from time import gmtime, strftime
+#from datetime import timedelta
+#import time
+#from time import gmtime, strftime
 import argparse
 import uuid
 import random
@@ -298,6 +298,7 @@ def main():
                     entryDate, exitDate, row["schoolLookupZip"])
             print (q_create_school)
             scr.write(q_create_school+'\n\n');
+
             ##################################################################################
             # If there are no relatives in the application then nothing is inserted
             ##################################################################################
@@ -322,18 +323,20 @@ def main():
                 # insert into realatives app_edtmp_rec
                 if row["relative1FirstName"].strip():
                     q_alumni = "INSERT INTO app_edtmp_rec (id, rel_id, rel, fullname, phone_ext, aa, zip)\n VALUES\n ({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)" .format(apptmp_no, row["relative1FirstName"] + ' ' + row["relative1LastName"], row["relative1GradYear1"])
-                if row["relative2FirstName"].strip():
-                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)\n" .format(apptmp_no, row["relative2FirstName"] + ' ' + row["relative2LastName"], row["relative2GradYear1"])
-                if row["relative3FirstName"].strip():
-                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)\n" .format(apptmp_no, row["relative3FirstName"] + ' ' + row["relative3LastName"], row["relative3GradYear1"])
-                if row["relative4FirstName"].strip():
-                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)\n" .format(apptmp_no, row["relative4FirstName"] + ' ' + row["relative4LastName"], row["relative4GradYear1"])
-                if row["relative5FirstName"].strip():
-                    q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)\n" .format(apptmp_no, row["relative5FirstName"] + ' ' + row["relative5LastName"], row["relative5GradYear1"])
-                print (q_alumni)
+                    if row["relative2FirstName"].strip():
+                        q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)\n" .format(apptmp_no, row["relative2FirstName"] + ' ' + row["relative2LastName"], row["relative2GradYear1"])
+                    if row["relative3FirstName"].strip():
+                        q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)\n" .format(apptmp_no, row["relative3FirstName"] + ' ' + row["relative3LastName"], row["relative3GradYear1"])
+                    if row["relative4FirstName"].strip():
+                        q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)\n" .format(apptmp_no, row["relative4FirstName"] + ' ' + row["relative4LastName"], row["relative4GradYear1"])
+                    if row["relative5FirstName"].strip():
+                        q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)\n" .format(apptmp_no, row["relative5FirstName"] + ' ' + row["relative5LastName"], row["relative5GradYear1"])
+                    print (q_alumni)
+                    scr.write(q_alumni+'\n\n');
             else:  
                 print ("There were no relatives to insert")
                 scr.write('--There were no relatives for this application.\n\n');
+
             ##################################################################################
             # If there are no siblings in the application then nothing is inserted
             ##################################################################################
