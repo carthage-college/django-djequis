@@ -104,12 +104,12 @@ def main():
             q_create_app = '''
                 INSERT INTO apptmp_rec
                     (add_date, add_tm, app_source, stat, reason_txt, payment_method, waiver_code)
-                VALUES (TODAY, TO_CHAR(CURRENT, '%H%M'), "WEBA", "H", "{0}"
+                VALUES (TODAY, TO_CHAR(CURRENT, '%H%M'), "WEBA", "H", "{0}",
                 "{1}", "{2}");
             ''' .format(temp_uuid, paymentMethod, waiverCode)
             print (q_create_app)
             scr.write(q_create_app+'\n');
-            sqlresult = do_sql(q_create_app, earl=EARL)
+            do_sql(q_create_app, earl=EARL)
 
             ##################################################################################
             # fetch id from apptmp_no which is used threw out queries
@@ -139,17 +139,19 @@ def main():
                     SELECT id
                     FROM app_vouchers
                     WHERE NOW() < expiration
-                    AND REPLACE(code,"-","") = row["feeWaiverCode"].replace('-', '')
-                ''' .format(row["feeWaiverCode"])
+                    AND REPLACE(code,"-","") = "{0}"
+                ''' .format(row["feeWaiverCode"].replace('-', ''))
                 print (q_match)
                 scr.write(q_match+'\n');
                 cursor.execute(q_match)
+                voucher_result = cursor.fetchone()
+                voucher_id = (voucher_result[0])
 
                 q_update_voucher = '''
                     INSERT INTO app_voucher_users (voucher_id, app_id, submitted_on)
-                    VALUES ("{0}", "{1}", NOW())
-                ''' .format(row["feeWaiverCode"])
-                print (q_update_voucher, apptmp_no)
+                    VALUES ({0}, {1}, NOW())
+                ''' .format(voucher_id, apptmp_no)
+                print (q_update_voucher)
                 scr.write(q_update_voucher+'\n');
                 cursor.execute(q_match)
             print ("There were no waiver codes for this application")
@@ -174,7 +176,7 @@ def main():
                                 row["contactConsent"])
                     print (q_insert_aa_cell)
                     scr.write(q_insert_aa_cell+'\n');
-                    sqlresult = do_sql(q_insert_aa_cell, earl=EARL)
+                    do_sql(q_insert_aa_cell, earl=EARL)
                 if row["alternatePhoneAvailable"] == 'Mobile':
                     q_create_id = '''
                         INSERT INTO app_idtmp_rec
@@ -195,7 +197,7 @@ def main():
                     print (q_create_id)
                     print (apptmp_no)
                     scr.write(q_create_id+'\n');
-                    sqlresult = do_sql(q_create_id, earl=EARL)
+                    do_sql(q_create_id, earl=EARL)
                 else:
                     # insert into app_idtmp_rec
                     q_create_id = '''
@@ -217,7 +219,7 @@ def main():
                     print (q_create_id)
                     print (apptmp_no)
                     scr.write(q_create_id+'\n');
-                    sqlresult = do_sql(q_create_id, earl=EARL)
+                    do_sql(q_create_id, earl=EARL)
             
             q_create_site = '''
                 INSERT INTO app_sitetmp_rec
@@ -226,7 +228,7 @@ def main():
             ''' .format(apptmp_no)
             print (q_create_site)
             scr.write(q_create_site+'\n');
-            sqlresult = do_sql(q_create_site, earl=EARL)
+            do_sql(q_create_site, earl=EARL)
 
             # determine the type of studentStatus and Hours Enrolled
             if row["studentStatus"] == 'Full Time' or row["transferStudentStatus"] == 'Full Time':
@@ -299,7 +301,7 @@ def main():
                         major3)
             print (q_create_adm)
             scr.write(q_create_adm+'\n');
-            sqlresult = do_sql(q_create_adm, earl=EARL)
+            do_sql(q_create_adm, earl=EARL)
 
             if row["alternateAddressAvailable"] == 'Y':
                 q_insert_aa_mail = '''
@@ -312,7 +314,7 @@ def main():
                         apptmp_no)
                 print (q_insert_aa_mail)
                 scr.write(q_insert_aa_mail+'\n');
-                sqlresult = do_sql(q_insert_aa_mail, earl=EARL)
+                do_sql(q_insert_aa_mail, earl=EARL)
             else:
                 print ("There were no alternate addresses for this application.")
                 scr.write('--There were no alternate addresses for this application.\n\n');
@@ -338,7 +340,7 @@ def main():
                                 row["contactConsent"])
                     print (q_insert_aa_cell)
                     scr.write(q_insert_aa_cell+'\n');
-                    sqlresult = do_sql(q_insert_aa_cell, earl=EARL)
+                    do_sql(q_insert_aa_cell, earl=EARL)
                 else:
                     q_create_id = '''
                         INSERT INTO app_idtmp_rec
@@ -359,7 +361,7 @@ def main():
                     print (q_create_id)
                     print (apptmp_no)
                     scr.write(q_create_id+'\n');
-                    sqlresult = do_sql(q_create_id, earl=EARL)
+                    do_sql(q_create_id, earl=EARL)
 
             #########################################################################################
             # If there are any schools attended by a student that are not NULL it will insert records
@@ -391,7 +393,7 @@ def main():
                         graduationDate, entryDate, exitDate, row["schoolLookupZip"])
                 print (q_create_school)
                 scr.write(q_create_school+'\n\n');
-                sqlresult = do_sql(q_create_school, earl=EARL)
+                do_sql(q_create_school, earl=EARL)
 
             ##################################################################################
             # If there are any secondary schools attended by a student it will insert records
@@ -425,7 +427,7 @@ def main():
                         row['secondarySchool'+str(schoolNumber)+'Zip'])
                 print (q_create_other_school)
                 scr.write(q_create_other_school+'\n\n');
-                sqlresult = do_sql(q_create_other_school, earl=EARL)
+                do_sql(q_create_other_school, earl=EARL)
 
             ##########################################################################################
             # If there are any secondary schools attended by a transfer student it will insert records
@@ -459,7 +461,7 @@ def main():
                         row['transferSecondarySchool'+str(schoolNumber)+'Zip'])
                     print (q_create_transfer_other_school)
                     scr.write(q_create_transfer_other_school+'\n\n');
-                    sqlresult = do_sql(q_create_transfer_other_school, earl=EARL)
+                    do_sql(q_create_transfer_other_school, earl=EARL)
 
             ##################################################################################
             # If there are any colleges attended by a student it will insert records
@@ -493,7 +495,7 @@ def main():
                         row['college'+str(schoolNumber)+'Zip'])
                     print (q_create_college_school)
                     scr.write(q_create_college_school+'\n\n');
-                    sqlresult = do_sql(q_create_college_school, earl=EARL)
+                    do_sql(q_create_college_school, earl=EARL)
 
             ##################################################################################
             # If there are any colleges attended by a transfer student it will insert records
@@ -527,7 +529,7 @@ def main():
                         row['transferCollege'+str(schoolNumber)+'Zip'])
                     print (q_create_transfer_college_school)
                     scr.write(q_create_transfer_college_school+'\n\n');
-                    sqlresult = do_sql(q_create_transfer_college_school, earl=EARL)
+                    do_sql(q_create_transfer_college_school, earl=EARL)
 
 
             ##################################################################################
@@ -565,7 +567,7 @@ def main():
                         q_alumni += ",({0}, 0, 5, \"{1}\", {2}, \"ALUM\", 0)\n" .format(apptmp_no, row["relative5FirstName"] + ' ' + row["relative5LastName"], row["relative5GradYear1"])
                     print (q_alumni)
                     scr.write(q_alumni+'\n\n');
-                    sqlresult = do_sql(q_alumni, earl=EARL)
+                    do_sql(q_alumni, earl=EARL)
             else:  
                 print ("There were no relatives to insert")
                 scr.write('--There were no relatives for this application.\n\n');
@@ -614,7 +616,7 @@ def main():
                         q_sibing_name += ",({0}, 0, \"SIB\", \"{1}\", \"{2}\", \"SBSB\", 0, \"Y\", \"{3}\", \"{4}\")\n" .format(apptmp_no, row["sibling5FirstName"] + ' ' + row["sibling5LastName"], row["sibling5Age"], row["sibling5CollegeCeebName"], sibling5EducationLevel)
                     print (q_sibing_name)
                     scr.write(q_sibing_name+'\n\n');
-                    sqlresult = do_sql(q_sibing_name, earl=EARL)
+                    do_sql(q_sibing_name, earl=EARL)
             else:  
                 print ("There were no siblings to insert.")
                 scr.write('--There were no siblings for this application.\n\n');
@@ -686,7 +688,7 @@ def main():
                     row["legalGuardianPhone"].replace('+1.', ''),
                     row["legalGuardianOccupation"], row["legalGuardianEmployer"])
             print (q_insert_partmp_rec)
-            sqlresult = do_sql(q_insert_partmp_rec, earl=EARL)
+            do_sql(q_insert_partmp_rec, earl=EARL)
 
             # setting activities variable
             activity1 = row["activity1"].strip()
@@ -718,7 +720,7 @@ def main():
                     insert_interests += ",({0}, 0, \"{1}\", "", \"Y\")\n" .format(apptmp_no, activity5)
                 print (insert_interests)
                 scr.write(insert_interests+'\n');
-                sqlresult = do_sql(insert_interests, earl=EARL)
+                do_sql(insert_interests, earl=EARL)
             else:  
                 print ("There were no activities for this application.")
                 scr.write('--There were no activities for this application.\n\n');
@@ -772,7 +774,7 @@ def main():
                     ''' .format(apptmp_no, eth_race)
                     print (insert_races)
                     scr.write(insert_races+'\n');
-                    sqlresult = do_sql(insert_races, earl=EARL)
+                    do_sql(insert_races, earl=EARL)
             else:
                 print ("There was nothing to insert into the mracetmp table.")
                 scr.write('--There was nothing to insert into the mracetmp table.\n\n');
@@ -816,12 +818,12 @@ def main():
                 q_create_prof = "INSERT INTO app_proftmp_rec (id, birth_date, church_id, prof_last_upd_date, sex, birthplace_city, birthplace_st, birthplace_ctry, visa_code, citz, res_st, res_cty, race, hispanic, denom_code, vet) VALUES ({0}, \"{1}\", 0, TODAY, \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"\", \"{6}\", \"\", \"\", \"UN\", \"{7}\", \"{8}\", \"{9}\")" .format(apptmp_no, dateOfBirth, row["sex"], row["birthCity"], row["birthState"], row["birthCountry"], row["citizenships"], row["hispanicLatino"], religiousPreference, armedForcesStatus)
                 print (q_create_prof)
                 scr.write(q_create_prof+'\n');
-                sqlresult = do_sql(q_create_prof, earl=EARL)
+                do_sql(q_create_prof, earl=EARL)
             elif ethnic_code == 'MU':
                 q_create_prof = "INSERT INTO app_proftmp_rec (id, birth_date, church_id, prof_last_upd_date, sex, birthplace_city, birthplace_st, birthplace_ctry, visa_code, citz, res_st, res_cty, race, hispanic, denom_code, vet) VALUES ({0}, \"{1}\", 0, TODAY, \"{2}\", \"{3}\", \"{4}\", \"{5}\", \"\", \"{6}\", \"\", \"\", \"MU\", \"{7}\", \"{8}\", \"{9}\")" .format(apptmp_no, dateOfBirth, row["sex"], row["birthCity"], row["birthState"], row["birthCountry"], row["citizenships"], row["hispanicLatino"], religiousPreference, armedForcesStatus)
                 print (q_create_prof)
                 scr.write(q_create_prof+'\n');
-                sqlresult = do_sql(q_create_prof, earl=EARL)
+                do_sql(q_create_prof, earl=EARL)
             else:
                 q_create_prof = '''
                     INSERT INTO app_proftmp_rec (id, birth_date, church_id,
@@ -836,7 +838,7 @@ def main():
                         religiousPreference, armedForcesStatus)
                 print (q_create_prof)
                 scr.write(q_create_prof+'\n');
-                sqlresult = do_sql(q_create_prof, earl=EARL)
+                do_sql(q_create_prof, earl=EARL)
 
             # creating Testing Scores array for ACT, SAT_New
             tests_array = []
@@ -864,7 +866,7 @@ def main():
                     q_exam += " VALUES ({0}, \"SAT\", \"{1}\", \"Y\", \"CART\", \"\", \"{2}\", \"{3}\", \"{4}\", \"\", \"\")" .format(apptmp_no, SATRWDate, row["SATRWScore"], row["SATMathScore"], row["SATEssayScore"])
                     print (q_exam)
                     scr.write(q_exam+'\n');
-                    sqlresult = do_sql(q_exam, earl=EARL)
+                    do_sql(q_exam, earl=EARL)
 
             scr.write('-------------------------------------------------------------------------------------------\n')
             scr.write('-- END INSERT NEW STUDENT APPLICATION for: ' + row["firstName"] + ' ' + row["lastName"] + "\n")
