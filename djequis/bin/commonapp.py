@@ -44,6 +44,7 @@ from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 
 EARL = settings.INFORMIX_EARL
+DEBUG = settings.INFORMIX_DEBUG
 
 # set up command-line options
 desc = """
@@ -57,7 +58,7 @@ parser.add_argument(
     help="Dry run?",
     dest="test"
 )
-
+start_time = time.time()
 def main():
     # Establish mySQL database connection
     cursor = connections['admissions_pce'].cursor()
@@ -153,29 +154,27 @@ def main():
                 ''' .format(voucher_id, apptmp_no)
                 print (q_update_voucher)
                 scr.write(q_update_voucher+'\n');
-                cursor.execute(q_match)
+                cursor.execute(q_update_voucher)
             print ("There were no waiver codes for this application")
             scr.write("--There were no waiver codes for this application"+'\n');
 
             q_create_id = '''
             INSERT INTO app_idtmp_rec
-            (id, firstname, lastname, cc_username, cc_password, addr_line1,
-            addr_line2, city, st, zip, ctry, phone, aa, add_date, ofc_add_by,
+            (id, firstname, lastname, suffixname, cc_username, cc_password, addr_line1,
+            addr_line2, city, st, zip, ctry, phone, ss_no, aa, add_date, ofc_add_by,
             upd_date, purge_date, prsp_no, name_sndx, correct_addr, decsd, valid)
-            VALUES ({0}, "{1}", "{2}", "{3}", "{0}", "{4}", "{5}", "{6}", "{7}",
-            "{8}", "{9}", "{10}", "PERM", TODAY, "ADMS", TODAY,
+            VALUES ({0}, "{1}", "{2}", "{3}", "{4}", "{0}", "{5}", "{6}", "{7}",
+            "{8}", "{9}", "{10}", "{11}", {12}, "PERM", TODAY, "ADMS", TODAY,
             TODAY + 2 UNITS YEAR, "0", "", "Y", "N", "Y");
             ''' .format(apptmp_no, row["firstName"], row["lastName"],
-            row["emailAddress"], row["permanentAddress1"],
+            row["suffix"], row["emailAddress"], row["permanentAddress1"],
             row["permanentAddress2"], row["permanentAddressCity"],
             row["permanentAddressState"], row["permanentAddressZip"],
             row["permanentAddressCountry"],
-            row["preferredPhoneNumber"].replace('+1.', ''))
+            row["preferredPhoneNumber"].replace('+1.', ''), row["ssn"])
             print (q_create_id)
             scr.write(q_create_id+'\n');
-            #do_sql(q_create_id, earl=EARL)
-            iddebug = do_sql(q_create_id, earl=EARL)
-            print ('ID Debug: {0}'.format(iddebug))
+            do_sql(q_create_id, earl=EARL)
 
             ##################################################################################
             # The Y/N value of contactConsent may seem a little backwards intuitively.
@@ -215,67 +214,7 @@ def main():
                 print (q_insert_aa_cell)
                 scr.write(q_insert_aa_cell+'\n');
                 do_sql(q_insert_aa_cell, earl=EARL)
-            
-            """
-            if row["preferredPhone"] != '':
-                if row["preferredPhone"] == 'Mobile':
-                    if row["contactConsent"] == 'Y' or row["transferContactConsent"] == 'Y':
-                        contactConsent = 'N'
-                    elif row["contactConsent"] == 'N' or row["transferContactConsent"] == 'N':
-                        contactConsent = 'Y'
-                    q_insert_aa_cell = '''
-                        INSERT INTO app_aatmp_rec
-                        (id, aa, beg_date, phone, opt_out)
-                        VALUES ({0}, "CELL", TODAY, "{1}", "{2}");
-                    ''' .format(apptmp_no, row["preferredPhoneNumber"].replace('+1.', ''),
-                        row["contactConsent"])
-                    print (q_insert_aa_cell)
-                    scr.write(q_insert_aa_cell+'\n');
-                    do_sql(q_insert_aa_cell, earl=EARL)
-                if row["alternatePhoneAvailable"] == 'Mobile':
-                    q_create_id = '''
-                        INSERT INTO app_idtmp_rec
-                        (id, firstname, lastname, cc_username, cc_password,
-                        addr_line1, addr_line2, city, st, zip, ctry, phone,
-                        aa, add_date, ofc_add_by, upd_date, purge_date,
-                        prsp_no, name_sndx, correct_addr, decsd, valid)
-                        VALUES ({0}, "{1}", "{2}", "{3}", "{0}", "{4}", "{5}",
-                        "{6}", "{7}", "{8}", "{9}", "{10}", "PERM", TODAY,
-                        "ADMS", TODAY, TODAY + 2 UNITS YEAR, "0", "", "Y",
-                        "N", "Y");
-                    ''' .format(apptmp_no, row["firstName"], row["lastName"],
-                        row["emailAddress"],row["permanentAddress1"],
-                        row["permanentAddress2"], row["permanentAddressCity"],
-                        row["permanentAddressState"], row["permanentAddressZip"],
-                        row["permanentAddressCountry"],
-                        row["preferredPhoneNumber"].replace('+1.', ''))
-                    print (q_create_id)
-                    print (apptmp_no)
-                    scr.write(q_create_id+'\n');
-                    do_sql(q_create_id, earl=EARL)
-                else:
-                    # insert into app_idtmp_rec
-                    q_create_id = '''
-                        INSERT INTO app_idtmp_rec
-                        (id, firstname, lastname, cc_username, cc_password,
-                        addr_line1, addr_line2, city, st, zip, ctry, phone,
-                        aa, add_date, ofc_add_by, upd_date, purge_date,
-                        prsp_no, name_sndx, correct_addr, decsd, valid)
-                        VALUES ({0}, "{1}", "{2}", "{3}", "{0}", "{4}", "{5}",
-                        "{6}", "{7}", "{8}", "{9}", "{10}", "PERM", TODAY,
-                        "ADMS", TODAY, TODAY + 2 UNITS YEAR, "0", "", "Y",
-                        "N", "Y");
-                    ''' .format(apptmp_no, row["firstName"], row["lastName"],
-                        row["emailAddress"],row["permanentAddress1"],
-                        row["permanentAddress2"], row["permanentAddressCity"],
-                        row["permanentAddressState"], row["permanentAddressZip"],
-                        row["permanentAddressCountry"],
-                        row["preferredPhoneNumber"].replace('+1.', ''))
-                    print (q_create_id)
-                    print (apptmp_no)
-                    scr.write(q_create_id+'\n');
-                    do_sql(q_create_id, earl=EARL)
-            """
+
             q_create_site = '''
             INSERT INTO app_sitetmp_rec
             (id, home, site, beg_date)
@@ -340,19 +279,59 @@ def main():
             if len(row["transferMajor3"]):
                 major3 = row["transferMajor3"].replace("ADM-MAJOR-", "").strip()
 
+            print ('Denomination Code: {0}'.format(row["religiousPreference"]))
+            parent_marital = {
+                'Married': 'M',
+                'Separated': 'T',
+                'Divorced': 'D',
+                'Widowed': 'W',
+                'Never Married': 'S',
+                '': ''
+            }
+
+            if row["parent1Type"] == 'Father':
+                parent1 = 'F'
+            if row["parent1Type"] == 'Mother':
+                parent1 = 'M'
+            if row["parent2Type"] == 'Mother':
+                parent2 = 'M'
+            if row["parent2Type"] == 'Father':
+                parent2 = 'F'
+
+            liveWith = {
+                'Both Parents': 'B',
+                'Parent 1': parent1,
+                'Parent 2': parent2,
+                'Legal Guardian': 'G',
+                'Other': 'O',
+                'Ward of the Court/State': 'O' 
+            }
+
+            # create variables for the Religious Preference based on the dictionary
+            try:
+                live_with = liveWith[row["permanentHome"]]
+                if live_with == 'O':
+                    otherLivingSituation = row["otherLivingSituation"]
+            except KeyError as e:
+                live_with = 'O'
+
             # insert into app_admtmp_rec
             q_create_adm = '''
             INSERT INTO app_admtmp_rec
             (id, primary_app, plan_enr_sess, plan_enr_yr, intend_hrs_enr,
             trnsfr, cl, add_date, parent_contr, enrstat, rank, wisconsin_coven,
             emailaddr, prog, subprog, upd_date, act_choice, stuint_wt,
-            jics_candidate, major, major2, major3, app_source)
+            jics_candidate, major, major2, major3, app_source, pref_name, felony,
+            discipline, parnt_mtlstat, live_with, live_with_other, vet_ben)
             VALUES ({0}, "Y", "{1}", {2}, "{3}", "{4}", "{5}", TODAY, "0.00",
             "", "0", "", "{6}", "UNDG", "{7}", TODAY, "", "0", "N", "{8}",
-            "{9}", "{10}", "C");
+            "{9}", "{10}", "C", "{11}", "{12}", "{13}", "{14}", "{15}", "{16}", {17});
             ''' .format(apptmp_no, planEnrollSession, planEnrollYear,
             intendHoursEnrolled, transfer, studentType, row["emailAddress"],
-            studentStatus, major1, major2, major3)
+            studentStatus, major1, major2, major3, row["preferredName"],
+            row["criminalHistory"], row["criminalHistoryExplanation"],
+            row["schoolDiscipline"], row["parentsMaritalStatus"], live_with,
+            otherLivingSituation)
             print (q_create_adm)
             scr.write(q_create_adm+'\n');
             do_sql(q_create_adm, earl=EARL)
@@ -360,14 +339,15 @@ def main():
             if row["alternateAddressAvailable"] == 'Y':
                 q_insert_aa_mail = '''
                 INSERT INTO app_aatmp_rec
-                (line1, line2, city, st, zip, ctry, id, aa)
-                VALUES ("{0}", "{1}", "{2}", "{3}", {4}, "{5}", {6}, "MAIL");
-                ''' .format(row["currentAddress1"],row["currentAddress2"],
-                row["currentAddressCity"],row["currentAddressState"],
-                row["currentAddressZip"],row["currentAddressCountry"],
+                (line1, line2, city, st, zip, ctry, id, aa, beg_date)
+                VALUES ("{0}", "{1}", "{2}", "{3}", "{4}", "{5}", {6}, "MAIL",
+                TODAY);
+                ''' .format(row["currentAddress1"], row["currentAddress2"],
+                row["currentAddressCity"], row["currentAddressState"],
+                row["currentAddressZip"], row["currentAddressCountry"],
                 apptmp_no)
                 print (q_insert_aa_mail)
-                scr.write(q_insert_aa_mail+'\n');
+                scr.write(q_insert_aa_mail);
                 do_sql(q_insert_aa_mail, earl=EARL)
             else:
                 print ("There were no alternate addresses for this application.")
@@ -379,45 +359,6 @@ def main():
             # N = The student has opted in meaning Carthage does have permission to text
             #################################################################################
             # determine the type of contactConsent
-            """
-            if row["alternatePhoneNumber"] != '' and row["alternatePhoneNumber"] != 'N':
-                if row["contactConsent"] == 'Y' or row["transferContactConsent"] == 'Y':
-                    contactConsent = 'N'
-                elif row["contactConsent"] == 'N' or row["transferContactConsent"] == 'N':
-                    contactConsent = 'Y'
-                if row["alternatePhoneAvailable"] == 'Mobile':
-                    # insert into app_aatmp_rec (CELL)
-                    q_insert_aa_cell = '''
-                        INSERT INTO app_aatmp_rec
-                        (id, aa, beg_date, phone, opt_out)
-                        VALUES ({0}, "CELL", TODAY, "{1}", "{2}");
-                    ''' .format(apptmp_no, row["alternatePhoneNumber"].replace('+1.', ''),
-                        row["contactConsent"])
-                    print (q_insert_aa_cell)
-                    scr.write(q_insert_aa_cell+'\n');
-                    do_sql(q_insert_aa_cell, earl=EARL)
-                else:
-                    q_create_id = '''
-                        INSERT INTO app_idtmp_rec
-                        (id, firstname, lastname, cc_username, cc_password,
-                        addr_line1, addr_line2, city, st, zip, ctry, phone,
-                        aa, add_date, ofc_add_by, upd_date, purge_date,
-                        prsp_no, name_sndx, correct_addr, decsd, valid)
-                        VALUES ({0}, "{1}", "{2}", "{3}", "{0}", "{4}", "{5}",
-                        "{6}", "{7}", "{8}", "{9}", "{10}", "PERM", TODAY,
-                        "ADMS", TODAY, TODAY + 2 UNITS YEAR, "0", "", "Y",
-                        "N","Y");
-                    ''' .format(apptmp_no, row["firstName"], row["lastName"],
-                            row["emailAddress"],row["permanentAddress1"],
-                            row["permanentAddress2"], row["permanentAddressCity"],
-                            row["permanentAddressState"], row["permanentAddressZip"],
-                            row["permanentAddressCountry"],
-                            row["preferredPhoneNumber"].replace('+1.', ''))
-                    print (q_create_id)
-                    print (apptmp_no)
-                    scr.write(q_create_id+'\n');
-                    do_sql(q_create_id, earl=EARL)
-                """
 
             #########################################################################################
             # If there are any schools attended by a student that are not NULL it will insert records
@@ -1107,7 +1048,8 @@ def main():
             scr.write('-------------------------------------------------------------------------------------------\n')
             scr.write('-- END INSERT NEW STUDENT APPLICATION for: ' + row["firstName"] + ' ' + row["lastName"] + "\n")
             scr.write('-------------------------------------------------------------------------------------------\n\n')
-
+        
+        print("--- %s seconds ---" % (time.time() - start_time))
         f.close()
 
 
