@@ -75,6 +75,7 @@ parser.add_argument(
 
 def main():
     # set date and time to be added to the filename string
+    headerdate = time.strftime("%Y%m%d")
     datetimestr = time.strftime("%Y%m%d%H%M%S")
 
     # Looks at queries and determines if aid has been despersed
@@ -115,7 +116,7 @@ def main():
         # writes file header
         writer.writerow(header)
         # sets file header elements
-        header_detail = ("CCM", "00383900", datetimestr)
+        header_detail = ("CCM", "00383900", headerdate)
         # writes file header elements
         writer.writerow(header_detail)
         #######################################################################
