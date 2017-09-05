@@ -4,6 +4,8 @@ import pysftp
 import csv
 import time
 import argparse
+import shutil
+import glob
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -50,42 +52,57 @@ parser.add_argument(
 )
 
 def main():
+    ##################################################################################
+    # Creating variables for Source, destination directories and date & time stamp
+    ##################################################################################
+    datetimestr = time.strftime("%Y%m%d%H%M%S") # set date and time to be added to the filename
+    source_dir = ('{0}'.format(settings.COMMONAPP_CSV_OUTPUT))
+    destination = ('{0}commonapp-{1}.txt'.format(settings.COMMONAPP_CSV_ARCHIVED, datetimestr))
 
-    filename=('08_03_2017_16_05_11_Applications(3).txt')
-    # destination = ('{0}'.format(
-    #         settings.COMMONAPP_CSV_OUTPUT
-    #     ))
     # go to our storage directory on the server
-    #os.chdir(settings.COMMONAPP_CSV_OUTPUT)
+    filename = ('08_03_2017_16_05_11_Applications(3).txt')
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
+    ##################################################################################
+    # External connection information for Common Application server
+    ##################################################################################
     XTRNL_CONNECTION = {
        'host':settings.COMMONAPP_HOST,
        'username':settings.COMMONAPP_USER,
        'password':settings.COMMONAPP_PASS,
        'cnopts':cnopts
     }
-    # SFTP GET the Common App file
-    #for filename in sftp.listdir():
-    # try:
-    #     if filename.startswith('08_03_2017_16_05_11_Applications(3).txt'):
-    #         localpath = destination + '/' + filename
-    #         print "Downloading files ==> " + filename
-    #         sftp.get(filename, localpath)
-    # except IOError as e:
-    #     print e
-    # sftp.close()
-    try:
-        with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
-            #sftp.chdir("replace/")
-            directories_data = sftp.listdir()
-            print (directories_data)
-            # if filename in directories_data:
-            #     sftp.get(filename, preserve_mtime=True) # get a remote file
-            #     print "Downloading files ==> " + filename
-            # sftp.close()
-    except Exception, e:
-        print e
+    ##################################################################################
+    # sFTP GET downloads the file from Common App file from server 
+    # and saves in specfied directory
+    ##################################################################################
+    with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
+        for filename in sftp.listdir():
+          try:
+              if filename.endswith(".txt"):
+                localpath = source_dir + '/' + filename
+                print "Downloading files ==> " + filename
+                sftp.get(filename, localpath)
+                renamedFile = ('{0}carthage_applications.txt'.format(source_dir))
+                print ('Renamed File: {0}'.format(renamedFile))
+                shutil.move(localpath, renamedFile)
+          except IOError as e:
+              print e
+        sftp.close()
+    ##################################################################################
+    # This will rename and move the file to archives directory
+    ##################################################################################
+    for file in os.listdir(source_dir):
+        if file.endswith(".txt"):
+            currentfilename=('{0}{1}'.format(source_dir,file))
+            print ('File: {0}'.format(currentfilename))
+            #changedfilename=('{0}{1}'.format(destination))
+            print ('New File: {0}'.format(destination))
+            #os.rename(file, philename)
+            shutil.move(currentfilename, destination)
+    ##################################################################################
+    # Email
+    ##################################################################################
         # SUBJECT = '[Common Application SFTP] {} failed'.format(key)
         # BODY = 'Unable to GET upload to Common Application server.\n\n{}'.format(str(e))
         # sendmail(
