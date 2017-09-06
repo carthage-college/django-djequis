@@ -59,6 +59,20 @@ parser.add_argument(
     dest="test"
 )
 start_time = time.time()
+def insertExam(id, ctgry, cmpl_date, score1, score2, score3, score4, score5, score6):
+    #scr = open("commonapp_output.sql", "a")
+    if cmpl_date != '':
+        q_exam = '''
+        INSERT INTO app_examtmp_rec (id, ctgry, cmpl_date, self_rpt,
+        site, score1, score2, score3, score4, score5, score6)
+        VALUES ({0}, "{1}", TO_DATE("{2}", "%Y-%m-%d"), "Y", "CART",
+                "{3}", "{4}", "{5}", "{6}", "{7}", "{8}")
+        ''' .format(id, ctgry, cmpl_date, score1, score2, score3, score4, score5,
+                    score6)
+        #print (q_exam)
+        #scr.write(q_exam+'\n');
+        do_sql(q_exam, key=DEBUG, earl=EARL)
+
 def main():
     # Establish mySQL database connection
     cursor = connections['admissions_pce'].cursor()
@@ -482,7 +496,9 @@ def main():
                     scr.write(q_create_other_school+'\n\n');
                     scr.write("--Executing other school qry"+'\n\n');
                     do_sql(q_create_other_school, key=DEBUG, earl=EARL)
-
+            else:
+                print ("There were no other schools attended to insert")
+                scr.write('--There were no other schools attended for this application.\n\n');
             ##########################################################################################
             # If there are any secondary schools attended by a transfer student it will insert records
             ##########################################################################################
@@ -524,7 +540,9 @@ def main():
                     scr.write(q_create_transfer_other_school+'\n\n');
                     scr.write("--Executing transfer other school qry"+'\n\n');
                     do_sql(q_create_transfer_other_school, key=DEBUG, earl=EARL)
-
+            else:
+                print ("There were no transfer secondary schools attended to insert")
+                scr.write('--There were no transfer secondary schools attended for this application.\n\n');
             ##################################################################################
             # If there are any colleges attended by a student it will insert records
             ##################################################################################
@@ -566,9 +584,10 @@ def main():
                     row['college'+str(schoolNumber)+'Zip'])
                     print (q_create_college_school)
                     scr.write(q_create_college_school+'\n\n');
-                    scr.write("--Executing Colleges attended qry"+'\n\n');
                     do_sql(q_create_college_school, key=DEBUG, earl=EARL)
-
+            else:
+                print ("There were no colleges attended to insert")
+                scr.write('--There were no colleges attended for this application.\n\n');
             ##################################################################################
             # If there are any colleges attended by a transfer student it will insert records
             ##################################################################################
@@ -609,42 +628,64 @@ def main():
                     row['transferCollege'+str(schoolNumber)+'Zip'])
                     print (q_create_transfer_college_school)
                     scr.write(q_create_transfer_college_school+'\n\n');
-                    scr.write("--Executing transfer colleges attended qry"+'\n\n');
                     do_sql(q_create_transfer_college_school, key=DEBUG, earl=EARL)
-
+            else:
+                print ("There were no transfercolleges attended to insert")
+                scr.write('--There were no transfercolleges attended for this application.\n\n');
             ##################################################################################
             # If there are no relatives in the application then nothing is inserted
             ##################################################################################
             if row["relativesAttended"] == 'Yes':
-                # set Relative1 Graduation Year, if Gradustion year is empty set to zero
+                for relativeNumber in range (1, 5 +1):
+                    if row['relative'+str(relativeNumber)+'FirstName'] != '':
+                        relativeGradYear = row['relative'+str(relativeNumber)+'GradYear1']
+                        if len(row['transferRelative'+str(relativeNumber)+'GradYear1']):
+                            relativeGradYear = row['transferRelative'+str(relativeNumber)+'GradYear1']
+                        if relativeGradYear == '':
+                            relativeGradYear = 0
+                        # insert relative(s) if there are any coming in from Common App
+                        q_alumni = '''
+                        INSERT INTO app_reltmp_rec (id, rel_id, rel, fullname,
+                        phone_ext, aa, zip)
+                        VALUES ({0}, 0, 5, "{1}", {2}, "ALUM", 0);
+                    ''' .format(apptmp_no, row['relative'+str(relativeNumber)+'FirstName'] + ' ' + row['relative'+str(relativeNumber)+'LastName'],
+                        relativeGradYear)
+                        print (q_alumni)
+                        scr.write(q_alumni+'\n\n');
+                        do_sql(q_alumni, key=DEBUG, earl=EARL)
+            else:
+                print ("There were no relatives to insert")
+                scr.write('--There were no relatives for this application.\n\n');
+                """
+                # set Relative1 Graduation Year, if Graduation year is empty set to zero
                 relative1GradYear1 = row["relative1GradYear1"].strip()
                 if len(row["transferRelative1GradYear1"]):
                     relative1GradYear1 = row["transferRelative1GradYear1"].strip()
                 if relative1GradYear1 == '':
                     relative1GradYear1 = 0
 
-                # set Relative2 Graduation Year, if Gradustion year is empty set to zero
+                # set Relative2 Graduation Year, if Graduation year is empty set to zero
                 relative2GradYear1 = row["relative2GradYear1"].strip()
                 if len(row["transferRelative2GradYear1"]):
                     relative2GradYear1 = row["transferRelative2GradYear1"].strip()
                 if relative2GradYear1 == '':
                     relative2GradYear1 = 0
 
-                # set Relative3 Graduation Year, if Gradustion year is empty set to zero
+                # set Relative3 Graduation Year, if Graduation year is empty set to zero
                 relative3GradYear1 = row["relative3GradYear1"].strip()
                 if len(row["transferRelative3GradYear1"]):
                     relative3GradYear1 = row["transferRelative3GradYear1"].strip()
                 if relative3GradYear1 == '':
                     relative3GradYear1 = 0
 
-                # set Relative4 Graduation Year, if Gradustion year is empty set to zero
+                # set Relative4 Graduation Year, if Graduation year is empty set to zero
                 relative4GradYear1 = row["relative4GradYear1"].strip()
                 if len(row["transferRelative4GradYear1"]):
                     relative4GradYear1 = row["transferRelative4GradYear1"].strip()
                 if relative4GradYear1 == '':
                     relative4GradYear1 = 0
 
-                # set Relative5 Graduation Year, if Gradustion year is empty set to zero
+                # set Relative5 Graduation Year, if Graduation year is empty set to zero
                 relative5GradYear1 = row["relative5GradYear1"].strip()
                 if len(row["transferRelative5GradYear1"]):
                     relative5GradYear1 = row["transferRelative5GradYear1"].strip()
@@ -714,6 +755,7 @@ def main():
             else:  
                 print ("There were no relatives to insert")
                 scr.write('--There were no relatives for this application.\n\n');
+                """
 
             ##################################################################################
             # If there are no siblings in the application then nothing is inserted
@@ -732,6 +774,23 @@ def main():
                     'Graduated from college': 'Bach',
                     'Graduate school': 'Mast'
                 }
+                for siblingNumber in range (1, 5 +1):
+                    if row['sibling'+str(siblingNumber)+'FirstName'] != '':
+                        q_sibing_name = '''
+                        INSERT INTO app_reltmp_rec (id, rel_id, rel, fullname,
+                        phone_ext, aa, zip, prim, addr_line2, suffix)
+                        VALUES ({0}, 0, "SIB", "{1}", "{2}", "SBSB", 0, "Y", "{3}",
+                        "{4}");
+                    ''' .format(apptmp_no, row['sibling'+str(siblingNumber)+'FirstName'] + ' ' + row['sibling'+str(siblingNumber)+'LastName'],
+                        row["sibling1Age"], row["sibling1CollegeCeebName"],
+                        educationLevel[row['sibling'+str(siblingNumber)+'EducationLevel']])
+                        print (q_sibing_name)
+                        scr.write(q_sibing_name+'\n\n');
+                        do_sql(q_sibing_name, key=DEBUG, earl=EARL)
+            else:  
+                print ("There were no siblings to insert.")
+                scr.write('--There were no siblings for this application.\n\n');
+                """
                 # create variables for the Siblings education level based on the dictionary
                 for k, v in educationLevel.items():
                     if row["sibling1EducationLevel"] == k:
@@ -818,6 +877,7 @@ def main():
             else:  
                 print ("There were no siblings to insert.")
                 scr.write('--There were no siblings for this application.\n\n');
+                """
 
             fatherIndex = 1
             motherIndex = 2
@@ -889,6 +949,25 @@ def main():
             scr.write(q_insert_partmp_rec+'\n');
             do_sql(q_insert_partmp_rec, key=DEBUG, earl=EARL)
 
+            if row["activity1"] != '' or row["transferActivity1"] != '':
+                for activityNumber in range (1, 5 +1):
+                    activity = row['activity'+str(activityNumber)].replace("INTERESTS-INTEREST-", "")
+                    if len(row['transferActivity'+str(activityNumber)].replace("INTERESTS-INTEREST-", "")):
+                        activity = row['transferActivity'+str(activityNumber)].replace("INTERESTS-INTEREST-", "")
+                    if activity:
+                        insert_interests = '''
+                        INSERT INTO app_inttmp_rec (id, prsp_no, interest, ctgry,
+                        cclevel)
+                        VALUES ({0}, 0, "{1}", "", "Y");
+                    ''' .format(apptmp_no, activity)
+                        print (insert_interests)
+                        scr.write(insert_interests+'\n');
+                        do_sql(insert_interests, key=DEBUG, earl=EARL)
+            else:
+                print ("There were no activities for this application.")
+                scr.write('--There were no activities for this application.\n\n');
+            """
+
             # setting activities variable
             activity1 = row["activity1"].replace("INTERESTS-INTEREST-", "").strip()
             if len(row["transferActivity1"].replace("INTERESTS-INTEREST-", "")):
@@ -955,6 +1034,7 @@ def main():
             else:  
                 print ("There were no activities for this application.")
                 scr.write('--There were no activities for this application.\n\n');
+            """
 
             # removing space when there are multiple ethnic backgrounds
             background = (row["background"].replace(' ', '')) 
@@ -973,6 +1053,20 @@ def main():
                 'W': 'WH'
             }
             # Loop through array comparing ethnicity(key) setting it to ethnicity(value)
+            for eth in array_ethnic:
+                try:
+                    converted.append(ethnicity[eth])
+                except:
+                    pass
+
+            if len(converted) == 1:
+                ethnic_code = converted[0]
+            elif len(converted) == 0:
+                ethnic_code = 'UN'
+            else:
+                ethnic_code = 'MU'
+
+            """
             for eth in array_ethnic:
                 print eth
                 if eth == 'N':
@@ -995,6 +1089,7 @@ def main():
                 ethnic_code_list = ','.join(converted)
             print ('Ethnicity Code: {0}'.format(ethnic_code_list))
             print ('Number of Ethnicity Codes: {0}'.format(len(ethnic_code_list)))
+            """
             if len(converted) > 1:
                 for eth_race in converted:
                     # insert into app_mracetmp_rec
@@ -1034,6 +1129,21 @@ def main():
             except KeyError as e:
                 religiousPreference = 'O'
 
+            q_create_prof = '''
+            INSERT INTO app_proftmp_rec (id, birth_date, church_id,
+            prof_last_upd_date, sex, birthplace_city, birthplace_st,
+            birthplace_ctry, visa_code, citz, res_st, res_cty, race,
+            hispanic, denom_code, vet)
+            VALUES ({0}, TO_DATE("{1}", "%Y-%m-%d"), 0, TODAY, "{2}", "{3}",
+            "{4}", "{5}", "", "{6}", "", "", "{7}", "{8}", "{9}", "{10}");
+            ''' .format(apptmp_no, dateOfBirth, row["sex"], row["birthCity"],
+            row["birthState"], row["birthCountry"], row["citizenships"],
+            ethnic_code, row["hispanicLatino"],
+            religiousPreference, armedForcesStatus)
+            print (q_create_prof)
+            scr.write(q_create_prof+'\n');
+            do_sql(q_create_prof, key=DEBUG, earl=EARL)
+            """
             # insert into app_proftmp_rec
             if ethnic_code == 'UN':
                 q_create_prof = '''
@@ -1071,20 +1181,61 @@ def main():
                 hispanic, denom_code, vet)
                 VALUES ({0}, TO_DATE("{1}", "%Y-%m-%d"), 0, TODAY, "{2}", "{3}",
                 "{4}", "{5}", "", "{6}", "", "", "{7}", "{8}", "{9}", "{10}");
-                ''' .format(apptmp_no, dateOfBirth, row["sex"],
-                row["birthCity"], row["birthState"], row["birthCountry"],
-                row["citizenships"], ethnic_code_list, row["hispanicLatino"],
+                ''' .format(apptmp_no, dateOfBirth, row["sex"], row["birthCity"],
+                row["birthState"], row["birthCountry"], row["citizenships"],
+                ethnic_code_list, row["hispanicLatino"],
                 religiousPreference, armedForcesStatus)
                 print (q_create_prof)
                 scr.write(q_create_prof+'\n');
                 do_sql(q_create_prof, key=DEBUG, earl=EARL)
+            """
 
             # creating Testing Scores array for ACT, SAT_New
-            tests_array = []
-            for test in row["totalTestsTaken"].split(','):
-                tests_array.append(test.strip())
-                print(tests_array)
+            # userTests = row["totalTestsTaken"].split(',')
+            # print(userTests)
+            # print (row["satRWDate"])
+            # for test in userTests:
+            #     if test.strip() == 'ACT' and row["actCompositeDate"] != '':
+            #         print ("within the ACT loop")
+            #     elif test.strip() == 'SAT_New' and row["satRWDate"] != '':
+            #         print ("within the SAT loop")
+            #         cmpl_date = datetime.datetime.strptime(row["satRWDate"], '%m/%d/%Y').strftime('%Y-%m-%d')
+            #         # insertExam = (apptmp_no, cmpl_date, '', row["satRWScore"],
+            #         #     row["satMathScore"], row["satEssayScore"], '', '')
+            #         insertExam(apptmp_no, cmpl_date, '', row["satRWScore"],
+            #             row["satMathScore"], row["satEssayScore"], '', '')
+                    #tests_array.append(test.strip())
+                    #print(tests_array)
 
+                    
+                # else:
+                #     print ("out of the loop")
+
+            #tests_array = []
+            # creating Testing Scores array for ACT, SAT_New
+            if row["totalTestsTaken"] != '':
+                userTests = row["totalTestsTaken"].split(',')
+                for test in userTests:
+                    if test.strip() == 'ACT' and row["actCompositeDate"] != '':
+                        cmpl_date = datetime.datetime.strptime(row["actCompositeDate"], '%m/%d/%Y').strftime('%Y-%m-%d')
+                        insertExam(apptmp_no, test, cmpl_date, row["actCompositeScore"],
+                            row["actEnglishScore"], row["actMathScore"],
+                            row["actReadingScore"], row["actScienceScore"],
+                            row["actWritingScore"])
+                        print (insertExam.q_exam)
+                        #scr.write(insertExam.q_exam+'\n');
+                    elif test.strip() == 'SAT_New' and row["satRWDate"] != '':
+                        cmpl_date = datetime.datetime.strptime(row["satRWDate"], '%m/%d/%Y').strftime('%Y-%m-%d')
+                        insertExam(apptmp_no, test, cmpl_date, '', row["satRWScore"],
+                            row["satMathScore"], row["satEssayScore"], '', '')
+                        #tests_array.append(test.strip())
+                        #print(tests_array)
+                        print (insertExam.q_exam)
+                        #scr.write(insertExam.q_exam+'\n');
+            else:
+                print ("There were no tests to insert into the app_examtmp_rec table.")
+                scr.write('--There were no tests for this application.\n\n');
+            """
             if row["actCompositeDate"] == '':
                 actCompositeDate = ''
             else: # formatting the actCompositeDate
@@ -1093,7 +1244,35 @@ def main():
                 SATRWDate = ''
             else: # formatting the SATRWDate
                 SATRWDate = datetime.datetime.strptime(row["SATRWDate"], '%m/%d/%Y').strftime('%Y-%m-%d')
-
+             
+            for tests in tests_array:
+                cmpl_date = datetime.datetime.strptime(row["actCompositeDate"], '%m/%d/%Y').strftime('%Y-%m-%d')
+                score1 = row["actCompositeScore"]
+                score2 = row["actEnglishScore"]
+                score3 = row["actMathScore"]
+                score4 = row["actReadingScore"]
+                score5 = row["actScienceScore"]
+                score6 = row["actWritingScore"]
+                if tests == 'SAT_New':
+                    cmpl_date = datetime.datetime.strptime(row["satRWDate"], '%m/%d/%Y').strftime('%Y-%m-%d')
+                    score1 = ''
+                    score2 = row["satRWScore"]
+                    score3 = row["satMathScore"]
+                    score4 = row["satEssayScore"]
+                    score5 = ''
+                    score6 = ''
+                    tests = "SAT"
+                q_exam = '''
+                INSERT INTO app_examtmp_rec (id, ctgry, cmpl_date, self_rpt,
+                site, score1, score2, score3, score4, score5, score6)
+                VALUES ({0}, "{1}", TO_DATE("{2}", "%Y-%m-%d"), "Y", "CART",
+                "{3}", "{4}", "{5}", "{6}", "{7}", "{8}")
+                ''' .format(apptmp_no, tests, cmpl_date, score1, score2, score3,
+                            score4, score5, score6)
+                print (q_exam)
+                scr.write(q_exam+'\n');
+                do_sql(q_exam, key=DEBUG, earl=EARL)
+            
             for tests in tests_array:
                 if tests == 'ACT' and row["ACTCompositeScore"] != '':
                     # insert into app_examtmp_rec
@@ -1120,6 +1299,7 @@ def main():
                     print (q_exam)
                     scr.write(q_exam+'\n');
                     do_sql(q_exam, key=DEBUG, earl=EARL)
+            """
 
             scr.write('-------------------------------------------------------------------------------------------\n')
             scr.write('-- END INSERT NEW STUDENT APPLICATION for: ' + row["firstName"] + ' ' + row["lastName"] + "\n")
@@ -1128,9 +1308,9 @@ def main():
         print("--- %s seconds ---" % (time.time() - start_time))
         f.close()
 
-
 if __name__ == "__main__":
     args = parser.parse_args()
     test = args.test
 
     sys.exit(main())
+
