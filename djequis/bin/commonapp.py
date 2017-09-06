@@ -59,7 +59,7 @@ parser.add_argument(
     dest="test"
 )
 start_time = time.time()
-def insertExam(id, ctgry, cmpl_date, score1, score2, score3, score4, score5, score6):
+def insertExam(id, ctgry, cmpl_date, score1, score2, score3, score4, score5, score6, scr):
     #scr = open("commonapp_output.sql", "a")
     if cmpl_date != '':
         q_exam = '''
@@ -1191,28 +1191,6 @@ def main():
             """
 
             # creating Testing Scores array for ACT, SAT_New
-            # userTests = row["totalTestsTaken"].split(',')
-            # print(userTests)
-            # print (row["satRWDate"])
-            # for test in userTests:
-            #     if test.strip() == 'ACT' and row["actCompositeDate"] != '':
-            #         print ("within the ACT loop")
-            #     elif test.strip() == 'SAT_New' and row["satRWDate"] != '':
-            #         print ("within the SAT loop")
-            #         cmpl_date = datetime.datetime.strptime(row["satRWDate"], '%m/%d/%Y').strftime('%Y-%m-%d')
-            #         # insertExam = (apptmp_no, cmpl_date, '', row["satRWScore"],
-            #         #     row["satMathScore"], row["satEssayScore"], '', '')
-            #         insertExam(apptmp_no, cmpl_date, '', row["satRWScore"],
-            #             row["satMathScore"], row["satEssayScore"], '', '')
-                    #tests_array.append(test.strip())
-                    #print(tests_array)
-
-                    
-                # else:
-                #     print ("out of the loop")
-
-            #tests_array = []
-            # creating Testing Scores array for ACT, SAT_New
             if row["totalTestsTaken"] != '':
                 userTests = row["totalTestsTaken"].split(',')
                 for test in userTests:
@@ -1231,48 +1209,11 @@ def main():
                         #tests_array.append(test.strip())
                         #print(tests_array)
                         print (insertExam.q_exam)
-                        #scr.write(insertExam.q_exam+'\n');
+                        scr.write(insertExam.q_exam+'\n');
             else:
                 print ("There were no tests to insert into the app_examtmp_rec table.")
                 scr.write('--There were no tests for this application.\n\n');
             """
-            if row["actCompositeDate"] == '':
-                actCompositeDate = ''
-            else: # formatting the actCompositeDate
-                actCompositeDate = datetime.datetime.strptime(row["actCompositeDate"], '%m/%d/%Y').strftime('%Y-%m-%d')
-            if row["SATRWDate"] == '':
-                SATRWDate = ''
-            else: # formatting the SATRWDate
-                SATRWDate = datetime.datetime.strptime(row["SATRWDate"], '%m/%d/%Y').strftime('%Y-%m-%d')
-             
-            for tests in tests_array:
-                cmpl_date = datetime.datetime.strptime(row["actCompositeDate"], '%m/%d/%Y').strftime('%Y-%m-%d')
-                score1 = row["actCompositeScore"]
-                score2 = row["actEnglishScore"]
-                score3 = row["actMathScore"]
-                score4 = row["actReadingScore"]
-                score5 = row["actScienceScore"]
-                score6 = row["actWritingScore"]
-                if tests == 'SAT_New':
-                    cmpl_date = datetime.datetime.strptime(row["satRWDate"], '%m/%d/%Y').strftime('%Y-%m-%d')
-                    score1 = ''
-                    score2 = row["satRWScore"]
-                    score3 = row["satMathScore"]
-                    score4 = row["satEssayScore"]
-                    score5 = ''
-                    score6 = ''
-                    tests = "SAT"
-                q_exam = '''
-                INSERT INTO app_examtmp_rec (id, ctgry, cmpl_date, self_rpt,
-                site, score1, score2, score3, score4, score5, score6)
-                VALUES ({0}, "{1}", TO_DATE("{2}", "%Y-%m-%d"), "Y", "CART",
-                "{3}", "{4}", "{5}", "{6}", "{7}", "{8}")
-                ''' .format(apptmp_no, tests, cmpl_date, score1, score2, score3,
-                            score4, score5, score6)
-                print (q_exam)
-                scr.write(q_exam+'\n');
-                do_sql(q_exam, key=DEBUG, earl=EARL)
-            
             for tests in tests_array:
                 if tests == 'ACT' and row["ACTCompositeScore"] != '':
                     # insert into app_examtmp_rec
