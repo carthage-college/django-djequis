@@ -435,6 +435,7 @@ def main():
                     scr.write(q_insertText+'\n');
                     do_sql(q_insertText, key=DEBUG, earl=EARL)
             """
+
             ###################################################################
             # BEGIN - alternate address for student
             ###################################################################
@@ -616,8 +617,8 @@ def main():
                     q_create_college_school = '''
                     INSERT INTO app_edtmp_rec
                     (id, ceeb, fullname, city, st, grad_date, enr_date, dep_date,
-                    stu_id, sch_id, app_reltmp_no, rel_id, priority, zip, aa, ctgry,
-                    acad_trans)
+                    stu_id, sch_id, app_reltmp_no, rel_id, priority, zip, aa,
+                    ctgry, acad_trans)
                     VALUES ({0}, {1}, "{2}", "{3}", "{4}", "", TO_DATE("{5}", "%Y-%m-%d"),
                     TO_DATE("{6}", "%Y-%m-%d"), 0, 0, 0, 0, 0, "{7}", "ac",
                     "COL", "N");
@@ -915,7 +916,7 @@ def main():
                 'CAT': 'RC',
                 '': ''
             }
-            # create variables for the Religious Preference based on the dictionary
+            # create variables for the religious preference based on the dictionary
             try:
                 religiousPreference = denomination[row["religiousPreference"]]
             except KeyError as e:
@@ -941,7 +942,7 @@ def main():
             ####################################################################
             # BEGIN - testing scores
             # testing scores array for ACT, SAT_New
-            # the insertExam function at the top of script creates insert statement
+            # insertExam function at the top of script creates insert statement
             ####################################################################
             if row["totalTestsTaken"] != '':
                 userTests = row["totalTestsTaken"].split(',')
@@ -963,8 +964,10 @@ def main():
             scr.write('-------------------------------------------------------------------------------------------\n')
             scr.write('-- END INSERT NEW STUDENT APPLICATION for: ' + row["firstName"] + ' ' + row["lastName"] + "\n")
             scr.write('-------------------------------------------------------------------------------------------\n\n')
+
         # output of how long it takes to run script
         print("--- %s seconds ---" % (time.time() - start_time))
+
         # close file
         f.close()
 
