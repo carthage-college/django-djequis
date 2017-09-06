@@ -331,6 +331,10 @@ def main():
             if len(row["transferMajor3"]):
                 major3 = row["transferMajor3"].replace("ADM-MAJOR-", "").strip()
 
+            # if and major is nursing then the class type is FN
+            if major1 == 'NUR' or major2 == 'NUR' or major3 == 'NUR':
+                studentType = 'FN'
+
             # set armedForcesStatus variables
             if row["armedForcesStatus"] == 'Currently_serving':
                 armedForcesStatus = 'Y'
@@ -706,8 +710,8 @@ def main():
                         scr.write(q_alumni+'\n\n');
                         do_sql(q_alumni, key=DEBUG, earl=EARL)
             else:
-                print ("There were no relatives to insert")
-                scr.write('--There were no relatives for this application.\n\n');
+                print ("There were no relatives (ALUMI) for this application.")
+                scr.write('--There were no relatives (ALUMI) for this application.\n\n');
 
             ###################################################################
             # BEGIN - siblings **if there are no siblings then nothing is inserted
@@ -949,13 +953,13 @@ def main():
                 for test in userTests:
                     if test.strip() == 'ACT' and row["actCompositeDate"] != '':
                         cmpl_date = datetime.datetime.strptime(row["actCompositeDate"], '%m/%d/%Y').strftime('%Y-%m-%d')
-                        insertExam(apptmp_no, test, cmpl_date, row["actCompositeScore"],
+                        insertExam(apptmp_no, 'ACT', cmpl_date, row["actCompositeScore"],
                             row["actEnglishScore"], row["actMathScore"],
                             row["actReadingScore"], row["actScienceScore"],
                             row["actWritingScore"])
                     elif test.strip() == 'SAT_New' and row["satRWDate"] != '':
                         cmpl_date = datetime.datetime.strptime(row["satRWDate"], '%m/%d/%Y').strftime('%Y-%m-%d')
-                        insertExam(apptmp_no, test, cmpl_date, '', row["satRWScore"],
+                        insertExam(apptmp_no, 'SAT', cmpl_date, '', row["satRWScore"],
                             row["satMathScore"], row["satEssayScore"], '', '')
             else:
                 print ("There were no tests to insert into the app_examtmp_rec table.")
