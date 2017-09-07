@@ -42,6 +42,8 @@ os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
+from djzbar.utils.informix import get_engine
+from djtools.fields import TODAY
 
 EARL = settings.INFORMIX_EARL
 DEBUG = settings.INFORMIX_DEBUG
@@ -87,6 +89,7 @@ def insertExam(id, ctgry, cmpl_date, score1, score2, score3, score4, score5, sco
 def main():
     # establish mySQL database connection
     cursor = connections['admissions_pce'].cursor()
+    engine = get_engine(EARL)
 
     ###########################################################################
     # set directory and filename where to read from
@@ -411,7 +414,7 @@ def main():
 
             # Email the contents of Criminal and Disiplinary to Adminssions
             # This is something we need to visit in v2.0
-            """
+
             # If there is Criminal or Displinary reasons they will be added
             if row["criminalHistory"] != '' or row["schoolDiscipline"] != '':
                 if row["criminalHistory"] == 'Y':
@@ -421,11 +424,13 @@ def main():
                     q_insertText = '''
                     INSERT INTO app_ectctmp_rec
                     (id, tick, add_date, resrc, stat, txt)
-                    VALUES ({0}, "ADM", TODAY, "{1}", "C", "{2}");
-                    ''' .format(apptmp_no, resource, reasontxt)
+                    VALUES (?, ?, ?, ?, ?, ?);
+                    '''
                     print (q_insertText)
                     scr.write(q_insertText+'\n');
-                    do_sql(q_insertText, key=DEBUG, earl=EARL)
+                    engine.execute(q_insertText,
+                        [apptmp_no, "ADM", TODAY, resource, "C", reasontxt]
+                    )
                 if row["schoolDiscipline"] == 'Y':
                     reasontxt = row["disciplinaryViolationExplanation"]
                     resource = 'DISMISS'
@@ -433,12 +438,15 @@ def main():
                     q_insertText = '''
                     INSERT INTO app_ectctmp_rec
                     (id, tick, add_date, resrc, stat, txt)
-                    VALUES ({0}, "ADM", TODAY, "{1}", "C", "{2}");
-                    ''' .format(apptmp_no, resource, reasontxt)
+                    VALUES (?, ?, ?, ?, ?, ?);
+                    '''
                     print (q_insertText)
                     scr.write(q_insertText+'\n');
-                    do_sql(q_insertText, key=DEBUG, earl=EARL)
-            """
+                    engine.execute(
+                        q_insertText,
+                        [apptmp_no, "ADM", TODAY, resource, "C", reasontxt]
+                    )
+
 
             ###################################################################
             # BEGIN - alternate address for student
