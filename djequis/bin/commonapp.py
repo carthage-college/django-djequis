@@ -60,6 +60,10 @@ parser.add_argument(
     help="Dry run?",
     dest="test"
 )
+###############################################################################
+# hoping this is a failsafe to ensure when developing we are pointed at TRAIN
+###############################################################################
+response = raw_input("Are you pointed at the TRAIN database?")
 
 # write out the .sql file
 scr = open("commonapp_output.sql", "a")
