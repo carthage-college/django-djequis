@@ -47,9 +47,9 @@ EARL = settings.INFORMIX_EARL
 DEBUG = settings.INFORMIX_DEBUG
 
 ################################################################################
-# The objective of the School College Cost Meter File is to help schools provide
-# detailed student information to Great Lakes in a standard format that correctly
-# populates the College Cost Meter.
+# The objective of the School College Cost Meter (CCM) File is to help schools
+# provide detailed student information to Great Lakes in a standard format that
+# correctly populates the College Cost Meter.
 #
 # The School College Cost Meter File will list all students to which Great Lakes
 # will send an email or letter detailing required state law information.
@@ -102,19 +102,20 @@ def main():
         sqlcountresults = do_sql(getcount_sql, earl=EARL)
         # fetch the first row and get max loan number from the number of loans column
         maxaidcount = (sqlcountresults.fetchone()["number_of_loans"]) 
-        # if command line --test prints out number of loans
+        # if command line --test prints out max number of loans
         if test:
             print ('Highest Number of loans: {0}'.format(maxaidcount))
-        # set directory and filename to be stored
+        # set directory and filename where to be stored
         filename=('{0}CCM-{1}.csv'.format(
             settings.WISACT_CSV_OUTPUT,datetimestr
         ))
         phile = open(filename,"w");
         writer = csv.writer(phile)
-        # sets non-dynamic file header
-        header = ["File Name", "School OPEID", "File Date"]
-        # writes file header
-        writer.writerow(header)
+        # if command line --test then header will be printed
+        if test:
+            header = ["File Name", "School OPEID", "File Date"]
+            # writes file header
+            writer.writerow(header)
         # sets file header elements
         header_detail = ("CCM", "00383900", headerdate)
         # writes file header elements
@@ -122,66 +123,91 @@ def main():
         #######################################################################
         # sets non-dynamic part of the file detail header
         # Institutional Loan, State Loan not captured but placeholder needs to
-        # be provided
+        # be provided for all header placeholders
         #######################################################################
-        csv_line = ["School OPEID", "Academic Year", "Student SSN", "Student First Name",
-            "Student Last Name", "School Student ID", "Student Address Line 1",
-            "Student Address Line 2", "Student Address Line 3", "Student City",
-            "Student State", "Student Zip", "Student Country", "Student Email Address",
-            "Tuition", "Room & Board", "Books & Supplies", "Transportation",
-            "Other Education Costs", "Loan Fees", "Institutional Grants",
-            "Institutional Scholarship", "Federal Grants", "State Grants",
-            "Outside Aid", "Institutional Loan", "Institutional Loan Amount",
-            "Institutional Loan Interest Rate", "Repayment Length",
-            "State Loan", "State Loan Amount", "State Loan Interest Rate",
-            "Repayment Length"
-            ]
-        #######################################################################
-        # loops through maxaidcount to dynamically add file detail header for loans.
-        # It will add as many extra loans as found in the max aid count
-        #######################################################################
-        for aidindex in range (1, maxaidcount+1):
-            csv_line.extend(('Private Loan Name'+ ' ' +str(aidindex),
-            'Private Loan Amount'+ ' ' +str(aidindex), 'Repayment Length',
-            'Private Loan Interest Rate', 'Loan Date'+ ' ' +str(aidindex)))
-        # if command line --test prints out csv_line
         if test:
-            print (csv_line)
-        # initializing currentID 0
-        currentID = 0
+            # if command line --test then static header for student information is printed
+            csv_line = ["School OPEID", "Academic Year", "Student SSN", "Student First Name",
+                "Student Last Name", "School Student ID", "Student Address Line 1",
+                "Student Address Line 2", "Student Address Line 3", "Student City",
+                "Student State", "Student Zip", "Student Country", "Student Email Address"
+                ]
+            #######################################################################
+            # loops through maxaidcount to dynamically add file detail header for loans.
+            # It will add as many extra loans as found in the max aid count
+            #######################################################################
+            for aidindex in range (1, maxaidcount+1):
+                # setting dynamic header for Personal Loans
+                csv_line.extend(('Private Loan Name'+ ' ' +str(aidindex),
+                'Private Loan Amount'+ ' ' +str(aidindex), 'Repayment Length',
+                'Private Loan Interest Rate', 'Loan Date'+ ' ' +str(aidindex)))
+            # if command line --test then static header for other loan information is printed
+            csv_line.extend(("Institutional Loan Name 1", "Institutional Loan Amount",
+                "Institutional Loan Interest Rate", "Repayment Length", "Loan Date",
+                "Institutional Loan Name 2", "Institutional Loan Amount",
+                "Institutional Loan Interest Rate", "Repayment Length", "Loan Date",
+                "Institutional Loan Name 3", "Institutional Loan Amount",
+                "Institutional Loan Interest Rate", "Repayment Length", "Loan Date",
+                "Institutional Loan Name 4", "Institutional Loan Amount",
+                "Institutional Loan Interest Rate", "Repayment Length", "Loan Date",
+                "Institutional Loan Name 5", "Institutional Loan Amount",
+                "Institutional Loan Interest Rate", "Repayment Length", "Loan Date",
+                "Institutional Loan Name 6", "Institutional Loan Amount",
+                "Institutional Loan Interest Rate", "Repayment Length", "Loan Date",
+                "State Loan Name 1", "State Loan Amount", "State Loan Interest Rate",
+                "Repayment Length", "Loan Date", "State Loan Name 2",
+                "State Loan Amount", "State Loan Interest Rate", "Repayment Length",
+                "Loan Date", "State Loan Name 3", "State Loan Amount",
+                "State Loan Interest Rate", "Repayment Length", "Loan Date",
+                "State Loan Name 4", "State Loan Amount", "State Loan Interest Rate",
+                "Repayment Length", "Loan Date", "State Loan Name 5",
+                "State Loan Amount", "State Loan Interest Rate", "Repayment Length",
+                "Loan Date", "State Loan Name 6", "State Loan Amount",
+                "State Loan Interest Rate", "Repayment Length", "Loan Date",
+                "Tuition", "Tuition Fees", "Room & Board", "Books & Supplies",
+                "Transportation", "Other Education Costs", "Personal Education Costs",
+                "Loan Fees", "Institutional Grants", "Institutional Scholarship",
+                "Federal Grants", "State Grants", "Outside Aid"))
+        currentID = 0 # initializing currentID 0
+        loanCount = 0 # initializing loanCount 0
         for row in sqlresults:
             if row["student_id_number"] != currentID:
-                # if command line --test prints out csv_line
-                if test:
-                    print (csv_line)
-                # writes file detail header
-                writer.writerow(csv_line)
+                if currentID != 0:
+                    for i in range (loanCount, maxaidcount):
+                        # creates spacing in between personlaon data and other
+                        csv_line += ("", "", "", "", "")
+                    #######################################################
+                    # other laon information, the % .2f is to keep the decimal
+                    # format - the majority of fields are placeholders ""
+                    # these are not used by Carthage
+                    #######################################################
+                    csv_line += ("", "", "", "", "", "", "", "", "", "", "", "",
+                        "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+                        "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+                        "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+                        "", "", "", "", "", "", row["c_tufe"], "", row["c_rmbd"],
+                        row["c_book"], row["c_tran"], row["c_misc"], "", row["c_loan"],
+                        "% .2f" % row["c_instgrants"], "% .2f" % row["c_instscholar"],
+                        "% .2f" % row["c_fedgrants"], "% .2f" % row["c_stegrants"],
+                        "% .2f" % row["c_outsideaid"])
+                    writer.writerow(csv_line)
                 currentID = row["student_id_number"]
+                loanCount = 0
+                ###############################################################
                 # writes non-dynamic detail file data of the student record
+                # adds each financial aid loan record to same row for student
+                # The % .2f is to keep the decimal format
+                 ##############################################################
                 csv_line = (row["opeid"], row["acadyear"], row["social_security_number"],
                     row["student_first_name"], row["student_last_name"],
                     row["student_id_number"], row["student_address_line_1"],
                     row["student_address_line_2"], row["student_address_line_3"],
                     row["student_city"], row["student_state_code"],
                     row["student_postal_code"], row["student_country_code"],
-                    row["student_email"], row["c_tufe"], row["c_rmbd"],
-                    row["c_book"], row["c_tran"], row["c_misc"],
-                    row["c_loan"], "% .2f" % row["c_instgrants"],
-                    "% .2f" % row["c_instscholar"], "% .2f" % row["c_fedgrants"],
-                    "% .2f" % row["c_stegrants"], "% .2f" % row["c_outsideaid"],
-                    "", "", "", "", "", "", "", "")
-                # if command line --test prints out student ID
-                if test:
-                    print ('Current ID: {0}'.format(currentID))
-                #######################################################################
-                # adds each financial aid loan record to row for student
-                # to the backend of the file. The % .2f is to keep the decimal format
-                 #######################################################################
+                    row["student_email"])
             csv_line += (row["loan_name"], "% .2f" % row["aid_amount"], "", "",
-                         row["loan_date"])
-        # if command line --test prints out csv_line
-        if test:
-            print (csv_line)
+                        row["loan_date"])
+            loanCount = loanCount +1
         # writes the last line for the last student loan record
         writer.writerow(csv_line)
         # closes file
