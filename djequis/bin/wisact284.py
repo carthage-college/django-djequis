@@ -37,9 +37,7 @@ os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
-#from djequis.sql.wisact284 import WIS_ACT_284_SQL
 from djequis.sql.wisact284 import getaid
-from djequis.sql.wisact284 import getaidcount
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 
@@ -78,13 +76,8 @@ def main():
     headerdate = time.strftime("%Y%m%d")
     datetimestr = time.strftime("%Y%m%d%H%M%S")
 
-    # Looks at queries and determines if aid has been despersed
-    if dispersed:
-        getaid_sql = getaid(True)
-        getcount_sql = getaidcount(True)
-    else:
-        getaid_sql = getaid(False)
-        getcount_sql = getaidcount(False)
+    # Looks at query and determines if aid has been despersed
+    getaid_sql = getaid(dispersed)
 
     # run getaid_sql SQL statement
     sqlresults = do_sql(getaid_sql, key=DEBUG, earl=EARL)
@@ -95,16 +88,9 @@ def main():
         BODY = 'Funds have not been dispersed.\n\n'
         sendmail(
             settings.WISACT_TO_EMAIL,settings.WISACT_FROM_EMAIL,
-            SUBJECT, BODY
+            BODY, SUBJECT
         )
     else:
-        # run SQL statement
-        sqlcountresults = do_sql(getcount_sql, earl=EARL)
-        # fetch the first row and get max loan number from the number of loans column
-        maxaidcount = (sqlcountresults.fetchone()["number_of_loans"]) 
-        # if command line --test prints out max number of loans
-        if test:
-            print ('Highest Number of loans: {0}'.format(maxaidcount))
         # set directory and filename where to be stored
         filename=('{0}CCM-{1}.csv'.format(
             settings.WISACT_CSV_OUTPUT,datetimestr
@@ -116,33 +102,28 @@ def main():
             header = ["File Name", "School OPEID", "File Date"]
             # writes file header
             writer.writerow(header)
-        # sets file header elements
+        # displays file header elements
         header_detail = ("CCM", "00383900", headerdate)
         # writes file header elements
         writer.writerow(header_detail)
-        #######################################################################
-        # sets non-dynamic part of the file detail header
-        # Institutional Loan, State Loan not captured but placeholder needs to
-        # be provided for all header placeholders
-        #######################################################################
+        # if command line --test then loan header will be printed
         if test:
-            # if command line --test then static header for student information is printed
-            csv_line = ["School OPEID", "Academic Year", "Student SSN", "Student First Name",
-                "Student Last Name", "School Student ID", "Student Address Line 1",
-                "Student Address Line 2", "Student Address Line 3", "Student City",
-                "Student State", "Student Zip", "Student Country", "Student Email Address"
-                ]
-            #######################################################################
-            # loops through maxaidcount to dynamically add file detail header for loans.
-            # It will add as many extra loans as found in the max aid count
-            #######################################################################
-            for aidindex in range (1, maxaidcount+1):
-                # setting dynamic header for Personal Loans
-                csv_line.extend(('Private Loan Name'+ ' ' +str(aidindex),
-                'Private Loan Amount'+ ' ' +str(aidindex), 'Repayment Length',
-                'Private Loan Interest Rate', 'Loan Date'+ ' ' +str(aidindex)))
-            # if command line --test then static header for other loan information is printed
-            csv_line.extend(("Institutional Loan Name 1", "Institutional Loan Amount",
+            loan_header = ["School OPEID", "Academic Year", "Student SSN",
+                "Student First Name", "Student Last Name", "School Student ID",
+                "Student Address Line 1", "Student Address Line 2",
+                "Student Address Line 3", "Student City", "Student State",
+                "Student Zip", "Student Country", "Student Email Address",
+                "Private Loan Name 1", "Private Loan Amount 1", "Repayment Length",
+                "Private Loan Interest Rate", "Loan Date 1", "Private Loan Name 2",
+                "Private Loan Amount 2", "Repayment Length", "Private Loan Interest Rate",
+                "Loan Date 2", "Private Loan Name 3", "Private Loan Amount 3",
+                "Repayment Length", "Private Loan Interest Rate", "Loan Date 3",
+                "Private Loan Name 4", "Private Loan Amount 4", "Repayment Length",
+                "Private Loan Interest Rate", "Loan Date 4", "Private Loan Name 5",
+                "Private Loan Amount 5", "Repayment Length", "Private Loan Interest Rate",
+                "Loan Date 5", "Private Loan Name 6", "Private Loan Amount 6",
+                "Repayment Length", "Private Loan Interest Rate", "Loan Date 6",
+                "Institutional Loan Name 1", "Institutional Loan Amount",
                 "Institutional Loan Interest Rate", "Repayment Length", "Loan Date",
                 "Institutional Loan Name 2", "Institutional Loan Amount",
                 "Institutional Loan Interest Rate", "Repayment Length", "Loan Date",
@@ -167,25 +148,26 @@ def main():
                 "Tuition", "Tuition Fees", "Room & Board", "Books & Supplies",
                 "Transportation", "Other Education Costs", "Personal Education Costs",
                 "Loan Fees", "Institutional Grants", "Institutional Scholarship",
-                "Federal Grants", "State Grants", "Outside Aid"))
+                "Federal Grants", "State Grants", "Other Scholarships"
+                ]
+            # writes loan header elements
+            writer.writerow(loan_header)
+        #######################################################################
+        # loops through maxaidcount to dynamically add file detail header for
+        # loans. It will add as many extra loans as found in the max aid count
+        #######################################################################
         currentID = 0 # initializing currentID 0
         loanCount = 0 # initializing loanCount 0
+        maxaidcount = 18 # set maxaid count
         for row in sqlresults:
             if row["student_id_number"] != currentID:
                 if currentID != 0:
+                    # loops through maxaidcount to add private loans
                     for i in range (loanCount, maxaidcount):
-                        # creates spacing in between personlaon data and other
+                        # creates spacing in between private loan data other loan information
                         csv_line += ("", "", "", "", "")
-                    #######################################################
-                    # other laon information, the % .2f is to keep the decimal
-                    # format - the majority of fields are placeholders ""
-                    # these are not used by Carthage
-                    #######################################################
-                    csv_line += ("", "", "", "", "", "", "", "", "", "", "", "",
-                        "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-                        "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-                        "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-                        "", "", "", "", "", "", row["c_tufe"], "", row["c_rmbd"],
+                    # adds other loan information
+                    csv_line += (row["c_tufe"], "", row["c_rmbd"],
                         row["c_book"], row["c_tran"], row["c_misc"], "", row["c_loan"],
                         "% .2f" % row["c_instgrants"], "% .2f" % row["c_instscholar"],
                         "% .2f" % row["c_fedgrants"], "% .2f" % row["c_stegrants"],
@@ -210,8 +192,8 @@ def main():
             loanCount = loanCount +1
         # writes the last line for the last student loan record
         writer.writerow(csv_line)
-        # closes file
-        phile.close()
+    # closes file
+    phile.close()
 
 if __name__ == "__main__":
     args = parser.parse_args()
