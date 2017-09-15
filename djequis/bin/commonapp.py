@@ -628,6 +628,7 @@ def main():
            ####################################################################
             # BEGIN - college(s) attended for a student
             ###################################################################
+            """
             if row["collegesAttendedNumber"] != '' and int(row["collegesAttendedNumber"]) > 0:
                 for schoolNumber in range(1, int(row["collegesAttendedNumber"])+1):
                     print ('College School Number: {0}'.format(row["collegesAttendedNumber"]))
@@ -671,6 +672,7 @@ def main():
             else:
                 print ("There were no colleges attended to insert")
                 scr.write('--There were no colleges attended for this application.\n\n');
+            """
             ###################################################################
             # BEGIN - college(s) attended for a transfer student
             ###################################################################
