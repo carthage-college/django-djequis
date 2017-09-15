@@ -340,9 +340,6 @@ def main():
             elif row["studentType"] == 'FY':
                 studentType = 'FF'
                 transfer = 'N'
-            elif row["studentType"] == 'TR' and row["transferFreshmanNursing"] == 'Yes':
-                studentType = 'FN'
-                transfer = 'Y'
             elif row["studentType"] == 'TR':
                 studentType = 'UT'
                 transfer = 'Y'
@@ -358,10 +355,6 @@ def main():
             major3 = row["major3"].replace("ADM-MAJOR-", "").strip()
             if len(row["transferMajor3"]):
                 major3 = row["transferMajor3"].replace("ADM-MAJOR-", "").strip()
-
-            # if and major is nursing then the class type is FN
-            if major1 == 'NUR' or major2 == 'NUR' or major3 == 'NUR':
-                studentType = 'FN'
 
             # set armedForcesStatus variables
             if row["armedForcesStatus"] == 'Currently_serving':
