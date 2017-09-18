@@ -127,6 +127,7 @@ def main():
     # open file
     with open(filename, 'rb') as f:
         reader = csv.DictReader(f, delimiter=',')
+        apptmp_no_list = []
         for row in reader:
             # prints the records information for all fields
             print([col+'='+row[col] for col in reader.fieldnames])
@@ -181,6 +182,10 @@ def main():
             # sets the apptmp_no variable which is used threw out the queries
             ###################################################################
             apptmp_no = (results[0])
+            
+            apptmp_no_list.append(str(apptmp_no));
+            #print "Updated List: ", apptmp_no_list
+            #scr.write('-- STUDENT IDs:' + str(apptmp_no_list) +"\n")
             print ('Apptmp No: {0}'.format(results[0]))
 
             scr.write('------------------------------------------------------------------------------------------------------------------\n')
@@ -996,7 +1001,7 @@ def main():
             scr.write('-------------------------------------------------------------------------------------------\n')
             scr.write('-- END INSERT NEW STUDENT APPLICATION for: ' + row["firstName"] + ' ' + row["lastName"] + "\n")
             scr.write('-------------------------------------------------------------------------------------------\n\n')
-
+        scr.write('-- STUDENT IDs:' + str(apptmp_no_list) +"\n")
         # output of how long it takes to run script
         print("--- %s seconds ---" % (time.time() - start_time))
 
