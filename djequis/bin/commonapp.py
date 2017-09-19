@@ -130,6 +130,7 @@ def main():
             print ("There was a file(s) found.")
             # Loop through remote path directory list
             for filename in remotepath:
+                remotefile = filename
                 print "File Name ==> " + filename
                 # Check to see that the file ends with .txt
                 if filename.endswith(".txt"):
@@ -1084,7 +1085,7 @@ def main():
                         # Delete original file %m_%d_%y_%h_%i_%s_Applications(%c).txt
                         # from sFTP server
                         #######################################################
-                        sftp.remove(filename)
+                        sftp.remove(remotefile)
                         fileCount = fileCount +1
                     else:
                         print "The filesize ==> {0} so we need to send an email".format(sftpstat.st_size)
