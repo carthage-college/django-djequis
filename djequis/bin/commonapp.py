@@ -131,25 +131,29 @@ def main():
             # Loop through remote path directory list
             for filename in remotepath:
                 remotefile = filename
-                print "File Name ==> " + filename
+                print "File Name ==> " + remotefile
                 # Check to see that the file ends with .txt
-                if filename.endswith(".txt"):
+                if remotefile.endswith(".txt"):
                     # set variable to get the file attributes (size)
-                    sftpstat = sftp.stat(filename)
+                    sftpstat = sftp.stat(remotefile)
                     # check to make sure the file has data by checking the size
                     if sftpstat.st_size > 0:
                         # set destination directory for which the common app file will be archived to
                         destination = ('{0}commonapp-{1}_{2}.txt'.format(settings.COMMONAPP_CSV_ARCHIVED, datetimestr, str(fileCount)))
+                        # set destination directory for which the sql file will be archived to
+                        archived_destination = ('{0}commonapp_output-{1}.sql'.format(settings.COMMONAPP_CSV_ARCHIVED, datetimestr))
+                        # set name for the sqloutput file
+                        sqloutput = ('{0}/commonapp_output.sql'.format(os.getcwd()))
                         # set source directory for which the common app file will be downloaded to
                         source_dir = ('{0}'.format(settings.COMMONAPP_CSV_OUTPUT))
                         # Print filesize
                         print "Filesize ==> {0}".format(sftpstat.st_size)
                         # Local Path == /data2/www/data/commonapp/{filename.txt}
-                        localpath = source_dir + filename
+                        localpath = source_dir + remotefile
                         print "Local Path ==> {0}".format(localpath)
                         # GET file from sFTP server and download it to localpath
-                        sftp.get(filename, localpath)
-                        print "Downloading files ==> " + filename
+                        sftp.get(remotefile, localpath)
+                        print "Downloading files ==> " + remotefile
                         # Renamed File == /data2/www/data/commonapp/carthage_applications.txt
                         renamedfile = ('{0}carthage_applications.txt'.format(source_dir))
                         print ('Renamed File: {0}'.format(renamedfile))
@@ -179,9 +183,9 @@ def main():
                         cursor = connections['admissions_pce'].cursor()
                         engine = get_engine(EARL)
 
-                        ###########################################################################
+                        ########################################################
                         # set directory and filename where to read from
-                        ###########################################################################
+                        ########################################################
                         filename=('{}carthage_applications.txt'.format(
                             settings.COMMONAPP_CSV_OUTPUT
                         ))
@@ -215,9 +219,9 @@ def main():
                                 print ('Payment Method: {0}'.format(paymentMethod))
                                 print ('Waiver Code: {0}'.format(waiverCode))
 
-                                ###################################################################
+                                ################################################
                                 # creates apptmp record
-                                ###################################################################
+                                ################################################
                                 q_create_app = '''
                                 INSERT INTO apptmp_rec
                                 (add_date, add_tm, app_source, stat, reason_txt, payment_method, waiver_code)
@@ -228,9 +232,9 @@ def main():
                                 scr.write(q_create_app+'\n');
                                 do_sql(q_create_app, key=DEBUG, earl=EARL)
 
-                                ###################################################################
+                                ################################################
                                 # fetch id from apptmp_no table
-                                ###################################################################
+                                ################################################
                                 lookup_apptmp_no = '''
                                 SELECT
                                     apptmp_no
@@ -258,10 +262,10 @@ def main():
                                 scr.write('-- START INSERT NEW STUDENT APPLICATION for: ' + row["firstName"] + ' ' + row["lastName"] + ' - ' + str(apptmp_no) +"\n")
                                 scr.write('------------------------------------------------------------------------------------------------------------------\n')
 
-                                ###################################################################
+                                #########################################################
                                 # fetch id from app_voucher on mySQL dB (admissions_pce).
                                 # insert into app_vouchers_users on mySQL dB
-                                ###################################################################
+                                #########################################################
                                 if row["feeWaiverCode"] != '':
                                     q_match = '''
                                         SELECT id
@@ -279,9 +283,9 @@ def main():
                                     else:
                                         # if results are returned set voucher_id to result
                                         voucher_id = (voucher_result[0])
-                                        ###################################################################
+                                        ############################################
                                         # inserts voucher id into app_voucher_users
-                                        ###################################################################
+                                        ############################################
                                         q_update_voucher = '''
                                         INSERT INTO app_voucher_users (voucher_id, app_id, submitted_on)
                                         VALUES ({0}, {1}, NOW())
@@ -292,9 +296,9 @@ def main():
                                 print ("There were no waiver codes used for this application")
                                 scr.write("--There were no waiver codes used for this application"+'\n');
 
-                                ###################################################################
+                                ################################################
                                 # creates application temp record
-                                ###################################################################
+                                ################################################
                                 q_create_id = '''
                                 INSERT INTO app_idtmp_rec
                                 (id, firstname, lastname, suffixname, cc_username, cc_password,
@@ -321,9 +325,9 @@ def main():
                                 # Y = The student has opted out meaning Carthage does NOT have permission to text
                                 # N = The student has opted in meaning Carthage does have permission to text
                                 #################################################################################
-                                ###################################################################
+                                ################################################
                                 # BEGIN - preferred phone for student
-                                ###################################################################
+                                ################################################
                                 if row["preferredPhone"] == 'Mobile':
                                     if row["contactConsent"] == 'Y' or row["transferContactConsent"] == 'Y':
                                         contactConsent = 'N'
@@ -340,9 +344,9 @@ def main():
                                     scr.write(q_insert_aa_cell+'\n');
                                     do_sql(q_insert_aa_cell, key=DEBUG, earl=EARL)
 
-                                ###################################################################
+                                ################################################
                                 # BEGIN - alternate phone available for student
-                                ###################################################################
+                                ################################################
                                 if row["alternatePhoneAvailable"] != '' and row["alternatePhoneAvailable"] != 'N':
                                     altType = 'CELL'
                                     if row["contactConsent"] == 'Y' or row["transferContactConsent"] == 'Y':
@@ -362,9 +366,9 @@ def main():
                                     scr.write(q_insert_aa_cell+'\n');
                                     do_sql(q_insert_aa_cell, key=DEBUG, earl=EARL)
 
-                                ###################################################################
+                                ###############################################
                                 # creates application site record
-                                ###################################################################
+                                ###############################################
                                 q_create_site = '''
                                 INSERT INTO app_sitetmp_rec
                                 (id, home, site, beg_date)
@@ -478,9 +482,9 @@ def main():
                                 except KeyError as e:
                                     live_with = 'O'
 
-                                ###################################################################
+                                ###############################################
                                 # creates admtmp record
-                                ###################################################################
+                                ###############################################
                                 q_create_adm = '''
                                 INSERT INTO app_admtmp_rec
                                 (id, primary_app, plan_enr_sess, plan_enr_yr, intend_hrs_enr,
@@ -536,13 +540,13 @@ def main():
                                             [apptmp_no, "ADM", TODAY, resource, "C", reasontxt]
                                         )
 
-                                ###################################################################
+                                #####################################################
                                 # BEGIN - alternate address for student
-                                ###################################################################
+                                #####################################################
                                 if row["alternateAddressAvailable"] == 'Y':
-                                    ###############################################################
+                                    #################################################
                                     # creates aatmp record if alternate address is Y
-                                    ###############################################################
+                                    #################################################
                                     q_insert_aa_mail = '''
                                     INSERT INTO app_aatmp_rec
                                     (line1, line2, city, st, zip, ctry, id, aa, beg_date)
@@ -559,9 +563,9 @@ def main():
                                     print ("There were no alternate addresses for this application.")
                                     scr.write('--There were no alternate addresses for this application.\n\n');
 
-                                ###################################################################
+                                ###############################################
                                 # BEGIN - school(s) attended for a student
-                                ###################################################################
+                                ###############################################
                                 if row["schoolLookupCeebCode"] != '' and row["schoolLookupCeebName"] != '':
                                     if row["graduationDate"] == '':
                                         graduationDate = ''
@@ -576,9 +580,9 @@ def main():
                                     else: # formatting the exitDate
                                         exitDate = datetime.datetime.strptime(row["exitDate"], '%m/%Y').strftime('%Y-%m-01')
 
-                                    ###############################################################
+                                    ##############################################
                                     # creates edtmp record attended by the student
-                                    ###############################################################
+                                    ##############################################
                                     q_create_school = '''
                                     INSERT INTO app_edtmp_rec
                                     (id, ceeb, fullname, city, st, grad_date, enr_date, dep_date, stu_id,
@@ -594,9 +598,9 @@ def main():
                                     scr.write("--Executing create school qry"+'\n\n');
                                     do_sql(q_create_school, key=DEBUG, earl=EARL)
 
-                                ###################################################################
+                                #################################################
                                 # BEGIN - other school(s) attended for a student
-                                ###################################################################
+                                #################################################
                                 if row["otherSchoolNumber"] != '' and int(row["otherSchoolNumber"]) > 0:
                                     for schoolNumber in range(2, int(row["otherSchoolNumber"])+1):
                                         print ('Other School Number: {0}'.format(row["otherSchoolNumber"]))
@@ -641,9 +645,9 @@ def main():
                                     print ("There were no other schools attended to insert")
                                     scr.write("--There were no other schools attended for this application."+'\n\n');
 
-                                ###################################################################
+                                ##############################################################
                                 # BEGIN - secondary school(s) attended for a transfer student
-                                ###################################################################
+                                ##############################################################
                                 if row["transferSecondarySchoolsAttendedNumber"] != '' and int(row["transferSecondarySchoolsAttendedNumber"]) > 0:
                                     for schoolNumber in range(1, int(row["transferSecondarySchoolsAttendedNumber"])+1):
                                         print ('Transfer Other School Number: {0}'.format(row["transferSecondarySchoolsAttendedNumber"]))
@@ -688,9 +692,9 @@ def main():
                                     print ("There were no transfer secondary schools attended to insert")
                                     scr.write('--There were no transfer secondary schools attended for this application.\n\n');
 
-                               ####################################################################
+                               #################################################
                                 # BEGIN - college(s) attended for a student
-                                ###################################################################
+                                ################################################
                                 """
                                 if row["collegesAttendedNumber"] != '' and int(row["collegesAttendedNumber"]) > 0:
                                     for schoolNumber in range(1, int(row["collegesAttendedNumber"])+1):
@@ -736,9 +740,9 @@ def main():
                                     print ("There were no colleges attended to insert")
                                     scr.write('--There were no colleges attended for this application.\n\n');
                                 """
-                                ###################################################################
+                                #####################################################
                                 # BEGIN - college(s) attended for a transfer student
-                                ###################################################################
+                                #####################################################
                                 if row["transferCollegesAttendedNumber"] != '' and int(row["transferCollegesAttendedNumber"]) > 0:
                                     for schoolNumber in range(1, int(row["transferCollegesAttendedNumber"])+1):
                                         print ('Transfer College School Number: {0}'.format(row["transferCollegesAttendedNumber"]))
@@ -784,9 +788,9 @@ def main():
                                     print ("There were no transfercolleges attended to insert")
                                     scr.write('--There were no transfercolleges attended for this application.\n\n');
 
-                                ###################################################################
+                                ###############################################
                                 # BEGIN - relatives attended Carthage
-                                ###################################################################
+                                ###############################################
                                 if row["relativesAttended"] == 'Yes':
                                     for relativeNumber in range (1, 5 +1):
                                         if row['relative'+str(relativeNumber)+'FirstName'] != '':
@@ -795,9 +799,9 @@ def main():
                                                 relativeGradYear = row['transferRelative'+str(relativeNumber)+'GradYear1']
                                             if relativeGradYear == '':
                                                 relativeGradYear = 0
-                                            #######################################################
+                                            ##################################################
                                             # creates reltmp record if there are any relatives
-                                            #######################################################
+                                            ##################################################
                                             q_alumni = '''
                                             INSERT INTO app_reltmp_rec (id, rel_id, rel, fullname,
                                             phone_ext, aa, zip)
@@ -830,9 +834,9 @@ def main():
                                     }
                                     for siblingNumber in range (1, 5 +1):
                                         if row['sibling'+str(siblingNumber)+'FirstName'] != '':
-                                            #######################################################
+                                            #################################################
                                             # creates reltmp record if there are any siblings
-                                            #######################################################
+                                            #################################################
                                             q_sibing_name = '''
                                             INSERT INTO app_reltmp_rec (id, rel_id, rel, fullname,
                                             phone_ext, aa, zip, prim, addr_line2, suffix)
@@ -848,9 +852,9 @@ def main():
                                     print ("There were no siblings to insert.")
                                     scr.write('--There were no siblings for this application.\n\n');
 
-                                ###################################################################
+                                ###############################################
                                 # BEGIN - parent(s), legal guardian
-                                ###################################################################
+                                ###############################################
                                 fatherIndex = 1
                                 motherIndex = 2
                                 if row["parent1Type"] == 'Mother':
@@ -858,9 +862,9 @@ def main():
                                     motherIndex = 1
                                 print ('fatherIndex: {0}'.format(fatherIndex))
                                 print ('motherIndex: {0}'.format(motherIndex))
-                                #######################################################
+                                ################################################
                                 # creates partmp record if there are any parents
-                                #######################################################
+                                ################################################
                                 q_insert_partmp_rec = '''
                                     INSERT INTO partmp_rec (id, app_no, f_first_name, f_last_name,
                                     f_addr_line1, f_addr_line2, f_city, f_st, f_zip, f_ctry,
@@ -924,9 +928,9 @@ def main():
                                 scr.write(q_insert_partmp_rec+'\n');
                                 do_sql(q_insert_partmp_rec, key=DEBUG, earl=EARL)
 
-                                ###################################################################
+                                ###############################################
                                 # BEGIN - activities
-                                ###################################################################
+                                ###############################################
                                 if row["activity1"] != '' or row["transferActivity1"] != '':
                                     for activityNumber in range (1, 5 +1):
                                         # replacing first part of Common App code for activity
@@ -949,9 +953,9 @@ def main():
                                     print ("There were no activities for this application.")
                                     scr.write('--There were no activities for this application.\n\n');
 
-                                ###################################################################
+                                ###############################################
                                 # BEGIN - ethnic backgrounds
-                                ###################################################################
+                                ###############################################
                                 # removing space when there are multiple ethnic backgrounds
                                 background = (row["background"].replace(' ', '')) 
                                 # Creating array
@@ -1023,9 +1027,9 @@ def main():
                                     religiousPreference = denomination[row["religiousPreference"]]
                                 except KeyError as e:
                                     religiousPreference = 'O'
-                                ####################################################################
+                                ###############################################
                                 # creates proftmp record
-                                ####################################################################
+                                ###############################################
                                 q_create_prof = '''
                                 INSERT INTO app_proftmp_rec (id, birth_date, church_id,
                                 prof_last_upd_date, sex, birthplace_city, birthplace_st,
@@ -1079,7 +1083,7 @@ def main():
                         shutil.move(renamedfile, destination)
                         #fileCount = fileCount +1
                         #time.sleep(10)
-                        print "Deleting file from sFTP ==> " + filename
+                        print "Deleting file from sFTP ==> " + remotefile
 
                         #######################################################
                         # Delete original file %m_%d_%y_%h_%i_%s_Applications(%c).txt
@@ -1093,32 +1097,49 @@ def main():
                         # Email the filesize is 0 there is no data in the file
                         #######################################################
                         SUBJECT = '[Common Application sFTP] failed'
-                        BODY = 'File {0} was found but filesize is {1}'.format(filename, sftpstat.st_size)
+                        BODY = 'File {0} was found but filesize is {1}'.format(remotefile, sftpstat.st_size)
                         sendmail(
                             settings.COMMONAPP_TO_EMAIL,settings.COMMONAPP_FROM_EMAIL,
                             BODY, SUBJECT
                         )
                 else:
-                    ############################################################################
+                    ###########################################################
                     # Found file but the extension does not end in .txt
-                    ###########################################################################
+                    ###########################################################
                     SUBJECT = '[Common Application sFTP] failed'
-                    BODY = 'File {0} was found but extension does not end in .txt'.format(filename)
+                    BODY = 'File {0} was found but extension does not end in .txt'.format(remotefile)
                     sendmail(
                         settings.COMMONAPP_TO_EMAIL,settings.COMMONAPP_FROM_EMAIL,
                         BODY, SUBJECT
                     )
         else:
             print ("The directory is empty no file was found.")
-            ############################################################################
+            ###################################################################
             # Email there was no file found on the Common App server
-            ###########################################################################
+            ###################################################################
             SUBJECT = '[Common Application sFTP] failed'
             BODY = "The source file was not found on the Common App server."
             sendmail(
                 settings.COMMONAPP_TO_EMAIL,settings.COMMONAPP_FROM_EMAIL,
                 BODY, SUBJECT
             )
+        #######################################################################
+        # Check to see if sql file exisits, if not send Email
+        #######################################################################
+        if os.path.isfile("commonapp_output.sql") != True:
+            print "There is no output file to move."
+            ###################################################################
+            # Email there was no file found on the Common App server
+            ###################################################################
+            SUBJECT = '[Common Application] failed'
+            BODY = "There was no .sql output file to move."
+            sendmail(
+                settings.COMMONAPP_TO_EMAIL,settings.COMMONAPP_FROM_EMAIL,
+                BODY, SUBJECT
+            )
+        else:
+            # rename and move the file to the archive directory
+            shutil.move(sqloutput, archived_destination)
     sftp.close()
 
 if __name__ == "__main__":
