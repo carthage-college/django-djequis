@@ -1124,7 +1124,7 @@ def main():
                 BODY, SUBJECT
             )
         #######################################################################
-        # Check to see if sql file exisits, if not send Email
+        # Check to see if sql file exists, if not send Email
         #######################################################################
         if os.path.isfile("commonapp_output.sql") != True:
             print "There is no output file to move."
