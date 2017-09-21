@@ -408,6 +408,8 @@ def main():
                                 except KeyError as e:
                                     parnt_mtlstat = 'O'
 
+                                parent1 = ''
+                                parent2 = ''
                                 # determine which Parent Type coming from Common App is Father or Mother
                                 if row["parent1Type"] == 'Father':
                                     parent1 = 'F'
