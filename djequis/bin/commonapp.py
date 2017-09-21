@@ -407,6 +407,7 @@ def main():
                                     parnt_mtlstat = parentMtlStat[row["parentsMaritalStatus"]]
                                 except KeyError as e:
                                     parnt_mtlstat = 'O'
+
                                 # determine which Parent Type coming from Common App is Father or Mother
                                 if row["parent1Type"] == 'Father':
                                     parent1 = 'F'
@@ -416,6 +417,7 @@ def main():
                                     parent2 = 'M'
                                 if row["parent2Type"] == 'Father':
                                     parent2 = 'F'
+
                                 # creating Living With dictionary
                                 liveWith = {
                                     'Both Parents': 'B',
