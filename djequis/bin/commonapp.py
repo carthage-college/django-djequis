@@ -78,7 +78,6 @@ def insertExam(id, ctgry, cmpl_date, score1, score2, score3, score4, score5, sco
     """
     function is used to execute query for test scores (ACT, SAT)
     """
-    #scr = open("commonapp_output.sql", "a")
     if cmpl_date != '':
         #######################################################################
         # creates examtmp record if there are any test scores
@@ -95,13 +94,11 @@ def insertExam(id, ctgry, cmpl_date, score1, score2, score3, score4, score5, sco
         print (q_exam)
         scr.write(q_exam+'\n');
         do_sql(q_exam, key=DEBUG, earl=EARL)
-
 def main():
     # set date and time to be added to the filename
     datetimestr = time.strftime("%Y%m%d%H%M%S")
     # initializing fileCount
     fileCount = 1
-
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
     ###########################################################################
@@ -165,7 +162,6 @@ def main():
                         shutil.move(localpath, renamedfile)
                         print "The path and renamed file ==> " + renamedfile
                         print "The path and archived filename ==> " + destination
-
                         # set global variable
                         global EARL
                         # determines which database is being called from the command line
@@ -178,22 +174,18 @@ def main():
                             # but the argument parser should have taken care of this
                             # scenario and we will never arrive here.
                             EARL = None
-
                         # establish mySQL database connection
                         cursor = connections['admissions_pce'].cursor()
                         engine = get_engine(EARL)
-
                         ########################################################
                         # set directory and filename where to read from
                         ########################################################
                         filename=('{}carthage_applications.txt'.format(
                             settings.COMMONAPP_CSV_OUTPUT
                         ))
-
                         scr.write('------------------------------------------------------------------------------------------------------------------\n')
                         scr.write('-- CREATES APPLICATION FROM COMMON APPLICATION DATA \n')
                         scr.write('------------------------------------------------------------------------------------------------------------------\n')
-
                         # open file
                         with open(filename, 'rb') as f:
                             reader = csv.DictReader(f, delimiter=',')
@@ -201,11 +193,8 @@ def main():
                             for row in reader:
                                 # prints the records information for all fields
                                 print([col+'='+row[col] for col in reader.fieldnames])
-
                                 # create UUID
                                 temp_uuid = (uuid.uuid4())
-                                print ('UUID: {0}'.format(temp_uuid))
-
                                 ###################################################################
                                 # checks if waiver code is used which determines the payment method
                                 ###################################################################
@@ -215,10 +204,6 @@ def main():
                                 else:
                                     paymentMethod = 'WAIVER'
                                     waiverCode = row["feeWaiverCode"]
-
-                                print ('Payment Method: {0}'.format(paymentMethod))
-                                print ('Waiver Code: {0}'.format(waiverCode))
-
                                 ################################################
                                 # creates apptmp record
                                 ################################################
@@ -228,10 +213,8 @@ def main():
                                 VALUES (TODAY, TO_CHAR(CURRENT, '%H%M'), "WEBA", "H", "{0}",
                                 "{1}", "{2}");
                                 ''' .format(temp_uuid, paymentMethod, waiverCode)
-                                print (q_create_app)
                                 scr.write(q_create_app+'\n');
                                 do_sql(q_create_app, key=DEBUG, earl=EARL)
-
                                 ################################################
                                 # fetch id from apptmp_no table
                                 ################################################
@@ -244,24 +227,16 @@ def main():
                                     reason_txt = "{0}";
                                 ''' .format(temp_uuid)
                                 sqlresult = do_sql(lookup_apptmp_no, earl=EARL)
-                                print (lookup_apptmp_no)
                                 scr.write(lookup_apptmp_no+'\n');
                                 results = sqlresult.fetchone()
-
                                 ###################################################################
                                 # sets the apptmp_no variable which is used threw out the queries
                                 ###################################################################
                                 apptmp_no = (results[0])
-                                
                                 apptmp_no_list.append(str(apptmp_no));
-                                #print "Updated List: ", apptmp_no_list
-                                #scr.write('-- STUDENT IDs:' + str(apptmp_no_list) +"\n")
-                                print ('Apptmp No: {0}'.format(results[0]))
-
                                 scr.write('------------------------------------------------------------------------------------------------------------------\n')
                                 scr.write('-- START INSERT NEW STUDENT APPLICATION for: ' + row["firstName"] + ' ' + row["lastName"] + ' - ' + str(apptmp_no) +"\n")
                                 scr.write('------------------------------------------------------------------------------------------------------------------\n')
-
                                 #########################################################
                                 # fetch id from app_voucher on mySQL dB (admissions_pce).
                                 # insert into app_vouchers_users on mySQL dB
@@ -273,7 +248,6 @@ def main():
                                         WHERE NOW() < expiration
                                         AND REPLACE(code,"-","") = "{0}"
                                     ''' .format(row["feeWaiverCode"].replace('-', ''))
-                                    print (q_match)
                                     scr.write(q_match+'\n');
                                     cursor.execute(q_match)
                                     voucher_result = cursor.fetchone()
@@ -290,12 +264,9 @@ def main():
                                         INSERT INTO app_voucher_users (voucher_id, app_id, submitted_on)
                                         VALUES ({0}, {1}, NOW())
                                         ''' .format(voucher_id, apptmp_no)
-                                        print (q_update_voucher)
                                         scr.write(q_update_voucher+'\n');
                                         cursor.execute(q_update_voucher)
-                                print ("There were no waiver codes used for this application")
                                 scr.write("--There were no waiver codes used for this application"+'\n');
-
                                 ################################################
                                 # creates application temp record
                                 ################################################
@@ -316,10 +287,8 @@ def main():
                                 row["permanentAddressCountry"],
                                 row["preferredPhoneNumber"].replace('+1.', ''), row["ssn"],
                                 row["middleName"])
-                                print (q_create_id)
                                 scr.write(q_create_id+'\n');
                                 do_sql(q_create_id, key=DEBUG, earl=EARL)
-
                                 ##################################################################################
                                 # The Y/N value of contactConsent may seem a little backwards intuitively.
                                 # Y = The student has opted out meaning Carthage does NOT have permission to text
@@ -340,10 +309,8 @@ def main():
                                     VALUES ({0}, "CELL", TODAY, "{1}", "{2}");
                                     ''' .format(apptmp_no, row["preferredPhoneNumber"].replace('+1.', ''),
                                     row["contactConsent"])
-                                    print (q_insert_aa_cell)
                                     scr.write(q_insert_aa_cell+'\n');
                                     do_sql(q_insert_aa_cell, key=DEBUG, earl=EARL)
-
                                 ################################################
                                 # BEGIN - alternate phone available for student
                                 ################################################
@@ -362,10 +329,8 @@ def main():
                                     VALUES ({0}, "{1}", TODAY, "{2}", "{3}");
                                     ''' .format(apptmp_no, altType, row["alternatePhoneNumber"].replace('+1.', ''),
                                     row["contactConsent"])
-                                    print (q_insert_aa_cell)
                                     scr.write(q_insert_aa_cell+'\n');
                                     do_sql(q_insert_aa_cell, key=DEBUG, earl=EARL)
-
                                 ###############################################
                                 # creates application site record
                                 ###############################################
@@ -374,7 +339,6 @@ def main():
                                 (id, home, site, beg_date)
                                 VALUES ({0}, "Y", "CART", TODAY);
                                 ''' .format(apptmp_no)
-                                print (q_create_site)
                                 scr.write(q_create_site+'\n');
                                 do_sql(q_create_site, key=DEBUG, earl=EARL)
                     
@@ -385,7 +349,6 @@ def main():
                                 elif row["studentStatus"] == 'Part Time' or row["transferStudentStatus"] == 'Part Time':
                                     studentStatus = 'TRAP'
                                     intendHoursEnrolled = 4
-
                                 # fetch preferredStartTerm from Common App data ex.(Fall 2018, Spring 2018, J-Term 2018)
                                 preferredStartTerm = row["preferredStartTerm"]
                                 if len(row["transferPreferredStartTerm"]):
@@ -402,11 +365,6 @@ def main():
                                 }
                                 # create planEnrollSession from value in dictionary
                                 planEnrollSession = session[planArray[0]]
-
-                                print ('Plan array: {0}'.format(planArray))
-                                print ('Plan enroll Year: {0}'.format(planEnrollYear))
-                                print ('Plan enroll Session: {0}'.format(planEnrollSession))
-                                print ('Student Type: {0}'.format(row["studentType"]))
                                 # Any nursing majors (1, 2, 3) need to drive the studentType
                                 # determine the studentType
                                 if row["studentType"] == 'FY' and row["freshmanNursing"] == 'Yes':
@@ -418,8 +376,6 @@ def main():
                                 elif row["studentType"] == 'TR':
                                     studentType = 'UT'
                                     transfer = 'Y'
-                                print ('Freshman Nursing: {0}'.format(row["freshmanNursing"]))
-
                                 # replacing first part of Common App code for major
                                 major1 = row["major1"].replace("ADM-MAJOR-", "").strip()
                                 if len(row["transferMajor1"]):
@@ -430,7 +386,6 @@ def main():
                                 major3 = row["major3"].replace("ADM-MAJOR-", "").strip()
                                 if len(row["transferMajor3"]):
                                     major3 = row["transferMajor3"].replace("ADM-MAJOR-", "").strip()
-
                                 # set armedForcesStatus variables
                                 if row["armedForcesStatus"] == 'Currently_serving':
                                     armedForcesStatus = 'Y'
@@ -440,7 +395,6 @@ def main():
                                     armedForcesStatus = 'Y'
                                 else:
                                     armedForcesStatus = 'N'
-
                                 # creating Parent Marital Status dictionary
                                 parentMtlStat = {
                                     'Married': 'M',
@@ -453,7 +407,6 @@ def main():
                                     parnt_mtlstat = parentMtlStat[row["parentsMaritalStatus"]]
                                 except KeyError as e:
                                     parnt_mtlstat = 'O'
-
                                 # determine which Parent Type coming from Common App is Father or Mother
                                 if row["parent1Type"] == 'Father':
                                     parent1 = 'F'
@@ -463,7 +416,6 @@ def main():
                                     parent2 = 'M'
                                 if row["parent2Type"] == 'Father':
                                     parent2 = 'F'
-
                                 # creating Living With dictionary
                                 liveWith = {
                                     'Both Parents': 'B',
@@ -481,7 +433,6 @@ def main():
                                         otherLivingSituation = row["otherLivingSituation"]
                                 except KeyError as e:
                                     live_with = 'O'
-
                                 ###############################################
                                 # creates admtmp record
                                 ###############################################
@@ -501,12 +452,8 @@ def main():
                                 studentStatus, major1, major2, major3, row["preferredName"],
                                 row["criminalHistory"], row["schoolDiscipline"], parnt_mtlstat,
                                 live_with, otherLivingSituation, armedForcesStatus)
-                                print (q_create_adm)
                                 scr.write(q_create_adm+'\n');
                                 do_sql(q_create_adm, key=DEBUG, earl=EARL)
-
-                                # Email the contents of Criminal and Disiplinary to Adminssions
-                                # This is something we need to visit in v2.0
 
                                 # If there is Criminal or Displinary reasons they will be added
                                 if row["criminalHistory"] != '' or row["schoolDiscipline"] != '':
@@ -519,7 +466,6 @@ def main():
                                         (id, tick, add_date, resrc, stat, txt)
                                         VALUES (?, ?, ?, ?, ?, ?);
                                         '''
-                                        print (q_insertText)
                                         scr.write(q_insertText+'\n');
                                         engine.execute(q_insertText,
                                             [apptmp_no, "ADM", TODAY, resource, "C", reasontxt]
@@ -527,19 +473,16 @@ def main():
                                     if row["schoolDiscipline"] == 'Y':
                                         reasontxt = row["disciplinaryViolationExplanation"]
                                         resource = 'DISMISS'
-
                                         q_insertText = '''
                                         INSERT INTO app_ectctmp_rec
                                         (id, tick, add_date, resrc, stat, txt)
                                         VALUES (?, ?, ?, ?, ?, ?);
                                         '''
-                                        print (q_insertText)
                                         scr.write(q_insertText+'\n');
                                         engine.execute(
                                             q_insertText,
                                             [apptmp_no, "ADM", TODAY, resource, "C", reasontxt]
                                         )
-
                                 #####################################################
                                 # BEGIN - alternate address for student
                                 #####################################################
@@ -556,13 +499,10 @@ def main():
                                     row["currentAddressCity"], row["currentAddressState"],
                                     row["currentAddressZip"], row["currentAddressCountry"],
                                     apptmp_no)
-                                    print (q_insert_aa_mail)
                                     scr.write(q_insert_aa_mail);
                                     do_sql(q_insert_aa_mail, key=DEBUG, earl=EARL)
                                 else:
-                                    print ("There were no alternate addresses for this application.")
                                     scr.write('--There were no alternate addresses for this application.\n\n');
-
                                 ###############################################
                                 # BEGIN - school(s) attended for a student
                                 ###############################################
@@ -579,7 +519,6 @@ def main():
                                         exitDate = ''
                                     else: # formatting the exitDate
                                         exitDate = datetime.datetime.strptime(row["exitDate"], '%m/%Y').strftime('%Y-%m-01')
-
                                     ##############################################
                                     # creates edtmp record attended by the student
                                     ##############################################
@@ -593,25 +532,19 @@ def main():
                                 ''' .format(apptmp_no, row["schoolLookupCeebCode"], row["schoolLookupCeebName"],
                                     row["schoolLookupCity"], row["schoolLookupState"], graduationDate,
                                     entryDate, exitDate, row["schoolLookupZip"])
-                                    print (q_create_school)
                                     scr.write(q_create_school);
                                     scr.write("--Executing create school qry"+'\n\n');
                                     do_sql(q_create_school, key=DEBUG, earl=EARL)
-
                                 #################################################
                                 # BEGIN - other school(s) attended for a student
                                 #################################################
                                 if row["otherSchoolNumber"] != '' and int(row["otherSchoolNumber"]) > 0:
                                     for schoolNumber in range(2, int(row["otherSchoolNumber"])+1):
-                                        print ('Other School Number: {0}'.format(row["otherSchoolNumber"]))
-                                        print ('school num: {0}'.format(schoolNumber))
-
                                         # check to see that there is a CeebCode coming from Common App
                                         if row['secondarySchool'+str(schoolNumber)+'CeebCode'] == '':
                                             secondarySchoolCeebCode = 0
                                         else:
                                             secondarySchoolCeebCode = row['secondarySchool'+str(schoolNumber)+'CeebCode']
-
                                         if row['secondarySchool'+str(schoolNumber)+'FromDate'] == '':
                                             fromDate = ''
                                         else: # formatting the fromDate
@@ -620,7 +553,6 @@ def main():
                                             toDate = ''
                                         else: # formatting the toDate
                                             toDate = datetime.datetime.strptime(row['secondarySchool'+str(schoolNumber)+'ToDate'], '%m/%Y').strftime('%Y-%m-01')
-
                                         ###########################################################
                                         # creates edtmp record if there are any secondary schools
                                         ###########################################################
@@ -637,28 +569,21 @@ def main():
                                         row['secondarySchool'+str(schoolNumber)+'State'],
                                         fromDate, toDate,
                                         row['secondarySchool'+str(schoolNumber)+'Zip'])
-                                        print (q_create_other_school)
                                         scr.write(q_create_other_school+'\n\n');
                                         scr.write("--Executing other school qry"+'\n\n');
                                         do_sql(q_create_other_school, key=DEBUG, earl=EARL)
                                 else:
-                                    print ("There were no other schools attended to insert")
                                     scr.write("--There were no other schools attended for this application."+'\n\n');
-
                                 ##############################################################
                                 # BEGIN - secondary school(s) attended for a transfer student
                                 ##############################################################
                                 if row["transferSecondarySchoolsAttendedNumber"] != '' and int(row["transferSecondarySchoolsAttendedNumber"]) > 0:
                                     for schoolNumber in range(1, int(row["transferSecondarySchoolsAttendedNumber"])+1):
-                                        print ('Transfer Other School Number: {0}'.format(row["transferSecondarySchoolsAttendedNumber"]))
-                                        print ('school num: {0}'.format(schoolNumber))
-
                                         # check to see that there is a CeebCode coming from Common App
                                         if row['transferSecondarySchool'+str(schoolNumber)+'CeebCode'] == '':
                                             transferSecondarySchoolCeebCode = 0
                                         else:
                                             transferSecondarySchoolCeebCode = row['transferSecondarySchool'+str(schoolNumber)+'CeebCode']
-
                                         if row['transferSecondarySchool'+str(schoolNumber)+'FromDate'] == '':
                                             fromDate = ''
                                         else: # formatting the fromDate
@@ -684,14 +609,11 @@ def main():
                                         row['transferSecondarySchool'+str(schoolNumber)+'State'],
                                         fromDate, toDate,
                                         row['transferSecondarySchool'+str(schoolNumber)+'Zip'])
-                                        print (q_create_transfer_other_school)
                                         scr.write(q_create_transfer_other_school+'\n\n');
                                         scr.write("--Executing transfer other school qry"+'\n\n');
                                         do_sql(q_create_transfer_other_school, key=DEBUG, earl=EARL)
                                 else:
-                                    print ("There were no transfer secondary schools attended to insert")
                                     scr.write('--There were no transfer secondary schools attended for this application.\n\n');
-
                                #################################################
                                 # BEGIN - college(s) attended for a student
                                 ################################################
@@ -745,15 +667,11 @@ def main():
                                 #####################################################
                                 if row["transferCollegesAttendedNumber"] != '' and int(row["transferCollegesAttendedNumber"]) > 0:
                                     for schoolNumber in range(1, int(row["transferCollegesAttendedNumber"])+1):
-                                        print ('Transfer College School Number: {0}'.format(row["transferCollegesAttendedNumber"]))
-                                        print ('school num: {0}'.format(schoolNumber))
-
                                         # check to see that there is a CeebCode coming from Common App
                                         if row['transferCollege'+str(schoolNumber)+'CeebCode'] == '':
                                             transferCollegeCeebCode = 0
                                         else:
                                             transferCollegeCeebCode = row['transferCollege'+str(schoolNumber)+'CeebCode']
-
                                         if row['transferCollege'+str(schoolNumber)+'FromDate'] == '':
                                             fromDate = ''
                                         else: # formatting the fromDate
@@ -762,7 +680,6 @@ def main():
                                             toDate = ''
                                         else: # formatting the toDate
                                             toDate = datetime.datetime.strptime(row['transferCollege'+str(schoolNumber)+'ToDate'], '%m/%Y').strftime('%Y-%m-01')
-
                                        ###########################################################
                                         # creates edtmp record if there are any colleges for a
                                         # transfer student
@@ -781,13 +698,10 @@ def main():
                                         row['transferCollege'+str(schoolNumber)+'State'],
                                         fromDate, toDate,
                                         row['transferCollege'+str(schoolNumber)+'Zip'])
-                                        print (q_create_transfer_college_school)
                                         scr.write(q_create_transfer_college_school+'\n\n');
                                         do_sql(q_create_transfer_college_school, key=DEBUG, earl=EARL)
                                 else:
-                                    print ("There were no transfercolleges attended to insert")
                                     scr.write('--There were no transfercolleges attended for this application.\n\n');
-
                                 ###############################################
                                 # BEGIN - relatives attended Carthage
                                 ###############################################
@@ -808,13 +722,10 @@ def main():
                                             VALUES ({0}, 0, 5, "{1}", {2}, "ALUM", 0);
                                         ''' .format(apptmp_no, row['relative'+str(relativeNumber)+'FirstName'] + ' ' + row['relative'+str(relativeNumber)+'LastName'],
                                             relativeGradYear)
-                                            print (q_alumni)
                                             scr.write(q_alumni+'\n\n');
                                             do_sql(q_alumni, key=DEBUG, earl=EARL)
                                 else:
-                                    print ("There were no relatives (ALUMI) for this application.")
                                     scr.write('--There were no relatives (ALUMI) for this application.\n\n');
-
                                 ###################################################################
                                 # BEGIN - siblings **if there are no siblings then nothing is inserted
                                 ###################################################################
@@ -845,13 +756,10 @@ def main():
                                         ''' .format(apptmp_no, row['sibling'+str(siblingNumber)+'FirstName'] + ' ' + row['sibling'+str(siblingNumber)+'LastName'],
                                             row["sibling1Age"], row["sibling1CollegeCeebName"],
                                             educationLevel[row['sibling'+str(siblingNumber)+'EducationLevel']])
-                                            print (q_sibing_name)
                                             scr.write(q_sibing_name+'\n\n');
                                             do_sql(q_sibing_name, key=DEBUG, earl=EARL)
-                                else:  
-                                    print ("There were no siblings to insert.")
+                                else:
                                     scr.write('--There were no siblings for this application.\n\n');
-
                                 ###############################################
                                 # BEGIN - parent(s), legal guardian
                                 ###############################################
@@ -860,8 +768,6 @@ def main():
                                 if row["parent1Type"] == 'Mother':
                                     fatherIndex = 2
                                     motherIndex = 1
-                                print ('fatherIndex: {0}'.format(fatherIndex))
-                                print ('motherIndex: {0}'.format(motherIndex))
                                 ################################################
                                 # creates partmp record if there are any parents
                                 ################################################
@@ -924,10 +830,8 @@ def main():
                                         row["legalGuardianSuffix"], row["legalGuardianEmail"],
                                         row["legalGuardianPhone"].replace('+1.', ''),
                                         row["legalGuardianOccupation"], row["legalGuardianEmployer"])
-                                print (q_insert_partmp_rec)
                                 scr.write(q_insert_partmp_rec+'\n');
                                 do_sql(q_insert_partmp_rec, key=DEBUG, earl=EARL)
-
                                 ###############################################
                                 # BEGIN - activities
                                 ###############################################
@@ -946,13 +850,10 @@ def main():
                                             cclevel)
                                             VALUES ({0}, 0, "{1}", "", "Y");
                                         ''' .format(apptmp_no, activity)
-                                            print (insert_interests)
                                             scr.write(insert_interests+'\n');
                                             do_sql(insert_interests, key=DEBUG, earl=EARL)
                                 else:
-                                    print ("There were no activities for this application.")
                                     scr.write('--There were no activities for this application.\n\n');
-
                                 ###############################################
                                 # BEGIN - ethnic backgrounds
                                 ###############################################
@@ -960,9 +861,6 @@ def main():
                                 background = (row["background"].replace(' ', '')) 
                                 # Creating array
                                 array_ethnic = background.split(',')
-                                print ('Ethnicity Background: {0}'.format(background))
-                                print ('Length of the string: {0}'.format (len(array_ethnic)))
-                                print ('Array: {0}'.format(array_ethnic))
                                 converted = []
                                 # create ethnicity dictionary
                                 ethnicity = {
@@ -985,7 +883,6 @@ def main():
                                     ethnic_code = 'UN'
                                 else:
                                     ethnic_code = 'MU'
-
                                 if len(converted) > 1:
                                     for eth_race in converted:
                                         ############################################################
@@ -996,18 +893,15 @@ def main():
                                         (id, race)
                                         VALUES ({0}, "{1}");
                                         ''' .format(apptmp_no, eth_race)
-                                        print (insert_races)
                                         scr.write(insert_races+'\n');
                                         do_sql(insert_races, key=DEBUG, earl=EARL)
                                 else:
-                                    print ("There was nothing to insert into the mracetmp table.")
                                     scr.write('--There was nothing to insert into the mracetmp table.\n\n');
 
                                 # formatting the dateOfBirth
                                 dateOfBirth = datetime.datetime.strptime(row["dateOfBirth"], '%m/%d/%Y').strftime('%Y-%m-%d')
 
                                 # create religious denomination codes dictionary
-                                print ('Denomination Code: {0}'.format(row["religiousPreference"]))
                                 denomination = {
                                     'BAP': 'BA',
                                     'CGR': 'CO',
@@ -1041,7 +935,6 @@ def main():
                                 row["birthState"], row["birthCountry"], row["citizenships"],
                                 ethnic_code, row["hispanicLatino"],
                                 religiousPreference, armedForcesStatus)
-                                print (q_create_prof)
                                 scr.write(q_create_prof+'\n');
                                 do_sql(q_create_prof, key=DEBUG, earl=EARL)
 
@@ -1064,7 +957,6 @@ def main():
                                             insertExam(apptmp_no, 'SAT', cmpl_date, '', row["satRWScore"],
                                                 row["satMathScore"], row["satEssayScore"], '', '')
                                 else:
-                                    print ("There were no tests to insert into the app_examtmp_rec table.")
                                     scr.write('--There were no tests for this application.\n\n');
 
                                 scr.write('-------------------------------------------------------------------------------------------\n')
@@ -1081,10 +973,6 @@ def main():
                         # renames carthage_applications.txt to commonapp-%Y%m%d%H%M%S.txt
                         #######################################################
                         shutil.move(renamedfile, destination)
-                        #fileCount = fileCount +1
-                        #time.sleep(10)
-                        print "Deleting file from sFTP ==> " + remotefile
-
                         #######################################################
                         # Delete original file %m_%d_%y_%h_%i_%s_Applications(%c).txt
                         # from sFTP server
@@ -1092,7 +980,6 @@ def main():
                         sftp.remove(remotefile)
                         fileCount = fileCount +1
                     else:
-                        print "The filesize ==> {0} so we need to send an email".format(sftpstat.st_size)
                         #######################################################
                         # Email the filesize is 0 there is no data in the file
                         #######################################################
@@ -1113,7 +1000,6 @@ def main():
                         BODY, SUBJECT
                     )
         else:
-            print ("The directory is empty no file was found.")
             ###################################################################
             # Email there was no file found on the Common App server
             ###################################################################
@@ -1127,7 +1013,6 @@ def main():
         # Check to see if sql file exists, if not send Email
         #######################################################################
         if os.path.isfile("commonapp_output.sql") != True:
-            print "There is no output file to move."
             ###################################################################
             # Email there was no file found on the Common App server
             ###################################################################
