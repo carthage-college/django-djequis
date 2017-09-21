@@ -91,7 +91,6 @@ def insertExam(id, ctgry, cmpl_date, score1, score2, score3, score4, score5, sco
             id, ctgry, cmpl_date, score1, score2, score3,
             score4, score5, score6
         )
-        print (q_exam)
         scr.write(q_exam+'\n');
         do_sql(q_exam, key=DEBUG, earl=EARL)
 def main():
