@@ -964,8 +964,8 @@ def main():
                                 ####################################################################
                                 if row["totalTestsTaken"] != '':
                                     userTests = row["totalTestsTaken"].split(',')
-                                    for test in userTests:
-                                        if test.strip() == 'ACT' and row["actCompositeDate"] != '':
+                                    for t in userTests:
+                                        if t.strip() == 'ACT' and row["actCompositeDate"] != '':
                                             cmpl_date = datetime.datetime.strptime(
                                                 row["actCompositeDate"], '%m/%d/%Y'
                                             ).strftime('%Y-%m-%d')
@@ -973,7 +973,7 @@ def main():
                                                 row["actEnglishScore"], row["actMathScore"],
                                                 row["actReadingScore"], row["actScienceScore"],
                                                 row["actWritingScore"])
-                                        elif test.strip() == 'SAT_New' and row["satRWDate"] != '':
+                                        elif t.strip() == 'SAT_New' and row["satRWDate"] != '':
                                             cmpl_date = datetime.datetime.strptime(row["satRWDate"], '%m/%d/%Y').strftime('%Y-%m-%d')
                                             insertExam(apptmp_no, 'SAT', cmpl_date, '', row["satRWScore"],
                                                 row["satMathScore"], row["satEssayScore"], '', '')
