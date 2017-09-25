@@ -46,6 +46,12 @@ def main():
     main function
     '''
 
+    if test:
+        print 'this is a test'
+    else:
+        print 'this is not a test'
+
+
 ######################
 # shell command line
 ######################
