@@ -115,7 +115,8 @@ def main():
     # the source file will be archived.
     ###########################################################################
     with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
-        # Remote Path is the Common App server and once logged in we fetch directory listing
+        # Remote Path is the Common App server and once logged in
+        # we fetch directory listing
         remotepath = sftp.listdir()
         print "sFTP files found on Common App server {0}.".format(remotepath)
         #######################################################################
@@ -134,14 +135,27 @@ def main():
                     sftpstat = sftp.stat(remotefile)
                     # check to make sure the file has data by checking the size
                     if sftpstat.st_size > 0:
-                        # set destination directory for which the common app file will be archived to
-                        destination = ('{0}commonapp-{1}_{2}.txt'.format(settings.COMMONAPP_CSV_ARCHIVED, datetimestr, str(fileCount)))
-                        # set destination directory for which the sql file will be archived to
-                        archived_destination = ('{0}commonapp_output-{1}.sql'.format(settings.COMMONAPP_CSV_ARCHIVED, datetimestr))
+                        # set destination directory for which the common app
+                        # file will be archived to
+                        destination = ('{0}commonapp-{1}_{2}.txt'.format(
+                            settings.COMMONAPP_CSV_ARCHIVED, datetimestr,
+                            str(fileCount)
+                        ))
+                        # set destination directory for which the sql file
+                        # will be archived to
+                        archived_destination = (
+                            '{0}commonapp_output-{1}.sql'.format(
+                            settings.COMMONAPP_CSV_ARCHIVED, datetimestr
+                        ))
                         # set name for the sqloutput file
-                        sqloutput = ('{0}/commonapp_output.sql'.format(os.getcwd()))
-                        # set source directory for which the common app file will be downloaded to
-                        source_dir = ('{0}'.format(settings.COMMONAPP_CSV_OUTPUT))
+                        sqloutput = ('{0}/commonapp_output.sql'.format(
+                            os.getcwd()
+                        ))
+                        # set source directory for which the common app file
+                        # will be downloaded to
+                        source_dir = ('{0}'.format(
+                            settings.COMMONAPP_CSV_OUTPUT
+                        ))
                         # Print filesize
                         print "Filesize ==> {0}".format(sftpstat.st_size)
                         # Local Path == /data2/www/data/commonapp/{filename.txt}
@@ -163,15 +177,17 @@ def main():
                         print "The path and archived filename ==> " + destination
                         # set global variable
                         global EARL
-                        # determines which database is being called from the command line
+                        # determines which database is being called
+                        # from the command line
                         if database == 'cars':
                             EARL = INFORMIX_EARL_PROD
                         elif database == 'train':
                             EARL = INFORMIX_EARL_TEST
                         else:
-                            # this will raise an error when we call get_engine() below
-                            # but the argument parser should have taken care of this
-                            # scenario and we will never arrive here.
+                            # this will raise an error when we call get_engine()
+                            # below but the argument parser should have taken
+                            # care of this scenario and we will never arrive
+                            # here.
                             EARL = None
                         # establish mySQL database connection
                         cursor = connections['admissions_pce'].cursor()
@@ -340,7 +356,7 @@ def main():
                                 ''' .format(apptmp_no)
                                 scr.write(q_create_site+'\n');
                                 do_sql(q_create_site, key=DEBUG, earl=EARL)
-                    
+
                                 # determine the type of studentStatus and set studentStatus and Hours Enrolled
                                 if row["studentStatus"] == 'Full Time' or row["transferStudentStatus"] == 'Full Time':
                                     studentStatus = 'TRAD'
@@ -948,14 +964,16 @@ def main():
                                 ####################################################################
                                 if row["totalTestsTaken"] != '':
                                     userTests = row["totalTestsTaken"].split(',')
-                                    for test in userTests:
-                                        if test.strip() == 'ACT' and row["actCompositeDate"] != '':
-                                            cmpl_date = datetime.datetime.strptime(row["actCompositeDate"], '%m/%d/%Y').strftime('%Y-%m-%d')
+                                    for t in userTests:
+                                        if t.strip() == 'ACT' and row["actCompositeDate"] != '':
+                                            cmpl_date = datetime.datetime.strptime(
+                                                row["actCompositeDate"], '%m/%d/%Y'
+                                            ).strftime('%Y-%m-%d')
                                             insertExam(apptmp_no, 'ACT', cmpl_date, row["actCompositeScore"],
                                                 row["actEnglishScore"], row["actMathScore"],
                                                 row["actReadingScore"], row["actScienceScore"],
                                                 row["actWritingScore"])
-                                        elif test.strip() == 'SAT_New' and row["satRWDate"] != '':
+                                        elif t.strip() == 'SAT_New' and row["satRWDate"] != '':
                                             cmpl_date = datetime.datetime.strptime(row["satRWDate"], '%m/%d/%Y').strftime('%Y-%m-%d')
                                             insertExam(apptmp_no, 'SAT', cmpl_date, '', row["satRWScore"],
                                                 row["satMathScore"], row["satEssayScore"], '', '')

@@ -167,11 +167,7 @@ def main():
                         # creates spacing in between private loan data other loan information
                         csv_line += ("", "", "", "", "")
                     # adds other loan information
-                    csv_line += (row["c_tufe"], "", row["c_rmbd"],
-                        row["c_book"], row["c_tran"], row["c_misc"], "", row["c_loan"],
-                        "% .2f" % row["c_instgrants"], "% .2f" % row["c_instscholar"],
-                        "% .2f" % row["c_fedgrants"], "% .2f" % row["c_stegrants"],
-                        "% .2f" % row["c_outsideaid"])
+                    csv_line += csv_end
                     writer.writerow(csv_line)
                 currentID = row["student_id_number"]
                 loanCount = 0
@@ -187,10 +183,20 @@ def main():
                     row["student_city"], row["student_state_code"],
                     row["student_postal_code"], row["student_country_code"],
                     row["student_email"])
+                # adds other loan information
+                csv_end = (row["c_tufe"], "", row["c_rmbd"],
+                    row["c_book"], row["c_tran"], row["c_misc"], "", row["c_loan"],
+                    "% .2f" % row["c_instgrants"], "% .2f" % row["c_instscholar"],
+                    "% .2f" % row["c_fedgrants"], "% .2f" % row["c_stegrants"],
+                    "% .2f" % row["c_outsideaid"])
             csv_line += (row["loan_name"], "% .2f" % row["aid_amount"], "", "",
                         row["loan_date"])
             loanCount = loanCount +1
         # writes the last line for the last student loan record
+        for i in range (loanCount, maxaidcount):
+            # creates spacing in between private loan data other loan information
+            csv_line += ("", "", "", "", "")
+        csv_line += csv_end
         writer.writerow(csv_line)
     # closes file
     phile.close()
