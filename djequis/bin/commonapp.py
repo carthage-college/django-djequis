@@ -137,23 +137,6 @@ def insertExam(id, ctgry, cmpl_date, score1, score2, score3, score4, score5, sco
         do_sql(q_exam, key=DEBUG, earl=EARL)
 
 def main():
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.INFO)
-    
-    formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
-                                  datefmt='%m/%d/%Y %I:%M:%S %p')
-
-    file_handler = logging.FileHandler('{0}commonapp.log'.format(
-            settings.LOG_FILEPATH
-        ))
-    file_handler.setFormatter(formatter)
-
-    logger.addHandler(file_handler)
-
-    # logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s',
-    #                     datefmt='%m/%d/%Y %I:%M:%S %p', filename='myapp.log',
-    #                     level=logging.INFO)
-    #logging.warning('is when this event was logged.')
     ###########################################################################
     # when on the development server (bng), you would execute:
     # python commonapp.py --database=train --test
@@ -516,24 +499,19 @@ def main():
                                         engine.execute(q_insertText,
                                             [apptmp_no, "ADM", TODAY, resource, "C", reasontxt]
                                         )
-                                    try:
-                                        if row["schoolDiscipline"] == 'Y':
-                                            reasontxt = row["disciplinaryViolationExplanation"].replace("\"", '\'').replace("\xc2\xa0", ' ')
-                                            resource = 'DISMISS'
-                                            q_insertText = '''
-                                            INSERT INTO app_ectctmp_rec
-                                            (id, tick, add_date, resrc, stat, txt)
-                                            VALUES (?, ?, ?, ?, ?, ?);
-                                            '''
-                                            scr.write(q_insertText+'\n');
-                                            engine.execute(
-                                                q_insertText,
-                                                [apptmp_no, "ADM", TODAY, resource, "C", reasontxt]
-                                            )
-                                    except Exception as err:
-                                        logger.exception(err)
-                                        #logging.error(err)
-                                        #print('Inside the except block: ' + repr(err))
+                                    if row["schoolDiscipline"] == 'Y':
+                                        reasontxt = row["disciplinaryViolationExplanation"].replace("\"", '\'').replace("\xc2\xa0", ' ')
+                                        resource = 'DISMISS'
+                                        q_insertText = '''
+                                        INSERT INTO app_ectctmp_rec
+                                        (id, tick, add_date, resrc, stat, txt)
+                                        VALUES (?, ?, ?, ?, ?, ?);
+                                        '''
+                                        scr.write(q_insertText+'\n');
+                                        engine.execute(
+                                            q_insertText,
+                                            [apptmp_no, "ADM", TODAY, resource, "C", reasontxt]
+                                        )
                                 #####################################################
                                 # BEGIN - alternate address for student
                                 #####################################################
@@ -803,7 +781,8 @@ def main():
                                             VALUES ({0}, 0, "SIB", "{1}", "{2}", "SBSB", 0, "Y", "{3}",
                                             "{4}");
                                         ''' .format(apptmp_no, row['sibling'+str(siblingNumber)+'FirstName'] + ' ' + row['sibling'+str(siblingNumber)+'LastName'],
-                                            row["sibling1Age"], row["sibling1CollegeCeebName"],
+                                            row['sibling'+str(siblingNumber)+'Age'],
+                                            row['sibling'+str(siblingNumber)+'CollegeCeebName'],
                                             educationLevel[row['sibling'+str(siblingNumber)+'EducationLevel']])
                                             scr.write(q_sibing_name+'\n\n');
                                             do_sql(q_sibing_name, key=DEBUG, earl=EARL)
@@ -1009,7 +988,6 @@ def main():
                                 scr.write('-------------------------------------------------------------------------------------------\n')
                                 scr.write('-- END INSERT NEW STUDENT APPLICATION for: ' + row["firstName"] + ' ' + row["lastName"] + "\n")
                                 scr.write('-------------------------------------------------------------------------------------------\n\n')
-                                logger.info('Student Application: {0} {1} {2}'.format(str(apptmp_no), row["firstName"], row["lastName"])+"\r\n")
                             scr.write('-- STUDENT IDs:' + str(apptmp_no_list) +"\n")
                             # output of how long it takes to run script
                             print("--- %s seconds ---" % (time.time() - start_time))
