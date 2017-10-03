@@ -16,6 +16,9 @@ django.setup()
 from django.conf import settings
 
 import argparse
+import logging
+
+logger = logging.getLogger('djequis')
 
 '''
 Shell script...
@@ -48,6 +51,7 @@ def main():
 
     if test:
         print 'this is a test'
+        logger.debug("debug = {}".format(test))
     else:
         print 'this is not a test'
 
