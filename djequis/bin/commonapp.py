@@ -10,7 +10,6 @@ import argparse
 import uuid
 from sqlalchemy import text
 import shutil
-import logging
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
