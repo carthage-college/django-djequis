@@ -96,3 +96,4 @@ ENV/
 *.swp
 settings.py
 wsgi.py
+commonapp_output.sql
