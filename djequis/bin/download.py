@@ -34,12 +34,17 @@ os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
+from djequis.sql.barnesandnoble import TMP_ACTV_SESS
+from djequis.sql.barnesandnoble import STU_ACAD_REC_100
+from djequis.sql.barnesandnoble import STU_ACAD_REC_200
+from djequis.sql.barnesandnoble import EXENCRS
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 
-# set up command-line options
+EARL = settings.INFORMIX_EARL
+
 desc = """
-    Download Common Application Download via sftp
+    Barnes and Noble Upload
 """
 parser = argparse.ArgumentParser(description=desc)
 
@@ -50,162 +55,153 @@ parser.add_argument(
     dest="test"
 )
 
-def file_download():
-    # set date and time to be added to the filename
-    #datetimestr = time.strftime("%Y%m%d%H%M%S")
-    # initializing fileCount
-    #fileCount = 1 
-
+def main():
+    # formatting date and time string 
+    datetimestr = time.strftime("%Y%m%d%H%M%S")
+    # set dictionary
+    dict = {
+        'AR100': STU_ACAD_REC_100,
+        'AR200': STU_ACAD_REC_200,
+        'EXENCRS': EXENCRS
+        }
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
-    ###########################################################################
-    # External connection information for Common Application server
-    ###########################################################################
-    XTRNL_CONNECTION = {
-       'host':settings.COMMONAPP_HOST,
-       'username':settings.COMMONAPP_USER,
-       'password':settings.COMMONAPP_PASS,
-       'cnopts':cnopts
+    # sFTP connection information for Barnes and Noble 1
+    XTRNL_CONNECTION1 = {
+        'host':settings.BARNESNOBLE1_HOST,
+        'username':settings.BARNESNOBLE1_USER,
+        'password':settings.BARNESNOBLE1_PASS,
+        'port':settings.BARNESNOBLE1_PORT,
+        'cnopts':cnopts
     }
-    ###########################################################################
-    # sFTP GET downloads the file from Common App file from server 
-    # and saves in source directory. When applications have been processed
-    # the source file will be archived.
-    ###########################################################################
-    with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
-        # Remote Path is the Common App server and once logged in we fetch directory listing
-        remotepath = sftp.listdir()
-        print "sFTP files found on Common App server {0}.".format(remotepath)
-        # Loop through remote path directory list
-        for filename in remotepath:
-            remotefile = filename
-            print "File Name ==> " + remotefile
-            # set source directory for which the common app file will be downloaded to
-            source_dir = ('{0}'.format(
-                settings.COMMONAPP_CSV_OUTPUT
-            ))
-            print "Source Directory ==> {0}".format(source_dir)
-            localpath = source_dir + remotefile
-            print "Local Path ==> {0}".format(localpath)
-            # GET file from sFTP server and download it to localpath
-            sftp.get(remotefile, localpath)
-            print "Downloading files ==> " + remotefile
-            #######################################################
-            # Delete original file %m_%d_%y_%h_%i_%s_Applications(%c).txt
-            # from sFTP server
-            #######################################################
-            sftp.remove(filename)
-            #fileCount = fileCount +1
-    sftp.close()
+    # sFTP connection information for Barnes and Noble 2
+    XTRNL_CONNECTION2 = {
+        'host':settings.BARNESNOBLE2_HOST,
+        'username':settings.BARNESNOBLE2_USER,
+        'password':settings.BARNESNOBLE2_PASS,
+        'port':settings.BARNESNOBLE2_PORT,
+        'cnopts':cnopts
+    }
+    for key, value in dict.items():
+        if test:
+            print key
+        #######################################################################
+        # Dict Value 'STU_ACAD_REC_100' selects active students and sets budget
+        # limit for export (books = '100' & $3000.00)
 
-def main():
-    if not test:
-        file_download()
-    # set date and time to be added to the filename
-    datetimestr = time.strftime("%Y%m%d%H%M%S")
-    # initializing fileCount
-    fileCount = 1
-    source_dir = ('{0}'.format(
-        settings.COMMONAPP_CSV_OUTPUT
-    ))
-    print ('Directory ==> {0}'.format(source_dir))
-    localpath = os.listdir(source_dir)
-    print "Files found on Carthage server {0}.".format(localpath)
-    if localpath != []:
-        print ("There was a file(s) found.")
-        for localfile in localpath:
-            # Local Path == /data2/www/data/commonapp/{filename.txt}
-            localpath = source_dir + localfile
-            file_size = os.stat(localpath).st_size
-            print ('File size ==> {0}'.format(file_size))
-            print ('Directory and File(s) ==> {0}'.format(localfile))
-            print "Local Path ==> {0}".format(localpath)
-            if localfile.endswith(".txt"):
-                if file_size > 0:
-                    print ('File Name {0} File size ==> {1}'.format(
-                        localfile, os.stat(localpath).st_size
-                    ))
-                    time.sleep(5)
-                    destination = ('{0}commonapp-{1}_{2}.txt'.format(
-                        settings.COMMONAPP_CSV_ARCHIVED, datetimestr, str(fileCount)
-                    ))
-                    
-                    renamedfile = ('{0}carthage_applications.txt'.format(source_dir))
-                    print ('Renamed File: {0}'.format(renamedfile))
-                    #######################################################
-                    # renaming file fetched from Common App server
-                    # The filename comming in %m_%d_%y_%h_%i_%s_Applications(%c).txt
-                    # The filename renamed to carthage_applications.txt
-                    #######################################################
-                    shutil.move(localpath, renamedfile)
-                    print "The path and renamed file ==> " + renamedfile
-                    time.sleep(10)
-                    print "The path and archived filename ==> " + destination
-                    #######################################################
-                    # Rename the Archive file
-                    # renames carthage_applications.txt to commonapp-%Y%m%d%H%M%S.txt
-                    #######################################################
-                    shutil.move(renamedfile, destination)
-                    fileCount = fileCount +1
-                else:
-                    print "The filesize ==> {0} so we need to send an email".format(file_size)
-                    #######################################################
-                    # Email the filesize is 0 there is no data in the file
-                    #######################################################
-                    SUBJECT = '[Common Application] failed'
-                    BODY = 'File {0} was found but filesize is {1}'.format(localfile, file_size)
-                    sendmail(
-                        settings.COMMONAPP_TO_EMAIL,settings.COMMONAPP_FROM_EMAIL,
-                        BODY, SUBJECT
-                    )
-            else:
-                print "File {0} was found but extension does not end in .txt".format(localfile)
-                ############################################################################
-                # Found file but the extension does not end in .txt
-                ###########################################################################
-                SUBJECT = '[Common Application] failed'
-                BODY = 'File {0} was found but extension does not end in .txt'.format(localfile)
+        # Dict Value 'STU_ACAD_REC_200' selects active students and sets budget
+        # limit for export (supplies = '200' & $50.00)
+
+        # Dict Value 'EXENCRS' selects all current and future course-sections
+        # (sec_rec) and instructor for Bookstore to order ISBN inventory
+        #######################################################################
+        sql = do_sql(value, earl=EARL)
+        rows = sql.fetchall()
+        for row in rows:
+            if test:
+                print row
+        # set directory and filename to be stored
+        filename=('{0}{1}.csv'.format(
+            settings.BARNESNOBLE_CSV_OUTPUT,key
+        ))
+        # set destination path and new filename that it will be renamed to when archived
+        archive_destination = ('{0}{1}_{2}_{3}.csv'.format(
+            settings.BARNESNOBLE_CSV_ARCHIVED,'CCBAK',key,datetimestr
+        ))
+        # create .csv file
+        csvfile = open(filename,"w");
+        output = csv.writer(csvfile)
+        # write header row to file
+        if test:
+            if key == 'AR100' or key == 'AR200': # write header row for (AR100, AR200)
+                output.writerow([
+                    "StudentID", "Elastname", "Efirstname", "Xmiddleinit",
+                    "Xcred_limit", "EProviderCode", "Ebegdate", "Eenddate",
+                    "Eidtype", "Erecordtype", "Eaccttype"
+                    ])
+            else: # write header row for EXENCRS
+                output.writerow([
+                    "bnUnitNo", "bnTerm", "bnYear", "bnDept", "bnCourseNo",
+                    "bnSectionNo", "bnProfName", "bnMaxCapcty", "bnEstEnrlmnt",
+                    "bnActEnrlmnt", "bnContdClss", "bnEvngClss", "bnExtnsnClss",
+                    "bnTxtnetClss", "bnLoctn", "bnCourseTitl", "bnCourseID"
+                ])
+        # write data rows to file
+        if rows is not None:
+            for row in rows:
+                output.writerow(row)
+        else:
+            print ("No values in list")
+        csvfile.close()
+        # renaming old filename to newfilename and move to archive location
+        shutil.copy(filename, archive_destination)
+    # set local path {/data2/www/data/barnesandnoble/}
+    source_dir = ('{0}'.format(settings.BARNESNOBLE_CSV_OUTPUT))
+    # set local path and filenames
+    # variable == /data2/www/data/barnesandnoble/{filename.csv}
+    fileAR100 = source_dir + 'AR100.csv'
+    fileAR200 = source_dir + 'AR200.csv'
+    fileEXENCRS = source_dir + 'EXENCRS.csv'
+    # sFTP PUT moves the EXENCRS.csv file to the Barnes & Noble server 1
+    try:
+        with pysftp.Connection(**XTRNL_CONNECTION1) as sftp:
+            # used for testing
+            sftp.chdir("TestFiles/")
+            sftp.put(fileEXENCRS, preserve_mtime=True)
+            # deletes original file from our server
+            os.remove(fileEXENCRS)
+            # closes sftp connection
+            sftp.close()
+    except Exception, e:
+        SUBJECT = 'BARNES AND NOBLE UPLOAD failed'
+        BODY = 'Unable to PUT EXENCRS.csv to Barnes and Noble server.\n\n{0}'.format(str(e))
+        sendmail(
+            settings.BARNESNOBLE_TO_EMAIL,settings.BARNESNOBLE_FROM_EMAIL,
+            BODY, SUBJECT
+        )
+    # sFTP PUT moves the AR100.csv, AR200.csv files to the Barnes & Noble server 2
+    try:
+        with pysftp.Connection(**XTRNL_CONNECTION2) as sftp:
+            # used for testing
+            sftp.chdir("TestFiles/")
+            try:
+                sftp.put(fileAR100, preserve_mtime=True)
+                # deletes original file from our server
+                os.remove(fileAR100)
+            except Exception, e:
+                SUBJECT = 'BARNES AND NOBLE UPLOAD failed'
+                BODY = 'Unable to PUT AR100.csv to Barnes and Noble server.\n\n{0}'.format(str(e))
                 sendmail(
-                    settings.COMMONAPP_TO_EMAIL,settings.COMMONAPP_FROM_EMAIL,
+                    settings.BARNESNOBLE_TO_EMAIL,settings.BARNESNOBLE_FROM_EMAIL,
                     BODY, SUBJECT
                 )
-    else:
-        print ("The directory is empty no file was found.")
-        ############################################################################
-        # Email there was no file found on the Common App server
-        ###########################################################################
-        SUBJECT = '[Common Application] failed'
-        BODY = "The directory is empty no source file was found."
+            try:
+                sftp.put(fileAR200, preserve_mtime=True)
+                # deletes original file from our server
+                os.remove(fileAR200)
+            except Exception, e:
+                SUBJECT = 'BARNES AND NOBLE UPLOAD failed'
+                BODY = 'Unable to PUT AR200.csv to Barnes and Noble server.\n\n{0}'.format(str(e))
+                sendmail(
+                    settings.BARNESNOBLE_TO_EMAIL,settings.BARNESNOBLE_FROM_EMAIL,
+                    BODY, SUBJECT
+                )
+        # closes sftp connection
+        sftp.close()
+    except Exception, e:
+        SUBJECT = 'BARNES AND NOBLE UPLOAD failed'
+        BODY = 'Unable to PUT AR100/AR200 files to Barnes and Noble server.\n{0}'.format(str(e))
         sendmail(
-            settings.COMMONAPP_TO_EMAIL,settings.COMMONAPP_FROM_EMAIL,
+            settings.BARNESNOBLE_TO_EMAIL,settings.BARNESNOBLE_FROM_EMAIL,
             BODY, SUBJECT
         )
-    # set destination directory for which the sql file
-    # will be archived to
-    archived_destination = ('{0}commonapp_output-{1}.sql'.format(
-        settings.COMMONAPP_CSV_ARCHIVED, datetimestr
-    ))
-    # set name for the sqloutput file
-    sqloutput = ('{0}/commonapp_output.sql'.format(os.getcwd()))
-    print "Archived Destination ==> {0}".format(archived_destination)
-    print "SQL Output file ==> {0}".format(sqloutput)
-    #######################################################################
-    # Check to see if sql file exists, if not send Email
-    #######################################################################
-    if os.path.isfile("commonapp_output.sql") != True:
-        ###################################################################
-        # Email there was no file found on the Common App server
-        ###################################################################
-        SUBJECT = '[Common Application] failed'
-        BODY = "There was no .sql output file to move."
-        sendmail(
-            settings.COMMONAPP_TO_EMAIL,settings.COMMONAPP_FROM_EMAIL,
-            BODY, SUBJECT
-        )
-    else:
-        # rename and move the file to the archive directory
-        shutil.move(sqloutput, archived_destination)
-
+    # sFTP upload complete send success message
+    SUBJECT = 'BARNES AND NOBLE UPLOAD successful'
+    BODY = 'The Barnes and Noble files files were successfully uploaded to the server.'
+    sendmail(
+        settings.BARNESNOBLE_TO_EMAIL,settings.BARNESNOBLE_FROM_EMAIL,
+        BODY, SUBJECT
+    )
 
 if __name__ == "__main__":
     args = parser.parse_args()
