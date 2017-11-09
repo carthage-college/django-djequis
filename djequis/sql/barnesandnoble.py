@@ -222,7 +222,7 @@ STU_ACAD_REC_200 = '''
     ORDER BY Elastname, Efirstname;
 '''
 # *** Need description
-EXENCRS = '''
+EXENRCRS = '''
     SELECT
         "001" AS bnUnitNo, bnTerm, SUBSTR(tfc.yr,3,2) AS bnYear,
         TRIM(LEFT(sr.crs_no,4)) AS bnDept, TRIM(SUBSTR(sr.crs_no,5,8)) AS bnCourseNo,
