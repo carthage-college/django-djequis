@@ -163,7 +163,7 @@ def main():
     try:
         with pysftp.Connection(**XTRNL_CONNECTION2) as sftp:
             # used for testing
-            #sftp.chdir("TestFiles/")
+            sftp.chdir("ToBNCB/")
             try:
                 sftp.put(fileAR100, preserve_mtime=True)
                 # deletes original file from our server
