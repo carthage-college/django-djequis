@@ -159,38 +159,40 @@ def main():
             settings.BARNESNOBLE_TO_EMAIL,settings.BARNESNOBLE_FROM_EMAIL,
             BODY, SUBJECT
         )
-    # sFTP PUT moves the AR100.csv, AR200.csv files to the Barnes & Noble server 2
+    # sFTP PUT moves the AR100.csv file to the Barnes & Noble server 2
     try:
         with pysftp.Connection(**XTRNL_CONNECTION2) as sftp:
             # used for testing
+            #sftp.chdir("TestFiles/")
+            sftp.put(fileAR100, preserve_mtime=True)
             sftp.chdir("ToBNCB/")
-            try:
-                sftp.put(fileAR100, preserve_mtime=True)
-                # deletes original file from our server
-                os.remove(fileAR100)
-            except Exception, e:
-                SUBJECT = 'BARNES AND NOBLE UPLOAD failed'
-                BODY = 'Unable to PUT AR100.csv to Barnes and Noble server.\n\n{0}'.format(str(e))
-                sendmail(
-                    settings.BARNESNOBLE_TO_EMAIL,settings.BARNESNOBLE_FROM_EMAIL,
-                    BODY, SUBJECT
-                )
-            try:
-                sftp.put(fileAR200, preserve_mtime=True)
-                # deletes original file from our server
-                os.remove(fileAR200)
-            except Exception, e:
-                SUBJECT = 'BARNES AND NOBLE UPLOAD failed'
-                BODY = 'Unable to PUT AR200.csv to Barnes and Noble server.\n\n{0}'.format(str(e))
-                sendmail(
-                    settings.BARNESNOBLE_TO_EMAIL,settings.BARNESNOBLE_FROM_EMAIL,
-                    BODY, SUBJECT
-                )
-        # closes sftp connection
-        sftp.close()
+            sftp.put(fileAR100, preserve_mtime=True)
+            # deletes original file from our server
+            os.remove(fileAR100)
+            # closes sftp connection
+            sftp.close()
     except Exception, e:
         SUBJECT = 'BARNES AND NOBLE UPLOAD failed'
-        BODY = 'Unable to PUT AR100/AR200 files to Barnes and Noble server.\n{0}'.format(str(e))
+        BODY = 'Unable to PUT AR100.csv to Barnes and Noble server.\n\n{0}'.format(str(e))
+        sendmail(
+            settings.BARNESNOBLE_TO_EMAIL,settings.BARNESNOBLE_FROM_EMAIL,
+            BODY, SUBJECT
+        )
+    # sFTP PUT moves the AR200.csv file to the Barnes & Noble server 2
+    try:
+        with pysftp.Connection(**XTRNL_CONNECTION2) as sftp:
+            # used for testing
+            #sftp.chdir("TestFiles/")
+            sftp.put(fileAR200, preserve_mtime=True)
+            sftp.chdir("ToBNCB/")
+            sftp.put(fileAR200, preserve_mtime=True)
+            # deletes original file from our server
+            os.remove(fileAR200)
+            # closes sftp connection
+            sftp.close()
+    except Exception, e:
+        SUBJECT = 'BARNES AND NOBLE UPLOAD failed'
+        BODY = 'Unable to PUT AR200.csv to Barnes and Noble server.\n\n{0}'.format(str(e))
         sendmail(
             settings.BARNESNOBLE_TO_EMAIL,settings.BARNESNOBLE_FROM_EMAIL,
             BODY, SUBJECT
