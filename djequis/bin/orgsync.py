@@ -85,12 +85,20 @@ def main():
 
     # write header row to file
     output.writerow([
-        "Username", "Email_Address", "First_Name", "Last_Name", "Middle_Initial",
-        "Phone_Number", "Address", "City", "State", "Zip", "Country", "Birthday",
-        "Portal_Number", "Group_Number", "Classification", "Gender", "Hometown",
-        "Major_1", "Major_2", "Major_3", "Minor_1", "Minor_2", "Minor_3",
-        "Student_ID", "Ethnicity", "Projected_Grad_Yr", "Housing_Status",
-        "International_Student", "Transfer", "Building", "Room_Number", "Mailbox"
+        "account.username", "account.new_username", "account.email_address",
+        "account.first_name", "account.last_name", "account.middle_initial",
+        "account.phone_number", "account.address", "account.city", "account.state",
+        "account.zip", "account.country", "account.birthday", "identification_card_number",
+        "portal", "group", "classification", "form_element.3172627// Gender",
+        "form_element.3172629// Hometown", "form_element.3172630// Major 1",
+        "form_element.3172630// Major 2", "form_element.3172630// Major 3",
+        "form_element.3172631// Minor 1", "form_element.3172631// Minor 2",
+        "form_element.3172631// Minor 3", "form_element.3172632// Student ID",
+        "form_element.3172633// Ethnicity", "form_element.3172634// Projected Graduation Year",
+        "form_element.3172635// Housing Status",
+        "form_element.3172636// International Student",
+        "form_element.3172637// Transfer Student", "form_element.3451747// Building",
+        "form_element.3451748// Room Number", "form_element.3451749// Mailbox"
     ])
     # write data rows to file
     if sqlresult is not None:
