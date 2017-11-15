@@ -1,6 +1,6 @@
 ORGSYNC_DATA = '''
     SELECT DISTINCT TRIM(REPLACE(DIR.email, '@carthage.edu', '')) AS Username,
-    DIR.email AS Email_Address, DIR.firstname AS First_Name,
+    '' AS New_Username, DIR.email AS Email_Address, DIR.firstname AS First_Name,
     DIR.lastname AS Last_Name, LEFT(DIR.middlename, 1) AS Middle_Initial,
     TRIM(NVL(CELL.phone,'')) AS Phone_Number, TRIM(DIR.addr_line1) AS Address,
     TRIM(DIR.city) AS City, TRIM(DIR.st) AS State,
@@ -21,7 +21,7 @@ ORGSYNC_DATA = '''
         WHEN 'United States'    THEN 'US'
                                 ELSE TRIM(INITCAP(NVL(CT.txt,'')))
     END AS Country,
-    TO_CHAR(PROF.birth_date, '%m-%d-%Y') AS Birthday,
+    TO_CHAR(PROF.birth_date, '%m-%d-%Y') AS Birthday, '' AS Id_Card_Number,
     '158512' as Portal_Number, '614847' AS Group_Number,
     CASE DIR.class_year
         WHEN    'FF'    THEN    'Freshman'
