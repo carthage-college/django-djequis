@@ -11,6 +11,7 @@ import uuid
 from sqlalchemy import text
 import shutil
 import logging
+import re
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -80,32 +81,27 @@ def file_download():
        'password':settings.COMMONAPP_PASS,
        'cnopts':cnopts
     }
-    ###########################################################################
+    ############################################################################
     # sFTP GET downloads the file from Common App file from server 
     # and saves in local directory.
-    ###########################################################################
+    ############################################################################
     with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
         # Remote Path is the Common App server and once logged in we fetch directory listing
         remotepath = sftp.listdir()
-        # **print "sFTP files found on Common App server {0}.".format(remotepath)
         # Loop through remote path directory list
         for filename in remotepath:
             remotefile = filename
-            # **print "File Name ==> " + remotefile
             # set local directory for which the common app file will be downloaded to
             local_dir = ('{0}'.format(
                 settings.COMMONAPP_CSV_OUTPUT
             ))
-            # **print "Local Directory ==> {0}".format(local_dir)
             localpath = local_dir + remotefile
-            # **print "Local Path ==> {0}".format(localpath)
             # GET file from sFTP server and download it to localpath
             sftp.get(remotefile, localpath)
-            # **print "Downloading files ==> " + remotefile
-            #######################################################
+            #############################################################
             # Delete original file %m_%d_%y_%h_%i_%s_Applications(%c).txt
             # from sFTP (Common App) server
-            #######################################################
+            #############################################################
             sftp.remove(filename)
     sftp.close()
 
@@ -131,13 +127,13 @@ def insertExam(id, ctgry, cmpl_date, score1, score2, score3, score4, score5, sco
         do_sql(q_exam, key=DEBUG, earl=EARL)
 
 def main():
-    ###########################################################################
+    ############################################################################
     # development server (bng), you would execute:
     # ==> python commonapp.py --database=train --test
     # production server (psm), you would execute:
     # ==> python commonapp.py --database=cars
     # without the --test argument
-    ###########################################################################
+    ############################################################################
     # execute sftp code that needs to be executed in production only
     if not test:
         file_download()
@@ -154,32 +150,22 @@ def main():
     localpath = os.listdir(source_dir)
     print "Files found on Carthage server {0}.".format(localpath)
     if localpath != []:
-        print ("There was a file(s) found.")
         for localfile in localpath:
             # Local Path == /data2/www/data/commonapp/{filename.txt}
             localpath = source_dir + localfile
             file_size = os.stat(localpath).st_size
-            print ('File size ==> {0}'.format(file_size))
-            print ('Directory and File(s) ==> {0}'.format(localfile))
-            print "Local Path ==> {0}".format(localpath)
             if localfile.endswith(".txt"):
                 if file_size > 0:
-                    print ('File Name {0} File size ==> {1}'.format(
-                        localfile, os.stat(localpath).st_size
-                    ))
                     # set destination path and new filename that it will be renamed to when archived
                     destination = ('{0}commonapp-{1}_{2}.txt'.format(
                         settings.COMMONAPP_CSV_ARCHIVED, datetimestr, str(fileCount)
                     ))
                     # renamed file name to be processed
                     renamedfile = ('{0}carthage_applications.txt'.format(source_dir))
-                    print ('Renamed File: {0}'.format(renamedfile))
                     # renaming file fetched from Common App server
                     # The filename comming in %m_%d_%y_%h_%i_%s_Applications(%c).txt
                     # The filename renamed to carthage_applications.txt
                     shutil.move(localpath, renamedfile)
-                    print "The path and renamed file ==> " + renamedfile
-                    print "The path and archived filename ==> " + destination
                     try:
                         # set global variable
                         global EARL
@@ -199,7 +185,7 @@ def main():
                         cursor = connections['admissions_pce'].cursor()
                         engine = get_engine(EARL)
                         # set directory and filename where to read from
-                        filename=('{}carthage_applications.txt'.format(
+                        filename=('{0}carthage_applications.txt'.format(
                             settings.COMMONAPP_CSV_OUTPUT
                         ))
                         scr.write('------------------------------------------------------------------------------------------------------------------\n')
@@ -281,8 +267,8 @@ def main():
                                 middlename, aa, add_date, ofc_add_by, upd_date, purge_date, prsp_no, name_sndx, correct_addr, decsd, valid)
                                 VALUES ({0}, "{1}", "{2}", "{3}", "{4}", "{0}", "{5}", "{6}", "{7}", "{8}", "{9}", "{10}", "{11}", "{12}", "{13}", "PERM",
                                 TODAY, "ADMS", TODAY, TODAY + 2 UNITS YEAR, "0", "", "Y", "N", "Y");
-                                ''' .format(apptmp_no, row["firstName"], row["lastName"], row["suffix"], row["emailAddress"], row["permanentAddress1"],
-                                            row["permanentAddress2"], row["permanentAddressCity"], row["permanentAddressState"], row["permanentAddressZip"],
+                                ''' .format(apptmp_no, row["firstName"], row["lastName"], row["suffix"], row["emailAddress"], re.sub('\W+', ' ', row["permanentAddress1"]),
+                                            re.sub('\W+', ' ', row["permanentAddress2"]), row["permanentAddressCity"], row["permanentAddressState"], row["permanentAddressZip"],
                                             row["permanentAddressCountry"], row["preferredPhoneNumber"].replace('+1.', ''), row["ssn"], row["middleName"])
                                 scr.write(q_create_id+'\n');
                                 do_sql(q_create_id, key=DEBUG, earl=EARL)
@@ -443,7 +429,8 @@ def main():
                                 # if there is Criminal or Displinary reasons they will be added
                                 if row["criminalHistory"] != '' or row["schoolDiscipline"] != '':
                                     if row["criminalHistory"] == 'Y':
-                                        reasontxt = row["criminalHistoryExplanation"].replace("\"", '\'').decode("ascii", "ignore").encode("ascii")
+                                        #reasontxt = row["criminalHistoryExplanation"].replace("\"", '\'').decode("ascii", "ignore").encode("ascii")
+                                        reasontxt = re.sub(ur'[\s\u0400-\u0527]+', ' ', row["criminalHistoryExplanation"]).replace('0xC2 ', ' ')
                                         resource = 'FELONY'
                                         q_insertText = '''
                                         INSERT INTO app_ectctmp_rec
@@ -455,7 +442,8 @@ def main():
                                             [apptmp_no, "ADM", TODAY, resource, "C", reasontxt]
                                         )
                                     if row["schoolDiscipline"] == 'Y':
-                                        reasontxt = row["disciplinaryViolationExplanation"].replace("\"", '\'').decode("ascii", "ignore").encode("ascii")
+                                        #reasontxt = row["disciplinaryViolationExplanation"].replace("\"", '\'').decode("ascii", "ignore").encode("ascii")
+                                        reasontxt = re.sub(ur'[\s\u0400-\u0527]+', ' ', row["disciplinaryViolationExplanation"]).replace('0xC2 ', ' ')
                                         resource = 'DISMISS'
                                         q_insertText = '''
                                         INSERT INTO app_ectctmp_rec
@@ -467,9 +455,9 @@ def main():
                                             q_insertText,
                                             [apptmp_no, "ADM", TODAY, resource, "C", reasontxt]
                                         )
-                                #####################################################
+                                ################################################
                                 # BEGIN - alternate address for student
-                                #####################################################
+                                ################################################
                                 if row["alternateAddressAvailable"] == 'Y':
                                     # creates aatmp record if alternate address is Y
                                     q_insert_aa_mail = '''
@@ -483,9 +471,9 @@ def main():
                                     do_sql(q_insert_aa_mail, key=DEBUG, earl=EARL)
                                 else:
                                     scr.write('--There were no alternate addresses for this application.\n\n');
-                                ###############################################
+                                ################################################
                                 # BEGIN - school(s) attended for a student
-                                ###############################################
+                                ################################################
                                 if row["schoolLookupCeebCode"] != '' and row["schoolLookupCeebName"] != '':
                                     if row["graduationDate"] == '':
                                         graduationDate = ''
@@ -499,7 +487,7 @@ def main():
                                         exitDate = ''
                                     else: # formatting the exitDate
                                         exitDate = datetime.datetime.strptime(row["exitDate"], '%m/%Y').strftime('%Y-%m-01')
-                                    ##############################################
+                                    ############################################
                                     q_create_school = '''
                                     INSERT INTO app_edtmp_rec
                                     (id, ceeb, fullname, city, st, grad_date, enr_date, dep_date, stu_id, sch_id, app_reltmp_no, rel_id, priority, zip, aa, ctgry, acad_trans)
@@ -509,9 +497,9 @@ def main():
                                     scr.write(q_create_school);
                                     scr.write("--Executing create school qry"+'\n\n');
                                     do_sql(q_create_school, key=DEBUG, earl=EARL)
-                                #################################################
+                                ################################################
                                 # BEGIN - other school(s) attended for a student
-                                #################################################
+                                ################################################
                                 if row["otherSchoolNumber"] != '' and int(row["otherSchoolNumber"]) > 0:
                                     for schoolNumber in range(2, int(row["otherSchoolNumber"])+1):
                                         # check to see that there is a CeebCode coming from Common App
@@ -631,9 +619,9 @@ def main():
                                         do_sql(q_create_transfer_college_school, key=DEBUG, earl=EARL)
                                 else:
                                     scr.write('--There were no transfercolleges attended for this application.\n\n');
-                                ###############################################
+                                ################################################
                                 # BEGIN - relatives attended Carthage
-                                ###############################################
+                                ################################################
                                 if row["relativesAttended"] == 'Yes':
                                     for relativeNumber in range (1, 5 +1):
                                         if row['relative'+str(relativeNumber)+'FirstName'] != '':
@@ -681,9 +669,9 @@ def main():
                                             do_sql(q_sibing_name, key=DEBUG, earl=EARL)
                                 else:
                                     scr.write('--There were no siblings for this application.\n\n');
-                                ###############################################
+                                ################################################
                                 # BEGIN - parent(s), legal guardian
-                                ###############################################
+                                ################################################
                                 fatherIndex = 1
                                 motherIndex = 2
                                 if row["parent1Type"] == 'Mother':
@@ -728,9 +716,9 @@ def main():
                                     row["legalGuardianEmployer"])
                                 scr.write(q_insert_partmp_rec+'\n');
                                 do_sql(q_insert_partmp_rec, key=DEBUG, earl=EARL)
-                                ###############################################
+                                ################################################
                                 # BEGIN - activities
-                                ###############################################
+                                ################################################
                                 if row["activity1"] != '' or row["transferActivity1"] != '':
                                     for activityNumber in range (1, 5 +1):
                                         # replacing first part of Common App code for activity
@@ -747,9 +735,9 @@ def main():
                                             do_sql(insert_interests, key=DEBUG, earl=EARL)
                                 else:
                                     scr.write('--There were no activities for this application.\n\n');
-                                ###############################################
+                                ################################################
                                 # BEGIN - ethnic backgrounds
-                                ###############################################
+                                ################################################
                                 # removing space when there are multiple ethnic backgrounds
                                 background = (row["background"].replace(' ', '')) 
                                 # creating array
