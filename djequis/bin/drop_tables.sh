@@ -11,7 +11,7 @@ GREP=$(which grep)
 if [ $# -ne 3 ]
 then
         echo "Usage: $0 {MySQL-User-Name} {MySQL-Database-Name} {MySQL-Database-Server}"
-        echo "Drops all tables from a MySQL"
+        echo "Drops all tables from a MySQL database"
         exit 1
 fi
 
