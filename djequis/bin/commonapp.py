@@ -325,8 +325,18 @@ def main():
                                     studentStatus = 'TRAD'
                                     intendHoursEnrolled = 16
                                 elif row["studentStatus"] == 'Part Time' or row["transferStudentStatus"] == 'Part Time':
+                                    studentStatus = 'TRAD'
+                                    intendHoursEnrolled = 16
+                                ################################################
+                                # Per Rob Schiferl adjust the code for Common App
+                                # to make any app that comes in through Common App full time
+                                # even if they indicate part time on their Common App
+                                ################################################
+                                """
+                                elif row["studentStatus"] == 'Part Time' or row["transferStudentStatus"] == 'Part Time':
                                     studentStatus = 'PTSM'
                                     intendHoursEnrolled = 4
+                                """
                                 # fetch preferredStartTerm from Common App data ex.(Fall 2018, Spring 2018, J-Term 2018)
                                 preferredStartTerm = row["preferredStartTerm"]
                                 if len(row["transferPreferredStartTerm"]):
