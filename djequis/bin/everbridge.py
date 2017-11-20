@@ -78,21 +78,21 @@ def main():
 
         if key == 'FacStaff': # write header row for FacStaff 
             output.writerow([
-                "First Name", "Middle Initial", "Last Name", "Suffix",
-                "External ID", "Country", "Business Name", "Record Type",
-                "Phone1", "Phone Country1", "Phone2", "Phonecountry2",
-                "Email Address1", "Emailaddress2", "SMS1", "SMS1 Country",
-                "Custom Field1", "Custom Value1", "Custom Field2",
-                "Custom Value2", "Custom Field3", "Custom Value3", "End"
+                "First Name","Middle Initial","Last Name","Suffix",
+                "External ID","Country","Business Name","Record Type",
+                "Phone 1","Phone Country 1","Phone 2","Phone Country 2",
+                "Email Address 1","Email Address 2","SMS 1","SMS 1 Country",
+                "Custom Field 1","Custom Value 1","Custom Field 2",
+                "Custom Value 2","Custom Field 3","Custom Value 3","END"
             ])
         else: # write header row for Student and Adult
             output.writerow([
-                "First Name", "Middle Initial", "Last Name", "Suffix",
-                "External ID", "Country", "Business Name", "Record Type",
-                "Phone1", "Phone Country1", "Email Address1", "Emailaddress2",
-                "SMS1", "SMS1 Country", "Custom Field1", "Custom Value1",
-                "Custom Field2", "Custom Value2", "Custom Field3",
-                "Custom Value3", "End"
+                "First Name","Middle Initial","Last Name","Suffix",
+                "External ID","Country","Business Name","Record Type",
+                "Phone 1","Phone Country 1","Email Address 1","Email Address 2",
+                "SMS 1","SMS 1 Country","Custom Field 1","Custom Value 1",
+                "Custom Field 2","Custom Value 2","Custom Field 3",
+                "Custom Value 3","END"
             ])
 
         for row in sqlresult:
