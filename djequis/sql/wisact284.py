@@ -19,15 +19,18 @@ def getaid(dispersed):
             --Loan Date
             TO_CHAR(loan_rec.beg_date, '%Y%m%d') AS Loan_Date,
             --Budget Summary
-            CASE    WHEN    NVL(TUIT_RM.c_TUFE,0)   >   0   THEN    TUIT_RM.c_TUFE  ELSE    TUIT_RM.c_TUFE      END AS c_TUFE,
-            CASE    WHEN    NVL(TUIT_RM.c_RMBD,0)   >   0   THEN    TUIT_RM.c_RMBD  ELSE    TUIT_RM.c_RMBD      END AS c_RMBD,
-            CASE    WHEN    NVL(Summary.No_BOOK,0)  >   0   THEN    Summary.No_BOOK ELSE    Summary.Trad_BOOK   END AS  c_BOOK,
-            CASE    WHEN    NVL(Summary.No_TRAN,0)  >   0   THEN    Summary.No_TRAN ELSE    Summary.Trad_TRAN   END AS  c_TRAN,
-            CASE    WHEN    NVL(Summary.No_MISC,0)  >   0   THEN    Summary.No_MISC ELSE    Summary.Trad_MISC   END AS  c_MISC,
-            CASE    WHEN    NVL(Summary.No_LOAN,0)  >   0   THEN    Summary.No_LOAN ELSE    Summary.Trad_LOAN   END AS  c_LOAN
+            --NVL(Summary.No_TUFE, Summary.Trad_TUFE) AS c_TUFE, NVL(Summary.No_RMBD, Summary.Trad_RMBD) AS c_RMBD,
+            --NVL(Summary.No_BOOK, Summary.Trad_BOOK) AS c_BOOK, NVL(Summary.No_TRAN, Summary.Trad_TRAN) AS c_TRAN,
+            --NVL(Summary.No_MISC, Summary.Trad_MISC) AS c_MISC, NVL(Summary.No_LOAN, Summary.Trad_LOAN) AS c_LOAN
+            CASE    WHEN    NVL(Summary.No_TUFE,0)  >   0   THEN    Summary.No_TUFE	ELSE    Summary.Trad_TUFE   END AS  c_TUFE,
+            CASE    WHEN    NVL(Summary.No_RMBD,0)  >   0   THEN    Summary.No_RMBD	ELSE    Summary.Trad_RMBD   END	AS  c_RMBD,
+            CASE    WHEN    NVL(Summary.No_BOOK,0)  >   0   THEN    Summary.No_BOOK	ELSE    Summary.Trad_BOOK   END	AS  c_BOOK,
+            CASE    WHEN    NVL(Summary.No_TRAN,0)  >   0   THEN    Summary.No_TRAN	ELSE    Summary.Trad_TRAN   END	AS  c_TRAN,
+            CASE    WHEN    NVL(Summary.No_MISC,0)  >   0   THEN    Summary.No_MISC	ELSE    Summary.Trad_MISC   END	AS  c_MISC,
+            CASE    WHEN    NVL(Summary.No_LOAN,0)  >   0   THEN    Summary.No_LOAN	ELSE    Summary.Trad_LOAN   END	AS  c_LOAN
         FROM
-            aid_rec T1  INNER JOIN aid_table Aid_Record_Aid_Table ON T1.aid = Aid_Record_Aid_Table.aid
-                        INNER JOIN (
+            aid_rec T1  INNER JOIN  aid_table   Aid_Record_Aid_Table    ON  T1.aid  =   Aid_Record_Aid_Table.aid
+                        INNER JOIN  (
                             SELECT
                                 Aid_Record.id AS Student_ID_Number,
                                 SUM(CASE WHEN Aid_Table.txt LIKE '%Grant%' AND Aid_Table.frm_code IN ('INSF','INSU','PCAR','PMRT','PCEI') THEN Aid_Record.amt ELSE 0 END) AS c_InstGrants,
@@ -51,50 +54,38 @@ def getaid(dispersed):
                                 Aid_Record.amt > 0
                             GROUP BY
                                 Student_ID_Number
-                    )                AidOther            ON     T1.id       =   AidOther.Student_ID_Number
-                    LEFT JOIN   loandisb_rec             ON     T1.aid_no   =   loandisb_rec.aid_no
-                    LEFT JOIN   loan_rec                 ON     loandisb_rec.loan_no    =   loan_rec.loan_no
-                    LEFT OUTER JOIN (
-                    SELECT id_rec.id AS TU_RM_ID,
-                    --40 possible tot_codes
-                    SUM(CASE WHEN subt_table.txt like '%Tuit%' THEN subtr_rec.amt ELSE 0 END) AS c_TUFE,
-                    --21 possible tot_codes
-                    SUM(CASE WHEN subt_table.txt like '%Res%' THEN subtr_rec.amt ELSE 0 END) AS c_RMBD
-                    FROM  id_rec
-                    LEFT JOIN   subtr_rec   ON id_rec.id = subtr_rec.subs_no
-                    INNER JOIN  subt_table  ON subt_table.tot_code = subtr_rec.tot_code
-                    AND subt_table.subs = subtr_rec.subs
-                    AND subtr_rec.tot_prd like '%17'
-                    AND (subt_table.txt like '%Tui%' and subt_table.txt not like '%Grant%' or subt_table.txt like '%Res%')
-                    AND subt_table.inactive_date is null
-                    GROUP BY id_rec.id
-                    )
-                    TUIT_RM ON T1.id = TUIT_RM.TU_RM_ID
-                    LEFT JOIN   (
-                        SELECT
-                            IM.bgt_code AS Budget_Code, IM.id AS ID_Number,
-                            --Trad IM Detail
-                            SUM(CASE WHEN Detail.faitem = 'BOOK' AND IM.bgt_code = 'TRAD IM' THEN Detail.amt ELSE 0 END) AS Trad_BOOK,
-                            SUM(CASE WHEN Detail.faitem = 'TRAN' AND IM.bgt_code = 'TRAD IM' THEN Detail.amt ELSE 0 END) AS Trad_TRAN,
-                            SUM(CASE WHEN Detail.faitem = 'MISC' AND IM.bgt_code = 'TRAD IM' THEN Detail.amt ELSE 0 END) AS Trad_MISC,
-                            SUM(CASE WHEN Detail.faitem = 'LOAN' AND IM.bgt_code = 'TRAD IM' THEN Detail.amt ELSE 0 END) AS Trad_LOAN,
-                            --No IM Detail
-                            SUM(CASE WHEN Detail.faitem = 'BOOK' AND IM.bgt_code <> 'TRAD IM' THEN Detail.amt ELSE 0 END) AS No_BOOK,
-                            SUM(CASE WHEN Detail.faitem = 'TRAN' AND IM.bgt_code <> 'TRAD IM' THEN Detail.amt ELSE 0 END) AS No_TRAN,
-                            SUM(CASE WHEN Detail.faitem = 'MISC' AND IM.bgt_code <> 'TRAD IM' THEN Detail.amt ELSE 0 END) AS No_MISC,
-                            SUM(CASE WHEN Detail.faitem = 'LOAN' AND IM.bgt_code <> 'TRAD IM' THEN Detail.amt ELSE 0 END) AS No_LOAN
-                        FROM
-                            fabgt_rec   IM  INNER JOIN  fabgtdtl_rec    Detail  ON  IM.fabgt_no =   Detail.fabgt_no
-                                                                                AND	IM.fa_yr    =   CASE WHEN TODAY < TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d')  THEN    MOD(YEAR(TODAY) - 1, 100) || MOD(YEAR(TODAY), 100)
-                                                                                                                                                                    ELSE    MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY) + 1, 100)
-                                                                                                    END
-                        GROUP BY
-                            Budget_Code, ID_Number
-                    )                   Summary         ON  T1.id       =   Summary.ID_number
-                    LEFT JOIN   aa_rec  Email           ON  T1.id       =   Email.id
-                                                        AND Email.aa    =   'EML1'
-                                                        AND TODAY   BETWEEN Email.beg_date AND NVL(Email.end_date, TODAY)
-                    INNER JOIN  id_rec  ID_Record       ON  T1.id       =   ID_Record.id
+                        )                           AidOther            ON  T1.id       =   AidOther.Student_ID_Number
+                        LEFT JOIN   loandisb_rec                        ON  T1.aid_no   =   loandisb_rec.aid_no
+                        LEFT JOIN   loan_rec                            ON  loandisb_rec.loan_no    =   loan_rec.loan_no
+                        LEFT JOIN   (
+                            SELECT
+                                IM.bgt_code AS Budget_Code, IM.id AS ID_Number,
+                                --Trad IM Detail
+                                SUM(CASE WHEN Detail.faitem = 'TUFE' AND IM.bgt_code = 'TRAD IM' THEN Detail.amt ELSE 0 END) AS Trad_TUFE,
+                                SUM(CASE WHEN Detail.faitem = 'RMBD' AND IM.bgt_code = 'TRAD IM' THEN Detail.amt ELSE 0 END) AS Trad_RMBD,
+                                SUM(CASE WHEN Detail.faitem = 'BOOK' AND IM.bgt_code = 'TRAD IM' THEN Detail.amt ELSE 0 END) AS Trad_BOOK,
+                                SUM(CASE WHEN Detail.faitem = 'TRAN' AND IM.bgt_code = 'TRAD IM' THEN Detail.amt ELSE 0 END) AS Trad_TRAN,
+                                SUM(CASE WHEN Detail.faitem = 'MISC' AND IM.bgt_code = 'TRAD IM' THEN Detail.amt ELSE 0 END) AS Trad_MISC,
+                                SUM(CASE WHEN Detail.faitem = 'LOAN' AND IM.bgt_code = 'TRAD IM' THEN Detail.amt ELSE 0 END) AS Trad_LOAN,
+                                --No IM Detail
+                                SUM(CASE WHEN Detail.faitem = 'TUFE' AND IM.bgt_code <> 'TRAD IM' THEN Detail.amt ELSE 0 END) AS No_TUFE,
+                                SUM(CASE WHEN Detail.faitem = 'RMBD' AND IM.bgt_code <> 'TRAD IM' THEN Detail.amt ELSE 0 END) AS No_RMBD,
+                                SUM(CASE WHEN Detail.faitem = 'BOOK' AND IM.bgt_code <> 'TRAD IM' THEN Detail.amt ELSE 0 END) AS No_BOOK,
+                                SUM(CASE WHEN Detail.faitem = 'TRAN' AND IM.bgt_code <> 'TRAD IM' THEN Detail.amt ELSE 0 END) AS No_TRAN,
+                                SUM(CASE WHEN Detail.faitem = 'MISC' AND IM.bgt_code <> 'TRAD IM' THEN Detail.amt ELSE 0 END) AS No_MISC,
+                                SUM(CASE WHEN Detail.faitem = 'LOAN' AND IM.bgt_code <> 'TRAD IM' THEN Detail.amt ELSE 0 END) AS No_LOAN
+                            FROM
+                                fabgt_rec   IM  INNER JOIN  fabgtdtl_rec    Detail  ON  IM.fabgt_no =   Detail.fabgt_no
+                                                                                    AND	IM.fa_yr    =   CASE WHEN TODAY < TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d')  THEN    MOD(YEAR(TODAY) - 1, 100) || MOD(YEAR(TODAY), 100)
+                                                                                                                                                                        ELSE    MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY) + 1, 100)
+                                                                                                        END
+                            GROUP BY
+                                Budget_Code, ID_Number
+                        )                   Summary         ON  T1.id       =   Summary.ID_number
+                        LEFT JOIN   aa_rec  Email           ON  T1.id       =   Email.id
+                                                            AND Email.aa    =   'EML1'
+                                                            AND	TODAY   BETWEEN Email.beg_date AND NVL(Email.end_date, TODAY)
+                        INNER JOIN  id_rec  ID_Record       ON  T1.id       =   ID_Record.id
         WHERE
             T1.fa_yr =  CASE WHEN TODAY < TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d')  THEN MOD(YEAR(TODAY) - 1, 100) || MOD(YEAR(TODAY), 100)
                                                                                         ELSE MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY) + 1, 100)
