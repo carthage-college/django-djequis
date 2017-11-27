@@ -37,7 +37,7 @@ os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 from djequis.sql.barnesandnoble import TMP_ACTV_SESS
 from djequis.sql.barnesandnoble import STU_ACAD_REC_100
 from djequis.sql.barnesandnoble import STU_ACAD_REC_200
-from djequis.sql.barnesandnoble import EXENCRS
+from djequis.sql.barnesandnoble import EXENRCRS
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 
@@ -60,9 +60,9 @@ def main():
     datetimestr = time.strftime("%Y%m%d%H%M%S")
     # set dictionary
     dict = {
-        'AR100': STU_ACAD_REC_100,
-        'AR200': STU_ACAD_REC_200,
-        'EXENCRS': EXENCRS
+        'AR100_TEST': STU_ACAD_REC_100,
+        'AR200_TEST': STU_ACAD_REC_200,
+        'EXENRCRS_TEST': EXENRCRS
         }
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
@@ -113,7 +113,7 @@ def main():
         output = csv.writer(csvfile)
         # write header row to file
         if test:
-            if key == 'AR100' or key == 'AR200': # write header row for (AR100, AR200)
+            if key == 'AR100_TEST' or key == 'AR200_TEST': # write header row for (AR100, AR200)
                 output.writerow([
                     "StudentID", "Elastname", "Efirstname", "Xmiddleinit",
                     "Xcred_limit", "EProviderCode", "Ebegdate", "Eenddate",
@@ -139,16 +139,15 @@ def main():
     source_dir = ('{0}'.format(settings.BARNESNOBLE_CSV_OUTPUT))
     # set local path and filenames
     # variable == /data2/www/data/barnesandnoble/{filename.csv}
-    fileAR100 = source_dir + 'AR100.csv'
-    fileAR200 = source_dir + 'AR200.csv'
-    fileEXENCRS = source_dir + 'EXENCRS.csv'
+    fileAR100 = source_dir + 'AR100_TEST.csv'
+    fileAR200 = source_dir + 'AR200_TEST.csv'
+    fileEXENCRS = source_dir + 'EXENRCRS_TEST.csv'
     # sFTP PUT moves the EXENCRS.csv file to the Barnes & Noble server 1
     try:
         with pysftp.Connection(**XTRNL_CONNECTION1) as sftp:
             # used for testing
-            sftp.chdir("TestFiles/")
+            #sftp.chdir("TestFiles/")
             sftp.put(fileEXENCRS, preserve_mtime=True)
-            # deletes original file from our server
             os.remove(fileEXENCRS)
             # closes sftp connection
             sftp.close()
@@ -159,38 +158,40 @@ def main():
             settings.BARNESNOBLE_TO_EMAIL,settings.BARNESNOBLE_FROM_EMAIL,
             BODY, SUBJECT
         )
-    # sFTP PUT moves the AR100.csv, AR200.csv files to the Barnes & Noble server 2
+    # sFTP PUT moves the AR100.csv file to the Barnes & Noble server 2
     try:
         with pysftp.Connection(**XTRNL_CONNECTION2) as sftp:
             # used for testing
+            #sftp.chdir("TestFiles/")
+            sftp.put(fileAR100, preserve_mtime=True)
             sftp.chdir("TestFiles/")
-            try:
-                sftp.put(fileAR100, preserve_mtime=True)
-                # deletes original file from our server
-                os.remove(fileAR100)
-            except Exception, e:
-                SUBJECT = 'BARNES AND NOBLE UPLOAD failed'
-                BODY = 'Unable to PUT AR100.csv to Barnes and Noble server.\n\n{0}'.format(str(e))
-                sendmail(
-                    settings.BARNESNOBLE_TO_EMAIL,settings.BARNESNOBLE_FROM_EMAIL,
-                    BODY, SUBJECT
-                )
-            try:
-                sftp.put(fileAR200, preserve_mtime=True)
-                # deletes original file from our server
-                os.remove(fileAR200)
-            except Exception, e:
-                SUBJECT = 'BARNES AND NOBLE UPLOAD failed'
-                BODY = 'Unable to PUT AR200.csv to Barnes and Noble server.\n\n{0}'.format(str(e))
-                sendmail(
-                    settings.BARNESNOBLE_TO_EMAIL,settings.BARNESNOBLE_FROM_EMAIL,
-                    BODY, SUBJECT
-                )
-        # closes sftp connection
-        sftp.close()
+            sftp.put(fileAR100, preserve_mtime=True)
+            # deletes original file from our server
+            os.remove(fileAR100)
+            # closes sftp connection
+            sftp.close()
     except Exception, e:
         SUBJECT = 'BARNES AND NOBLE UPLOAD failed'
-        BODY = 'Unable to PUT AR100/AR200 files to Barnes and Noble server.\n{0}'.format(str(e))
+        BODY = 'Unable to PUT AR100.csv to Barnes and Noble server.\n\n{0}'.format(str(e))
+        sendmail(
+            settings.BARNESNOBLE_TO_EMAIL,settings.BARNESNOBLE_FROM_EMAIL,
+            BODY, SUBJECT
+        )
+    # sFTP PUT moves the AR200.csv file to the Barnes & Noble server 2
+    try:
+        with pysftp.Connection(**XTRNL_CONNECTION2) as sftp:
+            # used for testing
+            #sftp.chdir("TestFiles/")
+            sftp.put(fileAR200, preserve_mtime=True)
+            sftp.chdir("TestFiles/")
+            sftp.put(fileAR200, preserve_mtime=True)
+            # deletes original file from our server
+            os.remove(fileAR200)
+            # closes sftp connection
+            sftp.close()
+    except Exception, e:
+        SUBJECT = 'BARNES AND NOBLE UPLOAD failed'
+        BODY = 'Unable to PUT AR200.csv to Barnes and Noble server.\n\n{0}'.format(str(e))
         sendmail(
             settings.BARNESNOBLE_TO_EMAIL,settings.BARNESNOBLE_FROM_EMAIL,
             BODY, SUBJECT
