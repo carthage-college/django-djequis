@@ -494,7 +494,7 @@ def main():
                                     if row["criminalHistory"] == 'Y':
                                         try:
                                             #reasontxt = row["criminalHistoryExplanation"].replace("\"", '\'').decode("ascii", "ignore").encode("ascii")
-                                            reasontxt = re.sub(ur'[\s\u0400-\u0527]+', ' ', row["criminalHistoryExplanation"]).replace('0xC2 ', ' ')
+                                            reasontxt = re.sub(ur'[\s\u0400-\u0527]+', ' ', row["criminalHistoryExplanation"]).decode('cp1252').replace(u'\xa0', ' ').encode('utf-8')
                                             resource = 'FELONY'
                                             q_insertText = '''
                                             INSERT INTO app_ectctmp_rec
@@ -511,7 +511,7 @@ def main():
                                     if row["schoolDiscipline"] == 'Y':
                                         try:
                                             #reasontxt = row["disciplinaryViolationExplanation"].replace("\"", '\'').decode("ascii", "ignore").encode("ascii")
-                                            reasontxt = re.sub(ur'[\s\u0400-\u0527]+', ' ', row["disciplinaryViolationExplanation"]).replace('0xC2 ', ' ')
+                                            reasontxt = re.sub(ur'[\s\u0400-\u0527]+', ' ', row["disciplinaryViolationExplanation"]).decode('cp1252').replace(u'\xa0', ' ').encode('utf-8')
                                             resource = 'DISMISS'
                                             q_insertText = '''
                                             INSERT INTO app_ectctmp_rec
