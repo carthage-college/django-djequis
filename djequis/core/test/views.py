@@ -1,9 +1,8 @@
 from django.conf import settings
-from django.template import RequestContext
 from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponseRedirect, Http404
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 
 from djequis.core.test.models import FooBar
 from djequis.core.test.forms import FooBarForm
@@ -13,7 +12,7 @@ from djzbar.decorators.auth import portal_auth_required
 
 
 @portal_auth_required(
-    session_var="DJEQUIS_AUTH", redirect_url=reverse_lazy("access_denied")
+    session_var='DJEQUIS_AUTH', redirect_url=reverse_lazy('access_denied')
 )
 def create_form(request):
     '''
@@ -39,26 +38,26 @@ def create_form(request):
             )
             send_mail(
                 request, TO_LIST, subject, data.created_by.email,
-                "foobar/email.html", data, BCC
+                'foobar/email.html', data, BCC
             )
             return HttpResponseRedirect(
-                reverse_lazy("foobar_success")
+                reverse_lazy('foobar_success')
             )
     else:
         form = FooBarForm()
-    return render_to_response(
-        "foobar/form.html",
-        {"form": form,},
-        context_instance=RequestContext(request)
+    return render(
+        request, 'foobar/form.html',
+        {'form': form,},
     )
 
 
 @portal_auth_required(
-    session_var="DJEQUIS_AUTH", redirect_url=reverse_lazy("access_denied")
+    session_var='DJEQUIS_AUTH', redirect_url=reverse_lazy('access_denied')
 )
 def update_form(request, fid):
     '''
-    You can roll the create and update views into one to reduce redundant code. See:
+    You can roll the create and update views into one to reduce redundant code.
+    See:
     djforms/writingcurriculum/views.py
     djspace/application/views.py
     '''
@@ -92,20 +91,20 @@ def update_form(request, fid):
             )
             send_mail(
                 request, TO_LIST, subject, request.user.email,
-                "foobar/email.html", {
+                'foobar/email.html', {
                     'foobar':foobar,'user':request.user
                 }, settings.MANAGERS
             )
 
             return HttpResponseRedirect(
-                reverse_lazy("foobar_success")
+                reverse_lazy('foobar_success')
             )
     else:
         form = FooBarForm(instance=foobar)
-    return render_to_response(
-        "foobar/form.html",{"form": form},
-        context_instance=RequestContext(request)
+    return render(
+        request, 'foobar/form.html',{'form': form},
     )
+
 
 # the login_required decorator does the same thing as
 # portal_auth_required but the latter can take an authenticated
@@ -120,9 +119,7 @@ def detail(request, fid):
     if foobar.created_by != request.user and not request.user.is_superuser:
         raise Http404
 
-    return render_to_response(
-        "foobar/detail.html",
-        {"data":foobar},
-        context_instance=RequestContext(request)
+    return render(
+        request, 'foobar/detail.html',
+        {'data':foobar},
     )
-
