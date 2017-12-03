@@ -20,7 +20,7 @@ def main():
     """
 
     print("Establish database connection\n")
-    cursor = connections['admissions_pce'].cursor()
+    cursor = connections['admissions'].cursor()
 
     print("Raw SQL\n")
     sql = 'SELECT * FROM app_vouchers LIMIT 10'

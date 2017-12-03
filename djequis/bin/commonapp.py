@@ -197,7 +197,7 @@ def main():
                             # care of this scenario and we will never arrive here.
                             EARL = None
                         # establish mySQL database connection
-                        cursor = connections['admissions_pce'].cursor()
+                        cursor = connections['admissions'].cursor()
                         engine = get_engine(EARL)
                         # set directory and filename where to read from
                         filename=('{0}carthage_applications.txt'.format(
@@ -258,7 +258,7 @@ def main():
                                 scr.write('-- START INSERT NEW STUDENT APPLICATION for: ' + row["firstName"] + ' ' + row["lastName"] + ' - ' + str(apptmp_no) +"\n")
                                 scr.write('------------------------------------------------------------------------------------------------------------------\n')
                                 logger.info('Begin Student Application: {0} {1} {2}'.format(str(apptmp_no), row["firstName"], row["lastName"])+"\r\n")
-                                # fetch id from app_voucher on mySQL dB (admissions_pce)
+                                # fetch id from app_voucher on mySQL dB (admissions)
                                 # insert into app_vouchers_users on mySQL dB
                                 if row["feeWaiverCode"] != '':
                                     try:
