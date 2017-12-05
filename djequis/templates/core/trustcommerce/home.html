@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<head>
+   <title>TrustCommerce import tool</title>
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+   <meta http-equiv="Content-Language" content="en-us" />
+   <meta name="MSSmartTagsPreventParsing" content="true" />
+    <style type="text/css">
+       p.note {color:#555;}
+        td {vertical-align:top; padding:10px 5px;}
+       td, th {vertical-align:top; padding:10px 5px;}
+       th {text-align:left;}
+        .zebra1 {}
+        .zebra0 {background:#eeeeee;}
+    </style>
+</head>
+<body>
+<h3>
+    This page is for building CSV files for ascii-posting
+    of credit card transactions into CX
+</h3>
+{% if objects|length > 0 %}
+    <p>
+        We have {{objects|length}} new credit card
+        transaction{{objects|length|pluralize}}.
+    </p>
+    <table cellpadding="1" cellspacing="0" border="0">
+      <tr class="zebra0">
+        <th>Activity</th>
+        <th>Count</th>
+        <th></th>
+      </tr>
+      {% for o in objects %}
+        <tr class="{% cycle 'zebra1' 'zebra0' %}">
+            <td>{{o.0}}</td>
+            <td align="right">#counters[activity]#</td>
+            <td>{{o.9}}</td>
+            <td>
+              <form name="get_activity_details" method="POST" action=".">
+                <input name="activity" value="{{o.0}}" type="hidden">
+                <input name="datasource" value="{{o.10}}" type="hidden">
+                <input name="method" value="view_details" type="hidden">
+                <input name="selWTCode" value="{{o.9}}" type="hidden">
+                <input name="submit" type="submit" value="View Details">
+              </form>
+            </td>
+        </tr>
+      {% endfor %}
+    </table>
+{% else %}
+   <p>There are no app fee transactions to import.</p>
+{% endif %}
+</body>
+</html>

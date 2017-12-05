@@ -67,7 +67,38 @@ DATABASES = {
         'PORT': '3306',
         'NAME': 'django_djequis',
         'ENGINE': 'django.db.backends.mysql',
-        #'ENGINE': 'django.db.backends.dummy',
+        'USER': '',
+        'PASSWORD': ''
+    },
+    'djforms': {
+        'HOST': '',
+        'PORT': '',
+        'NAME': 'django_djforms',
+        'ENGINE': 'django.db.backends.mysql',
+        'USER': '',
+        'PASSWORD': ''
+    },
+    'rt4': {
+        'HOST': '',
+        'PORT': '',
+        'NAME': 'rt4',
+        'ENGINE': 'django.db.backends.mysql',
+        'USER': '',
+        'PASSWORD': ''
+    },
+    'admissions': {
+        'HOST': '',
+        'PORT': '',
+        'NAME': 'admissions',
+        'ENGINE': 'django.db.backends.mysql',
+        'USER': '',
+        'PASSWORD': ''
+    },
+    'tcpayflow': {
+        'HOST': '',
+        'PORT': '',
+        'NAME': 'tcpayflow',
+        'ENGINE': 'django.db.backends.mysql',
         'USER': '',
         'PASSWORD': ''
     },
