@@ -781,7 +781,7 @@ def main():
                                         m_first_name, m_last_name, m_addr_line1, m_addr_line2, m_city, m_st, m_zip, m_ctry, m_college, m_deg_earn,
                                         m_title, m_suffix, m_email, m_phone, m_job, m_employer, g_first_name, g_last_name, g_addr_line1, g_addr_line2,
                                         g_city, g_st, g_zip, g_ctry, g_college, g_deg_earn, g_title, g_suffix, g_email, g_phone, g_job, g_employer)
-                                        VALUES ({0}, 0, "{1}", "{2}", "{3}", "{4}", "{5}", "{6}", "{7}", "{8}", "{9}", "{10}", "{11}", "{12}", "{13}",
+                                        VALUES (0, {0}, "{1}", "{2}", "{3}", "{4}", "{5}", "{6}", "{7}", "{8}", "{9}", "{10}", "{11}", "{12}", "{13}",
                                         "{14}", "{15}", "{16}", "{17}", "{18}", "{19}", "{20}", "{21}", "{22}", "{23}", "{24}", "{25}", "{26}", "{27}",
                                         "{28}", "{29}", "{30}", "{31}", "{32}", "{33}", "{34}", "{35}", "{36}", "{37}", "{38}", "{39}", "{40}", "{41}",
                                         "{42}", "{43}", "{44}", "{45}", "{46}", "{47}", "{48}");
