@@ -1,0 +1,25 @@
+<p>
+Dear {{data.object.firstname}},
+</p>
+<p>
+  Our records indicate that a loan disbursement
+  was made on your student account.
+</p>
+<p>
+  Please log into <a href="https://my.carthage.edu/">my.carthage.edu</a>,
+  click on tthe finance tab, and review your account.
+</p>
+<p>
+  If you have any questions please call
+  <a href="tel:262-551-6001">262-551-6001</a> or email at
+  <a href="mailto:finaid@carthage.edu">finaid@carthage.edu</a>.
+</p>
+<p>
+  Sincerely,<br>
+</p>
+<p>
+  Financial Aid Office
+</p>
+{% if data.test %}
+email = {{data.email}}
+{% endif %}
