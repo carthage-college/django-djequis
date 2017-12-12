@@ -217,7 +217,7 @@ def main():
                             app_PTSM_list = []
                             for row in reader:
                                 # prints the records information for all fields
-                                print([col+'='+row[col] for col in reader.fieldnames])
+                                #print([col+'='+row[col] for col in reader.fieldnames])
                                 # create UUID
                                 temp_uuid = (uuid.uuid4())
                                 # checks if waiver code is used which determines the payment method
@@ -946,6 +946,8 @@ def main():
                             scr.write('-- STUDENT IDs:' + str(apptmp_no_list) +"\n")
                             apps_count = len(apptmp_no_list)
                             logger.info('Number of Applications: {0}'.format(apps_count)+"\r\n")
+                            # Display current date 
+                            print ('Date: {0}'.format(time.strftime("%A, %B %d %Y")))
                             print ('Number of Applications: {0}'.format(apps_count))
                             TRAD_count = len(app_TRAD_list)
                             print ('TRAD: {0}'.format(TRAD_count))
