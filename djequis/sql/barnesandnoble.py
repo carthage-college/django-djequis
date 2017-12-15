@@ -12,8 +12,8 @@ TMP_ACTV_SESS = '''
                 CASE
                     WHEN sess = 'AA' THEN 45
                     WHEN sess = 'AB' THEN 60
-                    WHEN sess = 'AG' THEN 10
-                    WHEN sess = 'AK' THEN 25
+                    WHEN sess = 'AG' THEN 45
+                    WHEN sess = 'AK' THEN 75
                     WHEN sess = 'AM' THEN 45
                     WHEN sess = 'AS' THEN 25
                     WHEN sess = 'AT' THEN 45
