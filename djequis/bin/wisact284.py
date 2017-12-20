@@ -186,10 +186,12 @@ def main():
                 # adds other loan information
                 csv_end = (row["c_tufe"], "", row["c_rmbd"],
                     row["c_book"], row["c_tran"], row["c_misc"], "", row["c_loan"],
-                    "% .2f" % row["c_instgrants"], "% .2f" % row["c_instscholar"],
-                    "% .2f" % row["c_fedgrants"], "% .2f" % row["c_stegrants"],
-                    "% .2f" % row["c_outsideaid"])
-            csv_line += (row["loan_name"], "% .2f" % row["aid_amount"], "", "",
+                    (0.00 if row["c_instgrants"] is None else "% .2f" % row["c_instgrants"]),
+                    (0.00 if row["c_instscholar"] is None else "% .2f" % row["c_instscholar"]),
+                    (0.00 if row["c_fedgrants"] is None else "% .2f" % row["c_fedgrants"]),
+                    (0.00 if row["c_stegrants"]is None else "% .2f" % row["c_stegrants"]),
+                    (0.00 if row["c_outsideaid"]is None else "% .2f" % row["c_outsideaid"]))
+            csv_line += (row["loan_name"], (0.00 if row["aid_amount"] is None else "% .2f" % row["aid_amount"]), "", "",
                         row["loan_date"])
             loanCount = loanCount +1
         # writes the last line for the last student loan record
