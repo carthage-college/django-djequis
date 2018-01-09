@@ -46,6 +46,7 @@ from djzbar.settings import INFORMIX_EARL_PROD
 
 from djtools.fields import TODAY
 from djtools.utils.mail import send_mail
+from djequis.core.utils import sendmail
 
 DEBUG = settings.INFORMIX_DEBUG
 
@@ -104,14 +105,6 @@ def main():
                 # The filename comming in %m_%d_%y_%h_%i_%s_Applications(%c).txt
                 # The filename renamed to carthage_applications.txt
                 shutil.move(localpath, renamedfile)
-                # Email there was no file found on the Common App server
-                # SUBJECT = '[Papercut] modified file'
-                # BODY = "Here is the new modified papercut file."
-                # sendmail(
-                #     settings.PAPERCUT_TO_EMAIL,settings.PAPERCUT_FROM_EMAIL,
-                #     BODY, SUBJECT
-                # )
-                
                 # print "The path and renamed file ==> " + renamedfile
                 # print "The path and archived filename ==> " + destination
                 # get current year
@@ -134,44 +127,44 @@ def main():
                             orig_papercut_csv.next()
                         print(i)
                         reader = csv.DictReader(orig_papercut_csv, delimiter=',')
-                        
+                            
                         # creates header row in csv file
                         headrow = ("Description", "PostngAccnt", "Amount")
                         # writes file header elements
                         writer.writerow(headrow)
                         for row in reader:
                             try:
-                                # split account name to remove shared account parent name
+                            # split account name to remove shared account parent name
                                 accountName = row['Shared Account Parent Name'].split('/',1)[1]
                                 print(accountName)
                                 print row['Cost']
                                 csv_line = ("{0} print-copy".format(currentMonthYear),
-                                    row["Shared Account Parent Name"].split('/',1)[1],
-                                    row["Cost"])
+                                    row['Shared Account Parent Name'].split('/',1)[1],
+                                    row['Cost'])
                                 writer.writerow(csv_line)
-                            except IndexError:
-                                #print("Error index")
-                                pass # handle error; there's empty element
-                            continue
+                            #except IndexError:
+                            except Exception as e:
+                                print "Exception: {0}".format(str(e))
+                                # Email there was an exception error while processing .csv
+                                SUBJECT = '[Papercut] modified file'
+                                BODY = "There was an exception error: {0}".format(str(e))
+                                sendmail(
+                                    settings.PAPERCUT_TO_EMAIL,settings.PAPERCUT_FROM_EMAIL,
+                                    BODY, SUBJECT
+                                )
                 orig_papercut_csv.close()
                 modifiedfile = ('{0}/Monthly-Modified.csv'.format(current_dir))
                 shutil.move(modifiedfile, renamedfile)
-    #request, recipients, subject, femail, template, data, bcc=None, content='html', attach=False
-    phile = '{0}papercut.csv'.format(source_dir)
+
+    file_attach = '{0}papercut.csv'.format(source_dir)
     request = None
     recipients = settings.PAPERCUT_TO_EMAIL
-    #message = "Here is the new modified papercut file."
     subject = "[Papercut] with attachment"
     femail = settings.PAPERCUT_FROM_EMAIL
     template = 'papercut/email.html'
-    #to_email = settings.PAPERCUT_TO_EMAIL
-    #template = 'papercut/email.html'
-    #template = '{0}email.html'.format(template_dir)
-    #data = {'student':student_data,}
-    #data = {'object': 'steve', 'email': 'emailaddress', 'test': 'test'}
     bcc = 'ssmolik@carthage.edu'
     send_mail(
-        request, recipients, subject, femail, template, bcc, attach=phile
+        request, recipients, subject, femail, template, bcc, attach=file_attach
     )
 
 
