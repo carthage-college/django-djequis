@@ -9,4 +9,6 @@ GET_GL_ACCTS = '''
                   END
     AND ((obj= 73140 AND fund IN (1,2))
     OR (func = 856 AND fund <> 1))
+    ORDER BY
+        func
 '''
