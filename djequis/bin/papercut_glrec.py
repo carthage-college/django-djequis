@@ -51,7 +51,7 @@ EARL = settings.INFORMIX_EARL
 
 # set up command-line options
 desc = """
-    Papercut GL
+    GL Account Names for Papercut
 """
 parser = argparse.ArgumentParser(description=desc)
 
@@ -62,36 +62,37 @@ parser.add_argument(
     dest="test"
 )
 def main():
-    # Run SQL statement
+    # execute SQL statement
     sqlresult = do_sql(GET_GL_ACCTS, earl=EARL)
-    # for row in sqlresult:
-    #     print(row)
-        #accountName = row['acct_descr'].split('/',1)[1]
-        #print(accountName)
-        # acct_name = ("{0}/{1}-{2}-{3}".format(row['acct_descr'].split('/',1)[1],
-        #                                      row['fund'],row['func'],row['obj'])
-        #             )
-        # print(acct_name)
     # set directory and filename
-
-    filename = ('{0}GL_RED_DATA.csv'.format(settings.PAPERCUT_CSV_OUTPUT))
-    # create txt file using pipe delimiter
-    phile = open(filename,"w");
-    output=csv.writer(phile, delimiter="\t")
-    # No Header required but used for testing
-    output.writerow(["Account Name"])
-
-    # create file
-    for row in sqlresult:
-        print(row)
-        #accountName = row['acct_descr'].split('/',1)[1]
-        #print(accountName)
-        acct_name = ("{0}/{1}-{2}-{3}".format(row['acct_descr'].split('/',1)[1],
-                                             row['fund'],row['func'],row['obj'])
-                    )
-        output.writerow(acct_name)
-
-    phile.close()
+    filename = ('{0}GL_REC_DATA.csv'.format(settings.PAPERCUT_CSV_OUTPUT))
+    # opens a file for writing
+    with open(filename,'w') as glrecfile:
+        # creates column header
+        glrecfile.write('Account Name\n')
+        for row in sqlresult:
+            #print(row)
+            #acct_desc = row['acct_descr'].split('/',1)[1]
+            # creates a formatted string
+            accountName = ("{0}/{1}-{2}-{3}".format(row['acct_descr'].split('/',1)[1],
+                                                 row['fund'],row['func'],row['obj'])
+                        )
+            print(accountName)
+            # writes a formatted string to the file
+            glrecfile.write('{0}\n'.format(accountName))
+    # close file
+    glrecfile.close()
+    # sends email attachment
+    file_attach = '{0}GL_REC_DATA.csv'.format(settings.PAPERCUT_CSV_OUTPUT)
+    request = None
+    recipients = settings.PAPERCUT_TO_EMAIL
+    subject = "[GL Account Names] attachment"
+    femail = settings.PAPERCUT_FROM_EMAIL
+    template = 'papercut/email.html'
+    bcc = 'ssmolik@carthage.edu'
+    send_mail(
+        request, recipients, subject, femail, template, bcc, attach=file_attach
+    )
 
 if __name__ == "__main__":
     args = parser.parse_args()
