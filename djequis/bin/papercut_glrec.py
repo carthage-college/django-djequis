@@ -2,9 +2,9 @@ import os
 import sys
 import csv
 import argparse
-from datetime import datetime
+#from datetime import datetime
 import time
-from time import gmtime, strftime
+#from time import gmtime, strftime
 import shutil
 
 # python path
@@ -64,12 +64,16 @@ parser.add_argument(
 def main():
     # execute SQL statement
     sqlresult = do_sql(GET_GL_ACCTS, earl=EARL)
+    # formatting date and time string 
+    datetimestr = time.strftime("%Y%m%d%H%M%S")
     # set directory and filename
-    filename = ('{0}GL_REC_DATA.csv'.format(settings.PAPERCUT_CSV_OUTPUT))
+    filename = ('{0}glrec_data.csv'.format(settings.PAPERCUT_CSV_OUTPUT))
+    # set destination path and new filename that it will be renamed to when archived
+    archive_destination = ('{0}{1}_{2}.csv'.format(
+        settings.PAPERCUT_CSV_ARCHIVED,'glrec_data_bak',datetimestr
+    ))
     # opens a file for writing
     with open(filename,'w') as glrecfile:
-        # creates column header
-        glrecfile.write('Account Name\n')
         for row in sqlresult:
             #print(row)
             #acct_desc = row['acct_descr'].split('/',1)[1]
@@ -82,17 +86,24 @@ def main():
             glrecfile.write('{0}\n'.format(accountName))
     # close file
     glrecfile.close()
+
     # sends email attachment
-    file_attach = '{0}GL_REC_DATA.csv'.format(settings.PAPERCUT_CSV_OUTPUT)
+    file_attach = '{0}glrec_data.csv'.format(settings.PAPERCUT_CSV_OUTPUT)
     request = None
     recipients = settings.PAPERCUT_TO_EMAIL
     subject = "[GL Account Names] attachment"
     femail = settings.PAPERCUT_FROM_EMAIL
-    template = 'papercut/email.html'
+    template = 'papercut/glrec_email.html'
     bcc = 'ssmolik@carthage.edu'
     send_mail(
         request, recipients, subject, femail, template, bcc, attach=file_attach
     )
+    # renaming old filename to newfilename and move to archive location
+    shutil.copy(filename, archive_destination)
+    # sleep for 3 seconds
+    #time.sleep(3)
+    # delete file
+    #os.remove(filename)
 
 if __name__ == "__main__":
     args = parser.parse_args()
