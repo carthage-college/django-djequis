@@ -6,7 +6,6 @@ from datetime import datetime
 import time
 from time import gmtime, strftime
 import shutil
-from itertools import islice
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -37,7 +36,7 @@ os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
-#from djequis.core.utils import sendmail
+from djequis.core.utils import sendmail
 
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
@@ -46,7 +45,6 @@ from djzbar.settings import INFORMIX_EARL_PROD
 
 from djtools.fields import TODAY
 from djtools.utils.mail import send_mail
-from djequis.core.utils import sendmail
 
 DEBUG = settings.INFORMIX_DEBUG
 
@@ -94,17 +92,20 @@ def main():
             if localfile.endswith(".csv"):
                 # set destination path and new filename that it will be renamed to when archived
                 # /data2/www/data/papercut_archives/
-                archived_dir = ('{0}papercut-{1}.csv'.format(
+                archive_destination = ('{0}modified_papercut_{1}.csv'.format(
                     settings.PAPERCUT_CSV_ARCHIVED, datetimestr
                 ))
                 # renamed file name to be processed
                 # /data2/www/data/papercut/papercut.csv
-                renamedfile = ('{0}papercut.csv'.format(source_dir))
-                print ('Renamed File: {0}'.format(renamedfile))
+                orig_papercut_file = ('{0}papercut.csv'.format(source_dir))
+                print ('Original Papercut File: {0}'.format(orig_papercut_file))
+                modified_papercut_file = ('{0}monthly-papercut.csv'.format(source_dir))
+                print ('New Papercut File: {0}'.format(modified_papercut_file))
                 # renaming file fetched from Common App server
                 # The filename comming in %m_%d_%y_%h_%i_%s_Applications(%c).txt
                 # The filename renamed to carthage_applications.txt
-                shutil.move(localpath, renamedfile)
+                shutil.move(localpath, orig_papercut_file)
+                
                 # print "The path and renamed file ==> " + renamedfile
                 # print "The path and archived filename ==> " + destination
                 # get current year
@@ -116,13 +117,14 @@ def main():
                 # returns the short notation for month name + currentYear
                 currentMonthYear = mydate.strftime("%b") + str(currentYear)
                 print ('Current Month/Year: {0}'.format(currentMonthYear))
-                # open original papercut input csv file for reading 
-                orig_papercut_csv = open (renamedfile,"r")
+                # open original papercut input csv file for reading
+                
+                #orig_papercut_csv = open(renamedfile,"r")
                 # modified papercut output csv file
-                with open('Monthly-Modified.csv', 'wb') as modified_papercut_csv:
+                with open(modified_papercut_file, 'wb') as modified_papercut_csv:
                     writer = csv.writer(modified_papercut_csv)
                     # open original papercut input csv file for reading 
-                    with open(renamedfile,'r') as orig_papercut_csv:
+                    with open(orig_papercut_file,'r') as orig_papercut_csv:
                         for i in range(2):
                             orig_papercut_csv.next()
                         print(i)
@@ -153,10 +155,16 @@ def main():
                                     BODY, SUBJECT
                                 )
                 orig_papercut_csv.close()
-                modifiedfile = ('{0}/Monthly-Modified.csv'.format(current_dir))
-                shutil.move(modifiedfile, renamedfile)
+                os.remove(orig_papercut_file)
+                shutil.copy(modified_papercut_file, archive_destination)
+                #modifiedfile = ('{0}/monthly-papercut.csv'.format(current_dir))
+                #print ('Modified File Name: {0}'.format(modifiedfile))
+                
+                #shutil.move(modified_papercut_file, orig_papercut_file)
+                
 
-    file_attach = '{0}papercut.csv'.format(source_dir)
+    #file_attach = '{0}papercut.csv'.format(source_dir)
+    file_attach = modified_papercut_file
     request = None
     recipients = settings.PAPERCUT_TO_EMAIL
     subject = "[Papercut] with attachment"
@@ -166,6 +174,7 @@ def main():
     send_mail(
         request, recipients, subject, femail, template, bcc, attach=file_attach
     )
+    os.remove(modified_papercut_file)
 
 
 if __name__ == "__main__":
