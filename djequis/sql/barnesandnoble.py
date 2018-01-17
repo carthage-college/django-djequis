@@ -1,4 +1,5 @@
 # builds academic calendar for active terms with pre & post grace periods per term
+# modified query per Ron L. 1-17-2018 (changed RB from 10 to 30)
 TMP_ACTV_SESS = '''
     SELECT
         TODAY as today_date, acad_cal_rec.acyr, acad_cal_rec.sess,
@@ -22,7 +23,7 @@ TMP_ACTV_SESS = '''
                     WHEN sess = 'GC' THEN 45
                     WHEN sess = 'GE' THEN 25
                     WHEN sess = 'RA' THEN 21
-                    WHEN sess = 'RB' THEN 10
+                    WHEN sess = 'RB' THEN 30
                     WHEN sess = 'RC' THEN 21
                     WHEN sess = 'RE' THEN 25
                     ELSE 99
@@ -63,7 +64,7 @@ STU_ACAD_REC_100 = '''
         CASE
             WHEN tmpU.id IS NOT NULL THEN 0
                                      ELSE 300000
-        END AS Xcred_limit, 100 AS EProviderCode, TO_CHAR(MIN(tas.beg_date), '%m/%d/%Y') AS Ebegdate,
+        END AS Xcred_limit, 100 AS EProviderCode, TO_CHAR(MIN(tas.beg_date) - 25, '%m/%d/%Y') AS Ebegdate,
         TO_CHAR(MAX(tas.end_date), '%m/%d/%Y') AS Eenddate, "" AS Eidtype, "" AS Erecordtype, "D" AS Eaccttype
     FROM
         stu_acad_rec sar
@@ -81,8 +82,8 @@ STU_ACAD_REC_100 = '''
                     CASE
                         WHEN sess = 'AA' THEN 45
                         WHEN sess = 'AB' THEN 60
-                        WHEN sess = 'AG' THEN 10
-                        WHEN sess = 'AK' THEN 25
+                        WHEN sess = 'AG' THEN 45
+                        WHEN sess = 'AK' THEN 75
                         WHEN sess = 'AM' THEN 45
                         WHEN sess = 'AS' THEN 25
                         WHEN sess = 'AT' THEN 45
@@ -91,7 +92,7 @@ STU_ACAD_REC_100 = '''
                         WHEN sess = 'GC' THEN 45
                         WHEN sess = 'GE' THEN 25
                         WHEN sess = 'RA' THEN 21
-                        WHEN sess = 'RB' THEN 10
+                        WHEN sess = 'RB' THEN 30
                         WHEN sess = 'RC' THEN 21
                         WHEN sess = 'RE' THEN 25
                         ELSE 99
@@ -146,7 +147,7 @@ STU_ACAD_REC_200 = '''
         CASE
             WHEN tmpU.id IS NOT NULL THEN 0
                                      ELSE 5000
-        END AS Xcred_limit, 200 AS EProviderCode, TO_CHAR(MIN(tas.beg_date), '%m/%d/%Y') AS Ebegdate,
+        END AS Xcred_limit, 200 AS EProviderCode, TO_CHAR(MIN(tas.beg_date) - 25, '%m/%d/%Y') AS Ebegdate,
         TO_CHAR(MAX(tas.end_date), '%m/%d/%Y') AS Eenddate, "" AS Eidtype, "" AS Erecordtype, "D" AS Eaccttype
     FROM
         stu_acad_rec sar
@@ -164,8 +165,8 @@ STU_ACAD_REC_200 = '''
                     CASE
                         WHEN sess = 'AA' THEN 45
                         WHEN sess = 'AB' THEN 60
-                        WHEN sess = 'AG' THEN 10
-                        WHEN sess = 'AK' THEN 25
+                        WHEN sess = 'AG' THEN 45
+                        WHEN sess = 'AK' THEN 75
                         WHEN sess = 'AM' THEN 45
                         WHEN sess = 'AS' THEN 25
                         WHEN sess = 'AT' THEN 45
@@ -174,7 +175,7 @@ STU_ACAD_REC_200 = '''
                         WHEN sess = 'GC' THEN 45
                         WHEN sess = 'GE' THEN 25
                         WHEN sess = 'RA' THEN 21
-                        WHEN sess = 'RB' THEN 10
+                        WHEN sess = 'RB' THEN 30
                         WHEN sess = 'RC' THEN 21
                         WHEN sess = 'RE' THEN 25
                         ELSE 99
@@ -237,20 +238,20 @@ EXENRCRS = '''
             INNER JOIN
             (SELECT acr.acyr AS calyr, TRIM(acr.sess) AS sess, YEAR(acr.end_date) AS yr,
                 CASE
-                    WHEN sess = "AA" THEN 45
-                    WHEN sess = "AB" THEN 60
-                    WHEN sess = "AG" THEN 10
-                    WHEN sess = "AK" THEN 25
-                    WHEN sess = "AM" THEN 45
-                    WHEN sess = "AS" THEN 25
-                    WHEN sess = "AT" THEN 45
-                    WHEN sess = "GA" THEN 45
-                    WHEN sess = "GB" THEN 45
-                    WHEN sess = "GC" THEN 45
+                    WHEN sess = 'AA' THEN 45
+                    WHEN sess = 'AB' THEN 60
+                    WHEN sess = 'AG' THEN 45
+                    WHEN sess = 'AK' THEN 75
+                    WHEN sess = 'AM' THEN 45
+                    WHEN sess = 'AS' THEN 25
+                    WHEN sess = 'AT' THEN 45
+                    WHEN sess = 'GA' THEN 45
+                    WHEN sess = 'GB' THEN 45
+                    WHEN sess = 'GC' THEN 45
                     WHEN sess = 'GE' THEN 25
-                    WHEN sess = "RA" THEN 21
-                    WHEN sess = "RB" THEN 10
-                    WHEN sess = "RC" THEN 21
+                    WHEN sess = 'RA' THEN 21
+                    WHEN sess = 'RB' THEN 30
+                    WHEN sess = 'RC' THEN 21
                     WHEN sess = 'RE' THEN 25
                     ELSE 99
                 END AS pre_grace,
