@@ -16,8 +16,8 @@ sys.path.append('/data2/django_third/')
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 
 # prime django
-import django
-django.setup()
+#import django
+#django.setup()
 
 # django settings for script
 from django.conf import settings
@@ -65,7 +65,7 @@ def main():
     }
 
     for key, value in dict.iteritems():
-        print key
+        #print key
         sqlresult = do_sql(value, earl=EARL)
 
         datetimestr = time.strftime("%Y%m%d%H%M%S")
@@ -76,7 +76,7 @@ def main():
         phile=open(filename,"w");
         output=csv.writer(phile, dialect='excel')
 
-        if key == 'FacStaff': # write header row for FacStaff 
+        if key == 'FacStaff': # write header row for FacStaff
             output.writerow([
                 "First Name","Middle Initial","Last Name","Suffix",
                 "External ID","Country","Business Name","Record Type",
