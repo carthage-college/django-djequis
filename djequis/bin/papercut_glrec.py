@@ -67,7 +67,7 @@ def main():
     # set directory and filename
     filename = ('{0}glrec_data.csv'.format(settings.PAPERCUT_CSV_OUTPUT))
     # set destination path and new filename that it will be renamed to when archived
-    archive_destination = ('{0}{1}_{2}.csv'.format(
+    archive_destination = ('{0}/gl_data/{1}_{2}.csv'.format(
         settings.PAPERCUT_CSV_ARCHIVED,'glrec_data_bak',datetimestr
     ))
     # opens a file for writing
@@ -81,7 +81,7 @@ def main():
                 # writes a formatted string to the file
                 glrecfile.write('{0}\n'.format(accountName))
             except Exception as e:
-                print "Exception: {0}".format(str(e))
+                #print "Exception: {0}".format(str(e))
                 # Email that there was an exception error while processing .csv
                 SUBJECT = '[Papercut] GL Exception Error'
                 BODY = "There was an exception error: {0}".format(str(e))
