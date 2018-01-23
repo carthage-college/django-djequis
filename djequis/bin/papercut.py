@@ -4,8 +4,9 @@ import csv
 import argparse
 from datetime import datetime
 import time
-from time import gmtime, strftime
+#from time import gmtime, strftime
 import shutil
+import re
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -61,65 +62,38 @@ parser.add_argument(
     dest="test"
 )
 def main():
+    # set date and time
     datetimestr = time.strftime("%Y%m%d%H%M%S")
-    print ('Date and Time ==> {0}'.format(time.strftime("%A, %B %d %Y")))
-    # path for which to find the .csv file
-    # /data2/www/data/papercut/
-    source_dir = ('{0}'.format(
-        settings.PAPERCUT_CSV_OUTPUT
-    ))
-    print ('Source Directory ==> {0}'.format(source_dir))
-    # template_dir = ('{0}'.format(
-    #     settings.PAPERCUT_CSV_TEMPLATE
-    # ))
-    # current directory where the papercut.py resides
-    # /home/ssmolik/django_dev/django-djequis/djequis/bin
+    # path (/data2/www/data/papercut/) to find the .csv file
+    source_dir = ('{0}'.format(settings.PAPERCUT_CSV_OUTPUT))
+    # current working directory where the papercut.py resides
     current_dir = os.getcwd()
-    print ('Current Working Directory ==> {0}'.format(current_dir))
-    # print ('Template Directory ==> {0}'.format(template_dir))
-    #print "Files found in Template directory {0}.".format(os.listdir(template_dir))
     # list files within the source_dir
-    localpath = os.listdir(source_dir)
-    print "Files found in Papercut directory {0}.".format(localpath)
-    if localpath != []:
-        print ("There was a file(s) found.")
-        for localfile in localpath:
-            # Local Path == /data2/www/data/papercut/{filename.txt}
+    listfiles = os.listdir(source_dir)
+    if listfiles != []:
+        for localfile in listfiles:
+            # Local Path == /data2/www/data/papercut/{filename.csv}
             localpath = source_dir + localfile
-            print "Local Path ==> {0}".format(localpath)
-            # name of the file found in /data2/www/data/papercut/
-            print ('Directory and File(s) ==> {0}'.format(localfile))
             if localfile.endswith(".csv"):
-                # set destination path and new filename that it will be renamed to when archived
+                # set archive path and new filename that it will be renamed to when archived
                 # /data2/www/data/papercut_archives/
-                archive_destination = ('{0}modified_papercut_{1}.csv'.format(
+                archive_destination = ('{0}modified_papercut_bak_{1}.csv'.format(
                     settings.PAPERCUT_CSV_ARCHIVED, datetimestr
                 ))
-                # renamed file name to be processed
+                # rename file to be processed
                 # /data2/www/data/papercut/papercut.csv
                 orig_papercut_file = ('{0}papercut.csv'.format(source_dir))
-                print ('Original Papercut File: {0}'.format(orig_papercut_file))
+                # file name for new file being created
+                # /data2/www/data/papercut/monthly-papercut.csv
                 modified_papercut_file = ('{0}monthly-papercut.csv'.format(source_dir))
-                print ('New Papercut File: {0}'.format(modified_papercut_file))
-                # renaming file fetched from Common App server
-                # The filename comming in %m_%d_%y_%h_%i_%s_Applications(%c).txt
-                # The filename renamed to carthage_applications.txt
+                # the filename renamed to papercut.csv
                 shutil.move(localpath, orig_papercut_file)
-                
-                # print "The path and renamed file ==> " + renamedfile
-                # print "The path and archived filename ==> " + destination
                 # get current year
                 currentYear = datetime.now().year
-                #print ('Current Year: {0}'.format(currentYear))
                 # get current date and time
                 mydate = datetime.now()
-                #print ('MyDate: {0}'.format(mydate))
                 # returns the short notation for month name + currentYear
                 currentMonthYear = mydate.strftime("%b") + str(currentYear)
-                print ('Current Month/Year: {0}'.format(currentMonthYear))
-                # open original papercut input csv file for reading
-                
-                #orig_papercut_csv = open(renamedfile,"r")
                 # modified papercut output csv file
                 with open(modified_papercut_file, 'wb') as modified_papercut_csv:
                     writer = csv.writer(modified_papercut_csv)
@@ -127,18 +101,22 @@ def main():
                     with open(orig_papercut_file,'r') as orig_papercut_csv:
                         for i in range(2):
                             orig_papercut_csv.next()
-                        print(i)
+                        #print(i)
                         reader = csv.DictReader(orig_papercut_csv, delimiter=',')
-                            
                         # creates header row in csv file
                         headrow = ("Description", "PostngAccnt", "Amount")
                         # writes file header elements
                         writer.writerow(headrow)
                         for row in reader:
                             try:
-                            # split account name to remove shared account parent name
-                                accountName = row['Shared Account Parent Name'].split('/',1)[1]
-                                print(accountName)
+                                # split account name to remove shared account parent name
+                                #accountName = row['Shared Account Parent Name'].split('/',1)[1]
+                                #accountName2 = 'r(?:\/)(.\S+)'.format(row['Shared Account Parent Name'])
+                                #accountName2 = accountName.split('\S+', 1)[0]
+                                accountName2 = re.split(r'\/\S+', row['Shared Account Parent Name'],2)[1]
+                                #accountName2 = re.split(r'\#', accountName,1)[1]
+                                #accountName = re.split(r'\/\s+ ', row['Shared Account Parent Name'])
+                                print(accountName2)
                                 print row['Cost']
                                 csv_line = ("{0} print-copy".format(currentMonthYear),
                                     row['Shared Account Parent Name'].split('/',1)[1],
@@ -148,21 +126,30 @@ def main():
                             except Exception as e:
                                 print "Exception: {0}".format(str(e))
                                 # Email there was an exception error while processing .csv
-                                SUBJECT = '[Papercut] modified file'
-                                BODY = "There was an exception error: {0}".format(str(e))
-                                sendmail(
-                                    settings.PAPERCUT_TO_EMAIL,settings.PAPERCUT_FROM_EMAIL,
-                                    BODY, SUBJECT
-                                )
-                orig_papercut_csv.close()
+                                # SUBJECT = '[Papercut] modified file'
+                                # BODY = "There was an exception error: {0}".format(str(e))
+                                # sendmail(
+                                #     settings.PAPERCUT_TO_EMAIL,settings.PAPERCUT_FROM_EMAIL,
+                                #     BODY, SUBJECT
+                                # )
+                    # close orig_papercut_csv
+                    orig_papercut_csv.close()
+                    # close modified_papercut_csv
+                modified_papercut_csv.close()
+                
                 os.remove(orig_papercut_file)
+                os.remove(modified_papercut_file)
+                '''
+                # remove original papercut.csv file
+                os.remove(orig_papercut_file)
+                # archive monthly-papercut.csv file
                 shutil.copy(modified_papercut_file, archive_destination)
+
                 #modifiedfile = ('{0}/monthly-papercut.csv'.format(current_dir))
                 #print ('Modified File Name: {0}'.format(modifiedfile))
-                
                 #shutil.move(modified_papercut_file, orig_papercut_file)
-                
 
+    # email with file attachment
     #file_attach = '{0}papercut.csv'.format(source_dir)
     file_attach = modified_papercut_file
     request = None
@@ -174,9 +161,9 @@ def main():
     send_mail(
         request, recipients, subject, femail, template, bcc, attach=file_attach
     )
+    # delete monthly-papercut.csv file
     os.remove(modified_papercut_file)
-
-
+    '''
 if __name__ == "__main__":
     args = parser.parse_args()
     test = args.test
