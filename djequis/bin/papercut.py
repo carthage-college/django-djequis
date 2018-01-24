@@ -3,8 +3,9 @@ import sys
 import csv
 import argparse
 from datetime import datetime
+from datetime import date
+from dateutil.relativedelta import relativedelta
 import time
-#from time import gmtime, strftime
 import shutil
 import re
 
@@ -64,7 +65,12 @@ parser.add_argument(
 def main():
     # set date and time
     datetimestr = time.strftime("%Y%m%d%H%M%S")
-    # path (/data2/www/data/papercut/) to find the .csv file
+    # Returns the same day of last month if possible otherwise end of month
+    # (eg: March 31st->29th Feb an July 31st->June 30th)
+    last_month = date.today() - relativedelta(months=1)
+    # create string of short notation for month name and year
+    monthYear = format(last_month, '%b%Y')
+    # source path (/data2/www/data/papercut/) to find the .csv file
     source_dir = ('{0}'.format(settings.PAPERCUT_CSV_OUTPUT))
     # current working directory where the papercut.py resides
     current_dir = os.getcwd()
@@ -88,12 +94,6 @@ def main():
                 modified_papercut_file = ('{0}monthly-papercut.csv'.format(source_dir))
                 # the filename renamed to papercut.csv
                 shutil.move(localpath, orig_papercut_file)
-                # get current year
-                currentYear = datetime.now().year
-                # get current date and time
-                mydate = datetime.now()
-                # returns the short notation for month name + currentYear
-                currentMonthYear = mydate.strftime("%b") + str(currentYear)
                 # modified papercut output csv file
                 with open(modified_papercut_file, 'wb') as modified_papercut_csv:
                     writer = csv.writer(modified_papercut_csv)
@@ -110,47 +110,35 @@ def main():
                         for row in reader:
                             try:
                                 # split account name to remove shared account parent name
-                                #accountName = row['Shared Account Parent Name'].split('/',1)[1]
-                                #accountName2 = 'r(?:\/)(.\S+)'.format(row['Shared Account Parent Name'])
-                                #accountName2 = accountName.split('\S+', 1)[0]
-                                accountName2 = re.split(r'\/\S+', row['Shared Account Parent Name'],2)[1]
-                                #accountName2 = re.split(r'\#', accountName,1)[1]
-                                #accountName = re.split(r'\/\s+ ', row['Shared Account Parent Name'])
-                                print(accountName2)
+                                ################################################
+                                # the objective is to remove everything before the slash (/) including and after a certain character in the string
+                                # \s* will helps to match also the preceding vertical or horizontal space character
+                                ################################################
+                                #accountName2 = re.sub(r'(.*)/(.*)(.*)#(.*)',row['Shared Account Parent Name'])
+                                accountName = re.sub(r'\s*#.*', '', row['Shared Account Parent Name'].split('/',1)[1])
+                                print(accountName)
                                 print row['Cost']
-                                csv_line = ("{0} print-copy".format(currentMonthYear),
-                                    row['Shared Account Parent Name'].split('/',1)[1],
-                                    row['Cost'])
+                                csv_line = ("{0} print-copy".format(monthYear),
+                                            accountName, row['Cost']
+                                            )
                                 writer.writerow(csv_line)
-                            #except IndexError:
                             except Exception as e:
                                 print "Exception: {0}".format(str(e))
-                                # Email there was an exception error while processing .csv
-                                # SUBJECT = '[Papercut] modified file'
-                                # BODY = "There was an exception error: {0}".format(str(e))
-                                # sendmail(
-                                #     settings.PAPERCUT_TO_EMAIL,settings.PAPERCUT_FROM_EMAIL,
-                                #     BODY, SUBJECT
-                                # )
+                                # # Email there was an exception error while processing .csv
+                                SUBJECT = '[Papercut] modified file'
+                                BODY = "There was an exception error: {0}".format(str(e))
+                                sendmail(settings.PAPERCUT_TO_EMAIL,settings.PAPERCUT_FROM_EMAIL,
+                                         BODY, SUBJECT
+                                         )
                     # close orig_papercut_csv
                     orig_papercut_csv.close()
                     # close modified_papercut_csv
                 modified_papercut_csv.close()
-                
-                os.remove(orig_papercut_file)
-                os.remove(modified_papercut_file)
-                '''
                 # remove original papercut.csv file
                 os.remove(orig_papercut_file)
                 # archive monthly-papercut.csv file
                 shutil.copy(modified_papercut_file, archive_destination)
-
-                #modifiedfile = ('{0}/monthly-papercut.csv'.format(current_dir))
-                #print ('Modified File Name: {0}'.format(modifiedfile))
-                #shutil.move(modified_papercut_file, orig_papercut_file)
-
-    # email with file attachment
-    #file_attach = '{0}papercut.csv'.format(source_dir)
+    # send email with file attachment
     file_attach = modified_papercut_file
     request = None
     recipients = settings.PAPERCUT_TO_EMAIL
@@ -158,12 +146,10 @@ def main():
     femail = settings.PAPERCUT_FROM_EMAIL
     template = 'papercut/email.html'
     bcc = 'ssmolik@carthage.edu'
-    send_mail(
-        request, recipients, subject, femail, template, bcc, attach=file_attach
-    )
+    send_mail(request, recipients, subject, femail, template, bcc, attach=file_attach)
     # delete monthly-papercut.csv file
     os.remove(modified_papercut_file)
-    '''
+
 if __name__ == "__main__":
     args = parser.parse_args()
     test = args.test
