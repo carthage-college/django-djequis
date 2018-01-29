@@ -67,12 +67,12 @@ def main():
     # Run SQL statement
     sqlresult = do_sql(DEMOGRAPHIC_DATA, earl=EARL)
     # set directory and filename
-    filename=('{}CARTHAGE_DEMOGRAPHICS_DATA.txt'.format(
+    filename=('{0}CARTHAGE_DEMOGRAPHICS_DATA.txt'.format(
         settings.MAXIENT_CSV_OUTPUT
     ))
     # create txt file using pipe delimiter
-    phile=open(filename,"w");
-    output=csv.writer(phile, delimiter="|")
+    maxientfile = open(filename,"w");
+    output=csv.writer(maxientfile, delimiter="|")
 
     if test:
         # No Header required but used for testing
@@ -94,10 +94,10 @@ def main():
         for row in sqlresult:
             output.writerow(row)
     else:
-        print ("No values in list")
-    phile.close()
+        print ('There was a no values in list error')
+    maxientfile.close()
 
-    # SFTP the .txt file
+    # SFTP the .txt file print
     try:
         with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
             sftp.chdir("incoming/")
@@ -110,7 +110,7 @@ def main():
             print e
         else:
             SUBJECT = '[Maxient SFTP] MAXIENT UPLOAD failed'
-            BODY = 'Unable to PUT upload to Maxient server.\n\n{}'.format(str(e))
+            BODY = 'Unable to PUT upload to Maxient server.\n\n{0}'.format(str(e))
             sendmail(
                 settings.MAXIENT_TO_EMAIL,settings.MAXIENT_FROM_EMAIL,
                 SUBJECT, BODY
