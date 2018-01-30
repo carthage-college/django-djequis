@@ -423,6 +423,10 @@ def main():
                                 major3 = row["major3"].replace("ADM-MAJOR-", "").strip()
                                 if len(row["transferMajor3"]):
                                     major3 = row["transferMajor3"].replace("ADM-MAJOR-", "").strip()
+                                # replacing first part of Common App code for preferred residence
+                                hsgType = row["preferredResidence"].replace("ADM-HSG_TYPE-", "").strip()
+                                if len(row["transferPreferredResidence"]):
+                                    hsgType = row["transferPreferredResidence"].replace("ADM-HSG_TYPE-", "").strip()
                                 # set armedForcesStatus variables
                                 if row["armedForcesStatus"] == 'Currently_serving':
                                     armedForcesStatus = 'Y'
@@ -478,12 +482,12 @@ def main():
                                     INSERT INTO app_admtmp_rec
                                     (id, primary_app, plan_enr_sess, plan_enr_yr, intend_hrs_enr, trnsfr, cl, add_date, parent_contr, enrstat, rank, wisconsin_coven,
                                     emailaddr, prog, subprog, upd_date, act_choice, stuint_wt, jics_candidate, major, major2, major3, app_source, pref_name, felony,
-                                    discipline, parnt_mtlstat, live_with, live_with_other, vet_ben, model_score)
+                                    discipline, parnt_mtlstat, live_with, live_with_other, vet_ben, model_score, hsg_type)
                                     VALUES ({0}, "Y", "{1}", {2}, "{3}", "{4}", "{5}", TODAY, "0.00", "", "0", "", "{6}", "UNDG", "{7}", TODAY, "", "0", "N", "{8}",
-                                    "{9}", "{10}", "C", "{11}", "{12}", "{13}", "{14}", "{15}", "{16}", "{17}", 0);
+                                    "{9}", "{10}", "C", "{11}", "{12}", "{13}", "{14}", "{15}", "{16}", "{17}", 0, "{18}");
                                     ''' .format(apptmp_no, planEnrollSession, planEnrollYear, intendHoursEnrolled, transfer, studentType, row["emailAddress"],
                                                 studentStatus, major1, major2, major3, row["preferredName"], row["criminalHistory"], row["schoolDiscipline"], parnt_mtlstat,
-                                                live_with, otherLivingSituation, armedForcesStatus)
+                                                live_with, otherLivingSituation, armedForcesStatus, hsgType)
                                     scr.write(q_create_adm+'\n');
                                     logger.info("Inserted into app_admtmp_rec"+'\r\n');
                                     do_sql(q_create_adm, key=DEBUG, earl=EARL)
