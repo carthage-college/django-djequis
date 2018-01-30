@@ -95,8 +95,8 @@ def main():
         filename=('{0}CCM-{1}.csv'.format(
             settings.WISACT_CSV_OUTPUT,datetimestr
         ))
-        phile = open(filename,"w");
-        writer = csv.writer(phile)
+        wisactfile = open(filename,"w");
+        writer = csv.writer(wisactfile)
         # if command line --test then header will be printed
         if test:
             header = ["File Name", "School OPEID", "File Date"]
@@ -184,14 +184,38 @@ def main():
                     row["student_postal_code"], row["student_country_code"],
                     row["student_email"])
                 # adds other loan information
-                csv_end = (row["c_tufe"], "", row["c_rmbd"],
-                    row["c_book"], row["c_tran"], row["c_misc"], "", row["c_loan"],
+                '''
+                csv_end = ((0.00 if row["c_tufe"] is None else row["c_tufe"]), "0.00",
+                    (0.00 if row["c_rmbd"] is None else row["c_rmbd"]),
+                    (0.00 if row["c_book"] is None else row["c_book"]),
+                    (0.00 if row["c_tran"] is None else row["c_tran"]),
+                    (0.00 if row["c_misc"] is None else row["c_misc"]), "0.00",
+                    (0.00 if row["c_loan"] is None else row["c_loan"]),
                     (0.00 if row["c_instgrants"] is None else "% .2f" % row["c_instgrants"]),
                     (0.00 if row["c_instscholar"] is None else "% .2f" % row["c_instscholar"]),
                     (0.00 if row["c_fedgrants"] is None else "% .2f" % row["c_fedgrants"]),
-                    (0.00 if row["c_stegrants"]is None else "% .2f" % row["c_stegrants"]),
-                    (0.00 if row["c_outsideaid"]is None else "% .2f" % row["c_outsideaid"]))
-            csv_line += (row["loan_name"], (0.00 if row["aid_amount"] is None else "% .2f" % row["aid_amount"]), "", "",
+                    (0.00 if row["c_stegrants"] is None else "% .2f" % row["c_stegrants"]),
+                    (0.00 if row["c_outsideaid"] is None else "% .2f" % row["c_outsideaid"])
+                    )
+            csv_line += (row["loan_name"], ("% .2f" % row["aid_amount"]), "", "",
+                        row["loan_date"])
+                '''
+                csv_end = (
+                    ("% .2f" % (0.00 if row["c_tufe"] is None else row["c_tufe"])),
+                    "0.00",
+                    ("% .2f" % (0.00 if row["c_rmbd"] is None else row["c_rmbd"])),
+                    ("% .2f" % (0.00 if row["c_book"] is None else row["c_book"])),
+                    ("% .2f" % (0.00 if row["c_tran"] is None else row["c_tran"])),
+                    ("% .2f" % (0.00 if row["c_misc"] is None else row["c_misc"])),
+                    "0.00",
+                    ("% .2f" % (0.00 if row["c_loan"] is None else row["c_loan"])),
+                    ("% .2f" % (0.00 if row["c_instgrants"] is None else row["c_instgrants"])),
+                    ("% .2f" % (0.00 if row["c_instscholar"] is None else row["c_instscholar"])),
+                    ("% .2f" % (0.00 if row["c_fedgrants"] is None else row["c_fedgrants"])),
+                    ("% .2f" % (0.00 if row["c_stegrants"] is None else row["c_stegrants"])),
+                    ("% .2f" % (0.00 if row["c_outsideaid"] is None else row["c_outsideaid"]))
+                    )
+            csv_line += (row["loan_name"], ("% .2f" %(0.00 if row["aid_amount"] is None else row["aid_amount"])), "", "",
                         row["loan_date"])
             loanCount = loanCount +1
         # writes the last line for the last student loan record
@@ -201,7 +225,7 @@ def main():
         csv_line += csv_end
         writer.writerow(csv_line)
     # closes file
-    phile.close()
+    wisactfile.close()
 
 if __name__ == "__main__":
     args = parser.parse_args()
