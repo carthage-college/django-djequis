@@ -6,7 +6,8 @@ def getaid(dispersed):
     # SQL for Wisconsin ACT 284
     WIS_ACT_284_SQL = '''
         select distinct
-            '00383900' AS OPEID, 
+            '00383900' AS OPEID,
+            ACADREC.prog AS prog, ACADREC.subprog AS subprog,
             '20' || LEFT(CALREC.acyr, 2) || '-20' || RIGHT(CALREC.acyr, 2) AS AcadYear,
             REPLACE(StuID.ss_no, '-', '') AS Social_Security_Number, 
             TRIM(StuID.firstname) AS Student_First_Name,
@@ -21,18 +22,68 @@ def getaid(dispersed):
             TRIM(StuID.ctry) AS Student_Country_Code,
             TRIM(NVL(Email.line1,'')) AS Student_email,
             --Aid Detail
-            TRIM(CUM_AID.aid) AS Aid_Code, TRIM(CUM_AID.txt) AS Loan_name, CUM_AID.Aid_Amount AS Aid_Amount,
+            --TRIM(CUM_AID.aid) AS Aid_Code,
+            TRIM(CUM_AID.txt) AS Loan_name, NVL(CUM_AID.Aid_Amount, 0.00) AS Aid_Amount,
+            --CASE WHEN CUM_AID.Aid_Amount IS NULL THEN 0 ELSE CUM_AID.Aid_Amount END AS Aid_Amount, --CUM_AID.Aid_Amount AS Aid_Amount,
             --Aid Other
-            AidOther.c_InstGrants, AidOther.c_InstScholar, AidOther.c_FedGrants, AidOther.c_SteGrants, AidOther.c_OutsideAid,
+            --AidOther.c_InstGrants, AidOther.c_InstScholar, AidOther.c_FedGrants, AidOther.c_SteGrants, AidOther.c_OutsideAid,
+            NVL(AidOther.c_InstGrants, 0.00) AS c_InstGrants, NVL(AidOther.c_InstScholar, 0.00) AS c_InstScholar, NVL(AidOther.c_FedGrants, 0.00) AS c_FedGrants,
+            NVL(AidOther.c_SteGrants, 0.00) AS c_SteGrants, NVL(AidOther.c_OutsideAid, 0.00) AS c_OutsideAid,
             --Loan Date
             TO_CHAR(CUM_AID.beg_date, '%Y%m%d') AS Loan_Date,
             --Budget Summary
-            CASE    WHEN    ACADREC.prog = 'PRDV' THEN 2200     WHEN    NVL(BGT_COSTS.No_TUFE,0)    >   0   THEN    BGT_COSTS.No_TUFE   ELSE    BGT_COSTS.Trad_TUFE END AS c_TUFE,
-            CASE    WHEN    NVL(BGT_COSTS.No_RMBD,0)    >   0   THEN    BGT_COSTS.No_RMBD   ELSE    BGT_COSTS.Trad_RMBD END AS  c_RMBD,
-            CASE    WHEN    ACADREC.prog = 'PRDV' THEN 200      WHEN    NVL(BGT_COSTS.No_BOOK,0)    >  0    THEN  BGT_COSTS.No_BOOK     ELSE    BGT_COSTS.Trad_BOOK END AS c_BOOK,
-            CASE    WHEN    NVL(BGT_COSTS.No_TRAN,0)    >   0   THEN    BGT_COSTS.No_TRAN   ELSE    BGT_COSTS.Trad_TRAN END AS  c_TRAN,
-            CASE    WHEN    NVL(BGT_COSTS.No_MISC,0)    >   0   THEN    BGT_COSTS.No_MISC   ELSE BGT_COSTS.Trad_MISC    END AS  c_MISC,
-            CASE    WHEN    NVL(BGT_COSTS.No_LOAN,0)    >   0   THEN    BGT_COSTS.No_LOAN   ELSE    BGT_COSTS.Trad_LOAN END AS  c_LOAN
+            CASE    WHEN    ACADREC.prog = 'PRDV' then 2200      
+                    WHEN    ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_TUFE,0)      =   0   THEN 14080
+                    WHEN    ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_TUFE,0)   =   0   THEN 41950
+                    WHEN    ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_TUFE,0)   =   0   THEN 8800
+                    WHEN    ACADREC.subprog = 'PTSM' AND NVL(BGT_COSTS.No_TUFE,0)   =   0   THEN 8800
+                    WHEN    ACADREC.subprog = '7WK' AND NVL(BGT_COSTS.No_TUFE,0)    =   0   THEN 14700
+                    WHEN    NVL(BGT_COSTS.No_TUFE,0)                                >   0   THEN BGT_COSTS.No_TUFE
+                    WHEN    NVL(BGT_COSTS.No_TUFE,0)                                =   0   AND  NVL(BGT_COSTS.Trad_TUFE,0)   >  0      THEN   BGT_COSTS.Trad_TUFE
+                    END AS  c_TUFE,
+                
+            CASE    WHEN    ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_RMBD,0)      =   0   THEN 8600
+                    WHEN    ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_RMBD,0)   =   0   THEN 11600
+                    WHEN    ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_RMBD,0)   =   0   THEN 9000
+                    WHEN    ACADREC.subprog = 'PTSM' AND NVL(BGT_COSTS.No_RMBD,0)   =   0   THEN 9000
+                    WHEN    ACADREC.subprog = '7WK' AND NVL(BGT_COSTS.No_RMBD,0)    =   0   THEN 10026
+                    WHEN    NVL(BGT_COSTS.No_RMBD,0)                                >   0   THEN    BGT_COSTS.No_RMBD
+                    WHEN    NVL(BGT_COSTS.No_RMBD,0)                                =   0   AND     NVL(BGT_COSTS.Trad_RMBD,0)  >   0      THEN   BGT_COSTS.Trad_RMBD
+                    END AS  c_RMBD,
+            
+            CASE    WHEN    ACADREC.prog = 'PRDV' then 2200
+                    WHEN    ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_BOOK,0)      =   0   THEN 1600
+                    WHEN    ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_BOOK,0)   =   0   THEN 1200
+                    WHEN    ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_BOOK,0)   =   0   THEN 1600
+                    WHEN    ACADREC.subprog = '7WK' AND NVL(BGT_COSTS.No_BOOK,0)    =   0   THEN 1200
+                    WHEN    NVL(BGT_COSTS.No_BOOK,0)                                >   0   THEN    BGT_COSTS.No_BOOK   
+                    WHEN    NVL(BGT_COSTS.No_BOOK,0)                                =   0   AND     NVL(BGT_COSTS.Trad_BOOK,0)   >  0      THEN   BGT_COSTS.Trad_BOOK
+                    END AS  c_BOOK,
+            
+            CASE    WHEN    ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_TRAN,0)      =   0   THEN 1200
+                    WHEN    ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_TRAN,0)   =   0   THEN 1200
+                    WHEN    ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_TRAN,0)   =   0   THEN 1200
+                    WHEN    ACADREC.subprog = '7WK' AND NVL(BGT_COSTS.No_TRAN,0)    =   0   THEN 2100
+                    WHEN    NVL(BGT_COSTS.No_TRAN,0)                                >   0   THEN    BGT_COSTS.No_TRAN
+                    WHEN    NVL(BGT_COSTS.No_TRAN,0)                                =   0   AND     NVL(BGT_COSTS.Trad_TRAN,0)  >   0      THEN   BGT_COSTS.Trad_TRAN
+                    END AS  c_TRAN,
+            
+            CASE    WHEN    ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_MISC,0)      =   0   THEN 1700
+                    WHEN    ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_MISC,0)   =   0   THEN 1700
+                    WHEN    ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_MISC,0)   =   0   THEN 1700
+                    WHEN    ACADREC.subprog = 'PTSM' AND NVL(BGT_COSTS.No_MISC,0)   =   0   THEN 1700
+                    WHEN    ACADREC.subprog = '7WK' AND NVL(BGT_COSTS.No_MISC,0)    =   0   THEN 1290
+                    WHEN    NVL(BGT_COSTS.No_MISC,0)                                >   0   THEN    BGT_COSTS.No_MISC
+                    WHEN    NVL(BGT_COSTS.No_MISC,0)                                =   0   AND     NVL(BGT_COSTS.Trad_MISC,0)  >   0      THEN   BGT_COSTS.Trad_MISC
+                    END AS  c_MISC,
+            
+            CASE    WHEN    ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_LOAN,0)      =   0   THEN 200
+                    WHEN    ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_LOAN,0)   =   0   THEN 200
+                    WHEN    ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_LOAN,0)   =   0   THEN 100
+                    WHEN    ACADREC.subprog = '7WK' AND NVL(BGT_COSTS.No_LOAN,0)    =   0   THEN 216
+                    WHEN    NVL(BGT_COSTS.No_LOAN,0)                                >   0   THEN    BGT_COSTS.No_LOAN
+                    WHEN    NVL(BGT_COSTS.No_LOAN,0)                                =   0   AND     NVL(BGT_COSTS.Trad_LOAN,0)  >   0      THEN   BGT_COSTS.Trad_LOAN
+                    END AS  c_LOAN
         FROM
             -----------------------------------------------
             --ACTIVE STUDENT LIST
@@ -118,7 +169,7 @@ def getaid(dispersed):
             ------------------------------------------------
                 LEFT JOIN
                     (SELECT AIDREC.id, 
-                    AIDREC.aid, AIDTBL.txt, SUM(AIDREC.amt) AS Aid_Amount, 
+                    AIDREC.aid, AIDTBL.txt, SUM(AIDREC.amt) AS Aid_Amount,
                     loan_rec.beg_date
                     FROM    aid_rec AIDREC, aid_table AIDTBL, loandisb_rec, loan_rec
                     WHERE   AIDREC.aid = AIDTBL.aid
@@ -137,10 +188,11 @@ def getaid(dispersed):
                     (SELECT Eml.line1, Eml.id
                     FROM aa_rec Eml
                     WHERE Eml.aa    =   'EML1'
-                    AND TODAY   BETWEEN Eml.beg_date AND NVL(Eml.end_date, TODAY)    
+                    AND TODAY   BETWEEN Eml.beg_date AND NVL(Eml.end_date, TODAY)
                     ) Email
                 ON  ACADREC.id      =   Email.id
          -----------------------------------------------
+        WHERE ACADREC.subprog != 'UWPK'
         ORDER BY
             student_id_number
     '''.format(amt_stat_values)
