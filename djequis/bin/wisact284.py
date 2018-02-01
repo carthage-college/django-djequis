@@ -39,6 +39,7 @@ os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 from djequis.sql.wisact284 import getaid
 from djequis.core.utils import sendmail
+from djtools.utils.mail import send_mail
 from djzbar.utils.informix import do_sql
 
 EARL = settings.INFORMIX_EARL
@@ -80,24 +81,24 @@ def main():
     getaid_sql = getaid(dispersed)
 
     # run getaid_sql SQL statement
-    sqlresults = do_sql(getaid_sql, key=DEBUG, earl=EARL)
-    # if there are no results sned email
+    sqlresults = do_sql(getaid_sql, earl=EARL)
+    # if there are no results send email
     if sqlresults is None:
         # send email
-        SUBJECT = '[Wisconsin Act 284]'
+        SUBJECT = '[Wisconsin Act 284] College Cost Meter file'
         BODY = 'Funds have not been dispersed.\n\n'
         sendmail(
             settings.WISACT_TO_EMAIL,settings.WISACT_FROM_EMAIL,
             BODY, SUBJECT
         )
     else:
-        # set directory and filename where to be stored
-        filename=('{0}CCM-{1}.csv'.format(
-            settings.WISACT_CSV_OUTPUT,datetimestr
-        ))
-        wisactfile = open(filename,"w");
+        # set directory and College Cost Meter file where to be stored
+        ccmfile = ('{0}CCM-{1}.csv'.format(settings.WISACT_CSV_OUTPUT,datetimestr))
+        # opens ccmfile in write mode to add the comment
+        wisactfile = open(ccmfile,"w");
+        # # creating a csv writer object
         writer = csv.writer(wisactfile)
-        # if command line --test then header will be printed
+        # if on command line --test is used then header will be printed
         if test:
             header = ["File Name", "School OPEID", "File Date"]
             # writes file header
@@ -106,7 +107,7 @@ def main():
         header_detail = ("CCM", "00383900", headerdate)
         # writes file header elements
         writer.writerow(header_detail)
-        # if command line --test then loan header will be printed
+        # if on command line --test is used then loan header will be printed
         if test:
             loan_header = ["School OPEID", "Academic Year", "Student SSN",
                 "Student First Name", "Student Last Name", "School Student ID",
@@ -165,7 +166,7 @@ def main():
                     # loops through maxaidcount to add private loans
                     for i in range (loanCount, maxaidcount):
                         # creates spacing in between private loan data other loan information
-                        csv_line += ("", "", "", "", "")
+                        csv_line += ("", "0.00", "", "", "")
                     # adds other loan information
                     csv_line += csv_end
                     writer.writerow(csv_line)
@@ -184,22 +185,6 @@ def main():
                     row["student_postal_code"], row["student_country_code"],
                     row["student_email"])
                 # adds other loan information
-                '''
-                csv_end = ((0.00 if row["c_tufe"] is None else row["c_tufe"]), "0.00",
-                    (0.00 if row["c_rmbd"] is None else row["c_rmbd"]),
-                    (0.00 if row["c_book"] is None else row["c_book"]),
-                    (0.00 if row["c_tran"] is None else row["c_tran"]),
-                    (0.00 if row["c_misc"] is None else row["c_misc"]), "0.00",
-                    (0.00 if row["c_loan"] is None else row["c_loan"]),
-                    (0.00 if row["c_instgrants"] is None else "% .2f" % row["c_instgrants"]),
-                    (0.00 if row["c_instscholar"] is None else "% .2f" % row["c_instscholar"]),
-                    (0.00 if row["c_fedgrants"] is None else "% .2f" % row["c_fedgrants"]),
-                    (0.00 if row["c_stegrants"] is None else "% .2f" % row["c_stegrants"]),
-                    (0.00 if row["c_outsideaid"] is None else "% .2f" % row["c_outsideaid"])
-                    )
-            csv_line += (row["loan_name"], ("% .2f" % row["aid_amount"]), "", "",
-                        row["loan_date"])
-                '''
                 csv_end = (
                     ("% .2f" % (0.00 if row["c_tufe"] is None else row["c_tufe"])),
                     "0.00",
@@ -221,11 +206,22 @@ def main():
         # writes the last line for the last student loan record
         for i in range (loanCount, maxaidcount):
             # creates spacing in between private loan data other loan information
-            csv_line += ("", "", "", "", "")
+            csv_line += ("", "0.00", "", "", "")
         csv_line += csv_end
         writer.writerow(csv_line)
     # closes file
     wisactfile.close()
+    # send email with file attachment
+    file_attach = ccmfile
+    request = None
+    recipients = settings.WISACT_TO_EMAIL
+    subject = "[Wisconsin Act 284] College Cost Meter file attachment"
+    femail = settings.WISACT_FROM_EMAIL
+    template = 'wisact284/wisact_email.html'
+    bcc = 'ssmolik@carthage.edu'
+    send_mail(request, recipients, subject, femail, template, bcc, attach=file_attach)
+    # delete CCM-YmdHMS.csv file
+    os.remove(ccmfile)
 
 if __name__ == "__main__":
     args = parser.parse_args()
