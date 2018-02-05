@@ -116,15 +116,15 @@ def main():
                                 ################################################
                                 #accountName2 = re.sub(r'(.*)/(.*)(.*)#(.*)',row['Shared Account Parent Name'])
                                 accountName = re.sub(r'\s*#.*', '', row['Shared Account Parent Name'].split('/',1)[1])
-                                print(accountName)
-                                print row['Cost']
+                                #print(accountName)
+                                #print row['Cost']
                                 csv_line = ("{0} print-copy".format(monthYear),
                                             accountName, row['Cost']
                                             )
                                 writer.writerow(csv_line)
                             except Exception as e:
-                                print "Exception: {0}".format(str(e))
-                                # # Email there was an exception error while processing .csv
+                                #print "Exception: {0}".format(str(e))
+                                # Email there was an exception error while processing .csv
                                 SUBJECT = '[Papercut] modified file'
                                 BODY = "There was an exception error: {0}".format(str(e))
                                 sendmail(settings.PAPERCUT_TO_EMAIL,settings.PAPERCUT_FROM_EMAIL,
