@@ -76,79 +76,90 @@ def main():
     current_dir = os.getcwd()
     # list files within the source_dir
     listfiles = os.listdir(source_dir)
-    if listfiles != []:
-        for localfile in listfiles:
-            # Local Path == /data2/www/data/papercut/{filename.csv}
-            localpath = source_dir + localfile
-            if localfile.endswith(".csv"):
-                # set archive path and new filename that it will be renamed to when archived
-                # /data2/www/data/papercut_archives/
-                archive_destination = ('{0}modified_papercut_bak_{1}.csv'.format(
-                    settings.PAPERCUT_CSV_ARCHIVED, datetimestr
-                ))
-                # rename file to be processed
-                # /data2/www/data/papercut/papercut.csv
-                orig_papercut_file = ('{0}papercut.csv'.format(source_dir))
-                # file name for new file being created
-                # /data2/www/data/papercut/monthly-papercut.csv
-                modified_papercut_file = ('{0}monthly-papercut.csv'.format(source_dir))
-                # the filename renamed to papercut.csv
-                shutil.move(localpath, orig_papercut_file)
-                # modified papercut output csv file
-                with open(modified_papercut_file, 'wb') as modified_papercut_csv:
-                    writer = csv.writer(modified_papercut_csv)
-                    # open original papercut input csv file for reading 
-                    with open(orig_papercut_file,'r') as orig_papercut_csv:
-                        for i in range(2):
-                            orig_papercut_csv.next()
-                        #print(i)
-                        reader = csv.DictReader(orig_papercut_csv, delimiter=',')
-                        # creates header row in csv file
-                        headrow = ("Description", "PostngAccnt", "Amount")
-                        # writes file header elements
-                        writer.writerow(headrow)
-                        for row in reader:
-                            try:
-                                # split account name to remove shared account parent name
-                                ################################################
-                                # the objective is to remove everything before the slash (/) including and after a certain character in the string
-                                # \s* will helps to match also the preceding vertical or horizontal space character
-                                ################################################
-                                #accountName2 = re.sub(r'(.*)/(.*)(.*)#(.*)',row['Shared Account Parent Name'])
-                                accountName = re.sub(r'\s*#.*', '', row['Shared Account Parent Name'].split('/',1)[1])
-                                #print(accountName)
-                                #print row['Cost']
-                                csv_line = ("{0} print-copy".format(monthYear),
-                                            accountName, row['Cost']
-                                            )
-                                writer.writerow(csv_line)
-                            except Exception as e:
-                                #print "Exception: {0}".format(str(e))
-                                # Email there was an exception error while processing .csv
-                                SUBJECT = '[Papercut] modified file'
-                                BODY = "There was an exception error: {0}".format(str(e))
-                                sendmail(settings.PAPERCUT_TO_EMAIL,settings.PAPERCUT_FROM_EMAIL,
-                                         BODY, SUBJECT
-                                         )
-                    # close orig_papercut_csv
-                    orig_papercut_csv.close()
-                    # close modified_papercut_csv
-                modified_papercut_csv.close()
-                # remove original papercut.csv file
-                os.remove(orig_papercut_file)
-                # archive monthly-papercut.csv file
-                shutil.copy(modified_papercut_file, archive_destination)
-    # send email with file attachment
-    file_attach = modified_papercut_file
-    request = None
-    recipients = settings.PAPERCUT_TO_EMAIL
-    subject = "[Papercut] with attachment"
-    femail = settings.PAPERCUT_FROM_EMAIL
-    template = 'papercut/email.html'
-    bcc = 'ssmolik@carthage.edu'
-    send_mail(request, recipients, subject, femail, template, bcc, attach=file_attach)
-    # delete monthly-papercut.csv file
-    os.remove(modified_papercut_file)
+    for localfile in listfiles:
+        # Local Path == /data2/www/data/papercut/{filename.csv}
+        localpath = source_dir + localfile
+        if localfile.endswith(".csv"):
+            # set archive path and new filename that it will be renamed to when archived
+            # /data2/www/data/papercut_archives/
+            archive_destination = ('{0}modified_papercut_bak_{1}.csv'.format(
+                settings.PAPERCUT_CSV_ARCHIVED, datetimestr
+            ))
+            # rename file to be processed
+            # /data2/www/data/papercut/papercut.csv
+            orig_papercut_file = ('{0}papercut.csv'.format(source_dir))
+            # file name for new file being created
+            # /data2/www/data/papercut/monthly-papercut.csv
+            modified_papercut_file = ('{0}monthly-papercut.csv'.format(source_dir))
+            # the filename renamed to papercut.csv
+            shutil.move(localpath, orig_papercut_file)
+            # modified papercut output csv file
+            with open(modified_papercut_file, 'wb') as modified_papercut_csv:
+                writer = csv.writer(modified_papercut_csv)
+                # open original papercut input csv file for reading 
+                with open(orig_papercut_file,'r') as orig_papercut_csv:
+                    for i in range(2):
+                        orig_papercut_csv.next()
+                    #print(i)
+                    reader = csv.DictReader(orig_papercut_csv, delimiter=',')
+                    # creates header row in csv file
+                    headrow = ("Description", "PostngAccnt", "Amount")
+                    # writes file header elements
+                    writer.writerow(headrow)
+                    for row in reader:
+                        try:
+                            # split account name to remove shared account parent name
+                            ####################################################
+                            # the objective is to remove everything before the slash (/)
+                            # including and after a certain character in the string
+                            # \s* will helps to match also the preceding vertical or horizontal space character
+                            ####################################################
+                            #accountName2 = re.sub(r'(.*)/(.*)(.*)#(.*)',row['Shared Account Parent Name'])
+                            accountName = re.sub(r'\s*#.*', '', row['Shared Account Parent Name'].split('/',1)[1])
+                            #print(accountName)
+                            #print row['Cost']
+                            csv_line = ("{0} print-copy".format(monthYear),
+                                        accountName, row['Cost']
+                                        )
+                            writer.writerow(csv_line)
+                        except Exception as e:
+                            #print "Exception: {0}".format(str(e))
+                            # Email there was an exception error while processing .csv
+                            SUBJECT = '[Papercut] modified file'
+                            BODY = "There was an exception error: {0}".format(str(e))
+                            sendmail(settings.PAPERCUT_TO_EMAIL,settings.PAPERCUT_FROM_EMAIL,
+                                     BODY, SUBJECT
+                                     )
+                # close orig_papercut_csv
+                orig_papercut_csv.close()
+                # close modified_papercut_csv
+            modified_papercut_csv.close()
+            # remove original papercut.csv file
+            os.remove(orig_papercut_file)
+            # archive monthly-papercut.csv file
+            shutil.copy(modified_papercut_file, archive_destination)
+            # send email with file attachment
+            file_attach = modified_papercut_file
+            request = None
+            recipients = settings.PAPERCUT_TO_EMAIL
+            subject = "[Papercut] with attachment"
+            femail = settings.PAPERCUT_FROM_EMAIL
+            template = 'papercut/email.html'
+            bcc = 'ssmolik@carthage.edu'
+            send_mail(request, recipients, subject, femail, template, bcc, attach=file_attach)
+            # delete monthly-papercut.csv file
+            os.remove(modified_papercut_file)
+            # break tells whether we have found the .csv file
+            break
+    # The else attached to a for will be run whenever the break inside the loop is not executed
+    # the else is run because we didn't find the .csv we were searching for
+    else:
+        # no file was found send email
+        SUBJECT = '[Papercut] failed no file found'
+        BODY = 'No .csv file was found'
+        sendmail(settings.PAPERCUT_TO_EMAIL,settings.PAPERCUT_FROM_EMAIL,
+            BODY, SUBJECT
+        )
 
 if __name__ == "__main__":
     args = parser.parse_args()
