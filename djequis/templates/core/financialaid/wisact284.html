@@ -1,17 +1,14 @@
 {% extends "base_datatables.html" %}
 {% block title %}
-    Wisconsin Act 284 &mdash;
-    DJ Equis &mdash;
-    Financial Aid &mdash;
-    Carthage College
+    Wisconsin Act 284&mdash;Financial Aid &mdash;Carthage College
 {% endblock %}
 {% block breadcrumb %}
 <div class="row">
     <div class="col-lg-12">
        <h1>
-        Dispersal
+        Wisconsin Act 284
         <small class="fright" style="margin-right:20px;">
-        <a href="{% url 'home' %}"><i class="fa fa-home fa-2x green"></i></a>
+        <a href="{# url 'home' #}"><i class="fa fa-home fa-2x green"></i></a>
         </small>
         </h1>
     </div>
@@ -29,15 +26,108 @@
     <table class="table table-bordered table-hover" width="100%" cellspacing="0" id="data-table">
     <thead>
       <tr>
+        <th>#</th>
+        <th>OpeID</th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
     {% for o in objects %}
       <tr>
+        <td>{{forloop.counter}}</td>
         <td>{{o.0}}</td>
         <td>{{o.1}}</td>
+        <td>{{o.2}}</td>
+        <td>{{o.3}}</td>
+        <td>{{o.4}}</td>
+        <td>{{o.5}}</td>
+        <td>{{o.6}}</td>
+        <td>{{o.7}}</td>
+        <td>{{o.8}}</td>
+        <td>{{o.9}}</td>
+        <td>{{o.10}}</td>
+        <td>{{o.11}}</td>
+        <td>{{o.12}}</td>
+        <td>{{o.13}}</td>
+        <td>{{o.14}}</td>
+        <td>{{o.15}}</td>
+        <td>{{o.16}}</td>
+        <td>{{o.17}}</td>
+        <td>{{o.18}}</td>
+        <td>{{o.19}}</td>
+        <td>{{o.20}}</td>
+        <td>{{o.21}}</td>
+        <td>{{o.22}}</td>
+        <td>{{o.23}}</td>
+        <td>{{o.24}}</td>
+        <td>{{o.25}}</td>
+        <td>{{o.26}}</td>
+        <td>{{o.27}}</td>
+        <td>{{o.28}}</td>
+        <td>{{o.29}}</td>
+      </tr>
+    {% endfor %}
     </tbody>
       <tfoot>
+        <th>#</th>
+        <th>OpeID</th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
       </tfoot>
     </table>
     </div>

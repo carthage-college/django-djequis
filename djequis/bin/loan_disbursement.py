@@ -77,13 +77,14 @@ def main():
     if database == 'train':
         EARL = INFORMIX_EARL_TEST
 
+    # blind copy managers
+    bcc = [settings.MANAGERS[0][1],settings.FINANCIAL_AID_EMAIL]
 
     # execute the SQL incantation
     sqlresult = do_sql(SQL, earl=EARL)
-
     for s in sqlresult:
         if test:
-            email = settings.MANAGERS[0][1]
+            email = bcc[0]
             logger.debug("email = {}".format(s.email))
         else:
             email = s.email
@@ -96,7 +97,7 @@ def main():
             "Loan Disbursement Notification",
             settings.DEFAULT_FROM_EMAIL,
             'core/financialaid/loan_disbursement/email.html',
-            data, settings.MANAGERS
+            data, bcc
         )
 
 
