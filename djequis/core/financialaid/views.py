@@ -16,6 +16,7 @@ DEBUG = settings.INFORMIX_DEBUG
 
 def wisact284(request):
 
+    sql = None
     objects = None
     if request.method=='POST':
         form = WisAct284Form(request.POST)

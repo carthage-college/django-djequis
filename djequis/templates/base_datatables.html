@@ -17,6 +17,7 @@ table.dataTable thead span.sort-icon {
 }
 .dataTables_wrapper{margin-bottom:20px;}
 .dataTables_length{margin-right:50px;}
+.dataTables_filter { float: left; margin-right:20px; }
 </style>
 {% endblock %}
 {% block extra_javascript %}
@@ -34,7 +35,7 @@ $(document).ready(function() {
     ],
     dom: 'lfrBtip',
     buttons: [
-      'copy', 'csv', 'excel', 'print'
+      'csv', 'excel'
     ]
   });
 });
