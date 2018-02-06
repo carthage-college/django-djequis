@@ -1,20 +1,15 @@
-def getaid(dispersed):
-    if dispersed:
-        amt_stat_values = ("'AD'")
-    else:
-        amt_stat_values = ("'AA','AD','AP','EA'")
     # SQL for Wisconsin ACT 284
     WIS_ACT_284_SQL = '''
         select distinct
             '00383900' AS OPEID,
             ACADREC.prog AS prog, ACADREC.subprog AS subprog,
             '20' || LEFT(CALREC.acyr, 2) || '-20' || RIGHT(CALREC.acyr, 2) AS AcadYear,
-            REPLACE(StuID.ss_no, '-', '') AS Social_Security_Number, 
+            REPLACE(StuID.ss_no, '-', '') AS Social_Security_Number,
             TRIM(StuID.firstname) AS Student_First_Name,
-            TRIM(StuID.lastname) AS Student_Last_Name, 
-            StuID.id AS Student_ID_Number, 
+            TRIM(StuID.lastname) AS Student_Last_Name,
+            StuID.id AS Student_ID_Number,
             TRIM(StuID.addr_line1) AS Student_Address_Line_1,
-            TRIM(StuID.addr_line2) AS Student_Address_Line_2, 
+            TRIM(StuID.addr_line2) AS Student_Address_Line_2,
             TRIM(StuID.addr_line3) AS Student_Address_Line_3,
             TRIM(StuID.city) AS Student_City,
             TRIM(StuID.st) AS Student_State_Code,
@@ -32,7 +27,7 @@ def getaid(dispersed):
             --Loan Date
             TO_CHAR(CUM_AID.beg_date, '%Y%m%d') AS Loan_Date,
             --Budget Summary
-            CASE    WHEN    ACADREC.prog = 'PRDV' then 2200      
+            CASE    WHEN    ACADREC.prog = 'PRDV' then 2200
                     WHEN    ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_TUFE,0)      =   0   THEN 14080
                     WHEN    ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_TUFE,0)   =   0   THEN 41950
                     WHEN    ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_TUFE,0)   =   0   THEN 8800
@@ -41,7 +36,7 @@ def getaid(dispersed):
                     WHEN    NVL(BGT_COSTS.No_TUFE,0)                                >   0   THEN BGT_COSTS.No_TUFE
                     WHEN    NVL(BGT_COSTS.No_TUFE,0)                                =   0   AND  NVL(BGT_COSTS.Trad_TUFE,0)   >  0      THEN   BGT_COSTS.Trad_TUFE
                     END AS  c_TUFE,
-                
+
             CASE    WHEN    ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_RMBD,0)      =   0   THEN 8600
                     WHEN    ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_RMBD,0)   =   0   THEN 11600
                     WHEN    ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_RMBD,0)   =   0   THEN 9000
@@ -50,7 +45,7 @@ def getaid(dispersed):
                     WHEN    NVL(BGT_COSTS.No_RMBD,0)                                >   0   THEN    BGT_COSTS.No_RMBD
                     WHEN    NVL(BGT_COSTS.No_RMBD,0)                                =   0   AND     NVL(BGT_COSTS.Trad_RMBD,0)  >   0      THEN   BGT_COSTS.Trad_RMBD
                     END AS  c_RMBD,
-            
+
             CASE    WHEN    ACADREC.prog = 'PRDV' then 2200
                     WHEN    ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_BOOK,0)      =   0   THEN 1600
                     WHEN    ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_BOOK,0)   =   0   THEN 1200
@@ -59,7 +54,7 @@ def getaid(dispersed):
                     WHEN    NVL(BGT_COSTS.No_BOOK,0)                                >   0   THEN    BGT_COSTS.No_BOOK   
                     WHEN    NVL(BGT_COSTS.No_BOOK,0)                                =   0   AND     NVL(BGT_COSTS.Trad_BOOK,0)   >  0      THEN   BGT_COSTS.Trad_BOOK
                     END AS  c_BOOK,
-            
+
             CASE    WHEN    ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_TRAN,0)      =   0   THEN 1200
                     WHEN    ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_TRAN,0)   =   0   THEN 1200
                     WHEN    ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_TRAN,0)   =   0   THEN 1200
@@ -67,7 +62,7 @@ def getaid(dispersed):
                     WHEN    NVL(BGT_COSTS.No_TRAN,0)                                >   0   THEN    BGT_COSTS.No_TRAN
                     WHEN    NVL(BGT_COSTS.No_TRAN,0)                                =   0   AND     NVL(BGT_COSTS.Trad_TRAN,0)  >   0      THEN   BGT_COSTS.Trad_TRAN
                     END AS  c_TRAN,
-            
+
             CASE    WHEN    ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_MISC,0)      =   0   THEN 1700
                     WHEN    ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_MISC,0)   =   0   THEN 1700
                     WHEN    ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_MISC,0)   =   0   THEN 1700
@@ -76,7 +71,7 @@ def getaid(dispersed):
                     WHEN    NVL(BGT_COSTS.No_MISC,0)                                >   0   THEN    BGT_COSTS.No_MISC
                     WHEN    NVL(BGT_COSTS.No_MISC,0)                                =   0   AND     NVL(BGT_COSTS.Trad_MISC,0)  >   0      THEN   BGT_COSTS.Trad_MISC
                     END AS  c_MISC,
-            
+
             CASE    WHEN    ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_LOAN,0)      =   0   THEN 200
                     WHEN    ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_LOAN,0)   =   0   THEN 200
                     WHEN    ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_LOAN,0)   =   0   THEN 100
@@ -122,7 +117,7 @@ def getaid(dispersed):
                     SUM(CASE WHEN Detail.faitem = 'TRAN' AND IM.bgt_code <> 'TRAD IM' THEN Detail.amt ELSE 0 END) AS No_TRAN,
                     SUM(CASE WHEN Detail.faitem = 'MISC' AND IM.bgt_code <> 'TRAD IM' THEN Detail.amt ELSE 0 END) AS No_MISC,
                     SUM(CASE WHEN Detail.faitem = 'LOAN' AND IM.bgt_code <> 'TRAD IM' THEN Detail.amt ELSE 0 END) AS No_LOAN
-                FROM 
+                FROM
                 fabgt_rec   IM
                     INNER JOIN  fabgtdtl_rec    Detail
                         ON  IM.fabgt_no =   Detail.fabgt_no
@@ -140,7 +135,7 @@ def getaid(dispersed):
             -----------------------------------------------
             LEFT JOIN
                 (SELECT
-                    Aid_Record.id AS Student_ID_Number, 
+                    Aid_Record.id AS Student_ID_Number,
                     SUM(CASE WHEN Aid_Table.txt LIKE '%Grant%' AND Aid_Table.frm_code IN ('INSF','INSU','PCAR','PMRT','PCEI') THEN Aid_Record.amt ELSE 0 END) AS c_InstGrants,
                     SUM(CASE WHEN Aid_Table.txt NOT LIKE '%Grant%' AND Aid_Table.frm_code IN ('INSF','INSU','PCAR','PMRT','PCEI') THEN Aid_Record.amt ELSE 0 END) AS c_InstScholar,
                     SUM(CASE WHEN Aid_Table.frm_code = 'PFGR' THEN Aid_Record.amt ELSE 0 END) AS c_FedGrants,
@@ -157,7 +152,7 @@ def getaid(dispersed):
                 AND
                     Aid_Record.stat IN ('A')
                 AND
-                    Aid_Record.amt_stat IN ({0})
+                    Aid_Record.amt_stat IN ({amt_stat})
                 AND
                     Aid_Record.amt > 0
                 GROUP BY
@@ -168,14 +163,14 @@ def getaid(dispersed):
             --    CUMULATIVE Aid - Loans
             ------------------------------------------------
                 LEFT JOIN
-                    (SELECT AIDREC.id, 
+                    (SELECT AIDREC.id,
                     AIDREC.aid, AIDTBL.txt, SUM(AIDREC.amt) AS Aid_Amount,
                     loan_rec.beg_date
                     FROM    aid_rec AIDREC, aid_table AIDTBL, loandisb_rec, loan_rec
                     WHERE   AIDREC.aid = AIDTBL.aid
                     AND loandisb_rec.aid_no = AIDREC.aid_no
                     AND loan_rec.loan_no = loandisb_rec.loan_no
-                    AND AIDREC.amt_stat IN ({0})
+                    AND AIDREC.amt_stat IN ({amt_stat})
                     AND (AIDTBL.aid LIKE ('ALN%') OR AIDTBL.aid LIKE ('DIS%') OR AIDTBL.aid LIKE ('PNC%') OR AIDTBL.aid LIKE ('SMS%') OR AIDTBL.aid LIKE ('WEL%'))
                     AND AIDREC.stat = 'A'
                     AND AIDREC.amt > 0
@@ -195,5 +190,4 @@ def getaid(dispersed):
         WHERE ACADREC.subprog != 'UWPK'
         ORDER BY
             student_id_number
-    '''.format(amt_stat_values)
-    return WIS_ACT_284_SQL
+    '''.format

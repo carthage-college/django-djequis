@@ -37,7 +37,7 @@ os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
-from djequis.sql.wisact284 import getaid
+from djequis.sql.wisact284 import WIS_ACT_284_SQL
 from djequis.core.utils import sendmail
 from djtools.utils.mail import send_mail
 from djzbar.utils.informix import do_sql
@@ -45,13 +45,14 @@ from djzbar.utils.informix import do_sql
 EARL = settings.INFORMIX_EARL
 DEBUG = settings.INFORMIX_DEBUG
 
-################################################################################
+###############################################################################
 # The objective of the School College Cost Meter (CCM) File is to help schools
 # provide detailed student information to Great Lakes in a standard format that
 # correctly populates the College Cost Meter.
 #
-# The School College Cost Meter File will list all students to which Great Lakes
-# will send an email or letter detailing required state law information.
+# The School College Cost Meter File will list all students to which
+# Great Lakes will send an email or letter detailing required
+# state law information.
 ###############################################################################
 desc = """
     Wisconsin ACT 284
@@ -77,11 +78,18 @@ def main():
     headerdate = time.strftime("%Y%m%d")
     datetimestr = time.strftime("%Y%m%d%H%M%S")
 
+    if dispersed:
+        sql = WIS_ACT_284_SQL.format(amt_stats = "'AD'")
+    else:
+        sql = WIS_ACT_284_SQL.format(
+            amt_stats = "'AA','AD','AP','EA'"
+        )
+
     # Looks at query and determines if aid has been despersed
     getaid_sql = getaid(dispersed)
 
     # run getaid_sql SQL statement
-    sqlresults = do_sql(getaid_sql, earl=EARL)
+    sqlresults = do_sql(sql, earl=EARL)
     # if there are no results send email
     if sqlresults is None:
         # send email
@@ -93,7 +101,9 @@ def main():
         )
     else:
         # set directory and College Cost Meter file where to be stored
-        ccmfile = ('{0}CCM-{1}.csv'.format(settings.WISACT_CSV_OUTPUT,datetimestr))
+        ccmfile = ('{0}CCM-{1}.csv'.format(
+            settings.WISACT_CSV_OUTPUT,datetimestr)
+        )
         # opens ccmfile in write mode to add the comment
         wisactfile = open(ccmfile,"w");
         # # creating a csv writer object
@@ -109,48 +119,55 @@ def main():
         writer.writerow(header_detail)
         # if on command line --test is used then loan header will be printed
         if test:
-            loan_header = ["School OPEID", "Academic Year", "Student SSN",
+            loan_header = [
+                "School OPEID", "Academic Year", "Student SSN",
                 "Student First Name", "Student Last Name", "School Student ID",
                 "Student Address Line 1", "Student Address Line 2",
                 "Student Address Line 3", "Student City", "Student State",
                 "Student Zip", "Student Country", "Student Email Address",
-                "Private Loan Name 1", "Private Loan Amount 1", "Repayment Length",
-                "Private Loan Interest Rate", "Loan Date 1", "Private Loan Name 2",
-                "Private Loan Amount 2", "Repayment Length", "Private Loan Interest Rate",
+                "Private Loan Name 1", "Private Loan Amount 1",
+                "Repayment Length", "Private Loan Interest Rate",
+                "Loan Date 1", "Private Loan Name 2", "Private Loan Amount 2",
+                "Repayment Length", "Private Loan Interest Rate",
                 "Loan Date 2", "Private Loan Name 3", "Private Loan Amount 3",
-                "Repayment Length", "Private Loan Interest Rate", "Loan Date 3",
-                "Private Loan Name 4", "Private Loan Amount 4", "Repayment Length",
-                "Private Loan Interest Rate", "Loan Date 4", "Private Loan Name 5",
-                "Private Loan Amount 5", "Repayment Length", "Private Loan Interest Rate",
+                "Repayment Length", "Private Loan Interest Rate",
+                "Loan Date 3", "Private Loan Name 4", "Private Loan Amount 4",
+                "Repayment Length", "Private Loan Interest Rate",
+                "Loan Date 4", "Private Loan Name 5", "Private Loan Amount 5",
+                "Repayment Length", "Private Loan Interest Rate",
                 "Loan Date 5", "Private Loan Name 6", "Private Loan Amount 6",
-                "Repayment Length", "Private Loan Interest Rate", "Loan Date 6",
-                "Institutional Loan Name 1", "Institutional Loan Amount",
-                "Institutional Loan Interest Rate", "Repayment Length", "Loan Date",
-                "Institutional Loan Name 2", "Institutional Loan Amount",
-                "Institutional Loan Interest Rate", "Repayment Length", "Loan Date",
-                "Institutional Loan Name 3", "Institutional Loan Amount",
-                "Institutional Loan Interest Rate", "Repayment Length", "Loan Date",
-                "Institutional Loan Name 4", "Institutional Loan Amount",
-                "Institutional Loan Interest Rate", "Repayment Length", "Loan Date",
+                "Repayment Length", "Private Loan Interest Rate",
+                "Loan Date 6", "Institutional Loan Name 1",
+                "Institutional Loan Amount","Institutional Loan Interest Rate",
+                "Repayment Length", "Loan Date", "Institutional Loan Name 2",
+                "Institutional Loan Amount","Institutional Loan Interest Rate",
+                "Repayment Length", "Loan Date", "Institutional Loan Name 3",
+                "Institutional Loan Amount","Institutional Loan Interest Rate",
+                "Repayment Length", "Loan Date", "Institutional Loan Name 4",
+                "Institutional Loan Amount","Institutional Loan Interest Rate",
+                "Repayment Length", "Loan Date",
                 "Institutional Loan Name 5", "Institutional Loan Amount",
-                "Institutional Loan Interest Rate", "Repayment Length", "Loan Date",
-                "Institutional Loan Name 6", "Institutional Loan Amount",
-                "Institutional Loan Interest Rate", "Repayment Length", "Loan Date",
-                "State Loan Name 1", "State Loan Amount", "State Loan Interest Rate",
+                "Institutional Loan Interest Rate", "Repayment Length",
+                "Loan Date", "Institutional Loan Name 6",
+                "Institutional Loan Amount","Institutional Loan Interest Rate",
+                "Repayment Length", "Loan Date", "State Loan Name 1",
+                "State Loan Amount", "State Loan Interest Rate",
                 "Repayment Length", "Loan Date", "State Loan Name 2",
-                "State Loan Amount", "State Loan Interest Rate", "Repayment Length",
-                "Loan Date", "State Loan Name 3", "State Loan Amount",
-                "State Loan Interest Rate", "Repayment Length", "Loan Date",
-                "State Loan Name 4", "State Loan Amount", "State Loan Interest Rate",
+                "State Loan Amount", "State Loan Interest Rate",
+                "Repayment Length", "Loan Date", "State Loan Name 3",
+                "State Loan Amount", "State Loan Interest Rate",
+                "Repayment Length", "Loan Date", "State Loan Name 4",
+                "State Loan Amount", "State Loan Interest Rate",
                 "Repayment Length", "Loan Date", "State Loan Name 5",
-                "State Loan Amount", "State Loan Interest Rate", "Repayment Length",
-                "Loan Date", "State Loan Name 6", "State Loan Amount",
-                "State Loan Interest Rate", "Repayment Length", "Loan Date",
-                "Tuition", "Tuition Fees", "Room & Board", "Books & Supplies",
-                "Transportation", "Other Education Costs", "Personal Education Costs",
-                "Loan Fees", "Institutional Grants", "Institutional Scholarship",
+                "State Loan Amount", "State Loan Interest Rate",
+                "Repayment Length", "Loan Date", "State Loan Name 6",
+                "State Loan Amount", "State Loan Interest Rate",
+                "Repayment Length", "Loan Date", "Tuition", "Tuition Fees",
+                "Room & Board", "Books & Supplies", "Transportation",
+                "Other Education Costs", "Personal Education Costs",
+                "Loan Fees","Institutional Grants","Institutional Scholarship",
                 "Federal Grants", "State Grants", "Other Scholarships"
-                ]
+            ]
             # writes loan header elements
             writer.writerow(loan_header)
         #######################################################################
@@ -165,7 +182,8 @@ def main():
                 if currentID != 0:
                     # loops through maxaidcount to add private loans
                     for i in range (loanCount, maxaidcount):
-                        # creates spacing in between private loan data other loan information
+                        # creates spacing in between private loan data and
+                        # other loan information
                         csv_line += ("", "0.00", "", "", "")
                     # adds other loan information
                     csv_line += csv_end
@@ -177,10 +195,11 @@ def main():
                 # adds each financial aid loan record to same row for student
                 # The % .2f is to keep the decimal format
                  ##############################################################
-                csv_line = (row["opeid"], row["acadyear"], row["social_security_number"],
+                csv_line = (
+                    row["opeid"],row["acadyear"],row["social_security_number"],
                     row["student_first_name"], row["student_last_name"],
                     row["student_id_number"], row["student_address_line_1"],
-                    row["student_address_line_2"], row["student_address_line_3"],
+                    row["student_address_line_2"],row["student_address_line_3"],
                     row["student_city"], row["student_state_code"],
                     row["student_postal_code"], row["student_country_code"],
                     row["student_email"])
@@ -205,7 +224,8 @@ def main():
             loanCount = loanCount +1
         # writes the last line for the last student loan record
         for i in range (loanCount, maxaidcount):
-            # creates spacing in between private loan data other loan information
+            # creates spacing in between private loan data and
+            # other loan information
             csv_line += ("", "0.00", "", "", "")
         csv_line += csv_end
         writer.writerow(csv_line)
@@ -219,7 +239,9 @@ def main():
     femail = settings.WISACT_FROM_EMAIL
     template = 'wisact284/wisact_email.html'
     bcc = 'ssmolik@carthage.edu'
-    send_mail(request, recipients, subject, femail, template, bcc, attach=file_attach)
+    send_mail(
+        request, recipients, subject, femail, template, bcc, attach=file_attach
+    )
     # delete CCM-YmdHMS.csv file
     os.remove(ccmfile)
 
