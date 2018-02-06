@@ -94,6 +94,7 @@ ENV/
 *.log
 *.pot
 *.swp
-settings.py
+djequis/settings/production.py
+djequis/settings/development.py
 wsgi.py
 commonapp_output.sql

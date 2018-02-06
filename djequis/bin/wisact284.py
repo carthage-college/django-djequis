@@ -79,11 +79,9 @@ def main():
     datetimestr = time.strftime("%Y%m%d%H%M%S")
 
     if dispersed:
-        sql = WIS_ACT_284_SQL.format(amt_stats = "'AD'")
+        sql = WIS_ACT_284_SQL(amt_stat = "'AD'")
     else:
-        sql = WIS_ACT_284_SQL.format(
-            amt_stats = "'AA','AD','AP','EA'"
-        )
+        sql = WIS_ACT_284_SQL(amt_stat = "'AA','AD','AP','EA'")
 
     # Looks at query and determines if aid has been despersed
     getaid_sql = getaid(dispersed)

@@ -38,204 +38,118 @@ SELECT DISTINCT
     TO_CHAR(CUM_AID.beg_date, '%Y%m%d') AS Loan_Date,
     --Budget Summary
     CASE
-        WHEN
-            ACADREC.prog = 'PRDV'
-        THEN
-            2200
-        WHEN
-            ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_TUFE,0) = 0
-        THEN
-            14080
-        WHEN
-            ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_TUFE,0) = 0
-        THEN
-            41950
-        WHEN
-            ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_TUFE,0) = 0
-        THEN
-            8800
-        WHEN
-            ACADREC.subprog = 'PTSM' AND NVL(BGT_COSTS.No_TUFE,0) = 0
-        THEN
-            8800
-        WHEN
-            ACADREC.subprog = '7WK' AND NVL(BGT_COSTS.No_TUFE,0) = 0
-        THEN
-            14700
-        WHEN
-            NVL(BGT_COSTS.No_TUFE,0) > 0
-        THEN
-            BGT_COSTS.No_TUFE
-        WHEN
-            NVL(BGT_COSTS.No_TUFE,0) = 0 AND NVL(BGT_COSTS.Trad_TUFE,0) > 0
-        THEN
-            BGT_COSTS.Trad_TUFE
-        END AS
-            c_TUFE,
+        WHEN ACADREC.prog = 'PRDV'
+        THEN 2200
+        WHEN ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_TUFE,0) = 0
+        THEN 14080
+        WHEN ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_TUFE,0) = 0
+        THEN 41950
+        WHEN ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_TUFE,0) = 0
+        THEN 8800
+        WHEN ACADREC.subprog = 'PTSM' AND NVL(BGT_COSTS.No_TUFE,0) = 0
+        THEN 8800
+        WHEN ACADREC.subprog = '7WK' AND NVL(BGT_COSTS.No_TUFE,0) = 0
+        THEN 14700
+        WHEN NVL(BGT_COSTS.No_TUFE,0) > 0
+        THEN BGT_COSTS.No_TUFE
+        WHEN NVL(BGT_COSTS.No_TUFE,0) = 0 AND NVL(BGT_COSTS.Trad_TUFE,0) > 0
+        THEN BGT_COSTS.Trad_TUFE
+    END AS   c_TUFE,
     CASE
-        WHEN
-            ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_RMBD,0) = 0
-        THEN
-            8600
-        WHEN
-            ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_RMBD,0) = 0
-        THEN
-            11600
-        WHEN
-            ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_RMBD,0) = 0
-        THEN
-            9000
-        WHEN
-            ACADREC.subprog = 'PTSM' AND NVL(BGT_COSTS.No_RMBD,0) = 0
-        THEN
-            9000
-        WHEN
-            ACADREC.subprog = '7WK' AND NVL(BGT_COSTS.No_RMBD,0) = 0
-        THEN
-            10026
-        WHEN
-            NVL(BGT_COSTS.No_RMBD,0) > 0
-        THEN
-            BGT_COSTS.No_RMBD
-        WHEN
-            NVL(BGT_COSTS.No_RMBD,0) = 0 AND NVL(BGT_COSTS.Trad_RMBD,0) > 0
-        THEN
-            BGT_COSTS.Trad_RMBD
-        END AS
-            c_RMBD,
+        WHEN ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_RMBD,0) = 0
+        THEN 8600
+        WHEN ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_RMBD,0) = 0
+        THEN 11600
+        WHEN ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_RMBD,0) = 0
+        THEN 9000
+        WHEN ACADREC.subprog = 'PTSM' AND NVL(BGT_COSTS.No_RMBD,0) = 0
+        THEN 9000
+        WHEN ACADREC.subprog = '7WK' AND NVL(BGT_COSTS.No_RMBD,0) = 0
+        THEN 10026
+        WHEN NVL(BGT_COSTS.No_RMBD,0) > 0
+        THEN BGT_COSTS.No_RMBD
+        WHEN NVL(BGT_COSTS.No_RMBD,0) = 0 AND NVL(BGT_COSTS.Trad_RMBD,0) > 0
+        THEN BGT_COSTS.Trad_RMBD
+    END AS   c_RMBD,
     CASE
-        WHEN
-            ACADREC.prog = 'PRDV'
-        THEN
-            2200
-        WHEN
-            ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_BOOK,0) = 0
-        THEN
-            1600
-        WHEN
-            ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_BOOK,0) = 0
-        THEN
-            1200
-        WHEN
-            ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_BOOK,0) = 0
-        THEN
-            1600
-        WHEN
-            ACADREC.subprog = '7WK' AND NVL(BGT_COSTS.No_BOOK,0) = 0
-        THEN
-            1200
-        WHEN
-            NVL(BGT_COSTS.No_BOOK,0) > 0
-        THEN
-            BGT_COSTS.No_BOOK
-        WHEN
-            NVL(BGT_COSTS.No_BOOK,0) = 0 AND NVL(BGT_COSTS.Trad_BOOK,0) > 0
-        THEN
-           BGT_COSTS.Trad_BOOK
-        END AS
-            c_BOOK,
+        WHEN ACADREC.prog = 'PRDV'
+        THEN 2200
+        WHEN ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_BOOK,0) = 0
+        THEN 1600
+        WHEN ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_BOOK,0) = 0
+        THEN 1200
+        WHEN ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_BOOK,0) = 0
+        THEN 1600
+        WHEN ACADREC.subprog = '7WK' AND NVL(BGT_COSTS.No_BOOK,0) = 0
+        THEN 1200
+        WHEN NVL(BGT_COSTS.No_BOOK,0) > 0
+        THEN BGT_COSTS.No_BOOK
+        WHEN NVL(BGT_COSTS.No_BOOK,0) = 0 AND NVL(BGT_COSTS.Trad_BOOK,0) > 0
+        THEN BGT_COSTS.Trad_BOOK
+    END AS   c_BOOK,
     CASE
-        WHEN
-            ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_TRAN,0) = 0
-        THEN
-            1200
-        WHEN
-            ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_TRAN,0) = 0
-        THEN
-            1200
-        WHEN
-            ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_TRAN,0) = 0
-        THEN
-            1200
-        WHEN
-            ACADREC.subprog = '7WK' AND NVL(BGT_COSTS.No_TRAN,0) = 0
-        THEN
-            2100
-        WHEN
-            NVL(BGT_COSTS.No_TRAN,0) > 0
-        THEN
-            BGT_COSTS.No_TRAN
-        WHEN
-            NVL(BGT_COSTS.No_TRAN,0) = 0 AND NVL(BGT_COSTS.Trad_TRAN,0) > 0
-        THEN
-             BGT_COSTS.Trad_TRAN
-        END AS
-            c_TRAN,
+        WHEN ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_TRAN,0) = 0
+        THEN 1200
+        WHEN ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_TRAN,0) = 0
+        THEN 1200
+        WHEN ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_TRAN,0) = 0
+        THEN 1200
+        WHEN ACADREC.subprog = '7WK' AND NVL(BGT_COSTS.No_TRAN,0) = 0
+        THEN 2100
+        WHEN NVL(BGT_COSTS.No_TRAN,0) > 0
+        THEN BGT_COSTS.No_TRAN
+        WHEN NVL(BGT_COSTS.No_TRAN,0) = 0 AND NVL(BGT_COSTS.Trad_TRAN,0) > 0
+        THEN BGT_COSTS.Trad_TRAN
+    END AS   c_TRAN,
     CASE
-        WHEN
-            ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_MISC,0) = 0
-        THEN
-            1700
-        WHEN
-            ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_MISC,0) = 0
-        THEN
-            1700
-        WHEN
-            ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_MISC,0) = 0
-        THEN
-            1700
-        WHEN
-            ACADREC.subprog = 'PTSM' AND NVL(BGT_COSTS.No_MISC,0) = 0
-        THEN
-            1700
-        WHEN
-            ACADREC.subprog = '7WK' AND NVL(BGT_COSTS.No_MISC,0) = 0
-        THEN
-            1290
-        WHEN
-            NVL(BGT_COSTS.No_MISC,0) > 0
-        THEN
-            BGT_COSTS.No_MISC
-        WHEN
-            NVL(BGT_COSTS.No_MISC,0) = 0 AND NVL(BGT_COSTS.Trad_MISC,0) > 0
-        THEN
-            BGT_COSTS.Trad_MISC
-        END AS
-            c_MISC,
+        WHEN ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_MISC,0) = 0
+        THEN 1700
+        WHEN ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_MISC,0) = 0
+        THEN 1700
+        WHEN ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_MISC,0) = 0
+        THEN 1700
+        WHEN ACADREC.subprog = 'PTSM' AND NVL(BGT_COSTS.No_MISC,0) = 0
+        THEN 1700
+        WHEN ACADREC.subprog = '7WK' AND NVL(BGT_COSTS.No_MISC,0) = 0
+        THEN 1290
+        WHEN NVL(BGT_COSTS.No_MISC,0) > 0
+        THEN BGT_COSTS.No_MISC
+        WHEN NVL(BGT_COSTS.No_MISC,0) = 0 AND NVL(BGT_COSTS.Trad_MISC,0) > 0
+        THEN BGT_COSTS.Trad_MISC
+    END AS   c_MISC,
     CASE
-        WHEN
-            ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_LOAN,0) = 0
-        THEN
-            200
-        WHEN
-            ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_LOAN,0) = 0
-        THEN
-            200
-        WHEN
-            ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_LOAN,0) = 0
-        THEN
-            100
-        WHEN
-            ACADREC.subprog = '7WK' AND NVL(BGT_COSTS.No_LOAN,0) = 0
-        THEN
-            216
-        WHEN
-            NVL(BGT_COSTS.No_LOAN,0) > 0
-        THEN
-            BGT_COSTS.No_LOAN
-        WHEN
-            NVL(BGT_COSTS.No_LOAN,0) = 0 AND NVL(BGT_COSTS.Trad_LOAN,0) > 0
-        THEN
-            BGT_COSTS.Trad_LOAN
-        END AS
-            c_LOAN
+        WHEN ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_LOAN,0) = 0
+        THEN 200
+        WHEN ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_LOAN,0) = 0
+        THEN 200
+        WHEN ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_LOAN,0) = 0
+        THEN 100
+        WHEN ACADREC.subprog = '7WK' AND NVL(BGT_COSTS.No_LOAN,0) = 0
+        THEN 216
+        WHEN NVL(BGT_COSTS.No_LOAN,0) > 0
+        THEN BGT_COSTS.No_LOAN
+        WHEN NVL(BGT_COSTS.No_LOAN,0) = 0 AND NVL(BGT_COSTS.Trad_LOAN,0) > 0
+        THEN BGT_COSTS.Trad_LOAN
+    END AS   c_LOAN
 FROM
     -----------------------------------------------
     --ACTIVE STUDENT LIST
     -----------------------------------------------
-    stu_acad_rec ACADREC 
-    INNER JOIN acad_cal_rec CALREC
-    ON CALREC.sess = ACADREC.sess
-    AND CALREC.yr = ACADREC.yr
-    AND CALREC.prog = ACADREC.prog
+    stu_acad_rec ACADREC
+    INNER JOIN
+        acad_cal_rec CALREC
+    ON
+        CALREC.sess = ACADREC.sess
+    AND
+        CALREC.yr = ACADREC.yr
+    AND
+        CALREC.prog = ACADREC.prog
     AND
         CALREC.acyr =
         CASE
             WHEN TODAY < TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d')
-        THEN
-            MOD(YEAR(TODAY) - 1, 100) || MOD(YEAR(TODAY), 100)
-        ELSE
-            MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY) + 1, 100)
+            THEN MOD(YEAR(TODAY) - 1, 100) || MOD(YEAR(TODAY), 100)
+            ELSE MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY) + 1, 100)
         END
     -----------------------------------------------
     --STUDENT INFO
@@ -247,8 +161,7 @@ FROM
             id_rec.st, id_rec.zip, id_rec.ctry
         FROM
             id_rec
-    )
-        StuID
+    ) StuID
     ON
         acadrec.id = StuID.id
     -----------------------------------------------
@@ -260,127 +173,96 @@ FROM
             SUM(
                 CASE
                     WHEN Detail.faitem = 'TUFE' AND IM.bgt_code = 'TRAD IM'
-                THEN
-                    Detail.amt
-                ELSE
-                    0
+                    THEN Detail.amt
+                    ELSE 0
                 END
             )
             AS Trad_TUFE,
             SUM(
                 CASE
-                    WHEN
-                        Detail.faitem = 'RMBD' AND IM.bgt_code = 'TRAD IM'
-                    THEN
-                        Detail.amt
-                    ELSE
-                        0
-                    END
+                    WHEN Detail.faitem = 'RMBD' AND IM.bgt_code = 'TRAD IM'
+                    THEN Detail.amt
+                    ELSE 0
+                END
             )
             AS Trad_RMBD,
             SUM(
                 CASE
-                    WHEN
-                        Detail.faitem = 'BOOK' AND IM.bgt_code = 'TRAD IM'
-                    THEN
-                        Detail.amt
-                    ELSE
-                        0
-                    END
+                    WHEN Detail.faitem = 'BOOK' AND IM.bgt_code = 'TRAD IM'
+                    THEN Detail.amt
+                    ELSE 0
+                END
             )
             AS Trad_BOOK,
             SUM(
                 CASE
-                    WHEN
-                        Detail.faitem = 'TRAN' AND IM.bgt_code = 'TRAD IM'
-                    THEN
-                        Detail.amt
-                    ELSE
-                        0
-                    END
+                    WHEN Detail.faitem = 'TRAN' AND IM.bgt_code = 'TRAD IM'
+                    THEN Detail.amt
+                    ELSE 0
+                END
             )
             AS Trad_TRAN,
             SUM(
                 CASE
-                    WHEN
-                        Detail.faitem = 'MISC' AND IM.bgt_code = 'TRAD IM'
-                    THEN
-                        Detail.amt ELSE 0 END
+                    WHEN Detail.faitem = 'MISC' AND IM.bgt_code = 'TRAD IM'
+                    THEN Detail.amt
+                    ELSE 0
+                END
             )
             AS Trad_MISC,
             SUM(
                 CASE
-                    WHEN
-                        Detail.faitem = 'LOAN' AND IM.bgt_code = 'TRAD IM'
-                    THEN
-                        Detail.amt
-                    ELSE
-                        0
-                    END
+                    WHEN Detail.faitem = 'LOAN' AND IM.bgt_code = 'TRAD IM'
+                    THEN Detail.amt
+                    ELSE 0
+                END
             )
             AS Trad_LOAN,
             --No IM Detail
             SUM(
                 CASE
-                    WHEN
-                        Detail.faitem = 'TUFE' AND IM.bgt_code <> 'TRAD IM'
-                    THEN
-                        Detail.amt
-                    ELSE
-                        0
-                    END
+                    WHEN Detail.faitem = 'TUFE' AND IM.bgt_code <> 'TRAD IM'
+                    THEN Detail.amt
+                    ELSE 0
+                END
             )
             AS No_TUFE,
             SUM(
                 CASE
-                    WHEN
-                        Detail.faitem = 'RMBD' AND IM.bgt_code <> 'TRAD IM'
-                    THEN
-                        Detail.amt
-                    ELSE
-                        0
-                    END
+                    WHEN Detail.faitem = 'RMBD' AND IM.bgt_code <> 'TRAD IM'
+                    THEN Detail.amt
+                    ELSE 0
+                END
             )
             AS No_RMBD,
             SUM(
                 CASE
-                    WHEN
-                        Detail.faitem = 'BOOK' AND IM.bgt_code <> 'TRAD IM'
-                    THEN
-                        Detail.amt ELSE 0 END
+                    WHEN Detail.faitem = 'BOOK' AND IM.bgt_code <> 'TRAD IM'
+                    THEN Detail.amt ELSE 0 END
             )
             AS No_BOOK,
             SUM(
                 CASE
-                    WHEN
-                        Detail.faitem = 'TRAN' AND IM.bgt_code <> 'TRAD IM'
-                    THEN
-                        Detail.amt
-                    ELSE
-                        0
-                    END
+                    WHEN Detail.faitem = 'TRAN' AND IM.bgt_code <> 'TRAD IM'
+                    THEN Detail.amt
+                    ELSE 0
+                END
             )
             AS No_TRAN,
             SUM(
                 CASE
-                    WHEN
-                        Detail.faitem = 'MISC' AND IM.bgt_code <> 'TRAD IM'
-                    THEN
-                        Detail.amt
-                    ELSE
-                        0
-                    END
+                    WHEN Detail.faitem = 'MISC' AND IM.bgt_code <> 'TRAD IM'
+                    THEN Detail.amt
+                    ELSE 0
+                END
             )
             AS No_MISC,
             SUM(
                 CASE
-                    WHEN
-                        Detail.faitem = 'LOAN' AND IM.bgt_code <> 'TRAD IM'
-                    THEN
-                        Detail.amt
-                    ELSE
-                        0
-                    END
+                    WHEN Detail.faitem = 'LOAN' AND IM.bgt_code <> 'TRAD IM'
+                    THEN Detail.amt
+                    ELSE 0
+                END
             )
             AS No_LOAN
         FROM
@@ -392,18 +274,14 @@ FROM
             AND
                 IM.fa_yr =
                 CASE
-                    WHEN
-                        TODAY < TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d')
-                    THEN
-                        MOD(YEAR(TODAY) - 1, 100) || MOD(YEAR(TODAY), 100)
-                    ELSE
-                        MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY) + 1, 100)
-                    END
+                    WHEN TODAY < TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d')
+                    THEN MOD(YEAR(TODAY) - 1, 100) || MOD(YEAR(TODAY), 100)
+                    ELSE MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY) + 1, 100)
+                END
             GROUP BY
                 Budget_Code, ID_Number, IM.fa_yr
             ORDER BY ID_Number
-        )
-        BGT_COSTS
+    ) BGT_COSTS
     ON
         ACADREC.id = BGT_COSTS.ID_Number
     -----------------------------------------------
@@ -416,145 +294,127 @@ FROM
             Aid_Record.id AS Student_ID_Number,
             SUM(
                 CASE
-                    WHEN
-                        Aid_Table.txt LIKE '%Grant%'
-                    AND
-                        Aid_Table.frm_code IN (
-                            'INSF','INSU','PCAR','PMRT','PCEI'
-                        )
-                    THEN
-                        Aid_Record.amt
-                    ELSE
-                        0
-                    END
+                    WHEN Aid_Table.txt LIKE '%Grant%'
+                    AND Aid_Table.frm_code IN (
+                        'INSF','INSU','PCAR','PMRT','PCEI'
+                    )
+                    THEN Aid_Record.amt
+                    ELSE 0
+                END
             )
             AS c_InstGrants,
             SUM(
                 CASE
-                    WHEN
-                        Aid_Table.txt NOT LIKE '%Grant%'
-                    AND
-                        Aid_Table.frm_code IN (
-                            'INSF','INSU','PCAR','PMRT','PCEI'
-                        )
-                    THEN
-                        Aid_Record.amt
-                    ELSE
-                        0
-                    END
+                    WHEN Aid_Table.txt NOT LIKE '%Grant%'
+                    AND Aid_Table.frm_code IN (
+                        'INSF','INSU','PCAR','PMRT','PCEI'
+                    )
+                    THEN Aid_Record.amt
+                    ELSE 0
+                END
             )
                 AS c_InstScholar,
             SUM(
                 CASE
-                    WHEN
-                        Aid_Table.frm_code = 'PFGR'
-                    THEN
-                        Aid_Record.amt
-                    ELSE
-                        0
-                    END
+                    WHEN Aid_Table.frm_code = 'PFGR'
+                    THEN Aid_Record.amt
+                    ELSE 0
+                END
             )
                 AS c_FedGrants,
             SUM(
                 CASE
-                    WHEN
-                        Aid_Table.frm_code = 'PSGR'
-                    THEN
-                        Aid_Record.amt
-                    ELSE
-                        0
-                    END
+                    WHEN Aid_Table.frm_code = 'PSGR'
+                    THEN Aid_Record.amt
+                    ELSE 0
+                END
             )
                 AS c_SteGrants,
             SUM(
                 CASE
-                    WHEN
-                        Aid_Table.frm_code = 'POUT'
-                    THEN
-                        Aid_Record.amt
-                    ELSE
-                        0
-                    END
+                    WHEN Aid_Table.frm_code = 'POUT'
+                    THEN Aid_Record.amt
+                    ELSE 0
+                END
             )
             AS c_OutsideAid
         FROM
             aid_rec Aid_Record
-        INNER JOIN
-            aid_table Aid_Table
-        ON
-            Aid_Record.aid = Aid_Table.aid
-        WHERE
-            Aid_Record.id > 0
-        AND
-            Aid_Record.fa_yr =
-            CASE
-                WHEN
-                    TODAY < TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d')
-                THEN
-                    MOD(YEAR(TODAY) - 1, 100) || MOD(YEAR(TODAY), 100)
-                ELSE
-                    MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY) + 1, 100)
+            INNER JOIN
+                aid_table Aid_Table
+            ON
+                Aid_Record.aid = Aid_Table.aid
+            WHERE
+                Aid_Record.id > 0
+            AND
+                Aid_Record.fa_yr =
+                CASE
+                    WHEN TODAY < TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d')
+                    THEN MOD(YEAR(TODAY) - 1, 100) || MOD(YEAR(TODAY), 100)
+                    ELSE MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY) + 1, 100)
                 END
-        AND
-            Aid_Record.stat IN ('A')
-        AND
-            Aid_Record.amt_stat IN ('AA','AD','AP','EA')
-        AND
-            Aid_Record.amt > 0
-        GROUP BY
-            Student_ID_Number
-        )   AidOther
-        ON ACADREC.id = AidOther.Student_ID_Number
+            AND
+                Aid_Record.stat IN ('A')
+            AND
+                Aid_Record.amt_stat IN ('AA','AD','AP','EA')
+            AND
+                Aid_Record.amt > 0
+            GROUP BY
+                Student_ID_Number
+    ) AidOther
+    ON
+        ACADREC.id = AidOther.Student_ID_Number
+    -----------------------------------------------
+    -- end LEFT JOIN for GRANTS
     ------------------------------------------------
     -- CUMULATIVE Aid - Loans
     ------------------------------------------------
-        LEFT JOIN (
-            SELECT
-                AIDREC.id, AIDREC.aid, AIDTBL.txt,
-                SUM(AIDREC.amt) AS Aid_Amount,
-                loan_rec.beg_date
-            FROM
-                aid_rec AIDREC, aid_table AIDTBL, loandisb_rec, loan_rec
-            WHERE
-                AIDREC.aid = AIDTBL.aid
-                AND loandisb_rec.aid_no = AIDREC.aid_no
-                AND loan_rec.loan_no = loandisb_rec.loan_no
-                AND AIDREC.amt_stat IN ('AA','AD','AP','EA')
-                AND (
-                        AIDTBL.aid LIKE ('ALN%')
-                    OR
-                        AIDTBL.aid LIKE ('DIS%')
-                    OR
-                        AIDTBL.aid LIKE ('PNC%')
-                    OR
-                        AIDTBL.aid LIKE ('SMS%')
-                    OR
-                        AIDTBL.aid LIKE ('WEL%')
-                )
-                AND AIDREC.stat = 'A'
-                AND AIDREC.amt > 0
-            GROUP BY
-                AIDREC.id, AIDREC.aid, AIDTBL.txt, loan_rec.beg_date
-        )
-            CUM_AID
-        ON
-            ACADREC.ID = CUM_AID.ID
-     -----------------------------------------------
-     -- EMAIL
-     -----------------------------------------------
-        LEFT JOIN (
-            SELECT
-                Eml.line1, Eml.id
-            FROM
-                aa_rec Eml
-            WHERE
-                Eml.aa = 'EML1'
-            AND
-                TODAY BETWEEN Eml.beg_date AND NVL(Eml.end_date, TODAY)
-        )
-            Email
-        ON
-            ACADREC.id = Email.id
+    LEFT JOIN (
+        SELECT
+            AIDREC.id, AIDREC.aid, AIDTBL.txt,
+            SUM(AIDREC.amt) AS Aid_Amount,
+            loan_rec.beg_date
+        FROM
+            aid_rec AIDREC, aid_table AIDTBL, loandisb_rec, loan_rec
+        WHERE
+            AIDREC.aid = AIDTBL.aid
+            AND loandisb_rec.aid_no = AIDREC.aid_no
+            AND loan_rec.loan_no = loandisb_rec.loan_no
+            AND AIDREC.amt_stat IN ('AA','AD','AP','EA')
+            AND (
+                AIDTBL.aid LIKE ('ALN%')
+                OR
+                AIDTBL.aid LIKE ('DIS%')
+                OR
+                AIDTBL.aid LIKE ('PNC%')
+                OR
+                AIDTBL.aid LIKE ('SMS%')
+                OR
+                AIDTBL.aid LIKE ('WEL%')
+            )
+            AND AIDREC.stat = 'A'
+            AND AIDREC.amt > 0
+        GROUP BY
+            AIDREC.id, AIDREC.aid, AIDTBL.txt, loan_rec.beg_date
+    ) CUM_AID
+    ON
+        ACADREC.ID = CUM_AID.ID
+    -----------------------------------------------
+    -- end LEFT JOIN for CUMULATIVE Aid - Loans
+    -----------------------------------------------
+    -- EMAIL
+    -----------------------------------------------
+    LEFT JOIN (
+        SELECT  Eml.line1, Eml.id
+        FROM    aa_rec Eml
+        WHERE   Eml.aa = 'EML1'
+        AND     TODAY BETWEEN Eml.beg_date AND NVL(Eml.end_date, TODAY)
+    ) Email
+    ON
+        ACADREC.id = Email.id
+    -----------------------------------------------
+    -- end LEFT JOIN for EMAIL
+    -----------------------------------------------
 WHERE
     ACADREC.subprog != 'UWPK'
 ORDER BY

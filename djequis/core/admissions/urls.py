@@ -3,6 +3,7 @@ from django.views.generic import TemplateView
 
 from djequis.core.admissions import views
 
+
 urlpatterns = [
     url(
         r'^sendsms/$',

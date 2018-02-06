@@ -95,7 +95,8 @@ def main():
             None, [email,],
             "Loan Disbursement Notification",
             settings.DEFAULT_FROM_EMAIL,
-            'loan_disbursement/email.html', data, settings.MANAGERS
+            'core/financialaid/loan_disbursement/email.html',
+            data, settings.MANAGERS
         )
 
 
