@@ -5,10 +5,12 @@ from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse_lazy
 
 from djequis.core.financialaid.forms import WisAct284Form
-from djequis.sql.wisact284 import WIS_ACT_284_SQL2 as WIS_ACT_284_SQL
+from djequis.sql.wisact284 import WIS_ACT_284_SQL
 
 from djzbar.utils.informix import do_sql
 
+import logging
+logger = logging.getLogger(__name__)
 
 EARL = settings.INFORMIX_EARL
 DEBUG = settings.INFORMIX_DEBUG
@@ -26,6 +28,7 @@ def wisact284(request):
             if data['dispersed']:
                 stat = '"AD"'
             sql = WIS_ACT_284_SQL(amt_stat = stat)
+            logger.debug("wisact284 sql = {}".format(sql))
             objects = do_sql(sql, earl=EARL)
     else:
         form = WisAct284Form()
