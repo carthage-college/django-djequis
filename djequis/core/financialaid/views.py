@@ -7,6 +7,7 @@ from django.core.urlresolvers import reverse_lazy
 from djequis.core.financialaid.forms import WisAct284Form
 from djequis.sql.wisact284 import WIS_ACT_284_SQL
 
+from djzbar.decorators.auth import portal_auth_required
 from djzbar.utils.informix import do_sql
 
 import logging
@@ -16,6 +17,10 @@ EARL = settings.INFORMIX_EARL
 DEBUG = settings.INFORMIX_DEBUG
 
 
+@portal_auth_required(
+    group='carthageStaffStatus', session_var='DJEQUIS_AUTH',
+    redirect_url=reverse_lazy('access_denied')
+)
 def wisact284(request):
 
     sql = None
