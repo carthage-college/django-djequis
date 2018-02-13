@@ -39,7 +39,6 @@ os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 from djequis.sql.wisact284 import WIS_ACT_284_SQL
 from djequis.core.utils import sendmail
-from djtools.utils.mail import send_mail
 from djzbar.utils.informix import do_sql
 
 EARL = settings.INFORMIX_EARL
@@ -78,13 +77,11 @@ def main():
     headerdate = time.strftime("%Y%m%d")
     datetimestr = time.strftime("%Y%m%d%H%M%S")
 
+     # determines if aid has been despersed
     if dispersed:
         sql = WIS_ACT_284_SQL(amt_stat = "'AD'")
     else:
         sql = WIS_ACT_284_SQL(amt_stat = "'AA','AD','AP','EA'")
-
-    # Looks at query and determines if aid has been despersed
-    getaid_sql = getaid(dispersed)
 
     # run getaid_sql SQL statement
     sqlresults = do_sql(sql, earl=EARL)
@@ -227,21 +224,8 @@ def main():
             csv_line += ("", "0.00", "", "", "")
         csv_line += csv_end
         writer.writerow(csv_line)
-    # closes file
-    wisactfile.close()
-    # send email with file attachment
-    file_attach = ccmfile
-    request = None
-    recipients = settings.WISACT_TO_EMAIL
-    subject = "[Wisconsin Act 284] College Cost Meter file attachment"
-    femail = settings.WISACT_FROM_EMAIL
-    template = 'wisact284/wisact_email.html'
-    bcc = 'ssmolik@carthage.edu'
-    send_mail(
-        request, recipients, subject, femail, template, bcc, attach=file_attach
-    )
-    # delete CCM-YmdHMS.csv file
-    os.remove(ccmfile)
+        # closes file
+        wisactfile.close()
 
 if __name__ == "__main__":
     args = parser.parse_args()
