@@ -3,7 +3,7 @@ import time
 
 def csv_gen(sqlresults, writer, test=False):
 
-    headerdate = time.strftime("%Y%m%d")
+    headerdate = time.strftime('%Y%m%d')
     # if on command line --test is used then header will be printed
     if test:
         header = ["File Name", "School OPEID", "File Date"]
@@ -74,7 +74,7 @@ def csv_gen(sqlresults, writer, test=False):
     loanCount = 0 # initializing loanCount 0
     maxaidcount = 18 # set maxaid count
     for row in sqlresults:
-        if row["student_id_number"] != currentID:
+        if row['student_id_number'] != currentID:
             if currentID != 0:
                 # loops through maxaidcount to add private loans
                 for i in range (loanCount, maxaidcount):
@@ -92,35 +92,35 @@ def csv_gen(sqlresults, writer, test=False):
             # The % .2f is to keep the decimal format
             ###############################################################
             csv_line = (
-                row["opeid"],row["acadyear"],row["social_security_number"],
-                row["student_first_name"], row["student_last_name"],
-                row["student_id_number"], row["student_address_line_1"],
-                row["student_address_line_2"],row["student_address_line_3"],
-                row["student_city"], row["student_state_code"],
-                row["student_postal_code"], row["student_country_code"],
-                row["student_email"]
+                row['opeid'],row['acadyear'],row['social_security_number'],
+                row['student_first_name'], row['student_last_name'],
+                row['student_id_number'], row['student_address_line_1'],
+                row['student_address_line_2'],row['student_address_line_3'],
+                row['student_city'], row['student_state_code'],
+                row['student_postal_code'], row['student_country_code'],
+                row['student_email']
             )
             # adds other loan information
             csv_end = (
-                ("{0:.2f}".format(0.00 if row["c_tufe"] is None else row["c_tufe"])),
+                ("{0:.2f}".format(0.00 if row['c_tufe'] is None else row['c_tufe'])),
                 "0.00",
-                ("{0:.2f}".format(0.00 if row["c_rmbd"] is None else row["c_rmbd"])),
-                ("{0:.2f}".format(0.00 if row["c_book"] is None else row["c_book"])),
-                ("{0:.2f}".format(0.00 if row["c_tran"] is None else row["c_tran"])),
-                ("{0:.2f}".format(0.00 if row["c_misc"] is None else row["c_misc"])),
+                ("{0:.2f}".format(0.00 if row['c_rmbd'] is None else row['c_rmbd'])),
+                ("{0:.2f}".format(0.00 if row['c_book'] is None else row['c_book'])),
+                ("{0:.2f}".format(0.00 if row['c_tran'] is None else row['c_tran'])),
+                ("{0:.2f}".format(0.00 if row['c_misc'] is None else row['c_misc'])),
                 "0.00",
-                ("{0:.2f}".format(0.00 if row["c_loan"] is None else row["c_loan"])),
-                ("{0:.2f}".format(0.00 if row["c_instgrants"] is None else row["c_instgrants"])),
-                ("{0:.2f}".format(0.00 if row["c_instscholar"] is None else row["c_instscholar"])),
-                ("{0:.2f}".format(0.00 if row["c_fedgrants"] is None else row["c_fedgrants"])),
-                ("{0:.2f}".format(0.00 if row["c_stegrants"] is None else row["c_stegrants"])),
-                ("{0:.2f}".format(0.00 if row["c_outsideaid"] is None else row["c_outsideaid"]))
+                ("{0:.2f}".format(0.00 if row['c_loan'] is None else row['c_loan'])),
+                ("{0:.2f}".format(0.00 if row['c_instgrants'] is None else row['c_instgrants'])),
+                ("{0:.2f}".format(0.00 if row['c_instscholar'] is None else row['c_instscholar'])),
+                ("{0:.2f}".format(0.00 if row['c_fedgrants'] is None else row['c_fedgrants'])),
+                ("{0:.2f}".format(0.00 if row['c_stegrants'] is None else row['c_stegrants'])),
+                ("{0:.2f}".format(0.00 if row['c_outsideaid'] is None else row['c_outsideaid']))
             )
 
         csv_line += (
-            row["loan_name"],
-            ("{0:.2f}".format(0.00 if row["aid_amount"] is None else row["aid_amount"])),
-            "", "", row["loan_date"]
+            row['loan_name'],
+            ("{0:.2f}".format(0.00 if row['aid_amount'] is None else row['aid_amount'])),
+            "", "", row['loan_date']
         )
         loanCount = loanCount +1
     # writes the last line for the last student loan record
