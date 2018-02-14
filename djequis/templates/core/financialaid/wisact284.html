@@ -26,7 +26,8 @@ $(document).ready(function() {
   $('form#profile').bind('submit', function (e) {
     //$('form#profile input[type=submit]').prop('disabled', true);
     $('#one-moment').modal({
-      keyboard: false
+      keyboard: false,
+      backdrop: 'static'
     });
     return true;
   });
