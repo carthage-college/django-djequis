@@ -2,7 +2,6 @@
 WIS_ACT_284_SQL = '''
 SELECT DISTINCT
     '00383900' AS OPEID,
-    ACADREC.prog AS prog, ACADREC.subprog AS subprog,
     '20' || LEFT(CALREC.acyr, 2) || '-20' || RIGHT(CALREC.acyr, 2) AS AcadYear,
     REPLACE(StuID.ss_no, '-', '') AS Social_Security_Number,
     TRIM(StuID.firstname) AS Student_First_Name,
@@ -16,21 +15,8 @@ SELECT DISTINCT
     TRIM(StuID.zip) AS Student_Postal_Code,
     TRIM(StuID.ctry) AS Student_Country_Code,
     TRIM(NVL(Email.line1,'')) AS Student_email,
-    --Aid Detail
-    --TRIM(CUM_AID.aid) AS Aid_Code,
     TRIM(CUM_AID.txt) AS Loan_name,
     NVL(CUM_AID.Aid_Amount, 0.00) AS Aid_Amount,
-    --CASE
-    --    WHEN
-    --        CUM_AID.Aid_Amount IS NULL
-    --    THEN
-    --        0
-    --    ELSE
-    --        CUM_AID.Aid_Amount END AS Aid_Amount,
-    --CUM_AID.Aid_Amount AS Aid_Amount,
-    --Aid Other
-    --AidOther.c_InstGrants, AidOther.c_InstScholar, AidOther.c_FedGrants,
-    --AidOther.c_SteGrants, AidOther.c_OutsideAid,
     NVL(AidOther.c_InstGrants, 0.00) AS c_InstGrants,
     NVL(AidOther.c_InstScholar, 0.00) AS c_InstScholar,
     NVL(AidOther.c_FedGrants, 0.00) AS c_FedGrants,
