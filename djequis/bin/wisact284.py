@@ -13,7 +13,7 @@ sys.path.append('/data2/django_projects/')
 sys.path.append('/data2/django_third/')
 
 # django settings for shell environment
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djequis.settings')
 
 # prime django
 import django
@@ -58,13 +58,13 @@ parser.add_argument(
     "--dispersed",
     action='store_true',
     help="amount status = AD",
-    dest="dispersed"
+    dest='dispersed'
 )
 parser.add_argument(
     "--test",
     action='store_true',
     help="Dry run?",
-    dest="test"
+    dest='test'
 )
 
 
@@ -72,32 +72,32 @@ def main():
 
     # determines if aid has been despersed
     if dispersed:
-        sql = WIS_ACT_284_SQL(amt_stat = "'AD'")
+        sql = WIS_ACT_284_SQL(amt_stat = '"AD"')
     else:
-        sql = WIS_ACT_284_SQL(amt_stat = "'AA','AD','AP','EA'")
+        sql = WIS_ACT_284_SQL(amt_stat = '"AA","AD","AP","EA"')
 
     # run getaid_sql SQL statement
     sqlresults = do_sql(sql, earl=EARL)
     # if there are no results send email
     if sqlresults is None:
         # send email
-        SUBJECT = '[Wisconsin Act 284] College Cost Meter file'
-        BODY = 'Funds have not been dispersed.\n\n'
+        SUBJECT = "[Wisconsin Act 284] College Cost Meter file"
+        BODY = "Funds have not been dispersed.\n\n"
         sendmail(
-            settings.WISACT_TO_EMAIL,settings.WISACT_FROM_EMAIL,
+            settings.WISACT_TO_EMAIL, settings.WISACT_FROM_EMAIL,
             BODY, SUBJECT
         )
     else:
         # set date and time to be added to the filename string
-        datetimestr = time.strftime("%Y%m%d%H%M%S")
+        datetimestr = time.strftime('%Y%m%d%H%M%S')
         # set directory and College Cost Meter file where to be stored
         ccmfile = (
             '{0}CCM-{1}.csv'.format(
-                settings.WISACT_CSV_OUTPUT,datetimestr
+                settings.WISACT_CSV_OUTPUT, datetimestr
             )
         )
         # opens ccmfile in write mode to add the comment
-        wisactfile = open(ccmfile,"w");
+        wisactfile = open(ccmfile,'w');
         # creating a csv writer object
         writer = csv.writer(wisactfile)
 
@@ -107,7 +107,7 @@ def main():
         # close the file
         wisactfile.close()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     args = parser.parse_args()
     dispersed = args.dispersed
     test = args.test
