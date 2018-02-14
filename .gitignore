@@ -96,5 +96,6 @@ ENV/
 *.swp
 djequis/settings/production.py
 djequis/settings/development.py
+settings.py
 wsgi.py
 commonapp_output.sql
