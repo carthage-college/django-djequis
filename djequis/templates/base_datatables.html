@@ -38,6 +38,11 @@ $(document).ready(function() {
       'csv', 'excel'
     ]
   });
+  // disable submit button after user clicks it
+  $('form#profile').bind('submit', function (e) {
+    $('form#profile input[type=submit]').prop('disabled', true);
+    return true;
+  });
 });
 </script>
 {% endblock %}
