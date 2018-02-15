@@ -12,8 +12,6 @@ from djzbar.utils.informix import do_sql
 
 import csv
 import time
-import logging
-logger = logging.getLogger(__name__)
 
 EARL = settings.INFORMIX_EARL
 DEBUG = settings.INFORMIX_DEBUG
@@ -26,6 +24,7 @@ DEBUG = settings.INFORMIX_DEBUG
 def wisact284(request):
 
     sql = None
+    test = False
     objects = None
     if request.method=='POST':
         form = WisAct284Form(request.POST)
@@ -35,7 +34,6 @@ def wisact284(request):
             if data['dispersed']:
                 stat = '"AD"'
             sql = WIS_ACT_284_SQL(amt_stat = stat)
-            logger.debug("wisact284 sql = {}".format(sql))
             objects = do_sql(sql, earl=EARL)
 
             datetimestr = time.strftime("%Y%m%d%H%M%S")
@@ -49,7 +47,9 @@ def wisact284(request):
             response['Content-Disposition'] = content
 
             writer = csv.writer(response)
-            csv_gen(objects, writer)
+            if data['headers']:
+                test = True
+            csv_gen(objects, writer, test)
 
             return response
 

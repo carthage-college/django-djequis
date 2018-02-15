@@ -9,12 +9,11 @@ def csv_gen(sqlresults, writer, test=False):
         header = ["File Name", "School OPEID", "File Date"]
         # writes file header
         writer.writerow(header)
-    # displays file header elements
-    header_detail = ("CCM", "00383900", headerdate)
-    # writes file header elements
-    writer.writerow(header_detail)
-    # if on command line --test is used then loan header will be printed
-    if test:
+        # displays file header elements
+        header_detail = ("CCM", "00383900", headerdate)
+        # writes file header elements
+        writer.writerow(header_detail)
+        # if on command line --test is used then loan header will be printed
         loan_header = [
             "School OPEID", "Academic Year", "Student SSN",
             "Student First Name", "Student Last Name", "School Student ID",
