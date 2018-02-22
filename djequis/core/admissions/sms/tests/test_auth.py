@@ -33,6 +33,7 @@ class CoreViewsTestCase(TestCase):
         print "\n"
         print "Test Auth"
         seperator()
+        print "earl:"
         earl = reverse('sms_send')
         print earl
         # get SMS send page
@@ -48,4 +49,6 @@ class CoreViewsTestCase(TestCase):
         self.assertTrue(login)
         response = self.client.get(earl)
         self.assertEqual(response.status_code, 200)
+        print "URL:"
+        print response.request['PATH_INFO']
         print "Auth Success"
