@@ -12,8 +12,4 @@ urlpatterns = [
     url(
         r'^trustcommerce/', include('djequis.core.trustcommerce.urls')
     ),
-    # test app
-    url(
-        r'^test/', include('djequis.core.test.urls')
-    ),
 ]
