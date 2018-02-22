@@ -9,30 +9,33 @@ from djequis.core.admissions.sms.forms import SendForm
 from djtools.utils.logging import seperator
 
 
-class CoreFormsTestCase(TestCase):
+class SendFormTestCase(TestCase):
 
     def setUp(self):
         pass
 
-    def test_student_detail_valid_data(self):
-        form = StudentDetailForm({
-            'student_number': settings.TEST_STUDENT_ID,
+    def test_send_form_valid_data(self):
+        form = SendForm({
+            'phone': settings.TWILIO_TEST_PHONE,
+            'message': 'Who does your taxes?'
         })
         self.assertTrue(form.is_valid())
 
-    def test_student_detail_invalid_data(self):
-        form = StudentDetailForm({
-            'student_number': '867-5309',
+    def test_send_form_invalid_data(self):
+        form = SendForm({
+            'phone': '8675309',
+            'message': '',
         })
         self.assertFalse(form.is_valid())
         self.assertEqual(form.errors, {
-            'student_number': ['Enter a whole number.'],
+            'phone': ['Phone numbers must be in XXX-XXX-XXXX format.'],
+            'message': ['This field is required.'],
         })
 
-    def test_student_detail_blank_data(self):
-        form = StudentDetailForm({})
+    def test_send_form_blank_data(self):
+        form = SendForm({})
         self.assertFalse(form.is_valid())
         self.assertEqual(form.errors, {
-            'student_number': ['This field is required.'],
+            'phone': ['This field is required.'],
+            'message': ['This field is required.'],
         })
-

@@ -12,6 +12,6 @@ class SendForm(forms.Form):
         widget=forms.TextInput(attrs={'class': 'required'})
     )
     message = forms.CharField(
-        widget=forms.Textarea,
+        widget=forms.Textarea(attrs={'class': 'required'}),
         help_text = '<span id="chars">200</span> characters remaining'
     )
