@@ -13,5 +13,5 @@ class SendForm(forms.Form):
     )
     message = forms.CharField(
         widget=forms.Textarea,
-        help_text = '<span id="chars">140</span> characters remaining'
+        help_text = '<span id="chars">200</span> characters remaining'
     )
