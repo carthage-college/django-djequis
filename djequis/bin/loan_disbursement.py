@@ -9,6 +9,16 @@ sys.path.append('/data2/django_projects/')
 sys.path.append('/data2/django_third/')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djequis.settings')
 
+# informix environment
+os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
+os.environ['DBSERVERNAME'] = settings.DBSERVERNAME
+os.environ['INFORMIXDIR'] = settings.INFORMIXDIR
+os.environ['ODBCINI'] = settings.ODBCINI
+os.environ['ONCONFIG'] = settings.ONCONFIG
+os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
+os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
+os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
+
 # required if using django models
 import django
 django.setup()
@@ -73,6 +83,11 @@ def main():
     main function
     '''
 
+    key = None
+    if test:
+        print SQL
+        key = 'debug'
+
     EARL = INFORMIX_EARL_PROD
     if database == 'train':
         EARL = INFORMIX_EARL_TEST
@@ -81,7 +96,8 @@ def main():
     bcc = [settings.MANAGERS[0][1],settings.FINANCIAL_AID_EMAIL]
 
     # execute the SQL incantation
-    sqlresult = do_sql(SQL, earl=EARL)
+    sqlresult = do_sql(SQL, key=key earl=EARL)
+
     if sqlresult:
         for s in sqlresult:
             if test:
