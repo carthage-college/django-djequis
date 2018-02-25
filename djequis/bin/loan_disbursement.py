@@ -82,23 +82,26 @@ def main():
 
     # execute the SQL incantation
     sqlresult = do_sql(SQL, earl=EARL)
-    for s in sqlresult:
-        if test:
-            email = bcc[0]
-            logger.debug("email = {}".format(s.email))
-        else:
-            email = s.email
+    if sqlresult:
+        for s in sqlresult:
+            if test:
+                email = bcc[0]
+                logger.debug("email = {}".format(s.email))
+            else:
+                email = s.email
 
-        data = {
-            'object': s, 'email': s.email, 'test': test
-        }
-        send_mail(
-            None, [email,],
-            "Loan Disbursement Notification",
-            settings.DEFAULT_FROM_EMAIL,
-            'core/financialaid/loan_disbursement/email.html',
-            data, bcc
-        )
+            data = {
+                'object': s, 'email': s.email, 'test': test
+            }
+            send_mail(
+                None, [email,],
+                "Loan Disbursement Notification",
+                settings.DEFAULT_FROM_EMAIL,
+                'core/financialaid/loan_disbursement/email.html',
+                data, bcc
+            )
+    else:
+        print "No loan disbursements today"
 
 
 ######################
