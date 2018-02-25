@@ -19,10 +19,6 @@ os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
-# required if using django models
-import django
-django.setup()
-
 from django.conf import settings
 
 from djzbar.utils.informix import do_sql
@@ -35,7 +31,6 @@ import argparse
 import logging
 
 logger = logging.getLogger('djequis')
-
 
 SQL = '''
     SELECT
@@ -96,7 +91,7 @@ def main():
     bcc = [settings.MANAGERS[0][1],settings.FINANCIAL_AID_EMAIL]
 
     # execute the SQL incantation
-    sqlresult = do_sql(SQL, key=key earl=EARL)
+    sqlresult = do_sql(SQL, key=key, earl=EARL)
 
     if sqlresult:
         for s in sqlresult:
