@@ -9,6 +9,10 @@ sys.path.append('/data2/django_projects/')
 sys.path.append('/data2/django_third/')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djequis.settings')
 
+# required if using django models anywhere in the project
+import django
+django.setup()
+
 from django.conf import settings
 
 # informix environment
