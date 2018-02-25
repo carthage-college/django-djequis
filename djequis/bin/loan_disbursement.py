@@ -9,6 +9,8 @@ sys.path.append('/data2/django_projects/')
 sys.path.append('/data2/django_third/')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djequis.settings')
 
+from django.conf import settings
+
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
 os.environ['DBSERVERNAME'] = settings.DBSERVERNAME
@@ -18,8 +20,6 @@ os.environ['ONCONFIG'] = settings.ONCONFIG
 os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
-
-from django.conf import settings
 
 from djzbar.utils.informix import do_sql
 from djzbar.settings import INFORMIX_EARL_TEST
