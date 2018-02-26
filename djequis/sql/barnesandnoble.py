@@ -2,59 +2,49 @@
 # modified query per Ron L. 1-17-2018 (changed RB from 10 to 30)
 TMP_ACTV_SESS = '''
     SELECT
-        TODAY as today_date, acad_cal_rec.acyr, acad_cal_rec.sess,
-        acad_cal_rec.yr, acad_cal_rec.beg_date, tmp_sess_grace.pre_grace,
-        (acad_cal_rec.beg_date-pre_grace) as pre_calc, acad_cal_rec.end_date,
-        tmp_sess_grace.post_grace, (acad_cal_rec.end_date+post_grace) as post_calc,
-        acad_cal_rec.subsess
+        acyr, sess, yr, eTermGrp, ePullGrp, eBegDate, TO_CHAR(beg_date, '%m/%d/%Y') AS beg_date,
+        eEndDate, TO_CHAR(end_date, '%m/%d/%Y') AS end_date, subsess, prog
     FROM
-        acad_cal_rec,
-            (SELECT TRIM(acad_cal_rec.sess) AS sess,
+        (
+            SELECT 
+                acad_cal_rec.acyr, TRIM(acad_cal_rec.sess) AS sess, acad_cal_rec.yr,
                 CASE
-                    WHEN sess = 'AA' THEN 45
-                    WHEN sess = 'AB' THEN 60
-                    WHEN sess = 'AG' THEN 45
-                    WHEN sess = 'AK' THEN 75
-                    WHEN sess = 'AM' THEN 45
-                    WHEN sess = 'AS' THEN 25
-                    WHEN sess = 'AT' THEN 45
-                    WHEN sess = 'GA' THEN 45
-                    WHEN sess = 'GB' THEN 45
-                    WHEN sess = 'GC' THEN 45
-                    WHEN sess = 'GE' THEN 25
-                    WHEN sess = 'RA' THEN 21
-                    WHEN sess = 'RB' THEN 30
-                    WHEN sess = 'RC' THEN 21
-                    WHEN sess = 'RE' THEN 25
-                    ELSE 99
-                END AS pre_grace,
-                CASE
-                    WHEN sess = 'AA' THEN 45
-                    WHEN sess = 'AB' THEN 20
-                    WHEN sess = 'AG' THEN 35
-                    WHEN sess = 'AK' THEN 52
-                    WHEN sess = 'AM' THEN 36
-                    WHEN sess = 'AS' THEN 45
-                    WHEN sess = 'AT' THEN 10
-                    WHEN sess = 'GA' THEN 30
-                    WHEN sess = 'GB' THEN 4
-                    WHEN sess = 'GC' THEN 19
-                    WHEN sess = 'GE' THEN 45
-                    WHEN sess = 'RA' THEN 42
-                    WHEN sess = 'RB' THEN 2
-                    WHEN sess = 'RC' THEN 15
-                    WHEN sess = 'RE' THEN 45
-                    ELSE 99
-                END AS post_grace
+                    WHEN sess IN ("AA","AB","RA","GA") THEN 'Fall'
+                    WHEN sess IN ("AG","AK","AM","GB","GC","RB","RC") THEN 'Spring'
+                    WHEN sess IN ("AS","AT","GE","RE") THEN 'Summer'
+                                                       ELSE 'Neutral'
+                END AS eTermGrp,
+                CASE 
+                    WHEN MONTH(TODAY + 10) >= 9 THEN 'Fall'
+                    WHEN MONTH(TODAY + 10) <= 5 THEN 'Spring'
+                                                ELSE 'Summer'
+                END AS ePullGrp,
+                CASE 
+                    WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('09/01/'|| TO_CHAR(acad_cal_rec.yr))
+                    WHEN sess IN ("AG","AK","AM","GB","GC","RB","RC") THEN TRIM('01/01/' || TO_CHAR(acad_cal_rec.yr))
+                    WHEN sess IN ("AS","AT","GE","RE") THEN TRIM('05/26/' || TO_CHAR(acad_cal_rec.yr)) 
+                                                       ELSE TRIM('08/01/' || TO_CHAR(acad_cal_rec.yr))
+                END AS eBegDate,
+                acad_cal_rec.beg_date,
+                CASE 
+                    WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('12/24/'|| TO_CHAR(acad_cal_rec.yr))
+                    WHEN sess IN ("AG","AK","AM","GB","GC","RB","RC") THEN TRIM('05/25/' || TO_CHAR(acad_cal_rec.yr))
+                    WHEN sess IN ("AS","AT","GE","RE") THEN TRIM('08/31/' || TO_CHAR(acad_cal_rec.yr)) 
+                                                       ELSE TRIM('08/1/' || TO_CHAR(acad_cal_rec.yr))
+                END AS eEndDate,
+                acad_cal_rec.end_date, acad_cal_rec.subsess, acad_cal_rec.prog
             FROM acad_cal_rec
-            WHERE acyr = CASE WHEN TODAY < TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d') THEN MOD(YEAR(TODAY) - 1, 100) || MOD(YEAR(TODAY), 100)
-                                                                                        ELSE MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY) + 1, 100) END
-                AND subsess= ""
-                AND sess IN ("AA","AB","AG","AK","AM","AS","AT","GA","GB","GC", "GE", "RA","RB","RC", "RE")) tmp_sess_grace
+            WHERE acad_cal_rec.acyr = CASE WHEN MONTH(TODAY) >= 9 THEN MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY) + 1, 100)
+                                                                  ELSE MOD(YEAR(TODAY) - 1, 100) || MOD(YEAR(TODAY), 100) END
+            AND 
+                acad_cal_rec.subsess = ""
+            AND 
+                acad_cal_rec.prog IN ('UNDG','GRAD')
+        )   grouped
     WHERE
-        TODAY BETWEEN (beg_date - tmp_sess_grace.pre_grace) AND (end_date + tmp_sess_grace.post_grace)
-        AND acad_cal_rec.sess = tmp_sess_grace.sess
-        AND acad_cal_rec.subsess = " "
+        grouped.eTermGrp    =   grouped.ePullGrp
+    ORDER BY 
+        grouped.yr, grouped.beg_date
 '''
 # fetch active students and sets budget limit for export (books = '100' & 3000.00) and active UBAL holds
 STU_ACAD_REC_100 = '''
@@ -64,71 +54,64 @@ STU_ACAD_REC_100 = '''
         CASE
             WHEN tmpU.id IS NOT NULL THEN 0
                                      ELSE 300000
-        END AS Xcred_limit, 100 AS EProviderCode, TO_CHAR(MIN(tas.beg_date) - 25, '%m/%d/%Y') AS Ebegdate,
-        TO_CHAR(MAX(tas.end_date), '%m/%d/%Y') AS Eenddate, "" AS Eidtype, "" AS Erecordtype, "D" AS Eaccttype
+        END AS Xcred_limit, 100 AS EProviderCode, MIN(tas.eBegDate) AS Ebegdate,
+        MAX(tas.eEndDate) AS Eenddate, "" AS Eidtype, "" AS Erecordtype, "D" AS Eaccttype
     FROM
         stu_acad_rec sar
         INNER JOIN id_rec ir ON sar.id = ir.id
         INNER JOIN
             (SELECT
-                TODAY as today_date, acad_cal_rec.acyr, acad_cal_rec.sess,
-                acad_cal_rec.yr, acad_cal_rec.beg_date, pre_grace,
-                (acad_cal_rec.beg_date-pre_grace) as pre_calc, acad_cal_rec.end_date,
-                post_grace, (acad_cal_rec.end_date+post_grace) as post_calc,
-                acad_cal_rec.subsess
+                acyr, sess, yr, eTermGrp, ePullGrp, eBegDate, TO_CHAR(beg_date, '%m/%d/%Y') AS beg_date,
+                eEndDate, TO_CHAR(end_date, '%m/%d/%Y') AS end_date, subsess, prog
             FROM
-                acad_cal_rec,
-                (SELECT TRIM(acad_cal_rec.sess) AS sess,
-                    CASE
-                        WHEN sess = 'AA' THEN 45
-                        WHEN sess = 'AB' THEN 60
-                        WHEN sess = 'AG' THEN 45
-                        WHEN sess = 'AK' THEN 75
-                        WHEN sess = 'AM' THEN 45
-                        WHEN sess = 'AS' THEN 25
-                        WHEN sess = 'AT' THEN 45
-                        WHEN sess = 'GA' THEN 45
-                        WHEN sess = 'GB' THEN 45
-                        WHEN sess = 'GC' THEN 45
-                        WHEN sess = 'GE' THEN 25
-                        WHEN sess = 'RA' THEN 21
-                        WHEN sess = 'RB' THEN 30
-                        WHEN sess = 'RC' THEN 21
-                        WHEN sess = 'RE' THEN 25
-                        ELSE 99
-                    END AS pre_grace,
-                    CASE
-                        WHEN sess = 'AA' THEN 45
-                        WHEN sess = 'AB' THEN 20
-                        WHEN sess = 'AG' THEN 35
-                        WHEN sess = 'AK' THEN 52
-                        WHEN sess = 'AM' THEN 36
-                        WHEN sess = 'AS' THEN 45
-                        WHEN sess = 'AT' THEN 10
-                        WHEN sess = 'GA' THEN 30
-                        WHEN sess = 'GB' THEN 4
-                        WHEN sess = 'GC' THEN 19
-                        WHEN sess = 'GE' THEN 45
-                        WHEN sess = 'RA' THEN 42
-                        WHEN sess = 'RB' THEN 2
-                        WHEN sess = 'RC' THEN 15
-                        WHEN sess = 'RE' THEN 45
-                        ELSE 99
-                    END AS post_grace
-                FROM acad_cal_rec
-                WHERE acyr = CASE WHEN TODAY < TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d') THEN MOD(YEAR(TODAY) - 1, 100) || MOD(YEAR(TODAY), 100)
-                                                                                            ELSE MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY) + 1, 100) END
-                AND subsess= ""
-                AND sess IN ("AA","AB","AG","AK","AM","AS","AT","GA","GB","GC", "GE", "RA","RB","RC", "RE")) tmp_sess_grace
+                (
+                    SELECT 
+                        acad_cal_rec.acyr, TRIM(acad_cal_rec.sess) AS sess, acad_cal_rec.yr,
+                        CASE
+                            WHEN sess IN ("AA","AB","RA","GA") THEN 'Fall'
+                            WHEN sess IN ("AG","AK","AM","GB","GC","RB","RC") THEN 'Spring'
+                            WHEN sess IN ("AS","AT","GE","RE") THEN 'Summer'
+                                                               ELSE 'Neutral'
+                        END AS eTermGrp,
+                        CASE 
+                            WHEN MONTH(TODAY + 10) >= 9 THEN 'Fall'
+                            WHEN MONTH(TODAY + 10) <= 5 THEN 'Spring'
+                                                        ELSE 'Summer'
+                        END AS ePullGrp,
+                        CASE 
+                            WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('09/01/'|| TO_CHAR(acad_cal_rec.yr))
+                            WHEN sess IN ("AG","AK","AM","GB","GC","RB","RC") THEN TRIM('01/01/' || TO_CHAR(acad_cal_rec.yr))
+                            WHEN sess IN ("AS","AT","GE","RE") THEN TRIM('05/26/' || TO_CHAR(acad_cal_rec.yr))
+                                                               ELSE TRIM('08/01/' || TO_CHAR(acad_cal_rec.yr))
+                        END AS eBegDate,
+                        acad_cal_rec.beg_date,
+                        CASE 
+                            WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('12/24/'|| TO_CHAR(acad_cal_rec.yr))
+                            WHEN sess IN ("AG","AK","AM","GB","GC","RB","RC") THEN TRIM('05/25/' || TO_CHAR(acad_cal_rec.yr))
+                            WHEN sess IN ("AS","AT","GE","RE") THEN TRIM('08/31/' || TO_CHAR(acad_cal_rec.yr))
+                                                               ELSE TRIM('08/1/' || TO_CHAR(acad_cal_rec.yr))
+                        END AS eEndDate,
+                        acad_cal_rec.end_date, acad_cal_rec.subsess, acad_cal_rec.prog
+                    FROM acad_cal_rec
+                    WHERE acad_cal_rec.acyr = CASE WHEN MONTH(TODAY) >= 9 THEN MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY) + 1, 100)
+                                                                          ELSE MOD(YEAR(TODAY) - 1, 100) || MOD(YEAR(TODAY), 100) END
+                    AND 
+                        acad_cal_rec.subsess = ""
+                    AND 
+                        acad_cal_rec.prog IN ('UNDG','GRAD')
+                )   grouped
             WHERE
-                TODAY BETWEEN (beg_date - pre_grace) AND (end_date + post_grace)
-                AND acad_cal_rec.sess = tmp_sess_grace.sess
-                AND acad_cal_rec.subsess = " ") as tas ON sar.sess = tas.sess
-                LEFT JOIN
-                    (SELECT id
-                    FROM hold_rec
-                    WHERE hld ="UBAL"
-                    AND (end_date IS NULL or end_date > TODAY)) tmpU ON sar.id = tmpU.id
+                grouped.eTermGrp    =   grouped.ePullGrp
+            ORDER BY 
+                grouped.yr, grouped.beg_date) as tas ON sar.sess = tas.sess
+            LEFT JOIN
+                (SELECT
+                    id
+                FROM
+                    hold_rec
+                WHERE
+                    hld ="UBAL"
+                AND (end_date IS NULL or end_date > TODAY)) tmpU ON sar.id = tmpU.id
     WHERE
         tas.yr = sar.yr
         AND sar.subprog IN ("TRAD","PTSM","TRAP","YOP","7WK","MED","ACT")
@@ -147,71 +130,64 @@ STU_ACAD_REC_200 = '''
         CASE
             WHEN tmpU.id IS NOT NULL THEN 0
                                      ELSE 5000
-        END AS Xcred_limit, 200 AS EProviderCode, TO_CHAR(MIN(tas.beg_date) - 25, '%m/%d/%Y') AS Ebegdate,
-        TO_CHAR(MAX(tas.end_date), '%m/%d/%Y') AS Eenddate, "" AS Eidtype, "" AS Erecordtype, "D" AS Eaccttype
+        END AS Xcred_limit, 200 AS EProviderCode, MIN(tas.eBegDate) AS Ebegdate,
+        MAX(tas.eEndDate) AS Eenddate, "" AS Eidtype, "" AS Erecordtype, "D" AS Eaccttype
     FROM
         stu_acad_rec sar
         INNER JOIN id_rec ir ON sar.id = ir.id
         INNER JOIN
             (SELECT
-                TODAY as today_date, acad_cal_rec.acyr, acad_cal_rec.sess,
-                acad_cal_rec.yr, acad_cal_rec.beg_date, tmp_sess_grace.pre_grace,
-                (acad_cal_rec.beg_date-pre_grace) as pre_calc, acad_cal_rec.end_date,
-                tmp_sess_grace.post_grace, (acad_cal_rec.end_date+post_grace) as post_calc,
-                acad_cal_rec.subsess
+                acyr, sess, yr, eTermGrp, ePullGrp, eBegDate, TO_CHAR(beg_date, '%m/%d/%Y') AS beg_date,
+                eEndDate, TO_CHAR(end_date, '%m/%d/%Y') AS end_date, subsess, prog
             FROM
-                acad_cal_rec,
-                (SELECT TRIM(acad_cal_rec.sess) AS sess,
-                    CASE
-                        WHEN sess = 'AA' THEN 45
-                        WHEN sess = 'AB' THEN 60
-                        WHEN sess = 'AG' THEN 45
-                        WHEN sess = 'AK' THEN 75
-                        WHEN sess = 'AM' THEN 45
-                        WHEN sess = 'AS' THEN 25
-                        WHEN sess = 'AT' THEN 45
-                        WHEN sess = 'GA' THEN 45
-                        WHEN sess = 'GB' THEN 45
-                        WHEN sess = 'GC' THEN 45
-                        WHEN sess = 'GE' THEN 25
-                        WHEN sess = 'RA' THEN 21
-                        WHEN sess = 'RB' THEN 30
-                        WHEN sess = 'RC' THEN 21
-                        WHEN sess = 'RE' THEN 25
-                        ELSE 99
-                    END AS pre_grace,
-                    CASE
-                        WHEN sess = 'AA' THEN 45
-                        WHEN sess = 'AB' THEN 20
-                        WHEN sess = 'AG' THEN 35
-                        WHEN sess = 'AK' THEN 52
-                        WHEN sess = 'AM' THEN 36
-                        WHEN sess = 'AS' THEN 45
-                        WHEN sess = 'AT' THEN 10
-                        WHEN sess = 'GA' THEN 30
-                        WHEN sess = 'GB' THEN 4
-                        WHEN sess = 'GC' THEN 19
-                        WHEN sess = 'GE' THEN 45
-                        WHEN sess = 'RA' THEN 42
-                        WHEN sess = 'RB' THEN 2
-                        WHEN sess = 'RC' THEN 15
-                        WHEN sess = 'RE' THEN 45
-                        ELSE 99
-                    END AS post_grace
-                FROM acad_cal_rec
-                WHERE acyr = CASE WHEN TODAY < TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d') THEN MOD(YEAR(TODAY) - 1, 100) || MOD(YEAR(TODAY), 100)
-                                                                                            ELSE MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY) + 1, 100) END
-                    AND subsess= ""
-                    AND sess IN ("AA","AB","AG","AK","AM","AS","AT","GA","GB","GC", "GE", "RA","RB","RC", "RE")) tmp_sess_grace
+                (
+                    SELECT 
+                        acad_cal_rec.acyr, TRIM(acad_cal_rec.sess) AS sess, acad_cal_rec.yr,
+                        CASE
+                            WHEN sess IN ("AA","AB","RA","GA") THEN 'Fall'
+                            WHEN sess IN ("AG","AK","AM","GB","GC","RB","RC") THEN 'Spring'
+                            WHEN sess IN ("AS","AT","GE","RE") THEN 'Summer'
+                                                               ELSE 'Neutral'
+                        END AS eTermGrp,
+                        CASE 
+                            WHEN MONTH(TODAY + 10) >= 9 THEN 'Fall'
+                            WHEN MONTH(TODAY + 10) <= 5 THEN 'Spring'
+                                                        ELSE 'Summer'
+                        END AS ePullGrp,
+                        CASE 
+                            WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('09/01/'|| TO_CHAR(acad_cal_rec.yr))
+                            WHEN sess IN ("AG","AK","AM","GB","GC","RB","RC") THEN TRIM('01/01/' || TO_CHAR(acad_cal_rec.yr))
+                            WHEN sess IN ("AS","AT","GE","RE") THEN TRIM('05/26/' || TO_CHAR(acad_cal_rec.yr))
+                                                               ELSE TRIM('08/01/' || TO_CHAR(acad_cal_rec.yr))
+                        END AS eBegDate,
+                        acad_cal_rec.beg_date,
+                        CASE 
+                            WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('12/24/'|| TO_CHAR(acad_cal_rec.yr))
+                            WHEN sess IN ("AG","AK","AM","GB","GC","RB","RC") THEN TRIM('05/25/' || TO_CHAR(acad_cal_rec.yr))
+                            WHEN sess IN ("AS","AT","GE","RE") THEN TRIM('08/31/' || TO_CHAR(acad_cal_rec.yr))
+                                                               ELSE TRIM('08/1/' || TO_CHAR(acad_cal_rec.yr))
+                        END AS eEndDate,
+                        acad_cal_rec.end_date, acad_cal_rec.subsess, acad_cal_rec.prog
+                    FROM acad_cal_rec
+                    WHERE acad_cal_rec.acyr = CASE WHEN MONTH(TODAY) >= 9 THEN MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY) + 1, 100)
+                                                                          ELSE MOD(YEAR(TODAY) - 1, 100) || MOD(YEAR(TODAY), 100) END
+                    AND 
+                        acad_cal_rec.subsess = ""
+                    AND 
+                        acad_cal_rec.prog IN ('UNDG','GRAD')
+                )   grouped
             WHERE
-                TODAY BETWEEN (beg_date - tmp_sess_grace.pre_grace) AND (end_date + tmp_sess_grace.post_grace)
-                AND acad_cal_rec.sess = tmp_sess_grace.sess
-                AND acad_cal_rec.subsess = " ") tas ON sar.sess = tas.sess
-                LEFT JOIN
-                    (SELECT id
-                    FROM hold_rec
-                    WHERE hld ="UBAL"
-                    AND (end_date IS NULL or end_date > TODAY)) tmpU ON sar.id = tmpU.id
+                grouped.eTermGrp    =   grouped.ePullGrp
+            ORDER BY 
+                grouped.yr, grouped.beg_date) tas ON sar.sess = tas.sess
+            LEFT JOIN
+                (SELECT
+                    id
+                FROM
+                    hold_rec
+                WHERE
+                    hld ="UBAL"
+                AND (end_date IS NULL or end_date > TODAY)) tmpU ON sar.id = tmpU.id
     WHERE
         tas.yr = sar.yr
         AND sar.subprog IN ("TRAD","PTSM","TRAP","YOP","7WK","MED","ACT")
@@ -220,7 +196,7 @@ STU_ACAD_REC_200 = '''
     GROUP BY
         sar.id, Elastname, Efirstname, Xmiddleinit, Xcred_limit,
         EProviderCode, Eidtype, Erecordtype, Eaccttype
-    ORDER BY Elastname, Efirstname;
+    ORDER BY Elastname, Efirstname
 '''
 # *** Need description
 EXENRCRS = '''
