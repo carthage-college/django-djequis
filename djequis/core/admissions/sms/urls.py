@@ -21,6 +21,10 @@ urlpatterns = [
         views.send, name='sms_send_bulk'
     ),
     url(
+        r'^detail/(?P<sid>\w+)/$',
+        views.detail, name='sms_detail'
+    ),
+    url(
         r'^search/$',
         views.search, name='sms_search'
     ),

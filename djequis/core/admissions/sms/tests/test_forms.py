@@ -16,19 +16,19 @@ class SendFormTestCase(TestCase):
 
     def test_send_form_valid_data(self):
         form = SendForm({
-            'phone': settings.TWILIO_TEST_PHONE,
-            'message': 'Who does your taxes?'
+            'phone_to': settings.TWILIO_TEST_PHONE_TO,
+            'message': settings.TWILIO_TEST_MESSAGE
         })
         self.assertTrue(form.is_valid())
 
     def test_send_form_invalid_data(self):
         form = SendForm({
-            'phone': '8675309',
+            'phone_to': '8675309',
             'message': '',
         })
         self.assertFalse(form.is_valid())
         self.assertEqual(form.errors, {
-            'phone': ['Phone numbers must be in XXX-XXX-XXXX format.'],
+            'phone_to': ['Phone numbers must be in XXX-XXX-XXXX format.'],
             'message': ['This field is required.'],
         })
 
@@ -36,6 +36,6 @@ class SendFormTestCase(TestCase):
         form = SendForm({})
         self.assertFalse(form.is_valid())
         self.assertEqual(form.errors, {
-            'phone': ['This field is required.'],
+            'phone_to': ['This field is required.'],
             'message': ['This field is required.'],
         })

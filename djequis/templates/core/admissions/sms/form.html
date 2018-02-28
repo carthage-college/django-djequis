@@ -10,9 +10,8 @@ var cleavePhone = new Cleave('#id_phone', {
   phone: true,
   phoneRegionCode: 'US'
 });
-
 $(function() {
-  var maxLength = 200;
+  var maxLength = 160;
   $('textarea').keyup(function() {
     var length = $(this).val().length;
     var length = maxLength-length;
@@ -30,6 +29,25 @@ $(function() {
 {% endblock %}
 {% block content %}
 <div class="forms-container large-8 medium-10 small-12">
+    {% if messages %}
+      {% for message in messages %}
+        <div id="messages" class="{{ message.tags }} large-12 medium-12 small-12">
+        <strong>{{ message }}</strong>
+        </div>
+      {% endfor %}
+    {% endif %}
+    {% if errors %}
+    <div class="error-message">
+        <p>Some messages did not go through to the recipients phone:</p>
+        <ul>
+        {% for e in errors %}
+            <li>
+                <a href="{% url 'detail' e.sid %}">{{e.to}}</a>
+            </li>
+        {% endfor %}
+        <ul>
+    </div>
+    {% endif %}
     {% include "includes/required_text.html" %}
     {% include "includes/errors_text.html" %}
     <form method="post" action="." class="form" id="profile">

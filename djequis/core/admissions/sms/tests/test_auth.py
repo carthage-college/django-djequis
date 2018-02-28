@@ -21,7 +21,7 @@ class CoreViewsTestCase(TestCase):
         )
 
         # add to student accounts group
-        ag = Group.objects.create(name=settings.ADDMISSIONS_SMS_GROUP)
+        ag = Group.objects.create(name=settings.TWILIO_ADMISSIONS_GROUP)
         ag.user_set.add(self.user)
         # cred dict
         self.credentials = {
