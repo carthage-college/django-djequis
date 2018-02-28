@@ -5,7 +5,7 @@ from djtools.utils.logging import seperator
 
 from djequis.core.admissions.sms.client import twilio_client as client
 from djequis.core.admissions.sms.manager import Message
-from djequis.core.admissions.sms.errors import MESSAGE_DELIVERY
+from djequis.core.admissions.sms.errors import MESSAGE_DELIVERY_CODES
 
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.base.exceptions import TwilioRestException
@@ -37,7 +37,8 @@ class CoreViewsTestCase(TestCase):
                     body = (
                         "Test sms message via Python Unit Test\n"
                         "Who does your taxes?"
-                    )
+                    ),
+                    status_callback = 'https://requestb.in/19mnap81'
                 )
             except TwilioRestException as e:
                 die = True
@@ -63,7 +64,7 @@ class CoreViewsTestCase(TestCase):
                 else:
                     print "Fail: message was not sent:"
                     print message.error_message
-                    print MESSAGE_DELIVERY[message.error_code]
+                    print MESSAGE_DELIVERY_CODES[message.error_code].description
         else:
             print "use the --debug-mode flag to test message delivery"
 

@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from djequis.core.admissions.sms.forms import SendForm
 from djequis.core.admissions.sms.manager import Message
 from djequis.core.admissions.sms.client import twilio_client as client
+from djequis.core.admissions.sms.errors import MESSAGE_DELIVERY
 
 from djzbar.decorators.auth import portal_auth_required
 
@@ -29,31 +30,37 @@ def send(request):
         form = SendForm(request.POST, request.FILES)
         if form.is_valid():
             data = form.cleaned_data
-            response = client.messages.create(
-                to = data['phone_to'],
-                #from_ = settings.TWILIO_TEST_PHONE_FROM,
-                messaging_service_sid = MESSAGING_SERVICE_SID,
-                # use parentheses to prevent extra whitespace
-                body = (data['message'])
-            )
 
-            message = Message()
-            sid = response.sid
-            delivered = message.status(sid, 'delivered')
+            die = False
+            try:
+                response = client.messages.create(
+                    to = data['phone_to'],
+                    messaging_service_sid = MESSAGING_SERVICE_SID,
+                    # use parentheses to prevent extra whitespace
+                    body = (data['message']),
+                    status_callback = 'https://requestb.in/19mnap81'
+                )
+            except TwilioRestException as e:
+                die = True
+                messages.add_message(
+                    request, messages.ERROR, e, extra_tags='error'
+                )
 
-            if delivered == 'delivered':
-                messages.add_message(
-                    request,messages.SUCCESS,"Your message has been sent.",
-                    extra_tags='success'
-                )
-            else:
-                messages.add_message(
-                    request, messages.ERROR,
-                    """
-                    Some recipients did not receive your message.
-                    """,
-                    extra_tags='error'
-                )
+            if not die:
+                message = Message().status(response.sid, 'delivered')
+
+                if message.status == 'delivered':
+                    messages.add_message(
+                        request,messages.SUCCESS,"Your message has been sent.",
+                        extra_tags='success'
+                    )
+                else:
+                    messages.add_message(
+                        request, messages.ERROR, "{}: {}".format(
+                            message.error_message,
+                            MESSAGE_DELIVERY[message.error_code]
+                        )
+                    )
 
             return HttpResponseRedirect(
                 reverse_lazy('sms_send')
