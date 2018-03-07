@@ -111,13 +111,6 @@ def main():
 if __name__ == '__main__':
     args = parser.parse_args()
     test = args.test
-    database = args.database
-
-    if not database:
-        print("mandatory option missing: database name\n")
-        parser.print_help()
-        exit(-1)
-    else:
-        database = database.lower()
+    database = args.database.lower()
 
     sys.exit(main())
