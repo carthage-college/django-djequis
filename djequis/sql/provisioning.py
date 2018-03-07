@@ -133,7 +133,7 @@ FROM
     job_rec INNER JOIN  id_rec      ON  job_rec.id  =   id_rec.id
             LEFT JOIN   cvid_rec    ON  job_rec.id  =   cvid_rec.cx_id
 WHERE
-    job_rec.hrstat                  IN      ("AD","ADPT","FT","HR","HRPT","PT","STD","TLE","PATH","PTGP")
+    job_rec.hrstat                  IN      ({hrstat})
 AND
     job_rec.hrdept                  NOT IN  ("PEND")
 AND
@@ -142,4 +142,4 @@ AND
     cvid_rec.ldap_name              IS      NULL
 GROUP BY
     job_rec.id, cvid_rec.ldap_name, id_rec.firstname, id_rec.lastname
-'''
+'''.format

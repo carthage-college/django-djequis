@@ -90,12 +90,15 @@ def main():
             print(s)
 
     # Current Employees
+    sql = CURRENT_EMPLOYEES(
+        hrstat = '"AD","ADPT","FT","HR","HRPT","PT","STD","TLE","PATH","PTGP"'
+    )
     if test:
         print('current employees sql')
-        print("sql = {}".format(CURRENT_EMPLOYEES))
-        logger.debug('sql = {}'.format(CURRENT_EMPLOYEES))
+        print("sql = {}".format(sql))
+        logger.debug('sql = {}'.format(sql))
     else:
-        employees = do_sql(CURRENT_EMPLOYEES, key=key, earl=EARL)
+        employees = do_sql(sql, key=key, earl=EARL)
 
         for e in employees:
             print(e)
