@@ -110,7 +110,7 @@ def main():
             }
             send_mail(
                 None, [email,],
-                "Loan Disbursement Notification",
+                "[Financial Aid] Loan Disbursement Notification",
                 settings.DEFAULT_FROM_EMAIL,
                 'core/financialaid/loan_disbursement/email.html',
                 data, bcc
