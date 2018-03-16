@@ -68,7 +68,7 @@ def main():
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None # ignore known hosts
     # sFTP connection information for Schoology
-    XTRNL_CONNECTION1 = {
+    XTRNL_CONNECTION = {
         'host':settings.SCHOOLOGY_HOST,
         'username':settings.SCHOOLOGY_USER,
         'password':settings.SCHOOLOGY_PASS,
@@ -77,23 +77,35 @@ def main():
     }
     '''
     for key, value in dict.items():
-        print key
         ########################################################################
-        # Dict Value 'COURSES' selects......
+        # to print the dictionary key and rows of data, you would execute:
+        ########################################################################
+        if test:
+            print key
+        ########################################################################
+        # Dict Value 'COURSES and SECTIONS' return all courses and sections
+        # active from July to July of the current fiscal year.
+        # Based on the dates for the terms courses and sections are made active
+        # or inactive automatically
 
-        # Dict Value 'USERS' selects......
+        # Dict Value 'USERS' returns both Students and Faculty/Staff
+        # The student query portion pulls all students with an academic record
+        # between the start of the current fiscal year (July 1) and the end of
+        # the current fiscal year.
+        # The Faculty/Staff portion should get all employees with active job
+        # records within the last year.
 
-        # Dict Value 'ENROLLMENT' selects......
+        # Dict Value 'ENROLLMENT' returns all instructors and students enrolled
+        # in active courses July-July for the current fiscal year
         ########################################################################
         sql = do_sql(value, earl=EARL)
         rows = sql.fetchall()
         for row in rows:
-            print row
+            if test:
+                print row
         # set directory and filename to be stored
         # ex. /data2/www/data/schoology/COURSES.csv
-        filename = ('{0}{1}.csv'.format(
-            settings.SCHOOLOGY_CSV_OUTPUT,key
-        ))
+        filename = ('{0}{1}.csv'.format(settings.SCHOOLOGY_CSV_OUTPUT,key))
         # set destination path and new filename that it will be renamed to when archived
         # ex. /data2/www/data/schoology_archives/COURSES_BAK_20180123082403.csv
         archive_destination = ('{0}{1}_{2}_{3}.csv'.format(
@@ -103,7 +115,7 @@ def main():
         csvfile = open(filename,"w");
         output = csv.writer(csvfile)
         # write header row to file
-        if key == 'COURSES': # write header row for COURSES
+        if key == 'COURSES': # write header row for COURSES and SECTIONS
             output.writerow([
                 "Course Name", "Department", "Course Code", "Credits", "Description",
                 "Section Name", "Section School Code", "Section Code",
@@ -111,7 +123,7 @@ def main():
                 ])
         if key == 'USERS': # write header row for USERS
             output.writerow([
-                "First Name","Preferred First Name", "Middle Name", "Last Name",
+                "First Name", "Preferred First Name", "Middle Name", "Last Name",
                 "Name Prefix", "User Name", "Email", "Unique ID", "Role", "School",
                 "Schoology ID", "Position", "Pwd", "Gender", "Graduation Year",
                 "Additional Schools" 
@@ -126,36 +138,44 @@ def main():
                 output.writerow(row)
         else:
             print ("No values in list")
+            SUBJECT = 'SCHOOLOGY UPLOAD failed'
+            BODY = 'No values in list.'
+            sendmail(
+                settings.SCHOOLOGY_TO_EMAIL,settings.SCHOOLOGY_FROM_EMAIL,
+                BODY, SUBJECT
+            )
         csvfile.close()
         # renaming old filename to newfilename and move to archive location
         shutil.copy(filename, archive_destination)
     '''
-    # set local path {/data2/www/data/barnesandnoble/}
-    source_dir = ('{0}'.format(settings.BARNESNOBLE_CSV_OUTPUT))
-    # set local path and filenames
+    # set local path {/data2/www/data/schoology/}
+    source_dir = ('{0}'.format(settings.SCHOOLOGY_CSV_OUTPUT))
+    # get list of files and set local path and filenames
     # variable == /data2/www/data/schoology/{filename.csv}
-    fileCourses = source_dir + 'COURSES.csv'
-    fileUsers = source_dir + 'USERS.csv'
-    fileEnrollment = source_dir + 'ENROLLMENT.csv'
-    # sFTP PUT moves the EXENCRS.csv file to the Barnes & Noble server 1
+    directory = os.listdir(source_dir)
+    # sFTP PUT moves the COURSES.csv, USERS.csv, ENROLLMENT.csv files to the Schoology server
     try:
-        with pysftp.Connection(**XTRNL_CONNECTION1) as sftp:
-            # used for testing
-            #sftp.chdir("TestFiles/")
-            sftp.put(fileCourses, preserve_mtime=True)
-            # deletes original file from our server
-            os.remove(fileCourses)
-            # closes sftp connection
+        with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
+            # change directory
+            sftp.chdir("upload/")
+            # loop through files in list
+            for listfile in directory:
+                schoologyfiles = source_dir + listfile
+                if schoologyfiles.endswith(".csv"):
+                    # sftp files if they end in .csv
+                    sftp.put(schoologyfiles, preserve_mtime=True)
+                # delete original files from our server
+                os.remove(schoologyfiles)
+            # close sftp connection
             sftp.close()
     except Exception, e:
         SUBJECT = 'SCHOOLOGY UPLOAD failed'
-        BODY = 'Unable to PUT .csv to Schoology server.\n\n{0}'.format(str(e))
+        BODY = 'Unable to PUT .csv files to Schoology server.\n\n{0}'.format(str(e))
         sendmail(
             settings.SCHOOLOGY_TO_EMAIL,settings.SCHOOLOGY_FROM_EMAIL,
             BODY, SUBJECT
         )
     '''
-
 if __name__ == "__main__":
     args = parser.parse_args()
     test = args.test
