@@ -137,7 +137,6 @@ def main():
             for row in rows:
                 output.writerow(row)
         else:
-            print ("No values in list")
             SUBJECT = 'SCHOOLOGY UPLOAD failed'
             BODY = 'No values in list.'
             sendmail(
