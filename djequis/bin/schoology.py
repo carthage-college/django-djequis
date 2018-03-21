@@ -63,10 +63,9 @@ def main():
         'USERS': USERS,
         'ENROLLMENT': ENROLLMENT
         }
-    '''
     # by adding cnopts, I'm authorizing the program to ignore the host key and just continue
     cnopts = pysftp.CnOpts()
-    cnopts.hostkeys = None # ignore known hosts
+    cnopts.hostkeys = None # ignore known host key checking
     # sFTP connection information for Schoology
     XTRNL_CONNECTION = {
         'host':settings.SCHOOLOGY_HOST,
@@ -75,7 +74,6 @@ def main():
         'port':settings.SCHOOLOGY_PORT,
         'cnopts':cnopts
     }
-    '''
     for key, value in dict.items():
         ########################################################################
         # to print the dictionary key and rows of data, you would execute:
@@ -146,7 +144,7 @@ def main():
         csvfile.close()
         # renaming old filename to newfilename and move to archive location
         shutil.copy(filename, archive_destination)
-    '''
+
     # set local path {/data2/www/data/schoology/}
     source_dir = ('{0}'.format(settings.SCHOOLOGY_CSV_OUTPUT))
     # get list of files and set local path and filenames
@@ -174,7 +172,7 @@ def main():
             settings.SCHOOLOGY_TO_EMAIL,settings.SCHOOLOGY_FROM_EMAIL,
             BODY, SUBJECT
         )
-    '''
+
 if __name__ == "__main__":
     args = parser.parse_args()
     test = args.test
