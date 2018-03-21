@@ -75,7 +75,7 @@ UNION
         stu_acad_rec.reg_stat   IN  ('R','C')
     AND
         cvid_rec.ldap_name      IS  NULL
-UNION   
+UNION
 -- prog_enr_rec records (should be redundant with above stu_acad_rec records)
     SELECT
         prog_enr_rec.id, TRIM(id_rec.firstname) AS firstname, TRIM(id_rec.lastname) AS lastname, TRIM(cvid_rec.ldap_name) AS ldap_name
@@ -122,7 +122,7 @@ UNION
 GROUP BY
     id, firstname, lastname, ldap_name
 ORDER BY
-    id;
+    id
 '''
 
 # Current employees, excluding student-employees

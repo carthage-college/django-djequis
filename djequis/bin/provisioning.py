@@ -7,9 +7,8 @@ sys.path.append('/usr/local/lib/python2.7/dist-packages/')
 sys.path.append('/data2/django_1.11/')
 sys.path.append('/data2/django_projects/')
 sys.path.append('/data2/django_third/')
-#os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djequis.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djequis.settings')
 
-# required if using django models
 import django
 django.setup()
 
@@ -30,6 +29,9 @@ from djequis.sql.provisioning import CURRENT_EMPLOYEES, CURRENT_STUDENTS
 from djzbar.utils.informix import do_sql
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
+
+from openpyxl import Workbook
+from openpyxl import load_workbook
 
 import argparse
 import logging
@@ -78,6 +80,7 @@ def main():
         parser.print_help()
         exit(-1)
 
+    '''
     # Current Students
     if test:
         print('current students sql')
@@ -88,6 +91,7 @@ def main():
 
         for s in students:
             print(s)
+    '''
 
     # Current Employees
     sql = CURRENT_EMPLOYEES(
@@ -98,11 +102,24 @@ def main():
         print("sql = {}".format(sql))
         logger.debug('sql = {}'.format(sql))
     else:
+
+        row = []
         employees = do_sql(sql, key=key, earl=EARL)
 
-        for e in employees:
-            print(e)
+        # load our XLSX template
+        wb = load_workbook(
+            '{}/static/xml/current_employees.xlsx'.format(settings.ROOT_DIR)
+        )
+        # obtain the active worksheet
+        ws = wb.active
 
+        for employee in employees:
+            for e in employee:
+                row.append(e)
+            ws.append(row)
+
+        # Save the file
+        wb.save("{}/current_employees.xlsx".format(settings.ROOT_DIR))
 
 ######################
 # shell command line
