@@ -119,7 +119,9 @@ def main():
             ws.append(row)
 
         # Save the file
-        wb.save("{}/current_employees.xlsx".format(settings.ROOT_DIR))
+        wb.save("{}/current_employees.xlsx".format(
+            settings.PROVISIONING_DATA_DIRECTORY
+        ))
 
 ######################
 # shell command line

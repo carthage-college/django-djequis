@@ -309,6 +309,8 @@ WISACT_PASS=''
 WISACT_CSV_OUTPUT=''
 WISACT_TO_EMAIL=[]
 WISACT_FROM_EMAIL=''
+# Provisioning data directory
+PROVISIONING_DATA_DIRECTORY = ''
 # loan disbursement
 FINANCIAL_AID_EMAIL=''
 # test
