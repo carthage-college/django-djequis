@@ -1,12 +1,14 @@
 # fetch courses and sections
-# This query should return all courses and sections active from July to July of the current fiscal year.
-# Based on the dates for the terms courses and sections are made active or inactive automatically.
+# This query should return all courses and sections active from July to July
+# of the current fiscal year.
+# Based on the dates for the terms courses and sections are made active
+# or inactive automatically.
 COURSES = '''
-    SELECT 
+    SELECT
         TRIM(jenzccd_rec.title) Coursename, TRIM(jenzdpt_rec.descr) Department,
         TRIM(jenzcrs_rec.course_code) CourseCode, jenzcrs_rec.hrs Credits,
         TRIM(jenzccd_rec.title)||'-'||TRIM(jenzcrs_rec.sec)||' '||
-        CASE 
+        CASE
             WHEN TRIM(x) = '------- 0-0' AND TRIM(y) = '------- 0-0' THEN ''
             WHEN TRIM(x) = TRIM(y) THEN x
             ELSE x||' / '||y
@@ -26,11 +28,11 @@ COURSES = '''
         END AS SecDescr,
         TRIM(bldg)||' '||TRIM(ROOM) location, 'Carthage College' School,
         TRIM(jenzcrs_rec.term_code) GradingPeriod
-    FROM 
-        jenzcrs_rec 
+    FROM
+        jenzcrs_rec
     JOIN
         crs_rec ON TRIM(jenzcrs_rec.course_code) = TRIM(crs_rec.crs_no)||' ('||TRIM(crs_rec.cat)||')'
-    JOIN 
+    JOIN
         Jenzccd_rec ON Jenzccd_rec.course_code = jenzcrs_rec.course_code
     JOIN
         jenztrm_rec ON jenztrm_rec.term_code = jenzcrs_rec.term_code
@@ -74,12 +76,12 @@ COURSES = '''
     ON MeetPattern.crs_no = crs_rec.crs_no
         AND MeetPattern.yr = left(jenzcrs_rec.coursekey,4)
         AND MeetPattern.MaxMtgNo = secmtg_rec.mtg_no
-    WHERE 
+    WHERE
         jenztrm_rec.start_date >= CASE WHEN TODAY < TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d') 
-        THEN TO_DATE(YEAR(TODAY)-1 || '-07-01', '%Y-%m-%d') 
+        THEN TO_DATE(YEAR(TODAY)-1 || '-07-01', '%Y-%m-%d')
         ELSE  TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d') END
         AND  jenztrm_rec.start_date < CASE WHEN TODAY < TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d') 
-        THEN TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d') 
+        THEN TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d')
         ELSE  TO_DATE(YEAR(TODAY)+1 || '-07-01', '%Y-%m-%d') END
         AND jenzcrp_rec.status_code = '1PR'
         AND id_rec.id IN
@@ -90,12 +92,15 @@ COURSES = '''
 # fetch users
 # Users are collected in a single query to get both Students and Faculty/Staff.
 # The student query portion pulls all students with an academic record between
-# the start of the current fiscal year (July 1) and the end of the current fiscal year.
-# The Faculty/Staff portion should get all employees with active job records within the last year.
+# the start of the current fiscal year (July 1) and the end of
+# the current fiscal year.
+# The Faculty/Staff portion should get all employees with active job records
+# within the last year.
 # There are enrollments for individuals who are not currently staff or faculty.
-# If I filter to only users who were employed in the last year, I find enrollment records without a matching user. 
+# If I filter to only users who were employed in the last year,
+# I find enrollment records without a matching user. 
 USERS = '''
-    SELECT DISTINCT 
+    SELECT DISTINCT
         id_rec.firstname, addree_rec.alt_name preferred_first_name, id_rec.middlename,
         id_rec.lastname, id_rec.title name_prefix, TRIM(jenzprs_rec.host_username) username,
         TRIM(jenzprs_rec.e_mail) EMAIL, jenzprs_rec.host_id UniqueID,
@@ -108,7 +113,7 @@ USERS = '''
         CASE NVL(title3.job_title,'x') WHEN 'x' THEN '' ELSE '; '||trim(title3.job_title) END
         Position, '' pwd, '' gender, '' GradYr, '' additional_schools
     FROM jenzprs_rec
-        LEFT JOIN jenzcst_rec 
+        LEFT JOIN jenzcst_rec
         ON jenzprs_rec.host_id = jenzcst_rec.host_id
         AND jenzcst_rec.status_code IN ('FAC', 'STF', 'STU', 'ADM')
             JOIN id_rec ON id_rec.id = jenzprs_rec.host_id
@@ -131,7 +136,7 @@ USERS = '''
             SELECT to_number(host_id) AS UID
                 FROM jenzcrp_rec
             UNION All
-            SELECT cx_id AS UID 
+            SELECT cx_id AS UID
                 FROM provsndtl_rec
                 WHERE subsys = 'MSTR'
                     AND action = 'Active'
@@ -140,7 +145,8 @@ USERS = '''
     ORDER BY id_rec.lastname, id_rec.firstname;
 '''
 # fetch enrollment
-# This query should return all instructors and students enrolled in active courses July-July for the current fiscal year.
+# This query should return all instructors and students enrolled in
+# active courses July-July for the current fiscal year.
 ENROLLMENT = '''
    SELECT
         jenzcrp_rec.course_code CourseCode,
