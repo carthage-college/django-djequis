@@ -33,18 +33,18 @@ from djzbar.settings import INFORMIX_EARL_PROD
 from openpyxl import Workbook
 from openpyxl import load_workbook
 
+import time
 import argparse
-import logging
 
-logger = logging.getLogger('djequis')
 
-'''
-Shell script...
-'''
+"""
+provising framework for new students and employees
+"""
+
 
 # set up command-line options
 desc = """
-Accepts as input...
+Accepts as input a database name
 """
 
 parser = argparse.ArgumentParser(description=desc)
@@ -61,6 +61,32 @@ parser.add_argument(
     help="Dry run?",
     dest='test'
 )
+
+TIMESTAMP = time.strftime("%Y%m%d%H%M%S")
+
+
+def _sheet(results, group):
+
+    # load our XLSX template
+    wb = load_workbook(
+        '{}/static/xml/{}.xlsx'.format(settings.ROOT_DIR, group)
+    )
+    # obtain the active worksheet
+    ws = wb.active
+
+    row = []
+    for result in results:
+        for r in result:
+            row.append(r)
+        ws.append(row)
+
+    # Save the file
+    wb.save("{}/{}_{}.xlsx".format(
+        settings.PROVISIONING_DATA_DIRECTORY, group, TIMESTAMP
+    ))
+
+    return wb
+
 
 def main():
     '''
@@ -80,18 +106,13 @@ def main():
         parser.print_help()
         exit(-1)
 
-    '''
     # Current Students
     if test:
         print('current students sql')
         print("sql = {}".format(CURRENT_STUDENTS))
-        logger.debug('sql = {}'.format(CURRENT_STUDENTS))
     else:
         students  = do_sql(CURRENT_STUDENTS, key=key, earl=EARL)
-
-        for s in students:
-            print(s)
-    '''
+        response = _sheet(students, 'current_students')
 
     # Current Employees
     sql = CURRENT_EMPLOYEES(
@@ -100,28 +121,10 @@ def main():
     if test:
         print('current employees sql')
         print("sql = {}".format(sql))
-        logger.debug('sql = {}'.format(sql))
     else:
-
-        row = []
         employees = do_sql(sql, key=key, earl=EARL)
+        response = _sheet(employees, 'current_employees')
 
-        # load our XLSX template
-        wb = load_workbook(
-            '{}/static/xml/current_employees.xlsx'.format(settings.ROOT_DIR)
-        )
-        # obtain the active worksheet
-        ws = wb.active
-
-        for employee in employees:
-            for e in employee:
-                row.append(e)
-            ws.append(row)
-
-        # Save the file
-        wb.save("{}/current_employees.xlsx".format(
-            settings.PROVISIONING_DATA_DIRECTORY
-        ))
 
 ######################
 # shell command line
