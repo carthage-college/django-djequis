@@ -108,8 +108,6 @@ def main():
     """
 
     key = None
-    if test:
-        key = 'debug'
 
     if database == 'train':
         EARL = INFORMIX_EARL_TEST
@@ -129,14 +127,12 @@ def main():
         response = _gen_files(students, 'current_students')
 
     # Current Employees
-    sql = CURRENT_EMPLOYEES(
-        hrstat = '"AD","ADPT","FT","HR","HRPT","PT","STD","TLE","PATH","PTGP"'
-    )
+
     if test:
         print('current employees sql')
-        print("sql = {}".format(sql))
+        print("sql = {}".format(CURRENT_EMPLOYEES))
     else:
-        employees = do_sql(sql, key=key, earl=EARL)
+        employees = do_sql(CURRENT_EMPLOYEES, key=key, earl=EARL)
         response = _gen_files(employees, 'current_employees')
 
 
