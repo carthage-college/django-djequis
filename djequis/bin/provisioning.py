@@ -33,6 +33,7 @@ from djzbar.settings import INFORMIX_EARL_PROD
 from openpyxl import Workbook
 from openpyxl import load_workbook
 
+import csv
 import time
 import argparse
 
@@ -40,7 +41,6 @@ import argparse
 """
 provising framework for new students and employees
 """
-
 
 # set up command-line options
 desc = """
@@ -65,33 +65,49 @@ parser.add_argument(
 TIMESTAMP = time.strftime("%Y%m%d%H%M%S")
 
 
-def _sheet(results, group):
 
-    # load our XLSX template
-    wb = load_workbook(
-        '{}/static/xml/{}.xlsx'.format(settings.ROOT_DIR, group)
-    )
-    # obtain the active worksheet
-    ws = wb.active
+def _gen_files(results, group):
 
-    row = []
-    for result in results:
-        for r in result:
-            row.append(r)
-        ws.append(row)
+    status = False
+    if results is not None:
 
-    # Save the file
-    wb.save("{}/{}_{}.xlsx".format(
-        settings.PROVISIONING_DATA_DIRECTORY, group, TIMESTAMP
-    ))
+        phile = ('{0}{1}_{2}_{3}.csv'.format(
+            settings.PROVISIONING_CSV_FILE,TIMESTAMP
+        ))
 
-    return wb
+        # create .csv file
+        csvfile = open(phile,"w")
+        output = csv.writer(csvfile)
+
+        # load our XLSX template
+        wb = load_workbook(
+            '{}/static/xml/{}.xlsx'.format(settings.ROOT_DIR, group)
+        )
+        # obtain the active worksheet
+        ws = wb.active
+
+        for result in results:
+            output.writerow(result)
+            row = []
+            for r in result:
+                row.append(r)
+            ws.append(row)
+
+        # Save the file
+        wb.save("{}/{}_{}.xlsx".format(
+            settings.PROVISIONING_DATA_DIRECTORY, group, TIMESTAMP
+        ))
+        # close the csv file
+        csvfile.close()
+        status = True
+
+    return status
 
 
 def main():
-    '''
+    """
     main function
-    '''
+    """
 
     key = None
     if test:
@@ -112,7 +128,7 @@ def main():
         print("sql = {}".format(CURRENT_STUDENTS))
     else:
         students  = do_sql(CURRENT_STUDENTS, key=key, earl=EARL)
-        response = _sheet(students, 'current_students')
+        response = _gen_files(students, 'current_students')
 
     # Current Employees
     sql = CURRENT_EMPLOYEES(
@@ -123,7 +139,7 @@ def main():
         print("sql = {}".format(sql))
     else:
         employees = do_sql(sql, key=key, earl=EARL)
-        response = _sheet(employees, 'current_employees')
+        response = _gen_files(employees, 'current_employees')
 
 
 ######################
