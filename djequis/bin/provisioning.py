@@ -65,15 +65,15 @@ parser.add_argument(
 TIMESTAMP = time.strftime("%Y%m%d%H%M%S")
 
 
-
 def _gen_files(results, group):
 
     status = False
     if results is not None:
 
-        phile = ('{0}{1}_{2}_{3}.csv'.format(
-            settings.PROVISIONING_CSV_FILE,TIMESTAMP
-        ))
+        root = '{}/{}_{}'.format(
+            settings.PROVISIONING_DATA_DIRECTORY, group, TIMESTAMP
+        )
+        phile = ('{}.csv'.format(root))
 
         # create .csv file
         csvfile = open(phile,"w")
@@ -94,9 +94,7 @@ def _gen_files(results, group):
             ws.append(row)
 
         # Save the file
-        wb.save("{}/{}_{}.xlsx".format(
-            settings.PROVISIONING_DATA_DIRECTORY, group, TIMESTAMP
-        ))
+        wb.save('{}.xlsx'.format(root))
         # close the csv file
         csvfile.close()
         status = True
