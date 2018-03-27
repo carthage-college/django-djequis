@@ -1,6 +1,9 @@
 CURRENT_STUDENTS='''
     SELECT
-        adm_rec.id, TRIM(id_rec.firstname) AS firstname, TRIM(id_rec.lastname) AS lastname, TRIM(cvid_rec.ldap_name) AS ldap_name
+        TRIM(cvid_rec.ldap_name) AS ldap_name,
+        TRIM(id_rec.lastname) AS lastname,
+        TRIM(id_rec.firstname) AS firstname,
+        adm_rec.id
     FROM
         adm_rec INNER JOIN  id_rec          ON  adm_rec.id              =   id_rec.id
                 INNER JOIN  acad_cal_rec    ON  adm_rec.plan_enr_sess   =   acad_cal_rec.sess
