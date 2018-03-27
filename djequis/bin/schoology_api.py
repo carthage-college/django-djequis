@@ -45,22 +45,39 @@ parser.add_argument(
     help="Dry run?",
     dest="test"
 )
-#sc = schoolopy.Schoology(schoolopy.Auth(cfg['key'], cfg['secret']))
-
 
 
 def main():
     sc = Schoology(
         Auth(settings.SCHOOLOGY_API_KEY, settings.SCHOOLOGY_API_SECRET)
     )
-    sc.limit = 10  # Only retrieve 10 objects max
+    sc.limit = 100  # Only retrieve 10 objects max
 
-    print('Your name is %s' % sc.get_me().name_display)
+    print('Your name is {}'.format(sc.get_me().name_display))
+
+    if test:
+        print('feed {}'.format(sc.get_feed()))
+
     for update in sc.get_feed():
+
+        if test:
+            #print update
+            print update.body
+            print update.realm
+            print update.uid
+            print update.created
+            print update.num_comments
+            print update.likes
+            print update.user_like_action
+            print update.group_id
+            print update.id
+
         user = sc.get_user(update.uid)
-        print('By: ' + user.name_display)
-        print(update.body[:40].replace('\r\n', ' ').replace('\n', ' ') + '...')
-        print('%d likes\n' % update.likes)
+        if user:
+            print('By: ' + user.name_display)
+            print(update.body[:40].replace('\r\n', ' ').replace('\n', ' ') + '...')
+            print('%d likes\n' % update.likes)
+
 
 if __name__ == "__main__":
     args = parser.parse_args()
