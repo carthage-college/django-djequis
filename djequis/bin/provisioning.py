@@ -56,6 +56,12 @@ parser.add_argument(
     dest='database'
 )
 parser.add_argument(
+    '-f', '--filetype',
+    required=True,
+    help="File type (csv or xlsx).",
+    dest='filetype'
+)
+parser.add_argument(
     '--test',
     action='store_true',
     help="Dry run?",
@@ -65,7 +71,7 @@ parser.add_argument(
 TIMESTAMP = time.strftime("%Y%m%d%H%M%S")
 
 
-def _gen_files(results, group):
+def _gen_files(results, filetype, group):
 
     status = False
     if results is not None:
@@ -73,30 +79,43 @@ def _gen_files(results, group):
         root = '{}/{}_{}'.format(
             settings.PROVISIONING_DATA_DIRECTORY, group, TIMESTAMP
         )
-        phile = ('{}.csv'.format(root))
 
-        # create .csv file
-        csvfile = open(phile,"w")
-        output = csv.writer(csvfile)
+        if filetype == 'csv':
 
-        # load our XLSX template
-        wb = load_workbook(
-            '{}/static/xml/{}.xlsx'.format(settings.ROOT_DIR, group)
-        )
-        # obtain the active worksheet
-        ws = wb.active
+            # create .csv file
+            phile = ('{}.csv'.format(root))
+            csvfile = open(phile,"w")
+            output = csv.writer(csvfile)
 
-        for result in results:
-            output.writerow(result)
-            row = []
-            for r in result:
-                row.append(r)
-            ws.append(row)
+            for result in results:
+                print result
+                output.writerow(result)
 
-        # Save the file
-        wb.save('{}.xlsx'.format(root))
-        # close the csv file
-        csvfile.close()
+            # close the csv file
+            csvfile.close()
+
+        elif filetype == 'xlsx':
+
+            # load our XLSX template
+            wb = load_workbook(
+                '{}/static/xml/{}.xlsx'.format(settings.ROOT_DIR, group)
+            )
+            # obtain the active worksheet
+            ws = wb.active
+
+            for result in results:
+                row = []
+                for r in result:
+                    row.append(r)
+                ws.append(row)
+
+            # Save the xml file
+            wb.save('{}.xlsx'.format(root))
+        else:
+            print("filetype must be: 'csv' or 'xlsx'\n")
+            parser.print_help()
+            exit(-1)
+
         status = True
 
     return status
@@ -107,7 +126,13 @@ def main():
     main function
     """
 
-    key = None
+    key = 'debug'
+
+
+    if filetype not in ['csv','xlsx']:
+        print("filetype must be: 'csv' or 'xlsx'\n")
+        parser.print_help()
+        exit(-1)
 
     if database == 'train':
         EARL = INFORMIX_EARL_TEST
@@ -118,22 +143,22 @@ def main():
         parser.print_help()
         exit(-1)
 
+
     # Current Students
     if test:
         print('current students sql')
         print("sql = {}".format(CURRENT_STUDENTS))
     else:
         students  = do_sql(CURRENT_STUDENTS, key=key, earl=EARL)
-        response = _gen_files(students, 'current_students')
+        response = _gen_files(students, filetype, 'current_students')
 
     # Current Employees
-
     if test:
         print('current employees sql')
         print("sql = {}".format(CURRENT_EMPLOYEES))
     else:
         employees = do_sql(CURRENT_EMPLOYEES, key=key, earl=EARL)
-        response = _gen_files(employees, 'current_employees')
+        response = _gen_files(employees, filetype, 'current_employees')
 
 
 ######################
@@ -144,5 +169,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     test = args.test
     database = args.database.lower()
+    filetype = args.filetype.lower()
 
     sys.exit(main())
