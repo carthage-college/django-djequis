@@ -42,7 +42,6 @@ from djzbar.utils.informix import do_sql
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 
-#EARL = settings.INFORMIX_EARL
 DEBUG = settings.INFORMIX_DEBUG
 
 desc = """
@@ -61,6 +60,10 @@ parser.add_argument(
     help="database name.",
     dest="database"
 )
+'''
+    Creates a sFTP client connected to the supplied host on the supplied port
+    authenticating as the user with supplied username and supplied password
+'''
 def file_download():
     # by adding cnopts, I'm authorizing the program to ignore the host key and just continue
     cnopts = pysftp.CnOpts()
@@ -100,6 +103,7 @@ def file_download():
             settings.SCHOOLOGY_TO_EMAIL,settings.SCHOOLOGY_FROM_EMAIL,
             BODY, SUBJECT
         )
+
 def main():
     ############################################################################
     # development server (bng), you would execute:
@@ -108,26 +112,6 @@ def main():
     # ==> python schoology.py --database=cars
     # without the --test argument
     ############################################################################
-    # formatting date and time string 
-    #datetimestr = time.strftime("%Y%m%d%H%M%S")
-    # set dictionary
-    #dict = {
-        #'COURSES': COURSES,
-        #'USERS': USERS,
-        #'ENROLLMENT': ENROLLMENT
-        #}
-    # by adding cnopts, I'm authorizing the program to ignore the host key and just continue
-    #cnopts = pysftp.CnOpts()
-    #cnopts.hostkeys = None # ignore known host key checking
-    # sFTP connection information for Schoology
-    #XTRNL_CONNECTION = {
-        #'host':settings.SCHOOLOGY_HOST,
-        #'username':settings.SCHOOLOGY_USER,
-        #'password':settings.SCHOOLOGY_PASS,
-        #'port':settings.SCHOOLOGY_PORT,
-        #'cnopts':cnopts
-    #}
-    #try:
     # set global variable
     global EARL
     # determines which database is being called from the command line
@@ -140,7 +124,6 @@ def main():
         # below but the argument parser should have taken
         # care of this scenario and we will never arrive here.
         EARL = None
-    #engine = get_engine(EARL)
     # formatting date and time string 
     datetimestr = time.strftime("%Y%m%d%H%M%S")
     # set dictionary
@@ -221,7 +204,6 @@ def main():
         shutil.copy(filename, archive_destination)
     if not test:
         file_download()
-
 
 if __name__ == "__main__":
     args = parser.parse_args()
