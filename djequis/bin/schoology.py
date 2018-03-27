@@ -39,8 +39,11 @@ from djequis.sql.schoology import USERS
 from djequis.sql.schoology import ENROLLMENT
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
+from djzbar.settings import INFORMIX_EARL_TEST
+from djzbar.settings import INFORMIX_EARL_PROD
 
-EARL = settings.INFORMIX_EARL
+#EARL = settings.INFORMIX_EARL
+DEBUG = settings.INFORMIX_DEBUG
 
 desc = """
     Schoology Upload
@@ -53,16 +56,12 @@ parser.add_argument(
     help="Dry run?",
     dest="test"
 )
-
-def main():
-    # formatting date and time string 
-    datetimestr = time.strftime("%Y%m%d%H%M%S")
-    # set dictionary
-    dict = {
-        'COURSES': COURSES,
-        'USERS': USERS,
-        'ENROLLMENT': ENROLLMENT
-        }
+parser.add_argument(
+    "-d", "--database",
+    help="database name.",
+    dest="database"
+)
+def file_download():
     # by adding cnopts, I'm authorizing the program to ignore the host key and just continue
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None # ignore known host key checking
@@ -74,6 +73,82 @@ def main():
         'port':settings.SCHOOLOGY_PORT,
         'cnopts':cnopts
     }
+    # set local path {/data2/www/data/schoology/}
+    source_dir = ('{0}'.format(settings.SCHOOLOGY_CSV_OUTPUT))
+    # get list of files and set local path and filenames
+    # variable == /data2/www/data/schoology/{filename.csv}
+    directory = os.listdir(source_dir)
+    # sFTP PUT moves the COURSES.csv, USERS.csv, ENROLLMENT.csv files to the Schoology server
+    try:
+        with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
+            # change directory
+            sftp.chdir("upload/")
+            # loop through files in list
+            for listfile in directory:
+                schoologyfiles = source_dir + listfile
+                if schoologyfiles.endswith(".csv"):
+                    # sftp files if they end in .csv
+                    sftp.put(schoologyfiles, preserve_mtime=True)
+                # delete original files from our server
+                os.remove(schoologyfiles)
+            # close sftp connection
+            sftp.close()
+    except Exception, e:
+        SUBJECT = 'SCHOOLOGY UPLOAD failed'
+        BODY = 'Unable to PUT .csv files to Schoology server.\n\n{0}'.format(str(e))
+        sendmail(
+            settings.SCHOOLOGY_TO_EMAIL,settings.SCHOOLOGY_FROM_EMAIL,
+            BODY, SUBJECT
+        )
+def main():
+    ############################################################################
+    # development server (bng), you would execute:
+    # ==> python schoology.py --database=train --test
+    # production server (psm), you would execute:
+    # ==> python schoology.py --database=cars
+    # without the --test argument
+    ############################################################################
+    # formatting date and time string 
+    #datetimestr = time.strftime("%Y%m%d%H%M%S")
+    # set dictionary
+    #dict = {
+        #'COURSES': COURSES,
+        #'USERS': USERS,
+        #'ENROLLMENT': ENROLLMENT
+        #}
+    # by adding cnopts, I'm authorizing the program to ignore the host key and just continue
+    #cnopts = pysftp.CnOpts()
+    #cnopts.hostkeys = None # ignore known host key checking
+    # sFTP connection information for Schoology
+    #XTRNL_CONNECTION = {
+        #'host':settings.SCHOOLOGY_HOST,
+        #'username':settings.SCHOOLOGY_USER,
+        #'password':settings.SCHOOLOGY_PASS,
+        #'port':settings.SCHOOLOGY_PORT,
+        #'cnopts':cnopts
+    #}
+    #try:
+    # set global variable
+    global EARL
+    # determines which database is being called from the command line
+    if database == 'cars':
+        EARL = INFORMIX_EARL_PROD
+    elif database == 'train':
+        EARL = INFORMIX_EARL_TEST
+    else:
+        # this will raise an error when we call get_engine()
+        # below but the argument parser should have taken
+        # care of this scenario and we will never arrive here.
+        EARL = None
+    #engine = get_engine(EARL)
+    # formatting date and time string 
+    datetimestr = time.strftime("%Y%m%d%H%M%S")
+    # set dictionary
+    dict = {
+        'COURSES': COURSES,
+        'USERS': USERS,
+        'ENROLLMENT': ENROLLMENT
+        }
     for key, value in dict.items():
         ########################################################################
         # to print the dictionary key and rows of data, you would execute:
@@ -96,7 +171,7 @@ def main():
         # Dict Value 'ENROLLMENT' returns all instructors and students enrolled
         # in active courses July-July for the current fiscal year
         ########################################################################
-        sql = do_sql(value, earl=EARL)
+        sql = do_sql(value, key=DEBUG, earl=EARL)
         rows = sql.fetchall()
         for row in rows:
             if test:
@@ -144,37 +219,25 @@ def main():
         csvfile.close()
         # renaming old filename to newfilename and move to archive location
         shutil.copy(filename, archive_destination)
+    if not test:
+        file_download()
 
-    # set local path {/data2/www/data/schoology/}
-    source_dir = ('{0}'.format(settings.SCHOOLOGY_CSV_OUTPUT))
-    # get list of files and set local path and filenames
-    # variable == /data2/www/data/schoology/{filename.csv}
-    directory = os.listdir(source_dir)
-    # sFTP PUT moves the COURSES.csv, USERS.csv, ENROLLMENT.csv files to the Schoology server
-    try:
-        with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
-            # change directory
-            sftp.chdir("upload/")
-            # loop through files in list
-            for listfile in directory:
-                schoologyfiles = source_dir + listfile
-                if schoologyfiles.endswith(".csv"):
-                    # sftp files if they end in .csv
-                    sftp.put(schoologyfiles, preserve_mtime=True)
-                # delete original files from our server
-                os.remove(schoologyfiles)
-            # close sftp connection
-            sftp.close()
-    except Exception, e:
-        SUBJECT = 'SCHOOLOGY UPLOAD failed'
-        BODY = 'Unable to PUT .csv files to Schoology server.\n\n{0}'.format(str(e))
-        sendmail(
-            settings.SCHOOLOGY_TO_EMAIL,settings.SCHOOLOGY_FROM_EMAIL,
-            BODY, SUBJECT
-        )
 
 if __name__ == "__main__":
     args = parser.parse_args()
     test = args.test
+    database = args.database
+    
+    if not database:
+        print "mandatory option missing: database name\n"
+        parser.print_help()
+        exit(-1)
+    else:
+        database = database.lower()
+
+    if database != 'cars' and database != 'train':
+        print "database must be: 'cars' or 'train'\n"
+        parser.print_help()
+        exit(-1)
 
     sys.exit(main())
