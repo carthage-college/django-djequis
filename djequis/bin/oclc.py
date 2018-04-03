@@ -81,7 +81,7 @@ def main():
                         WHEN    'Student'   THEN    1
                                             ELSE    0
                     END
-                    ) AS groupIndex, grouping
+                    ) AS groupIndex, grouping, TO_CHAR(TODAY + 1 UNITS YEAR, '%Y-%m-%d') || 'T12:00:00' AS expirationDate
         FROM
             directory_vw
         LEFT JOIN ctry_table ON directory_vw.ctry = ctry_table.ctry
@@ -110,7 +110,8 @@ def main():
             'phone':s.phone,
             'email':s.email,
             'groupIndex':s[12],
-            'grouping':s.grouping.decode('cp1252').encode('utf-8')
+            'grouping':s.grouping.decode('cp1252').encode('utf-8'),
+            'expirationDate':s.expirationdate
         })
     xml = paint_xml(folks)
     if test:
@@ -130,14 +131,14 @@ def main():
             )
     else:
         temp = StringIO(xml.encode('utf-8'))
-        ftp = ftplib.FTP(
-            settings.OCLC_XTRNL_SRVR, settings.OCLC_XTRNL_USER,
-            settings.OCLC_XTRNL_PASS
-        )
-        ftp.cwd(settings.OCLC_XTRNL_PATH)
+        # ftp = ftplib.FTP(
+        #     settings.OCLC_XTRNL_SRVR, settings.OCLC_XTRNL_USER,
+        #     settings.OCLC_XTRNL_PASS
+        # )
+        #ftp.cwd(settings.OCLC_XTRNL_PATH)
         phile = "carthage_personas_draft_{:%Y-%m-%d}.xml".format(NOW)
-        ftp.storlines("STOR " + phile, temp)
-        ftp.quit()
+        #ftp.storlines("STOR " + phile, temp)
+        #ftp.quit()
         # send email that OCLC script has completed
         SUBJECT = '[OCLC SFTP] completed'
         BODY = 'OCLC SFTP process has been completed.\n\n'
