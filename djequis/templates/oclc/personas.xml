@@ -6,6 +6,7 @@
                 <sourceSystem>urn:mace:oclc:idm:gzc:ldap</sourceSystem>
                 <idAtSource>{{o.email|get_ldap_username}}</idAtSource>
             </correlationInfo>
+            <oclcExpirationDate>{{o.expirationDate}}</oclcExpirationDate>
             <nameInfo>
                 <givenName>{{o.firstname}}</givenName>{% if o.middlename %}<middleName>{{o.middlename}}</middleName>{% endif %}
                 <familyName>{{o.lastname}}</familyName>
