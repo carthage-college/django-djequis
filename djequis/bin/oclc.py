@@ -131,14 +131,14 @@ def main():
             )
     else:
         temp = StringIO(xml.encode('utf-8'))
-        # ftp = ftplib.FTP(
-        #     settings.OCLC_XTRNL_SRVR, settings.OCLC_XTRNL_USER,
-        #     settings.OCLC_XTRNL_PASS
-        # )
-        #ftp.cwd(settings.OCLC_XTRNL_PATH)
+        ftp = ftplib.FTP(
+            settings.OCLC_XTRNL_SRVR, settings.OCLC_XTRNL_USER,
+            settings.OCLC_XTRNL_PASS
+        )
+        ftp.cwd(settings.OCLC_XTRNL_PATH)
         phile = "carthage_personas_draft_{:%Y-%m-%d}.xml".format(NOW)
-        #ftp.storlines("STOR " + phile, temp)
-        #ftp.quit()
+        ftp.storlines("STOR " + phile, temp)
+        ftp.quit()
         # send email that OCLC script has completed
         SUBJECT = '[OCLC SFTP] completed'
         BODY = 'OCLC SFTP process has been completed.\n\n'
