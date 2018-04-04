@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import sys
 import argparse
@@ -13,7 +14,7 @@ sys.path.append('/data2/django_projects/')
 sys.path.append('/data2/django_third/')
 
 # django settings for shell environment
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djequis.settings')
 
 # prime django
 import django
@@ -35,15 +36,16 @@ os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 desc = """
-    API Testing
+    Test API for obtaining a user's feed
 """
+
 parser = argparse.ArgumentParser(description=desc)
 
 parser.add_argument(
     "--test",
     action='store_true',
     help="Dry run?",
-    dest="test"
+    dest='test'
 )
 
 
@@ -51,12 +53,14 @@ def main():
     sc = Schoology(
         Auth(settings.SCHOOLOGY_API_KEY, settings.SCHOOLOGY_API_SECRET)
     )
-    sc.limit = 100  # Only retrieve 10 objects max
 
-    print('Your name is {}'.format(sc.get_me().name_display))
+    # Only retrieve 10 objects max
+    sc.limit = 10
+
+    print("Your name is {}".format(sc.get_me().name_display))
 
     if test:
-        print('feed {}'.format(sc.get_feed()))
+        print("feed {}".format(sc.get_feed()))
 
     for update in sc.get_feed():
 
@@ -74,12 +78,14 @@ def main():
 
         user = sc.get_user(update.uid)
         if user:
-            print('By: ' + user.name_display)
-            print(update.body[:40].replace('\r\n', ' ').replace('\n', ' ') + '...')
-            print('%d likes\n' % update.likes)
+            print(u"By: {}".format(user.name_display))
+            print(u"{}...".format(
+                update.body[:40].replace('\r\n', ' ').replace('\n', ' ')
+            ))
+            print("{} likes\n".format(update.likes))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     args = parser.parse_args()
     test = args.test
 
