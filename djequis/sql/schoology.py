@@ -7,27 +7,23 @@ COURSES = '''
     SELECT 
         TRIM(jenzccd_rec.title) Coursename, TRIM(jenzdpt_rec.descr) Department,
         TRIM(jenzcrs_rec.course_code) CourseCode, jenzcrs_rec.hrs Credits,
-        TRIM(jenzccd_rec.title)||'-'||TRIM(jenzcrs_rec.sec)||' '||
-        CASE
+        TRIM(jenzccd_rec.title)||'-'||TRIM(jenzcrs_rec.sec)||' '||  CASE
             WHEN TRIM(x) = TRIM(y) THEN x
             ELSE  x||' / '||y
-        END  descr,
-        TRIM(jenzcrs_rec.sec)||'-'||TRIM(InstrName)||' '||
-        CASE
+        END descr,
+        TRIM(jenzcrs_rec.sec)||'-'||TRIM(InstrName)||' '||CASE
             WHEN TRIM(x) = TRIM(y) THEN x
             ELSE  x||' / '||y
-        END SectiONName,
+         END SectiONName,
         TRIM(jenzcrs_rec.coursekey) SecSchoolCode,
-        LEFT(jenzcrs_rec.course_code,8)||'-'||TRIM(jenzcrs_rec.sec)||' '||TRIM(jenzcrs_rec.term_code) SectiONCode,
-            CASE 
-                WHEN TRIM(x) = TRIM(y) THEN x
-                ELSE  x||' / '||y
-            END AS SecDescr,
-        nvl(TRIM(bldg)||' '||TRIM(ROOM),'TBA') location, 'Carthage College' School,
-        TRIM(jenzcrs_rec.term_code) GradingPeriod
+        LEFT(jenzcrs_rec.course_code,8)||'-'||TRIM(jenzcrs_rec.sec)||' '||TRIM(jenzcrs_rec.term_code) SectionCode,
+            CASE
+            WHEN TRIM(x) = TRIM(y) THEN x
+            ELSE  x||' / '||y END AS SecDescr, nvl(TRIM(bldg)||' '||TRIM(ROOM),'TBA') location,
+        'Carthage College' School, TRIM(jenzcrs_rec.term_code) GradingPeriod
     FROM
-        jenzcrs_rec 
-    JOIN 
+        jenzcrs_rec
+    JOIN
         crs_rec ON TRIM(jenzcrs_rec.course_code) = TRIM(crs_rec.crs_no)||' ('||TRIM(crs_rec.cat)||')'
     JOIN
         Jenzccd_rec ON Jenzccd_rec.course_code = jenzcrs_rec.course_code
@@ -42,7 +38,7 @@ COURSES = '''
     JOIN
         secmtg_rec ON secmtg_rec.crs_no = crs_rec.crs_no
         AND secmtg_rec.sec_no = jenzcrs_rec.sec
-        AND TRIM(secmtg_rec.sess) = LEFT(jenzcrs_rec.term_code,2) 
+        AND TRIM(secmtg_rec.sess) = LEFT(jenzcrs_rec.term_code,2)
         AND secmtg_rec.yr =  SUBSTRING(jenzcrs_rec.term_code FROM 4 FOR 4)
         AND secmtg_rec.cat = crs_rec.cat
     JOIN
@@ -55,11 +51,11 @@ COURSES = '''
         AND Instructor.yr = secmtg_rec.yr
         AND Instructor.sess = secmtg_rec.sess
     LEFT JOIN
-        (SELECT b.crs_no, b.yr, b.sec_no, b.cat, b.sess, c.txt AS BLDG, a.room AS ROOM,
-            a.mtg_no AS MaxMtgNo,
-            max(TRIM(b.crs_no)||'-'||b.sec_no||'-'||nvl(TRIM(days)||' '||cASt(beg_tm AS int)||'-'||cASt(END_tm AS int),'------- 0-0')) AS x,
-            min(TRIM(b.crs_no)||'-'||b.sec_no||'-'||nvl(TRIM(days)||' '||cASt(beg_tm AS int)||'-'||cASt(END_tm AS int),'------- 0-0')) AS y
-        FROM  secmtg_rec b
+        (SELECT b.crs_no, b.yr, b.sec_no, b.cat, b.sess, c.txt AS BLDG,
+            a.room AS ROOM, a.mtg_no AS MaxMtgNo,
+            MAX(TRIM(b.crs_no)||'-'||b.sec_no||'-'||nvl(TRIM(days)||' '||CAST(beg_tm AS int)||'-'||CAST(END_tm AS int),'------- 0-0')) AS x,
+            MIN(TRIM(b.crs_no)||'-'||b.sec_no||'-'||nvl(TRIM(days)||' '||CAST(beg_tm AS int)||'-'||CAST(END_tm AS int),'------- 0-0')) AS y
+            FROM  secmtg_rec b
             JOIN mtg_rec a ON a.mtg_no = b.mtg_no
             AND a.yr = b.yr
             AND a.sess = b.sess
@@ -69,14 +65,11 @@ COURSES = '''
         ON MeetPattern.crs_no = crs_rec.crs_no
         AND MeetPattern.yr = LEFT(jenzcrs_rec.coursekey,4)
         AND MeetPattern.MaxMtgNo = secmtg_rec.mtg_no
-    WHERE 
-        jenztrm_rec.start_date >= CASE WHEN TODAY < TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d')
-        THEN TO_DATE(YEAR(TODAY)-1 || '-07-01', '%Y-%m-%d')
-        ELSE  TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d') END
-        AND  jenztrm_rec.start_date < CASE WHEN TODAY < TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d')
-        THEN TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d')
-        ELSE  TO_DATE(YEAR(TODAY)+1 || '-07-01', '%Y-%m-%d') END
-        AND RIGHT(TRIM(jenzcrs_rec.term_code),4) NOT IN ('PRDV','PARA','KUSD')
+    WHERE
+        jenztrm_rec.start_date <= ADD_MONTHS(today,6)
+        AND
+        jenztrm_rec.start_date >= ADD_MONTHS(today,-1)
+        AND right(TRIM(jenzcrs_rec.term_code),4) NOT IN ('PRDV','PARA','KUSD')
         AND jenzccd_rec.title IS NOT NULL
     ORDER BY jenzcrs_rec.course_code
 '''
@@ -139,11 +132,12 @@ USERS = '''
 # This query should return all instructors and students enrolled in
 # active courses July-July for the current fiscal year.
 ENROLLMENT = '''
-   SELECT
+    SELECT
         jenzcrp_rec.course_code CourseCode,
         LEFT(jenzcrs_rec.course_code,8)||'-'||TRIM(jenzcrs_rec.sec)||' '||TRIM(jenzcrs_rec.term_code) SectionCode,
         jenzcrs_rec.coursekey SecSchoolCode, jenzcrp_rec.host_id UniqueUserID,
-        jenzcrp_rec.status_code EnrollmentType, jenzcrp_rec.term_code GradePeriod
+        jenzcrp_rec.status_code EnrollmentType, jenzcrp_rec.term_code GradePeriod,
+        jenztrm_rec.start_date
     FROM
         jenzcrp_rec
     JOIN
@@ -151,15 +145,12 @@ ENROLLMENT = '''
         AND jenzcrp_rec.sec = jenzcrs_rec.sec
         AND jenzcrp_rec.term_code = jenzcrs_rec.term_code
     JOIN
-        jenztrm_rec ON jenztrm_rec.term_code = jenzcrs_rec.term_code
+        jenztrm_rec on jenztrm_rec.term_code = jenzcrs_rec.term_code
     WHERE
-        jenztrm_rec.start_date >= CASE WHEN TODAY < TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d')
-        THEN TO_DATE(YEAR(TODAY)-1 || '-07-01', '%Y-%m-%d')
-        ELSE  TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d') END
-        AND  jenztrm_rec.start_date < CASE WHEN TODAY < TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d')
-        THEN TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d')
-        ELSE  TO_DATE(YEAR(TODAY)+1 || '-07-01', '%Y-%m-%d') END
-    AND right(trim(jenzcrp_rec.term_code),4) NOT IN ('PRDV','PARA','KUSD')
+        jenztrm_rec.start_date <= ADD_MONTHS(TODAY,6)
+        AND
+        jenztrm_rec.start_date >= ADD_MONTHS(TODAY,-1)
+    AND RIGHT(trim(jenzcrp_rec.term_code),4) NOT IN ('PRDV','PARA','KUSD')
     ORDER BY
         jenzcrp_rec.course_code
 '''
