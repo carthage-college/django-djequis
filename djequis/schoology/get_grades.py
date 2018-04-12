@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+import django
 import argparse
+import datetime
 import urllib2
 import json
+import time
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -17,7 +20,6 @@ sys.path.append('/data2/django_third/')
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 
 # prime django
-import django
 django.setup()
 
 from schoolopy import Schoology, Auth
@@ -36,29 +38,35 @@ os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 desc = """
-    Test the API for obtaining users. See for endpoint description:
-    http://developers.schoology.com/api-documentation/rest-api-v1/user
+    Test the API for obtaining grades. See for endpoint description:
+    http://developers.schoology.com/api-documentation/rest-api-v1/grade
 """
 
 parser = argparse.ArgumentParser(description=desc)
 
 parser.add_argument(
-    '-', '--section-id',
+    '-s', '--section-id',
     required=True,
     help="course section ID",
-    dest='sid'
+    dest='section_id'
 )
 parser.add_argument(
     '-a', '--assignment-id',
     required=False,
     help="filter grades for a given assignment",
-    dest='aid'
+    dest='assignment_id'
 )
 parser.add_argument(
     '-e', '--enrollment-id',
     required=False,
     help="filter grades for a given enrollment",
-    dest='eid'
+    dest='enrollment_id'
+)
+parser.add_argument(
+    '-t', '--timestamp',
+    required=False,
+    help="filter grades by a date and time. format: %Y-%m-%d",
+    dest='timestamp'
 )
 parser.add_argument(
     "--test",
@@ -74,31 +82,35 @@ def main():
         Auth(settings.SCHOOLOGY_API_KEY, settings.SCHOOLOGY_API_SECRET)
     )
 
-    # Only retrieve 10 objects max
-    sc.limit = 10
+    if assignment_id:
+        query_name = 'assignment_id'
+        query_value = assignment_id
+    elif enrollment_id:
+        query_name = 'enrollment_id'
+        query_value = enrollment_id
+    elif timestamp:
+        query_name = 'timestamp'
+        query_value = str(time.mktime(
+            datetime.datetime.strptime(timestamp, "%Y-%m-%d").timetuple()
+        ))[:-2] # remove milliseconds
+    else:
+        query_name = None
+        query_value = None
 
-    print("Your name is {}".format(sc.get_me().name_display))
+    grades = sc.get_section_grades(section_id, query_name, query_value)
 
-    if aid:
-        gid = aid
-        filter_type = 'assignment_id'
-    elif eid:
-        gid = eid
-        filter_type = 'enrollment_id'
-
-    grades = sc.get_section_grades(sid, gid, filter_type)
+    for g in grades:
+        print "asignment id = {}, enrollment_id = {}, timestamp = {}".format(
+            g.assignment_id, g.enrollment_id, g.timestamp
+        )
 
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    aid = args.aid
-    eid = args.eid
-    sid = args.sid
+    assignment_id = args.assignment_id
+    enrollment_id = args.enrollment_id
+    section_id = args.section_id
+    timestamp = args.timestamp
     test = args.test
-
-    if not aid and not eid:
-        print("you must provide an assignment ID or enrollment ID\n")
-        parser.print_help()
-        exit(-1)
 
     sys.exit(main())
