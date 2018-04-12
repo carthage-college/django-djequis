@@ -1,6 +1,6 @@
 # fetch courses and sections
-# This query should return all courses and sections active from July to July
-# of the current fiscal year.
+# This query should return all courses and sections active with a start date less
+# than six months from the current date.
 # Based on the dates for the terms courses and sections are made active
 # or inactive automatically.
 COURSES = '''
@@ -75,9 +75,8 @@ COURSES = '''
 '''
 # fetch users
 # Users are collected in a single query to get both Students and Faculty/Staff.
-# The student query portion pulls all students with an academic record between
-# the start of the current fiscal year (July 1) and the end of
-# the current fiscal year.
+# The student query portion pulls all students with an academic record
+# between the start of the current fiscal year (July 1) and the end of the current fiscal year.
 # The Faculty/Staff portion should get all employees with active job records
 # within the last year.
 # There are enrollments for individuals who are not currently staff or faculty.
@@ -129,8 +128,8 @@ USERS = '''
     ORDER BY id_rec.lastname, id_rec.firstname;
 '''
 # fetch enrollment
-# This query should return all instructors and students enrolled in
-# active courses July-July for the current fiscal year.
+# This query should return all instructors and students enrolled in active courses
+# with a start date less than six months from the current date.
 ENROLLMENT = '''
     SELECT
         jenzcrp_rec.course_code CourseCode,
@@ -153,4 +152,31 @@ ENROLLMENT = '''
     AND RIGHT(trim(jenzcrp_rec.term_code),4) NOT IN ('PRDV','PARA','KUSD')
     ORDER BY
         jenzcrp_rec.course_code
+'''
+# fetch crosslist courses
+# this query returns two different sections that have the same meeting time
+# and place but may have a different course number for a program with a start date
+# less than six months from the current date.
+CROSSLIST = '''
+    SELECT secmtg_rec.mtg_no,
+        MIN(mtg_rec.yr||';'||TRIM(mtg_rec.sess)||';'||TRIM(secmtg_rec.crs_no)||';'||TRIM(secmtg_rec.sec_no)||';'||TRIM(secmtg_rec.cat)||';'||crs_rec.prog) AS crls_code,
+        MAX(mtg_rec.yr||';'||TRIM(mtg_rec.sess)||';'||TRIM(secmtg_rec.crs_no)||';'||TRIM(secmtg_rec.sec_no)||';'||TRIM(secmtg_rec.cat)||';'||crs_rec.prog) AS targ_code
+    FROM
+        secmtg_rec, mtg_rec, crs_rec
+    WHERE
+        secmtg_rec.mtg_no = mtg_rec.mtg_no
+    AND
+        crs_rec.crs_no = secmtg_rec.crs_no
+    AND
+        crs_rec.cat = secmtg_rec.cat
+    AND
+        mtg_rec.beg_date <= ADD_MONTHS(TODAY,6)
+    AND
+        mtg_rec.beg_date >= ADD_MONTHS(TODAY,-1)
+    GROUP BY
+        secmtg_rec.mtg_no
+    HAVING COUNT
+        (secmtg_rec.mtg_no) > 1
+    ORDER BY
+        mtg_no
 '''
