@@ -100,9 +100,22 @@ def main():
     grades = sc.get_section_grades(section_id, query_name, query_value)
 
     for g in grades:
-        print "asignment id = {}, enrollment_id = {}, timestamp = {}".format(
-            g.assignment_id, g.enrollment_id, g.timestamp
+        line = (
+            "asignment id = {}, enrollment_id = {}, timestamp = {}, "
+            "comment = {}, grade = {}, web_url = {}, comment_status = {}, "
+            "scale_type = {}, exception = {}, g.calculated_grade = {}, "
+            "scale_id = {}, school_uid = {}, max_points = {}, "
+            "location = {}, assignment_type = {}, override = {}, "
+            "category_id = {}, type = {}, pending = {}, is_final = {}"
+        ).format(
+            g.assignment_id, g.enrollment_id, g.timestamp, g.comment, g.grade,
+            g.web_url, g.comment_status, g.scale_type, g.exception,
+            g.calculated_grade, g.scale_id, g.school_uid, g.max_points,
+            g.location, g.assignment_type, g.override, g.category_id, g.type,
+            g.pending, g.is_final
         )
+
+        print(line)
 
 
 if __name__ == "__main__":
