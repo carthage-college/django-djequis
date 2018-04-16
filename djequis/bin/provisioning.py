@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import os, sys
 # env
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -24,7 +26,9 @@ os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
-from djequis.sql.provisioning import CURRENT_EMPLOYEES, CURRENT_STUDENTS
+from djequis.sql.provisioning import INSERT_EMAIL_RECORD
+from djequis.sql.provisioning import INSERT_CVID_RECORD
+from djequis.sql.provisioning import SELECT_NEW_PEOPLE
 
 from djzbar.utils.informix import do_sql
 from djzbar.settings import INFORMIX_EARL_TEST
@@ -36,6 +40,7 @@ from openpyxl import load_workbook
 import csv
 import time
 import argparse
+import logging
 
 
 """
@@ -70,18 +75,39 @@ parser.add_argument(
 
 TIMESTAMP = time.strftime("%Y%m%d%H%M%S")
 
+# create logger for collecting failed inserts
+logger = logging.getLogger(__name__)
+# create handler and set level to info
+handler = logging.FileHandler('{}provisioning.log'.format(
+    settings.LOG_FILEPATH)
+)
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter(
+    '%(asctime)s: %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p'
+)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
 
 def _gen_files(results, filetype, group):
+    """
+        Active Directory required fields in order:
+
+        loginID, lastName, firstName, nameID,
+        [facultyStatus, staffStatus, studentStatus, retireStatus,]
+        dob, zip, acct-types, proxID, phoneExt, depts
+
+        at least one of the Status fields must be populated
+    """
 
     status = False
-    if results is not None:
+    if results:
 
-        root = '{}/{}_{}'.format(
+        root = '{}{}_{}'.format(
             settings.PROVISIONING_DATA_DIRECTORY, group, TIMESTAMP
         )
 
         if filetype == 'csv':
-
             # create .csv file
             phile = ('{}.csv'.format(root))
             csvfile = open(phile,"w")
@@ -93,9 +119,9 @@ def _gen_files(results, filetype, group):
 
             # close the csv file
             csvfile.close()
+            status = True
 
         elif filetype == 'xlsx':
-
             # load our XLSX template
             wb = load_workbook(
                 '{}/static/xml/{}.xlsx'.format(settings.ROOT_DIR, group)
@@ -111,12 +137,13 @@ def _gen_files(results, filetype, group):
 
             # Save the xml file
             wb.save('{}.xlsx'.format(root))
+            status = True
+
         else:
             print("filetype must be: 'csv' or 'xlsx'\n")
             parser.print_help()
             exit(-1)
 
-        status = True
 
     return status
 
@@ -127,7 +154,6 @@ def main():
     """
 
     key = 'debug'
-
 
     if filetype not in ['csv','xlsx']:
         print("filetype must be: 'csv' or 'xlsx'\n")
@@ -143,22 +169,35 @@ def main():
         parser.print_help()
         exit(-1)
 
-
-    # Current Students
+    sql = SELECT_NEW_PEOPLE
     if test:
-        print('current students sql')
-        print("sql = {}".format(CURRENT_STUDENTS))
+        print("new people sql")
+        print("sql = {}".format(sql))
     else:
-        students  = do_sql(CURRENT_STUDENTS, key=key, earl=EARL)
-        response = _gen_files(students, filetype, 'current_students')
+        people = []
+        objects = do_sql(sql, key=key, earl=EARL)
+        for o in objects:
+            people.append(o)
+        response = _gen_files(people, filetype, 'new_people')
 
-    # Current Employees
-    if test:
-        print('current employees sql')
-        print("sql = {}".format(CURRENT_EMPLOYEES))
-    else:
-        employees = do_sql(CURRENT_EMPLOYEES, key=key, earl=EARL)
-        response = _gen_files(employees, filetype, 'current_employees')
+        print("response = {}".format(response))
+        if not response:
+            print("no response")
+        else:
+            for p in people:
+                print p
+                '''
+                try:
+                    sql = INSERT_EMAIL_RECORD.format(cid=p.id, ldap=p.loginID)
+                    do_sql(sql, key=key, earl=EARL)
+                except:
+                    logger.info("failed insert = {}".format(sql))
+                try:
+                    sql = INSERT_CVID_RECORD.format(cid=p.id, ldap=p.loginID)
+                    do_sql(sql, key=key, earl=EARL)
+                except:
+                    logger.info("failed insert = {}".format(sql))
+                '''
 
 
 ######################

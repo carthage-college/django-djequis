@@ -1,4 +1,6 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import os, sys
 # env
 sys.path.append('/usr/lib/python2.7/dist-packages/')

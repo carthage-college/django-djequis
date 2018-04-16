@@ -1,8 +1,15 @@
 --Current students
     SELECT
-        adm_rec.id, TRIM(id_rec.firstname) AS firstname, TRIM(id_rec.lastname) AS lastname, TRIM(cvid_rec.ldap_name) AS ldap_name
+        TRIM(NVL(cvid_rec.ldap_name, NVL(subCVID.name_only || subCVID.total, subID.username))) AS loginID,
+        subID.lastname, subID.firstname, subID.id, '' AS facultyStatus, '' AS staffStatus, 'A' AS studentStatus, '' AS retireStatus, '' AS dob, '' AS zip,
+        'Active Student' AS acctTypes, '' AS proxID, '' AS phoneExt, '' AS depts
     FROM
-        adm_rec INNER JOIN  id_rec          ON  adm_rec.id              =   id_rec.id
+        adm_rec INNER JOIN  (
+                                SELECT
+                                    id, TRIM(firstname) AS firstname, TRIM(lastname) AS lastname, LOWER(firstname[1,1]) || LOWER(TRIM(lastname)) AS username
+                                FROM
+                                    id_rec
+                            )   subID       ON  adm_rec.id              =   subID.id
                 INNER JOIN  acad_cal_rec    ON  adm_rec.plan_enr_sess   =   acad_cal_rec.sess
                                             AND adm_rec.plan_enr_yr     =   acad_cal_rec.yr
                                             AND acad_cal_rec.subsess    =   ' '
@@ -11,6 +18,17 @@
                                             AND adm_rec.id              =   stu_acad_rec.id
                                             AND stu_acad_rec.reg_stat   IN  ('C','R')
                 LEFT JOIN   cvid_rec        ON  adm_rec.id              =   cvid_rec.cx_id
+                LEFT JOIN   (
+                                SELECT
+                                    LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(ldap_name),'1',''),'2',''),'3',''),'4',''),'5',''),'6',''),'7',''),'8',''),'9',''),'0','')) AS name_only,
+                                    COUNT(*) AS total
+                                FROM
+                                    cvid_rec
+                                WHERE
+                                    TRIM(NVL(ldap_name, ''))    <>  ''
+                                GROUP BY
+                                    name_only
+                            )   subCVID     ON  subID.username  =   subCVID.name_only
     --TODO: Why the additional 150 days? Should the pregrace value be updated in the provsnrule_rec entry be updated or additional records entered to account for other queries in UNION?
     WHERE
         acad_cal_rec.beg_date   <=  TODAY + (SELECT pregrace FROM provsnrule_rec WHERE provsystm = 'JenzUpld' AND subsys = 'STU' AND ruleid = 'ActvDir') + 150
@@ -35,13 +53,31 @@
 UNION
 -- MSW students (we use adm_rec since they do not end up appearing in our student information system, but they need to be provisioned for printing, etc.)
     SELECT
-        adm_rec.id, TRIM(id_rec.firstname) AS firstname, TRIM(id_rec.lastname) AS lastname, TRIM(cvid_rec.ldap_name) AS ldap_name
+        TRIM(NVL(cvid_rec.ldap_name, NVL(subCVID.name_only || subCVID.total, subID.username))) AS loginID,
+        subID.lastname, subID.firstname, subID.id, '' AS facultyStatus, '' AS staffStatus, 'A' AS studentStatus, '' AS retireStatus, '' AS dob, '' AS zip,
+        'Active Student' AS acctTypes, '' AS proxID, '' AS phoneExt, '' AS depts
     FROM
-        adm_rec INNER JOIN  id_rec          ON  adm_rec.id              =   id_rec.id
+        adm_rec INNER JOIN  (
+                                SELECT
+                                    id, TRIM(firstname) AS firstname, TRIM(lastname) AS lastname, LOWER(firstname[1,1]) || LOWER(TRIM(lastname)) AS username
+                                FROM
+                                    id_rec
+                            )   subID       ON  adm_rec.id              =   subID.id
                 INNER JOIN  acad_cal_rec    ON  adm_rec.plan_enr_yr     =   acad_cal_rec.yr
                                             AND adm_rec.plan_enr_sess   =   acad_cal_rec.sess
                                             AND acad_cal_rec.subsess    =   ' '
                 LEFT JOIN   cvid_rec        ON  adm_rec.id              =   cvid_rec.cx_id
+                LEFT JOIN   (
+                                SELECT
+                                    LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(ldap_name),'1',''),'2',''),'3',''),'4',''),'5',''),'6',''),'7',''),'8',''),'9',''),'0','')) AS name_only,
+                                    COUNT(*) AS total
+                                FROM
+                                    cvid_rec
+                                WHERE
+                                    TRIM(NVL(ldap_name, ''))    <>  ''
+                                GROUP BY
+                                    name_only
+                            )   subCVID     ON  subID.username  =   subCVID.name_only
     WHERE
         adm_rec.primary_app     =   'Y'
     AND
@@ -59,12 +95,30 @@ UNION
 UNION
 -- stu_acad_rec records
     SELECT
-        stu_acad_rec.id, TRIM(id_rec.firstname) AS firstname, TRIM(id_rec.lastname) AS lastname, TRIM(cvid_rec.ldap_name) AS ldap_name
+        TRIM(NVL(cvid_rec.ldap_name, NVL(subCVID.name_only || subCVID.total, subID.username))) AS loginID,
+        subID.lastname, subID.firstname, subID.id, '' AS facultyStatus, '' AS staffStatus, 'A' AS studentStatus, '' AS retireStatus, '' AS dob, '' AS zip,
+        'Active Student' AS acctTypes, '' AS proxID, '' AS phoneExt, '' AS depts
     FROM
         stu_acad_rec    INNER JOIN  acad_cal_rec    ON  stu_acad_rec.sess   =   acad_cal_rec.sess
                                                     AND stu_acad_rec.yr     =   acad_cal_rec.yr
-                        INNER JOIN  id_rec          ON  stu_acad_rec.id     =   id_rec.id
+                        INNER JOIN  (
+                                        SELECT
+                                            id, TRIM(firstname) AS firstname, TRIM(lastname) AS lastname, LOWER(firstname[1,1]) || LOWER(TRIM(lastname)) AS username
+                                        FROM
+                                            id_rec
+                                    )   subID       ON  stu_acad_rec.id     =   subID.id
                         LEFT JOIN   cvid_rec        ON  stu_acad_rec.id     =   cvid_rec.cx_id
+                        LEFT JOIN   (
+                                        SELECT
+                                            LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(ldap_name),'1',''),'2',''),'3',''),'4',''),'5',''),'6',''),'7',''),'8',''),'9',''),'0','')) AS name_only,
+                                            COUNT(*) AS total
+                                        FROM
+                                            cvid_rec
+                                        WHERE
+                                            TRIM(NVL(ldap_name, ''))    <>  ''
+                                        GROUP BY
+                                            name_only
+                                    )   subCVID     ON  subID.username  =   subCVID.name_only
     WHERE
         acad_cal_rec.beg_date   <=  TODAY + (SELECT pregrace FROM provsnrule_rec WHERE provsystm = 'JenzUpld' AND subsys = 'STU' AND ruleid = 'ActvDir')
     AND
@@ -78,9 +132,16 @@ UNION
 UNION
 -- prog_enr_rec records (should be redundant with above stu_acad_rec records)
     SELECT
-        prog_enr_rec.id, TRIM(id_rec.firstname) AS firstname, TRIM(id_rec.lastname) AS lastname, TRIM(cvid_rec.ldap_name) AS ldap_name
+        TRIM(NVL(cvid_rec.ldap_name, NVL(subCVID.name_only || subCVID.total, subID.username))) AS loginID,
+        subID.lastname, subID.firstname, subID.id, '' AS facultyStatus, '' AS staffStatus, 'A' AS studentStatus, '' AS retireStatus, '' AS dob, '' AS zip,
+        'Active Student' AS acctTypes, '' AS proxID, '' AS phoneExt, '' AS depts
     FROM
-        prog_enr_rec    INNER JOIN  id_rec          ON  prog_enr_rec.id         =   id_rec.id
+        prog_enr_rec    INNER JOIN  (
+                                        SELECT
+                                            id, TRIM(firstname) AS firstname, TRIM(lastname) AS lastname, LOWER(firstname[1,1]) || LOWER(TRIM(lastname)) AS username
+                                        FROM
+                                            id_rec
+                                    )   subID       ON  prog_enr_rec.id         =   subID.id
                         INNER JOIN  acad_cal_rec    ON  prog_enr_rec.adm_sess   =   acad_cal_rec.sess
                                                     AND acad_cal_rec.subsess    =   ' '
                                                     AND (
@@ -93,6 +154,17 @@ UNION
                                                     AND prog_enr_rec.id         =   stu_acad_rec.id
                                                     AND stu_acad_rec.reg_stat   IN  ('R','C')
                         LEFT JOIN   cvid_rec        ON  prog_enr_rec.id         =   cvid_rec.cx_id
+                        LEFT JOIN   (
+                                        SELECT
+                                            LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(ldap_name),'1',''),'2',''),'3',''),'4',''),'5',''),'6',''),'7',''),'8',''),'9',''),'0','')) AS name_only,
+                                            COUNT(*) AS total
+                                        FROM
+                                            cvid_rec
+                                        WHERE
+                                            TRIM(NVL(ldap_name, ''))    <>  ''
+                                        GROUP BY
+                                            name_only
+                                    )   subCVID     ON  subID.username  =   subCVID.name_only
     WHERE
         acad_cal_rec.beg_date   <=  TODAY + (SELECT pregrace FROM provsnrule_rec WHERE provsystm = 'JenzUpld' AND subsys = 'STU' AND ruleid = 'ActvDir')
     AND
@@ -105,33 +177,75 @@ UNION
 UNION
 -- regclr_rec recoprds (this will pick up straggling Adult Ed students because of the way Continuing Studies clears everyone who has recently been enrolled)
     SELECT
-        regclr_rec.id, TRIM(id_rec.firstname) AS firstname, TRIM(id_rec.lastname) AS lastname, TRIM(cvid_rec.ldap_name) AS ldap_name
+        TRIM(NVL(cvid_rec.ldap_name, NVL(subCVID.name_only || subCVID.total, subID.username))) AS loginID,
+        subID.lastname, subID.firstname, subID.id, '' AS facultyStatus, '' AS staffStatus, 'A' AS studentStatus, '' AS retireStatus, '' AS dob, '' AS zip,
+        'Active Student' AS acctTypes, '' AS proxID, '' AS phoneExt, '' AS depts
     FROM
         regclr_rec  INNER JOIN  acad_cal_rec    ON  regclr_rec.sess         =   acad_cal_rec.sess
                                                 AND regclr_rec.yr           =   acad_cal_rec.yr
                                                 AND acad_cal_rec.subsess    =   ' '
-                    INNER JOIN  id_rec          ON  regclr_rec.id           =   id_rec.id
+                    INNER JOIN  (
+                                    SELECT
+                                        id, TRIM(firstname) AS firstname, TRIM(lastname) AS lastname, LOWER(firstname[1,1]) || LOWER(TRIM(lastname)) AS username
+                                    FROM
+                                        id_rec
+                                )   subID       ON  regclr_rec.id           =   subID.id
                     LEFT JOIN   cvid_rec        ON  regclr_rec.id           =   cvid_rec.cx_id
+                    LEFT JOIN   (
+                                    SELECT
+                                        LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(ldap_name),'1',''),'2',''),'3',''),'4',''),'5',''),'6',''),'7',''),'8',''),'9',''),'0','')) AS name_only,
+                                        COUNT(*) AS total
+                                    FROM
+                                        cvid_rec
+                                    WHERE
+                                        TRIM(NVL(ldap_name, ''))    <>  ''
+                                    GROUP BY
+                                        name_only
+                                )   subCVID     ON  subID.username  =   subCVID.name_only
     WHERE
         acad_cal_rec.beg_date   <= TODAY + (SELECT pregrace FROM provsnrule_rec WHERE provsystm = 'JenzUpld' AND subsys = 'STU' AND ruleid = 'ActvDir')
     AND
         TODAY                   <=  NVL(acad_cal_rec.end_date, TODAY)
     AND
         cvid_rec.ldap_name      IS  NULL
--- weed out duplicates
-GROUP BY
-    id, firstname, lastname, ldap_name
-ORDER BY
-    id;
-
-
+UNION
 -- Current employees, excluding student-employees
 SELECT
-    job_rec.id, trim(id_rec.firstname) as firstname, trim(id_rec.lastname) as lastname, trim(cvid_rec.ldap_name) as ldap_name
+    --Look for (in order):
+    --  *Existing CVID ldap name - does the user already have a username?
+    --  *Other users with same first initial-last name combination - calculate how many users would share the username and append the next number in the sequence
+    --  *Username does not exist in any format yet so we create the original (first initial-last name)
+    TRIM(NVL(cvid_rec.ldap_name, NVL(subCVID.name_only || subCVID.total, subID.username))) AS loginID,
+    subID.lastname, subID.firstname, subID.id,
+    CASE WHEN TRIM(job_rec.hrstat) IN ('FT','PT','PTGP') THEN 'A' ELSE '' END AS facultyStatus,
+    CASE WHEN TRIM(job_rec.hrstat) IN ('AD','ADPT','HR','HRPT','STD','TLE','PATH') THEN 'A' ELSE '' END AS staffStatus, '' AS studentStatus, '' AS retireStatus, '' AS dob, '' AS zip,
+    CASE
+        WHEN    TRIM(job_rec.hrstat)    IN  ('FT')                                          THEN    'Faculty'
+        WHEN    TRIM(job_rec.hrstat)    IN  ('PT','PTGP')                                   THEN    'Adjunct Faculty'
+        WHEN    TRIM(job_rec.hrstat)    IN  ('AD','ADPT','HR','HRPT','STD','TLE','PATH')    THEN    'Staff'
+                                                                                            ELSE    ''
+    END AS acctTypes, '' AS proxID, '' AS phoneExt, '' AS depts
 FROM
-    job_rec INNER JOIN  id_rec      ON  job_rec.id  =   id_rec.id
+    job_rec INNER JOIN  (
+                            SELECT
+                                id, TRIM(firstname) AS firstname, TRIM(lastname) AS lastname, LOWER(firstname[1,1]) || LOWER(TRIM(lastname)) AS username
+                            FROM
+                                id_rec
+                        )   subID   ON  job_rec.id  =   subID.id
             LEFT JOIN   cvid_rec    ON  job_rec.id  =   cvid_rec.cx_id
+            LEFT JOIN   (
+                            SELECT
+                                LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(ldap_name),'1',''),'2',''),'3',''),'4',''),'5',''),'6',''),'7',''),'8',''),'9',''),'0','')) AS name_only,
+                                COUNT(*) AS total
+                            FROM
+                                cvid_rec
+                            WHERE
+                                TRIM(NVL(ldap_name, ''))    <>  ''
+                            GROUP BY
+                                name_only
+                        )   subCVID ON  subID.username = subCVID.name_only
 WHERE
+    --Administration, Part-time Admin, FT Faculty, Hourly Employee, Part-time Hourly, Part-time Fac Day, Student Worker, TLE, Part-time Athletics, Part-time Fac GPS
     job_rec.hrstat                  IN      ("AD","ADPT","FT","HR","HRPT","PT","STD","TLE","PATH","PTGP")
 AND
     job_rec.hrdept                  NOT IN  ("PEND")
@@ -139,5 +253,23 @@ AND
     NVL(job_rec.end_date, TODAY)    >=      TODAY
 AND
     cvid_rec.ldap_name              IS      NULL
+-- Remove duplicates
 GROUP BY
-    job_rec.id, cvid_rec.ldap_name, id_rec.firstname, id_rec.lastname
+    loginID, subID.id, cvid_rec.ldap_name, subID.firstname, subID.lastname, facultyStatus, staffStatus, acctTypes
+ORDER BY
+    id;
+
+--Create the Carthage email record for the user.
+INSERT INTO
+    aa_rec (id, aa, beg_date, peren, line1, ofc_add_by)
+VALUES
+    ([id from query], 'EML1', TODAY, 'N', '[ldap_name from query]@carthage.edu', 'INFS');
+
+--Create the cvid record for the user
+--(this prevents the user from being picked up by the "add new" process again.
+INSERT INTO
+    cvid_rec (old_id, old_id_num, cx_id, cx_id_char, ldap_name)
+VALUES (
+    'SinceCvrsn', [id from query], [id from query], '[id from query]',
+    '[ldap_name from query]'
+);
