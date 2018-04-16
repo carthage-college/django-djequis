@@ -30,9 +30,6 @@ SELECT_NEW_PEOPLE = '''
                                 GROUP BY
                                     name_only
                             )   subCVID     ON  subID.username  =   subCVID.name_only
-limit 100
-'''
-'''
     --TODO: Why the additional 150 days? Should the pregrace value be updated in the provsnrule_rec entry be updated or additional records entered to account for other queries in UNION?
     WHERE
         acad_cal_rec.beg_date   <=  TODAY + (SELECT pregrace FROM provsnrule_rec WHERE provsystm = 'JenzUpld' AND subsys = 'STU' AND ruleid = 'ActvDir') + 150

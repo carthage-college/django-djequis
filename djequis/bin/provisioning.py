@@ -91,13 +91,13 @@ logger.addHandler(handler)
 
 def _gen_files(results, filetype, group):
     """
-        Active Directory required fields in order:
+    Active Directory required fields in order:
 
         loginID, lastName, firstName, nameID,
         [facultyStatus, staffStatus, studentStatus, retireStatus,]
         dob, zip, acct-types, proxID, phoneExt, depts
 
-        at least one of the Status fields must be populated
+    at least one of the Status fields must be populated
     """
 
     status = False
@@ -173,31 +173,35 @@ def main():
     if test:
         print("new people sql")
         print("sql = {}".format(sql))
-    else:
-        people = []
-        objects = do_sql(sql, key=key, earl=EARL)
-        for o in objects:
-            people.append(o)
-        response = _gen_files(people, filetype, 'new_people')
 
-        print("response = {}".format(response))
-        if not response:
-            print("no response")
-        else:
-            for p in people:
+    people = []
+    objects = do_sql(sql, key=key, earl=EARL)
+
+    for o in objects:
+        if test:
+            print o
+        people.append(o)
+
+    response = _gen_files(people, filetype, 'new_people')
+
+    if not response:
+        print("no response")
+    else:
+        for p in people:
+            if test:
                 print p
-                '''
+            else:
                 try:
                     sql = INSERT_EMAIL_RECORD.format(cid=p.id, ldap=p.loginID)
                     do_sql(sql, key=key, earl=EARL)
                 except:
                     logger.info("failed insert = {}".format(sql))
+
                 try:
                     sql = INSERT_CVID_RECORD.format(cid=p.id, ldap=p.loginID)
                     do_sql(sql, key=key, earl=EARL)
                 except:
                     logger.info("failed insert = {}".format(sql))
-                '''
 
 
 ######################
