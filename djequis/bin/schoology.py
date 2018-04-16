@@ -37,6 +37,7 @@ os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 from djequis.sql.schoology import COURSES
 from djequis.sql.schoology import USERS
 from djequis.sql.schoology import ENROLLMENT
+from djequis.sql.schoology import CROSSLIST
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 from djzbar.settings import INFORMIX_EARL_TEST
@@ -130,7 +131,8 @@ def main():
     dict = {
         'COURSES': COURSES,
         'USERS': USERS,
-        'ENROLLMENT': ENROLLMENT
+        'ENROLLMENT': ENROLLMENT,
+        'CROSSLIST': CROSSLIST
         }
     for key, value in dict.items():
         ########################################################################
@@ -139,8 +141,8 @@ def main():
         if test:
             print key
         ########################################################################
-        # Dict Value 'COURSES and SECTIONS' return all courses and sections
-        # active from July to July of the current fiscal year.
+        # Dict Value 'COURSES and SECTIONS' return all courses and sections with
+        # a start date less than six months from the current date.
         # Based on the dates for the terms courses and sections are made active
         # or inactive automatically
 
@@ -148,11 +150,16 @@ def main():
         # The student query portion pulls all students with an academic record
         # between the start of the current fiscal year (July 1) and the end of
         # the current fiscal year.
-        # The Faculty/Staff portion should get all employees with active job
-        # records within the last year.
+        # The Faculty/Staff portion gets all employees with active job records
+        # within the last year.
 
-        # Dict Value 'ENROLLMENT' returns all instructors and students enrolled
-        # in active courses July-July for the current fiscal year
+
+        # Dict Value 'ENROLLMENT' returns all students and instructors enrolled
+        # in a course/section with a start date less than six months from the current date.
+
+        # Dict Value 'CROSSLIST' returns two different sections that have the
+        # same meeting time and place but may have a different course number
+        # for a program it looks six months ahead
         ########################################################################
         sql = do_sql(value, key=DEBUG, earl=EARL)
         rows = sql.fetchall()
@@ -188,6 +195,10 @@ def main():
             output.writerow([
                 "Course Code", "Section Code", "Section School Code", "Unique ID",
                 "Enrollment Type", "Grade Period" 
+            ])
+        if key == 'CROSSLIST': # write header row for CROSSLIST
+            output.writerow([
+                "Meeting Number", "Cross-listed Section Code", "Target Code" 
             ])
         if rows is not None:
             for row in rows:
