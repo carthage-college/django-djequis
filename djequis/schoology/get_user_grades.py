@@ -60,7 +60,7 @@ def main():
     # Only retrieve 10 objects max
     sc.limit = 10
 
-    print('Your name is {}'.format(sc.get_me().name_display))
+    print("Your name is {}".format(sc.get_me().name_display))
 
     users =  sc.get_users()
 
@@ -73,7 +73,7 @@ def main():
                 #print a
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     args = parser.parse_args()
     test = args.test
 
