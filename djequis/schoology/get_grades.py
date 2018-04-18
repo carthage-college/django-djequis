@@ -119,7 +119,7 @@ def main():
         print(line)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     args = parser.parse_args()
     assignment_id = args.assignment_id
     enrollment_id = args.enrollment_id
