@@ -89,7 +89,7 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 
-def _gen_files(results, filetype, group):
+def _generate_files(results, filetype, group):
     """
     Active Directory required fields in order:
 
@@ -100,52 +100,46 @@ def _gen_files(results, filetype, group):
     at least one of the Status fields must be populated
     """
 
-    status = False
-    if results:
+    root = '{}{}_{}'.format(
+        settings.PROVISIONING_DATA_DIRECTORY, group, TIMESTAMP
+    )
 
-        root = '{}{}_{}'.format(
-            settings.PROVISIONING_DATA_DIRECTORY, group, TIMESTAMP
+    if filetype == 'csv':
+        # create .csv file
+        csvphile = ('{}.csv'.format(root))
+        phile = open(csvphile,"w")
+        output = csv.writer(phile)
+
+        for result in results:
+            output.writerow(result)
+
+        # close the csv file
+        phile.close()
+
+    elif filetype == 'xlsx':
+        # load our XLSX template
+        phile = load_workbook(
+            '{}/static/xml/{}.xlsx'.format(settings.ROOT_DIR, group)
         )
+        # obtain the active worksheet
+        ws = phile.active
 
-        if filetype == 'csv':
-            # create .csv file
-            phile = ('{}.csv'.format(root))
-            csvfile = open(phile,"w")
-            output = csv.writer(csvfile)
+        for result in results:
+            row = []
+            for r in result:
+                row.append(r)
+            ws.append(row)
 
-            for result in results:
-                print result
-                output.writerow(result)
+        # Save the xml file
+        phile.save('{}.xlsx'.format(root))
 
-            # close the csv file
-            csvfile.close()
-            status = True
+    else:
+        print("filetype must be: 'csv' or 'xlsx'\n")
+        phile = None
+        parser.print_help()
+        exit(-1)
 
-        elif filetype == 'xlsx':
-            # load our XLSX template
-            wb = load_workbook(
-                '{}/static/xml/{}.xlsx'.format(settings.ROOT_DIR, group)
-            )
-            # obtain the active worksheet
-            ws = wb.active
-
-            for result in results:
-                row = []
-                for r in result:
-                    row.append(r)
-                ws.append(row)
-
-            # Save the xml file
-            wb.save('{}.xlsx'.format(root))
-            status = True
-
-        else:
-            print("filetype must be: 'csv' or 'xlsx'\n")
-            parser.print_help()
-            exit(-1)
-
-
-    return status
+    return phile
 
 
 def main():
@@ -177,31 +171,36 @@ def main():
     people = []
     objects = do_sql(sql, key=key, earl=EARL)
 
+    # the people list allows us to iterate over the result set more
+    # than once, whereas just using objects result would throw an
+    # error after the first iteration.
     for o in objects:
-        if test:
-            print o
         people.append(o)
 
-    response = _gen_files(people, filetype, 'new_people')
+    if people:
 
-    if not response:
-        print("no response")
+        response = _generate_files(people, filetype, 'new_people')
+
+        if not response:
+            print("no response")
+        else:
+            for p in people:
+                if test:
+                    print(p)
+                else:
+                    try:
+                        sql = INSERT_EMAIL_RECORD.format(cid=p.id, ldap=p.loginID)
+                        do_sql(sql, key=key, earl=EARL)
+                    except:
+                        logger.info("failed insert = {}".format(sql))
+
+                    try:
+                        sql = INSERT_CVID_RECORD.format(cid=p.id, ldap=p.loginID)
+                        do_sql(sql, key=key, earl=EARL)
+                    except:
+                        logger.info("failed insert = {}".format(sql))
     else:
-        for p in people:
-            if test:
-                print p
-            else:
-                try:
-                    sql = INSERT_EMAIL_RECORD.format(cid=p.id, ldap=p.loginID)
-                    do_sql(sql, key=key, earl=EARL)
-                except:
-                    logger.info("failed insert = {}".format(sql))
-
-                try:
-                    sql = INSERT_CVID_RECORD.format(cid=p.id, ldap=p.loginID)
-                    do_sql(sql, key=key, earl=EARL)
-                except:
-                    logger.info("failed insert = {}".format(sql))
+        print("No objects found for provisioning.")
 
 
 ######################
