@@ -111,7 +111,7 @@ def _generate_files(results, filetype, group):
         # create .csv file
         csvphile = ('{}.csv'.format(root))
         phile = open(csvphile,"w")
-        output = csv.writer(phile)
+        output = csv.writer(phile, quoting=csv.QUOTE_ALL)
 
         for result in results:
             output.writerow(result)
