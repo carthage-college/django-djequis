@@ -1,5 +1,5 @@
-SELECT_NEW_PEOPLE = '''
 --Current students
+SELECT_NEW_PEOPLE = '''
     SELECT
         TRIM(NVL(cvid_rec.ldap_name, NVL(subCVID.name_only || subCVID.total, subID.username))) AS loginID,
         subID.lastname, subID.firstname, subID.id, '' AS facultyStatus, '' AS staffStatus, 'A' AS studentStatus, '' AS retireStatus, '' AS dob, '' AS zip,
