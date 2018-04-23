@@ -27,7 +27,8 @@ with the Jenzabar databases, and over time will replace maquettes in /jics.
     */10 * * * * python /d2/django_projects/djequis/rt/tickets.py >> /dev/null 2>&1
     #*/10 * * * * (python /d2/django_projects/djequis/rt/tickets.py 2>&1 | mail -s "[RT] Tickets" larry@carthage.edu) >> /dev/null 2>&1
     # JX scripts
-    11 11 * * * (python /d2/django_projects/djequis/bin/class_year.py --action=update --database=jxlive >> /dev/null 2>&1
+    #11 11 * * * (python /d2/django_projects/djequis/bin/class_year.py --action=update --database=jxlive) >> /dev/null 2>&1
+    11 11 * * * (python /d2/django_projects/djequis/bin/class_year.py --action=update --database=jxlive 2>&1 | mail -s "[DJ Equis] Class Year" larry@carthage.edu) >> /dev/null 2>&1
     # common app
     00 04 * * 0-5 (python /d2/django_projects/djequis/bin/commonapp.py --database=cars 2>&1 | mail -s "[CommonApp] Fetching data via SFTP" rob@carthage.edu,nick@carthage.edu,ssmolik@carthage.edu) >> /dev/null 2>&1
     # barnes and noble
@@ -36,8 +37,14 @@ with the Jenzabar databases, and over time will replace maquettes in /jics.
     55 23 2 * * (python /d2/django_projects/djequis/bin/papercut.py 2>&1 | mail -s "[PaperCut] Papercut charge backs data" ssmolik@carthage.edu) >> /dev/null 2>&1
     # Papercut GL: monthly, 3rd day of every month at 2:45h, create .csv file of Papercut GL accounts
     #45 02 3 * * (python /d2/django_projects/djequis/bin/papercut_glrec.py 2>&1 | mail -s "[PaperCut] Papercut GL accounts data" ssmolik@carthage.edu) >> /dev/null 2>&1
-    # Loan Dispursements (every four hours)
-    20 04 * * * (python /d2/django_projects/djequis/bin/loan_disbursement.py --database=cars 2>&1 | mail -s "[Financial Aid] Load Dispursements" larry@carthage.edu) >> /dev/null 2>&1
+    # Loan Dispursements (every four hours or once a day at 4:20h)
+    05 00 * * * (python /d2/django_projects/djequis/bin/loan_disbursement.py --database=cars 2>&1 | mail -s "[Financial Aid] Loan Disbursement Notification" larry@carthage.edu) >> /dev/null 2>&1
+
+    # provisioning
+    #00 08 * * * (python /d2/django_projects/djequis/bin/provisioning.py --database=cars --filetype=csv 2>&1 | mail -s "[DJ Equis] Provisioniing" larry@carthage.edu) >> /dev/null 2>&1
+    #00 12 * * * (python /d2/django_projects/djequis/bin/provisioning.py --database=cars --filetype=csv 2>&1 | mail -s "[DJ Equis] Provisioniing" larry@carthage.edu) >> /dev/null 2>&1
+    #00 16 * * * (python /d2/django_projects/djequis/bin/provisioning.py --database=cars --filetype=csv 2>&1 | mail -s "[DJ Equis] Provisioniing" larry@carthage.edu) >> /dev/null 2>&1
+
 
 ## Database import
 

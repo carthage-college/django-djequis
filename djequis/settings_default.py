@@ -220,7 +220,6 @@ EMAIL_FAIL_SILENTLY = False
 DEFAULT_FROM_EMAIL = ''
 SERVER_EMAIL = ''
 SERVER_MAIL=''
-
 # oclc
 # external oclc server
 OCLC_XTRNL_SRVR = ''
@@ -320,12 +319,14 @@ SCHOOLOGY_USER=''
 SCHOOLOGY_API_KEY=''
 SCHOOLOGY_API_SECRET=''
 SCHOOLOGY_PORT = ''
+SCHOOLOGY_PORT=''
 SCHOOLOGY_CSV_OUTPUT=''
 SCHOOLOGY_CSV_ARCHIVED=''
 SCHOOLOGY_TO_EMAIL=[]
 SCHOOLOGY_FROM_EMAIL=''
 # Provisioning data directory
-PROVISIONING_DATA_DIRECTORY = ''
+PROVISIONING_DATA_DIRECTORY=''
+PROVISIONING_DATA_DIRECTORY_TEST=''
 # loan disbursement
 FINANCIAL_AID_EMAIL=''
 # test
@@ -346,6 +347,7 @@ RT_TICKET_STATUS_INCLUDE = ['open (Unchanged)','open','new','stalled']
 # cognosadmin@carthage.edu
 # cognosadmin
 # student
+# test
 RT_ADMINS = [1,6,93,449,455,707]
 # logging
 LOG_FILEPATH = os.path.join(os.path.dirname(__file__), "logs/")

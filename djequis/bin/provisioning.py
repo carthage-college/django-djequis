@@ -100,15 +100,18 @@ def _generate_files(results, filetype, group):
     at least one of the Status fields must be populated
     """
 
-    root = '{}{}_{}'.format(
-        settings.PROVISIONING_DATA_DIRECTORY, group, TIMESTAMP
-    )
+    if test:
+        sendero = settings.PROVISIONING_DATA_DIRECTORY_TEST
+    else:
+        sendero = settings.PROVISIONING_DATA_DIRECTORY
+
+    root = '{}{}_{}'.format(sendero, group, TIMESTAMP)
 
     if filetype == 'csv':
         # create .csv file
         csvphile = ('{}.csv'.format(root))
         phile = open(csvphile,"w")
-        output = csv.writer(phile)
+        output = csv.writer(phile, quoting=csv.QUOTE_ALL)
 
         for result in results:
             output.writerow(result)
@@ -175,30 +178,35 @@ def main():
     # than once, whereas just using objects result would throw an
     # error after the first iteration.
     for o in objects:
+        if test:
+            print(o)
         people.append(o)
 
     if people:
-
         response = _generate_files(people, filetype, 'new_people')
 
         if not response:
             print("no response")
         else:
             for p in people:
-                if test:
-                    print(p)
-                else:
-                    try:
-                        sql = INSERT_EMAIL_RECORD.format(cid=p.id, ldap=p.loginID)
+                try:
+                    sql = INSERT_EMAIL_RECORD(cid=p.id, ldap=p.loginid)
+                    if test:
+                        print(sql)
+                    else:
                         do_sql(sql, key=key, earl=EARL)
-                    except:
-                        logger.info("failed insert = {}".format(sql))
+                    print('email record')
+                except:
+                    logger.info("failed insert = {}".format(p))
 
-                    try:
-                        sql = INSERT_CVID_RECORD.format(cid=p.id, ldap=p.loginID)
+                try:
+                    sql = INSERT_CVID_RECORD(cid=p.id, ldap=p.loginid)
+                    if test:
+                        print(sql)
+                    else:
                         do_sql(sql, key=key, earl=EARL)
-                    except:
-                        logger.info("failed insert = {}".format(sql))
+                except:
+                    logger.info("failed insert = {}".format(p))
     else:
         print("No objects found for provisioning.")
 
