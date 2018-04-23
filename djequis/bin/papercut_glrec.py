@@ -65,11 +65,11 @@ def main():
     # formatting date and time string 
     datetimestr = time.strftime("%Y-%m-%d")
     # set directory and filename
-    filename = ('{0}glrec_data.csv'.format(settings.PAPERCUT_CSV_OUTPUT))
+    filename = ('{0}gl_data/glrec_data.csv'.format(settings.PAPERCUT_CSV_OUTPUT))
     # set destination path and new filename that it will be renamed to when archived
     archive_destination = ('{0}/gl_data/{1}_{2}.csv'.format(
-        settings.PAPERCUT_CSV_ARCHIVED,'glrec_data_bak',datetimestr
-    ))
+        settings.PAPERCUT_CSV_ARCHIVED,'glrec_data_bak',datetimestr)
+        )
     # opens a file for writing
     with open(filename,'w') as glrecfile:
         for row in sqlresult:
@@ -106,9 +106,9 @@ def main():
     # renaming old filename to newfilename and move to archive location
     shutil.copy(filename, archive_destination)
     # sleep for 3 seconds
-    time.sleep(3)
+    #time.sleep(3)
     # delete file
-    os.remove(filename)
+    #os.remove(filename)
 
 if __name__ == "__main__":
     args = parser.parse_args()
