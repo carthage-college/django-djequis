@@ -195,7 +195,6 @@ def main():
                         print(sql)
                     else:
                         do_sql(sql, key=key, earl=EARL)
-                    print('email record')
                 except:
                     logger.info("failed insert = {}".format(p))
 
