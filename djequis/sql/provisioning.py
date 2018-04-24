@@ -282,4 +282,4 @@ INSERT_CVID_RECORD = '''
         cvid_rec (old_id, old_id_num, cx_id, cx_id_char, ldap_name)
     VALUES
         ('SinceCvrsn', {cid}, {cid}, '{cid}', '{ldap}')
-'''
+'''.format
