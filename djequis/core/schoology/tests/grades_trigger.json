@@ -1,0 +1,88 @@
+{
+   "uid": 44012,
+   "timestamp": 1358260783,
+   "type": "grades.update",
+   "data": [
+       {
+           "realm": "section",
+           "section_id": 364856,
+           "section_school_code": "HIST101",
+           "realm_id": 364856,
+           "enrollment_id": 207946,
+           "school_uid": "jsmith",
+           "updated_overall_grade": 58.5,
+           "object": {
+               "enrollment_id": 207946,
+               "assignment_id": 372736,
+               "grade": 56,
+               "exception": 0,
+               "max_points": 100,
+               "is_final": 1,
+               "timestamp": 1358260783,
+               "comment": "",
+               "comment_status": null,
+               "override": null,
+               "calculated_grade": null,
+               "pending": null,
+               "type": "discussion",
+               "location": "http://dev.schoologize.com/v1/course/364856/discussions/368837",
+               "scale_id": 1,
+               "category_id": 1189
+           }
+       },
+       {
+           "realm": "section",
+           "section_id": 364856,
+           "section_school_code": "HIST101",
+           "realm_id": 364856,
+           "enrollment_id": 206871,
+           "school_uid": "jknox1",
+           "updated_overall_grade": 88.5,
+           "object": {
+               "enrollment_id": 206871,
+               "assignment_id": 372837,
+               "grade": 88,
+               "exception": 0,
+               "max_points": 100,
+               "is_final": 0,
+               "timestamp": 1358260783,
+               "comment": "",
+               "comment_status": null,
+               "override": null,
+               "calculated_grade": null,
+               "pending": null,
+               "type": "discussion",
+               "location": "http://dev.schoologize.com/v1/course/364856/discussions/372835",
+               "scale_id": 1,
+               "category_id": 1189
+           }
+       },
+       {
+           "realm": "section",
+           "section_id": 364856,
+           "section_school_code": "HIST101",
+           "realm_id": 364856,
+           "enrollment_id": 206871,
+           "school_uid": "jsmith2",
+           "updated_overall_grade": 76.5,
+           "object": {
+               "enrollment_id": 206871,
+               "assignment_id": 372869,
+               "grade": 79,
+               "exception": 0,
+               "max_points": 100,
+               "is_final": 0,
+               "timestamp": 1358260783,
+               "comment": "",
+               "comment_status": null,
+               "override": null,
+               "calculated_grade": null,
+               "pending": null,
+               "type": "discussion",
+               "location": "http://dev.schoologize.com/v1/course/364856/discussions/372867",
+               "scale_id": 1,
+               "category_id": 1189
+           }
+       }
+   ]
+}
