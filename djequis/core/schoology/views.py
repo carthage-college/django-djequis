@@ -14,7 +14,8 @@ def trigger_grades(request):
     """
 
     if request.method=='POST':
-        data = request.POST
+        data = request.body
+        logger.debug('request.body = {}'.format(data))
         logger.debug('uid = {}'.format(data['uid']))
         logger.debug('timestamp = {}'.format(data['timestamp']))
         logger.debug('type = {}'.format(data['type']))
