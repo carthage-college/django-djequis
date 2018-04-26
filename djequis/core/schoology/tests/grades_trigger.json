@@ -6,7 +6,7 @@
        {
            "realm": "section",
            "section_id": 364856,
-           "section_school_code": "HIST101",
+           "section_school_code": "2018;RC;FRN 2010;01;UG17;UNDG",
            "realm_id": 364856,
            "enrollment_id": 207946,
            "school_uid": "jsmith",
@@ -33,7 +33,7 @@
        {
            "realm": "section",
            "section_id": 364856,
-           "section_school_code": "HIST101",
+           "section_school_code": "2018;RC;FRN 2010;01;UG17;UNDG",
            "realm_id": 364856,
            "enrollment_id": 206871,
            "school_uid": "jknox1",
@@ -60,7 +60,7 @@
        {
            "realm": "section",
            "section_id": 364856,
-           "section_school_code": "HIST101",
+           "section_school_code": "2018;RC;FRN 2010;01;UG17;UNDG",
            "realm_id": 364856,
            "enrollment_id": 206871,
            "school_uid": "jsmith2",
