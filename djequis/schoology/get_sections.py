@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+import django
 import argparse
-import urllib2
-import json
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -18,7 +17,6 @@ sys.path.append('/data2/django_third/')
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 
 # prime django
-import django
 django.setup()
 
 from schoolopy import Schoology, Auth
@@ -26,19 +24,9 @@ from schoolopy import Schoology, Auth
 # django settings for script
 from django.conf import settings
 
-# informix environment
-os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
-os.environ['DBSERVERNAME'] = settings.DBSERVERNAME
-os.environ['INFORMIXDIR'] = settings.INFORMIXDIR
-os.environ['ODBCINI'] = settings.ODBCINI
-os.environ['ONCONFIG'] = settings.ONCONFIG
-os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
-os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
-os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
-
 desc = """
-    Test the API for obtaining user grades. See for endpoint description:
-    http://developers.schoology.com/api-documentation/rest-api-v1/user-grades
+    Test the API for obtaining all sections.
+    Currently returns 403 Forbidden
 """
 
 parser = argparse.ArgumentParser(description=desc)
@@ -49,12 +37,6 @@ parser.add_argument(
     help="Dry run?",
     dest="test"
 )
-parser.add_argument(
-    '-u', '--user-id',
-    required=True,
-    help="user ID",
-    dest='uid'
-)
 
 
 def main():
@@ -63,14 +45,13 @@ def main():
         Auth(settings.SCHOOLOGY_API_KEY, settings.SCHOOLOGY_API_SECRET)
     )
 
-    grades = sc.get_user_grades(uid)
+    sections = sc.get_sections()
 
-    print(grades)
+    print(sections)
 
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    uid = args.uid
     test = args.test
 
     sys.exit(main())

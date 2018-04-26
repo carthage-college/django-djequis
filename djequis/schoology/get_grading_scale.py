@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+import django
 import argparse
-import urllib2
-import json
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -18,7 +17,6 @@ sys.path.append('/data2/django_third/')
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 
 # prime django
-import django
 django.setup()
 
 from schoolopy import Schoology, Auth
@@ -26,34 +24,24 @@ from schoolopy import Schoology, Auth
 # django settings for script
 from django.conf import settings
 
-# informix environment
-os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
-os.environ['DBSERVERNAME'] = settings.DBSERVERNAME
-os.environ['INFORMIXDIR'] = settings.INFORMIXDIR
-os.environ['ODBCINI'] = settings.ODBCINI
-os.environ['ONCONFIG'] = settings.ONCONFIG
-os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
-os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
-os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
-
 desc = """
-    Test the API for obtaining user grades. See for endpoint description:
-    http://developers.schoology.com/api-documentation/rest-api-v1/user-grades
+    Test the API for obtaining grading scales. See for endpoint description:
+    https://developers.schoology.com/api-documentation/rest-api-v1/grading-scales
 """
 
 parser = argparse.ArgumentParser(description=desc)
 
 parser.add_argument(
+    '-s', '--section-id',
+    required=True,
+    help="course section ID",
+    dest='section_id'
+)
+parser.add_argument(
     "--test",
     action='store_true',
     help="Dry run?",
     dest="test"
-)
-parser.add_argument(
-    '-u', '--user-id',
-    required=True,
-    help="user ID",
-    dest='uid'
 )
 
 
@@ -63,14 +51,18 @@ def main():
         Auth(settings.SCHOOLOGY_API_KEY, settings.SCHOOLOGY_API_SECRET)
     )
 
-    grades = sc.get_user_grades(uid)
+    grading_scale = sc.get_grading_scale(section_id)
 
-    print(grades)
+    # empty json() method = '{}'
+    if len(grading_scale.json()) > 2:
+
+        for gs in grading_scale['grading_scale'][0]['scale']['level']:
+            print(gs)
 
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    uid = args.uid
+    section_id = args.section_id
     test = args.test
 
     sys.exit(main())
