@@ -98,7 +98,7 @@ def main():
         query_name = None
         query_value = None
 
-    grades = sc.get_section_grades(section_id, query_name, query_value)
+    grades = sc.get_section_grades(section_id, {query_name:query_value,})
 
     for g in grades:
         line = (

@@ -324,7 +324,12 @@ SCHOOLOGY_CSV_OUTPUT=''
 SCHOOLOGY_CSV_ARCHIVED=''
 SCHOOLOGY_TO_EMAIL=[]
 SCHOOLOGY_FROM_EMAIL=''
-SCHOOLOGY_TEST_GRADES_TRIGGER_JSON_FILE='grades_trigger.json'
+SCHOOLOGY_TEST_GRADES_TRIGGER_JSON_FILE = '{}{}'.format(
+    ROOT_DIR, '/core/schoology/tests/grades_trigger.json'
+)
+SCHOOLOGY_TEST_GRADES_TRIGGER_JSON_FILE_BAD = '{}{}'.format(
+    ROOT_DIR, '/core/schoology/tests/grades_trigger_bad.json'
+)
 # Provisioning data directory
 PROVISIONING_DATA_DIRECTORY=''
 PROVISIONING_DATA_DIRECTORY_TEST=''
