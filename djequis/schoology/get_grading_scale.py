@@ -60,31 +60,26 @@ def main():
 
     grading_scale = sc.get_grading_scale(section_id)
 
-    # empty json() method = '{}'
-    if len(grading_scale.json()) > 2:
+    # empty json() method = '{}' so we fetch json file that contains
+    # the default grading scales
+    if len(grading_scale.json()) == 2:
 
-        if test:
-            print(grading_scale)
-
-        for gs in grading_scale['grading_scale'][0]['scale']['level']:
-            print(gs)
-    else:
         # convert json data from file to python dictionary
-        json_data = json.load(
+        grading_scale = json.load(
             open(settings.SCHOOLOGY_TEST_GRADING_SCALE_FILE)
         )
 
-        if test:
-            print(json_data)
+    if test:
+        print(grading_scale)
 
-        final = 0
-        for g in json_data['grading_scale']:
-            if g['id'] == 1:
-                for level in g['scale']['level']:
-                    if score >= level['cutoff']:
-                        final = level['grade']
+    final = 0
+    for g in grading_scale['grading_scale']:
+        if g['id'] == 1:
+            for level in g['scale']['level']:
+                if score >= level['cutoff']:
+                    final = level['grade']
 
-        print final
+    print(final)
 
 
 if __name__ == '__main__':
