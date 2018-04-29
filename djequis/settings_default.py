@@ -330,6 +330,9 @@ SCHOOLOGY_TEST_GRADES_TRIGGER_JSON_FILE = '{}{}'.format(
 SCHOOLOGY_TEST_GRADES_TRIGGER_JSON_FILE_BAD = '{}{}'.format(
     ROOT_DIR, '/core/schoology/tests/grades_trigger_bad.json'
 )
+SCHOOLOGY_TEST_GRADING_SCALE_FILE = '{}{}'.format(
+    ROOT_DIR, '/core/schoology/grading_scale.json'
+)
 # Provisioning data directory
 PROVISIONING_DATA_DIRECTORY=''
 PROVISIONING_DATA_DIRECTORY_TEST=''

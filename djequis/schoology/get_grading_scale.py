@@ -4,6 +4,7 @@ import os
 import sys
 import django
 import argparse
+import json
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -32,10 +33,16 @@ desc = """
 parser = argparse.ArgumentParser(description=desc)
 
 parser.add_argument(
-    '-s', '--section-id',
+    '-i', '--section-id',
     required=True,
     help="course section ID",
     dest='section_id'
+)
+parser.add_argument(
+    '-s', '--score',
+    required=True,
+    help="course score",
+    dest='score'
 )
 parser.add_argument(
     "--test",
@@ -56,13 +63,35 @@ def main():
     # empty json() method = '{}'
     if len(grading_scale.json()) > 2:
 
+        if test:
+            print(grading_scale)
+
         for gs in grading_scale['grading_scale'][0]['scale']['level']:
             print(gs)
+    else:
+        # convert json data from file to python dictionary
+        json_data = json.load(
+            open(settings.SCHOOLOGY_TEST_GRADING_SCALE_FILE)
+        )
+
+        if test:
+            print(json_data)
+
+        final = 0
+        for g in json_data['grading_scale']:
+            if g['id'] == 1:
+                for level in g['scale']['level']:
+                    if score >= level['cutoff']:
+                        final = level['grade']
+
+        print final
 
 
 if __name__ == '__main__':
     args = parser.parse_args()
     section_id = args.section_id
+    # make sure grade is an integer
+    score = int(args.score)
     test = args.test
 
     sys.exit(main())
