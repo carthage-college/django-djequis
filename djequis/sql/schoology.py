@@ -85,47 +85,44 @@ COURSES = '''
 USERS = '''
     SELECT DISTINCT
         id_rec.firstname, addree_rec.alt_name preferred_first_name, id_rec.middlename,
-        id_rec.lastname, id_rec.title name_prefix, TRIM(jenzprs_rec.host_username) username,
-        TRIM(jenzprs_rec.e_mail) EMAIL, jenzprs_rec.host_id UniqueID,
-        CASE
-            WHEN jenzcst_rec.STATUS_CODE = 'STU' THEN 'STU' ELSE 'FAC'
-        END AS ROLE,
+        id_rec.lastname, id_rec.title name_prefix, trim(jenzprs_rec.host_username) username,
+        TRIM(jenzprs_rec.e_mail) EMAIL, to_number(jenzprs_rec.host_id) UniqueID,
+        CASE WHEN NVL(MIN(jenzcst_rec.status_code),'x') = 'STU' THEN 'STU'
+             WHEN NVL(MIN(jenzcst_rec.status_code),'x') = 'x' AND title1.job_title IS NULL THEN 'STU'
+             ELSE 'FAC' END AS ROLE,
         'Carthage College' school, jenzprs_rec.host_id schoology_id,
-        CASE NVL(title1.job_title,'x') WHEN 'x' THEN '' ELSE trim(title1.job_title) END||
-        CASE NVL(title2.job_title,'x') WHEN 'x' THEN '' ELSE '; '||trim(title2.job_title) END||
-        CASE NVL(title3.job_title,'x') WHEN 'x' THEN '' ELSE '; '||trim(title3.job_title) END
+        CASE NVL(title1.job_title,'x') WHEN 'x' THEN '' ELSE TRIM(title1.job_title) END||
+        CASE NVL(title2.job_title,'x') WHEN 'x' THEN '' ELSE '; '||TRIM(title2.job_title) END||
+        CASE NVL(title3.job_title,'x') WHEN 'x' THEN '' ELSE '; '||TRIM(title3.job_title) END
         Position, '' pwd, '' gender, '' GradYr, '' additional_schools
     FROM jenzprs_rec
         LEFT JOIN jenzcst_rec
         ON jenzprs_rec.host_id = jenzcst_rec.host_id
         AND jenzcst_rec.status_code IN ('FAC', 'STF', 'STU', 'ADM')
             JOIN id_rec ON id_rec.id = jenzprs_rec.host_id
-            LEFT JOIN job_rec title1 ON title1.id = jenzprs_rec.host_id
-                AND title1.title_rank = 1
-                AND (title1.end_date IS NULL OR title1.end_date > current)
-            LEFT JOIN job_rec title2 ON title2.id = jenzprs_rec.host_id
-                AND title2.title_rank = 2
-                AND (title2.end_date IS NULL OR title2.end_date > current)
-            LEFT JOIN job_rec title3 ON title3.id = jenzprs_rec.host_id
-                AND title3.title_rank = 3
-                AND (title3.end_date IS NULL OR title3.end_date > current)
-            LEFT JOIN job_rec title4 ON title4.id = jenzprs_rec.host_id
-                AND title4.title_rank IS NULL
-                AND (title4.end_date IS NULL OR title4.end_date > current)
-            LEFT JOIN addree_rec ON addree_rec.prim_id = jenzprs_rec.host_id
-                AND addree_rec.style = 'N'
+            LEFT JOIN job_rec title1 ON title1.id = jenzprs_rec.host_id AND title1.title_rank = 1
+                AND (title1.end_date IS NULL OR title1.end_date > current) AND title1.job_title IS NOT NULL
+            LEFT JOIN job_rec title2 ON title2.id = jenzprs_rec.host_id AND title2.title_rank = 2
+                AND (title2.end_date IS NULL OR title2.end_date > current) AND title2.job_title IS NOT NULL
+            LEFT JOIN job_rec title3 ON title3.id = jenzprs_rec.host_id AND title3.title_rank = 3
+                AND (title3.end_date IS NULL OR title3.end_date > current) AND title3.job_title IS NOT NULL
+            LEFT JOIN job_rec title4 ON title4.id = jenzprs_rec.host_id AND title4.title_rank = 4
+                AND (title4.end_date IS NULL OR title4.end_date > current) AND title4.job_title IS NOT NULL
+            LEFT JOIN addree_rec ON addree_rec.prim_id = jenzprs_rec.host_id AND addree_rec.style = 'N'
     WHERE jenzprs_rec.host_id IN
         (
-            SELECT to_number(host_id) AS UID
+            SELECT to_number(host_id) as UID
                 FROM jenzcrp_rec
             UNION All
-            SELECT cx_id AS UID
+            SELECT cx_id as UID 
                 FROM provsndtl_rec
                 WHERE subsys = 'MSTR'
                     AND action = 'Active'
                     AND roles NOT IN ('Contractor')
         )
-    ORDER BY id_rec.lastname, id_rec.firstname;
+        GROUP BY id_rec.lastname, id_rec.firstname, preferred_first_name, id_rec.middlename,
+        name_prefix, username, email, UniqueID, schoology_id, Position, title1.job_title
+        ORDER BY id_rec.lastname ASC, id_rec.firstname ASC, role ASC;
 '''
 # fetch enrollment
 # This query should return all instructors and students enrolled in active courses
@@ -170,9 +167,11 @@ CROSSLIST = '''
     AND
         crs_rec.cat = secmtg_rec.cat
     AND
-        mtg_rec.beg_date <= ADD_MONTHS(TODAY,6)
+        (mtg_rec.yr = CASE WHEN TODAY < TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d') THEN YEAR(TODAY) ELSE YEAR(TODAY)-1 END
+    OR
+        (mtg_rec.beg_date <= ADD_MONTHS(TODAY,6)
     AND
-        mtg_rec.beg_date >= ADD_MONTHS(TODAY,-1)
+        mtg_rec.beg_date >= ADD_MONTHS(TODAY,-1)))
     GROUP BY
         secmtg_rec.mtg_no
     HAVING COUNT
