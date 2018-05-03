@@ -72,6 +72,7 @@ parser.add_argument(
     dest="database"
 )
 
+
 # sFTP fetch (GET) downloads the file from Common App file from server
 def file_download():
     cnopts = pysftp.CnOpts()
@@ -83,12 +84,14 @@ def file_download():
        'password':settings.ADP_PASS,
        'cnopts':cnopts
     }
+  
     ############################################################################
     # sFTP GET downloads the CSV file from ADP server and saves in local directory.
     ############################################################################
     with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
         # Remote Path is the ADP server and once logged in we fetch directory listing
         remotepath = sftp.listdir()
+        print('remotepath: {0}'.format(remotepath))
         # Loop through remote path directory list
         for filename in remotepath:
             remotefile = filename
@@ -105,3 +108,5 @@ def file_download():
             #############################################################
             #sftp.remove(filename)
     sftp.close()
+
+file_download()
