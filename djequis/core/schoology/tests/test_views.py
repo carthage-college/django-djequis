@@ -20,6 +20,7 @@ class CoreSchoologyViewsTestCase(TestCase):
     def setUp(self):
         pass
         self.earl = settings.INFORMIX_EARL
+        # convert json data from file to python dictionary
         self.json_data = json.load(
             open(settings.SCHOOLOGY_TEST_GRADES_TRIGGER_JSON_FILE)
         )
@@ -43,6 +44,7 @@ class CoreSchoologyViewsTestCase(TestCase):
         print("trigger grades view")
         print(seperator())
 
+        # convert python dictionary to json data and POST to view
         response = self.client.post(
             reverse('trigger_grades'), json.dumps(self.json_data),
             content_type="application/json"

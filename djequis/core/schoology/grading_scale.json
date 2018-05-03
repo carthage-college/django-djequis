@@ -1,0 +1,38 @@
+{
+    "grading_scale": [
+        {
+            "scale": {
+                "level": [
+                    {"grade": "F", "cutoff": 0, "average": 30},
+                    {"grade": "D-", "cutoff": 60, "average": 61.5},
+                    {"grade": "D", "cutoff": 63, "average": 65},
+                    {"grade": "D+", "cutoff": 67, "average": 68.5},
+                    {"grade": "C-", "cutoff": 70, "average": 71.5},
+                    {"grade": "C", "cutoff": 73, "average": 75},
+                    {"grade": "C+", "cutoff": 77, "average": 78.5},
+                    {"grade": "B-", "cutoff": 80, "average": 81.5},
+                    {"grade": "B", "cutoff": 83, "average": 85},
+                    {"grade": "B+", "cutoff": 87, "average": 88.5},
+                    {"grade": "A-", "cutoff": 90, "average": 91.5},
+                    {"grade": "A", "cutoff": 93, "average": 95},
+                    {"grade": "A+", "cutoff": 97, "average": 98.5}
+                ]
+            },
+            "auto_averaging": 0, "title": "A +/-", "type": 1,
+            "hide_numeric": 0, "id": 1
+        },
+        {
+            "scale": {
+                "level": [
+                    {"grade": "F", "cutoff": 0, "average": 59},
+                    {"grade": "P", "cutoff": 60, "average": 100}
+                ]
+            },
+            "auto_averaging": 0, "title": "Pass-Fail", "type": 1,
+            "hide_numeric": 0, "id": 5831377
+        }
+    ],
+    "links": {
+        "self": "https://api.schoology.com/v1/sections/1428427461/grading_scales"
+    }
+}
