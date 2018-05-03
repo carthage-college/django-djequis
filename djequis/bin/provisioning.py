@@ -219,5 +219,4 @@ if __name__ == '__main__':
     test = args.test
     database = args.database.lower()
     filetype = args.filetype.lower()
-
     sys.exit(main())
