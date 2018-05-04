@@ -56,7 +56,7 @@ DEBUG = settings.INFORMIX_DEBUG
 
 # set up command-line options
 desc = """
-    Upload Common Application data to CX
+    Upload ADP data to CX
 """
 parser = argparse.ArgumentParser(description=desc)
 
@@ -72,12 +72,11 @@ parser.add_argument(
     dest="database"
 )
 
-
-# sFTP fetch (GET) downloads the file from Common App file from server
+# sFTP fetch (GET) downloads the file from ADP file from server
 def file_download():
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
-    # External connection information for Common Application server
+    # External connection information for ADP Application server
     XTRNL_CONNECTION = {
        'host':settings.ADP_HOST,
        'username':settings.ADP_USER,
@@ -89,13 +88,13 @@ def file_download():
     # sFTP GET downloads the CSV file from ADP server and saves in local directory.
     ############################################################################
     with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
+        sftp.chdir("adp/")
         # Remote Path is the ADP server and once logged in we fetch directory listing
         remotepath = sftp.listdir()
-        print('remotepath: {0}'.format(remotepath))
         # Loop through remote path directory list
         for filename in remotepath:
             remotefile = filename
-            # set local directory for which the common app file will be downloaded to
+            # set local directory for which the ADP file will be downloaded to
             local_dir = ('{0}'.format(
                 settings.ADP_CSV_OUTPUT
             ))
@@ -104,7 +103,7 @@ def file_download():
             sftp.get(remotefile, localpath)
             #############################################################
             # Delete original file %m_%d_%y_%h_%i_%s_Applications(%c).txt
-            # from sFTP (Common App) server
+            # from sFTP (ADP) server
             #############################################################
             #sftp.remove(filename)
     sftp.close()
