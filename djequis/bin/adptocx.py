@@ -13,6 +13,7 @@ import shutil
 import re
 import logging
 from logging.handlers import SMTPHandler
+import adpftp
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -72,40 +73,44 @@ parser.add_argument(
     dest="database"
 )
 
-# sFTP fetch (GET) downloads the file from ADP file from server
-def file_download():
-    cnopts = pysftp.CnOpts()
-    cnopts.hostkeys = None
-    # External connection information for ADP Application server
-    XTRNL_CONNECTION = {
-       'host':settings.ADP_HOST,
-       'username':settings.ADP_USER,
-       'password':settings.ADP_PASS,
-       'cnopts':cnopts
-    }
-  
-    ############################################################################
-    # sFTP GET downloads the CSV file from ADP server and saves in local directory.
-    ############################################################################
-    with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
-        sftp.chdir("adp/")
-        # Remote Path is the ADP server and once logged in we fetch directory listing
-        remotepath = sftp.listdir()
-        # Loop through remote path directory list
-        for filename in remotepath:
-            remotefile = filename
-            # set local directory for which the ADP file will be downloaded to
-            local_dir = ('{0}'.format(
-                settings.ADP_CSV_OUTPUT
-            ))
-            localpath = local_dir + remotefile
-            # GET file from sFTP server and download it to localpath
-            sftp.get(remotefile, localpath)
-            #############################################################
-            # Delete original file %m_%d_%y_%h_%i_%s_Applications(%c).txt
-            # from sFTP (ADP) server
-            #############################################################
-            #sftp.remove(filename)
-    sftp.close()
 
-file_download()
+adpftp.file_download()
+
+
+# sFTP fetch (GET) downloads the file from ADP file from server
+# def file_download():
+#     cnopts = pysftp.CnOpts()
+#     cnopts.hostkeys = None
+#     # External connection information for ADP Application server
+#     XTRNL_CONNECTION = {
+#        'host':settings.ADP_HOST,
+#        'username':settings.ADP_USER,
+#        'password':settings.ADP_PASS,
+#        'cnopts':cnopts
+#     }
+#
+#     ############################################################################
+#     # sFTP GET downloads the CSV file from ADP server and saves in local directory.
+#     ############################################################################
+#     with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
+#         sftp.chdir("adp/")
+#         # Remote Path is the ADP server and once logged in we fetch directory listing
+#         remotepath = sftp.listdir()
+#         # Loop through remote path directory list
+#         for filename in remotepath:
+#             remotefile = filename
+#             # set local directory for which the ADP file will be downloaded to
+#             local_dir = ('{0}'.format(
+#                 settings.ADP_CSV_OUTPUT
+#             ))
+#             localpath = local_dir + remotefile
+#             # GET file from sFTP server and download it to localpath
+#             sftp.get(remotefile, localpath)
+#             #############################################################
+#             # Delete original file %m_%d_%y_%h_%i_%s_Applications(%c).txt
+#             # from sFTP (ADP) server
+#             #############################################################
+#             #sftp.remove(filename)
+#     sftp.close()
+#
+# file_download()
