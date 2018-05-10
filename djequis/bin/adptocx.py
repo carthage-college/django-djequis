@@ -163,7 +163,7 @@ def main():
             EARL = None
         # establish database connection
         engine = get_engine(EARL)
-        print(database)
+
         #################################################################
         # STEP 1--
         # Read files and write out differences
@@ -193,8 +193,8 @@ def main():
                                     "PrimaryAddress3", "PrimaryCity", "PrimaryStateCode",
                                     "PrimaryStateDescr", "PrimaryZip", "PrimaryCounty",
                                     "PrimaryCountry", "PrimaryCountryCode",
-                                    "PrimaryLegalAddressLegalAddress", "HomePhone",
-                                    "MobilePhone", "WorkPhone", "WCWorkEmail",
+                                    "PrimaryLegalAddress", "HomePhone",
+                                    "MobilePhone", "WorkPhone", "WCWorkPhone",
                                     "WCWorkEmail", "UseWorkforNotification",
                                     "LegalAddress1", "LegalAddress2", "LegalAddress3",
                                     "LegalCity", "LegalStateCode",
@@ -297,7 +297,7 @@ def main():
                 row["LegalAddress1"], row["LegalAddress2"], row["LegalAddress3"],
                 row["LegalCity"], row["LegalStateCode"], row["LegalStateDescription"],
                 row["LegalZip"], row["LegalCounty"], row["LegalCountry"],
-                row["LegalCountryCode"], row["SSN"], row["HireDate"], row["Hire/RehireDate"],
+                row["LegalCountryCode"], row["SSN"], row["HireDate"], row["Hire_RehireDate"],
                 row["RehireDate"], row["PosStartDate"], row["PosEffectiveDate"],
                 row["PosEffectiveEndDate"], row["TerminationDate"], row["PositionStatus"],
                 row["StatusEffectiveDate"], row["StatusEffEndDate"], row["AdjServiceDate"],
@@ -314,7 +314,7 @@ def main():
                 row["PayrollCode4"], row["PositionEffDate4"], row["PositionEndDate4"],
                 row["HomeDeptCode"], row["HomeDeptDescr"], row["SupervisorID"],
                 row["SupervisorFName"], row["SupervisorLName"])
-                print (q_cc_adp_rec)
+                print(q_cc_adp_rec)
                 # do_sql(q_cc_adp_rec, key=DEBUG, earl=EARL)
 
                 #################################################################
@@ -334,7 +334,7 @@ def main():
                             row["PrimaryAddress3"], row["PrimaryCity"],
                 row["PrimaryStateCode"], row["PrimaryZip"], row["PrimaryCountryCode"],
                 row["SSN"], "")
-                print (q_insert_id_rec)
+                print(q_insert_id_rec)
                 # do_sql(q_insert_id_rec, key=DEBUG, earl=EARL)
                 # sql = sql & " upd_date, ofc_add_by, correct_addr, prev_name_id, " \
                 #             "inquiry_no"
@@ -343,18 +343,19 @@ def main():
                     # sAddrChg = CheckAddress(ID, FullName, Addr1, Addr2, Addr3,
                     # City, State, Zip, Ctry)
                     # If sAddrChg = "True" Then Update_Addr()
-    
-                # Insert into aa_rec
-                q_insert_aa_cell = '''
-                INSERT INTO aa_rec
-                    (id, aa, beg_date, peren, end_date, "line1, line2, line3,
-                    city, st, zip, ctry, phone, "phone_ext, ofc_add_by,
-                    cell_carrier, opt_out)
-                    VALUES ({0}, "CELL", TODAY, "{1}", "{2}");
-                ''' .format(apptmp_no, row["preferredPhoneNumber"].replace('+1.', ''), row["contactConsent"])
-                scr.write(q_insert_aa_cell+'\n');
-                #do_sql(q_insert_aa_cell, key=DEBUG, earl=EARL)
-    
+
+                if row["PersonalEmail"] != '':
+                    # Insert email into aa_rec
+                    q_insert_aa_rec = '''
+                    INSERT INTO aa_rec
+                        (id, aa, beg_date, "line1)
+                        VALUES ({0}, "EML2", TODAY, "{1}");
+                    ''' .format(row["CarthID"], row["PersonalEmail"])
+                    print(q_insert_aa_rec)
+                    #do_sql(q_insert_aa_cell, key=DEBUG, earl=EARL)
+                # else:
+                #     print("No email from ADP")
+                #
                 #Check to update phone in aa_rec
     
                 #################################################################
