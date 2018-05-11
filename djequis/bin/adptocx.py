@@ -112,6 +112,26 @@ def file_download():
     sftp.close()
 
 def main():
+    # write out the .sql file
+    scr = open("apdtocx_output.sql", "a")
+    # set start_time in order to see how long script takes to execute
+    start_time = time.time()
+    # create logger
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    # create console handler and set level to info
+    handler = logging.FileHandler('{0}apdtocx.log'.format(settings.LOG_FILEPATH))
+    handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    # create error file handler and set level to error
+    handler = logging.FileHandler('{0}apdtocx_error.log'.format(settings.LOG_FILEPATH))
+    handler.setLevel(logging.ERROR)
+    formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
     ############################################################################
     # development server (bng), you would execute:
     # ==> python adptocx.py --database=train --test
@@ -185,44 +205,33 @@ def main():
                 csvWriter = csv.writer(fout, delimiter=',')
                 # Write the output file header
                 csvWriter.writerow(["FileNumber", "CarthID", "LastName",
-                                    "FirstName", "MiddleName", "Salutation",
-                                    "PayrollName", "PreferredName", "BirthDate",
-                                    "Gender", "MaritalStatus", "Race", "RaceDescr",
-                                    "Ethnicity", "EthnicityIDMeth", "PersonalEmail",
-                                    "PrimaryAddress1", "PrimaryAddress2",
-                                    "PrimaryAddress3", "PrimaryCity", "PrimaryStateCode",
-                                    "PrimaryStateDescr", "PrimaryZip", "PrimaryCounty",
-                                    "PrimaryCountry", "PrimaryCountryCode",
-                                    "PrimaryLegalAddress", "HomePhone",
-                                    "MobilePhone", "WorkPhone", "WCWorkPhone",
-                                    "WCWorkEmail", "UseWorkforNotification",
-                                    "LegalAddress1", "LegalAddress2", "LegalAddress3",
-                                    "LegalCity", "LegalStateCode",
-                                    "LegalStateDescription", "LegalZip",
-                                    "LegalCounty", "LegalCountry",
-                                    "LegalCountryCode", "SSN", "HireDate",
-                                    "Hire_RehireDate", "RehireDate", "PosStartDate",
-                                    "PosEffectiveDate", "PosEffectiveEndDate",
-                                    "TerminationDate", "PositionStatus",
-                                    "StatusEffectiveDate", "StatusEffEndDate",
-                                    "AdjServiceDate", "Archived", "PositionID",
-                                    "PrimaryPosition", "PayrollCompCode",
-                                    "PayrollCompName", "CIP", "WorkerCatCode",
-                                    "WorkerCatDescr", "JobTitleCode",
-                                    "JobTitleDescr", "HomeCostCode", "HomeCostDescr",
-                                    "JobClassCode", "JobClassDescr",
-                                    "JobDescription", "JobFunctionCode",
-                                    "JobFunctionDescription", "RoomNumber",
-                                    "LocationCode",  "LocationDescription",
-                                    "LeaveStartDate",  "LeaveReturnDate",
-                                    "HomeCostNumber2", "PayrollCode2",
-                                    "PositionEffDate2",  "PositionEndDate2",
-                                    "HomeCostNumber3",  "PayrollCode3",
-                                    "PositionEffDate3", "PositionEndDate3",
-                                    "HomeCostNumber4", "PayrollCode4",
-                                    "PositionEffDate4",  "PositionEndDate4",
-                                    "HomeDeptCode", "HomeDeptDescr", "SupervisorID",
-                                    "SupervisorFName", "SupervisorLName"])
+                    "FirstName", "MiddleName", "Salutation", "PayrollName",
+                    "PreferredName", "BirthDate", "Gender", "MaritalStatus",
+                    "Race", "RaceDescr", "Ethnicity", "EthnicityIDMeth",
+                    "PersonalEmail", "PrimaryAddress1", "PrimaryAddress2",
+                    "PrimaryAddress3", "PrimaryCity", "PrimaryStateCode",
+                    "PrimaryStateDescr", "PrimaryZip", "PrimaryCounty",
+                    "PrimaryCountry", "PrimaryCountryCode", "PrimaryLegalAddress",
+                    "HomePhone", "MobilePhone", "WorkPhone", "WCWorkPhone",
+                    "WCWorkEmail", "UseWorkforNotification", "LegalAddress1",
+                    "LegalAddress2", "LegalAddress3", "LegalCity", "LegalStateCode",
+                    "LegalStateDescription", "LegalZip", "LegalCounty", "LegalCountry",
+                    "LegalCountryCode", "SSN", "HireDate", "Hire_RehireDate",
+                    "RehireDate", "PosStartDate", "PosEffectiveDate", "PosEffectiveEndDate",
+                    "TerminationDate", "PositionStatus", "StatusEffectiveDate",
+                    "StatusEffEndDate", "AdjServiceDate", "Archived", "PositionID",
+                    "PrimaryPosition", "PayrollCompCode", "PayrollCompName", "CIP",
+                    "WorkerCatCode", "WorkerCatDescr", "JobTitleCode", "JobTitleDescr",
+                    "HomeCostCode", "HomeCostDescr", "JobClassCode", "JobClassDescr",
+                    "JobDescription", "JobFunctionCode", "JobFunctionDescription",
+                    "RoomNumber", "LocationCode",  "LocationDescription",
+                    "LeaveStartDate",  "LeaveReturnDate", "HomeCostNumber2",
+                    "PayrollCode2", "PositionEffDate2",  "PositionEndDate2",
+                    "HomeCostNumber3",  "PayrollCode3", "PositionEffDate3",
+                    "PositionEndDate3", "HomeCostNumber4", "PayrollCode4",
+                    "PositionEffDate4",  "PositionEndDate4", "HomeDeptCode",
+                    "HomeDeptDescr", "SupervisorID", "SupervisorFName",
+                    "SupervisorLName"])
                 writer = csv.writer(fout)
                 # Write the output file
                 writer.writerows(diff_rows)
@@ -231,6 +240,9 @@ def main():
         fin2.close()
         fout.close()
 
+        scr.write('---------------------------------------------------------\n')
+        scr.write('-- CREATES APPLICATION FROM APD TO CX DATA \n')
+        scr.write('---------------------------------------------------------\n')
         #################################################################
         # STEP 2--
         # Open differences file and start loop through records
@@ -293,17 +305,17 @@ def main():
                 row["PrimaryCity"], row["PrimaryStateCode"], row["PrimaryStateDescr"],
                 row["PrimaryZip"], row["PrimaryCounty"], row["PrimaryCountry"],
                 row["PrimaryCountryCode"], row["PrimaryLegalAddress"], row["HomePhone"],
-                row["MobilePhone"], row["WorkPhone"], row["WCWorkPhone"], row["WCWorkEmail"], row["UseWorkforNotification"],
-                row["LegalAddress1"], row["LegalAddress2"], row["LegalAddress3"],
-                row["LegalCity"], row["LegalStateCode"], row["LegalStateDescription"],
-                row["LegalZip"], row["LegalCounty"], row["LegalCountry"],
-                row["LegalCountryCode"], row["SSN"], row["HireDate"], row["Hire_RehireDate"],
-                row["RehireDate"], row["PosStartDate"], row["PosEffectiveDate"],
-                row["PosEffectiveEndDate"], row["TerminationDate"], row["PositionStatus"],
-                row["StatusEffectiveDate"], row["StatusEffEndDate"], row["AdjServiceDate"],
-                row["Archived"], row["PositionID"], row["PrimaryPosition"], row["PayrollCompCode"],
-                row["PayrollCompName"], row["CIP"], row["WorkerCatCode"], row["WorkerCatDescr"],
-                row["JobTitleCode"], row["JobTitleDescr"], row["HomeCostCode"],
+                row["MobilePhone"], row["WorkPhone"], row["WCWorkPhone"], row["WCWorkEmail"],
+                row["UseWorkforNotification"], row["LegalAddress1"], row["LegalAddress2"],
+                row["LegalAddress3"], row["LegalCity"], row["LegalStateCode"],
+                row["LegalStateDescription"], row["LegalZip"], row["LegalCounty"],
+                row["LegalCountry"], row["LegalCountryCode"], row["SSN"], row["HireDate"],
+                row["Hire_RehireDate"], row["RehireDate"], row["PosStartDate"],
+                row["PosEffectiveDate"], row["PosEffectiveEndDate"], row["TerminationDate"],
+                row["PositionStatus"], row["StatusEffectiveDate"], row["StatusEffEndDate"],
+                row["AdjServiceDate"], row["Archived"], row["PositionID"], row["PrimaryPosition"],
+                row["PayrollCompCode"], row["PayrollCompName"], row["CIP"], row["WorkerCatCode"],
+                row["WorkerCatDescr"], row["JobTitleCode"], row["JobTitleDescr"], row["HomeCostCode"],
                 row["HomeCostDescr"], row["JobClassCode"], row["JobClassDescr"],
                 row["JobDescription"], row["JobFunctionCode"],
                 row["JobFunctionDescription"], row["RoomNumber"], row["LocationCode"],
@@ -315,6 +327,8 @@ def main():
                 row["HomeDeptCode"], row["HomeDeptDescr"], row["SupervisorID"],
                 row["SupervisorFName"], row["SupervisorLName"])
                 print(q_cc_adp_rec)
+                scr.write(q_cc_adp_rec+'\n');
+                logger.info("Inserted into adp_rec table"+'\r\n');
                 # do_sql(q_cc_adp_rec, key=DEBUG, earl=EARL)
 
                 #################################################################
@@ -335,6 +349,8 @@ def main():
                 row["PrimaryStateCode"], row["PrimaryZip"], row["PrimaryCountryCode"],
                 row["SSN"], "")
                 print(q_insert_id_rec)
+                scr.write(q_insert_id_rec+'\n');
+                logger.info("Inserted into id_rec table"+'\r\n');
                 # do_sql(q_insert_id_rec, key=DEBUG, earl=EARL)
                 # sql = sql & " upd_date, ofc_add_by, correct_addr, prev_name_id, " \
                 #             "inquiry_no"
@@ -352,6 +368,8 @@ def main():
                         VALUES ({0}, "EML2", TODAY, "{1}");
                     ''' .format(row["CarthID"], row["PersonalEmail"])
                     print(q_insert_aa_rec)
+                    scr.write(q_insert_aa_rec+'\n');
+                    logger.info("Inserted into aa_rec table"+'\r\n');
                     #do_sql(q_insert_aa_cell, key=DEBUG, earl=EARL)
                 # else:
                 #     print("No email from ADP")
@@ -379,6 +397,26 @@ def main():
                     # validate a number of fields as needed
                     # add GL Func code to func_area in position table
                     # if there is a secondary job record, do the same..
+
+        # set destination directory for which the sql file will be archived to
+        archived_destination = ('{0}apdtocx_output-{1}.sql'.format(
+            settings.ADP_CSV_ARCHIVED, datetimestr
+        ))
+        # set name for the sqloutput file
+        sqloutput = ('{0}/apdtocx_output.sql'.format(os.getcwd()))
+        # Check to see if sql file exists, if not send Email
+        if os.path.isfile("apdtocx_output.sql") != True:
+            # there was no file found on the server
+            SUBJECT = '[APD To CX Application] failed'
+            BODY = "There was no .sql output file to move."
+            sendmail(
+                settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
+                BODY, SUBJECT
+            )
+            logger.error("There was no .sql output file to move.")
+        else:
+            # rename and move the file to the archive directory
+            shutil.move(sqloutput, archived_destination)
 
     except Exception as e:
         print(e)
