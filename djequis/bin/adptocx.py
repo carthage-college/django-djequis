@@ -204,34 +204,34 @@ def main():
             with open(adp_diff_file, 'w') as fout:
                 csvWriter = csv.writer(fout, delimiter=',')
                 # Write the output file header
-                csvWriter.writerow(["FileNumber", "CarthID", "LastName",
-                    "FirstName", "MiddleName", "Salutation", "PayrollName",
-                    "PreferredName", "BirthDate", "Gender", "MaritalStatus",
-                    "Race", "RaceDescr", "Ethnicity", "EthnicityIDMeth",
-                    "PersonalEmail", "PrimaryAddress1", "PrimaryAddress2",
-                    "PrimaryAddress3", "PrimaryCity", "PrimaryStateCode",
-                    "PrimaryStateDescr", "PrimaryZip", "PrimaryCounty",
-                    "PrimaryCountry", "PrimaryCountryCode", "PrimaryLegalAddress",
-                    "HomePhone", "MobilePhone", "WorkPhone", "WCWorkPhone",
-                    "WCWorkEmail", "UseWorkforNotification", "LegalAddress1",
-                    "LegalAddress2", "LegalAddress3", "LegalCity", "LegalStateCode",
-                    "LegalStateDescription", "LegalZip", "LegalCounty", "LegalCountry",
-                    "LegalCountryCode", "SSN", "HireDate", "Hire_RehireDate",
-                    "RehireDate", "PosStartDate", "PosEffectiveDate", "PosEffectiveEndDate",
-                    "TerminationDate", "PositionStatus", "StatusEffectiveDate",
-                    "StatusEffEndDate", "AdjServiceDate", "Archived", "PositionID",
-                    "PrimaryPosition", "PayrollCompCode", "PayrollCompName", "CIP",
-                    "WorkerCatCode", "WorkerCatDescr", "JobTitleCode", "JobTitleDescr",
-                    "HomeCostCode", "HomeCostDescr", "JobClassCode", "JobClassDescr",
-                    "JobDescription", "JobFunctionCode", "JobFunctionDescription",
-                    "RoomNumber", "LocationCode",  "LocationDescription",
-                    "LeaveStartDate",  "LeaveReturnDate", "HomeCostNumber2",
-                    "PayrollCode2", "PositionEffDate2",  "PositionEndDate2",
-                    "HomeCostNumber3",  "PayrollCode3", "PositionEffDate3",
-                    "PositionEndDate3", "HomeCostNumber4", "PayrollCode4",
-                    "PositionEffDate4",  "PositionEndDate4", "HomeDeptCode",
-                    "HomeDeptDescr", "SupervisorID", "SupervisorFName",
-                    "SupervisorLName"])
+                csvWriter.writerow(["file_number", "carth_id", "last_name",
+                    "first_name", "middle_name", "salutation", "payroll_name",
+                    "preferred_name", "birth_date", "gender", "marital_status",
+                    "race", "race_descr", "ethnicity", "ethnicity_id_meth",
+                    "personal_email", "primary_address1", "primary_address2",
+                    "primary_address3", "primary_city", "primary_state_code",
+                    "primary_state_descr", "primary_zip", "primary_county",
+                    "primary_country", "primary_country_code", "primary_legal_address",
+                    "home_phone", "mobile_phone", "work_phone", "wc_work_phone",
+                    "wc_work_email", "use_work_for_notification", "legal_address1",
+                    "legal_address2", "legal_address3", "legal_city", "legal_state_code",
+                    "legal_state_description", "legal_zip", "legal_county", "legal_country",
+                    "legal_country_code", "ssn", "hire_date", "hire_rehire_date",
+                    "rehire_date", "pos_start_date", "pos_effective_date", "pos_effective_end_date",
+                    "termination_date", "position_status", "status_effective_date",
+                    "status_eff_end_date", "adj_service_date", "archived", "position_id",
+                    "primary_position", "payroll_comp_code", "payroll_comp_name", "cip",
+                    "worker_cat_code", "worker_cat_descr", "job_title_code", "job_title_descr",
+                    "home_cost_code", "home_cost_descr", "job_class_code", "job_class_descr",
+                    "job_description", "job_function_code", "job_function_description",
+                    "room_number", "location_code",  "location_description",
+                    "leave_start_date",  "leave_return_date", "home_cost_number2",
+                    "payroll_code2", "position_eff_date2",  "position_end_date2",
+                    "home_cost_number3",  "payroll_code3", "position_eff_date3",
+                    "position_end_date3", "home_cost_number4", "payroll_code4",
+                    "position_eff_date4",  "position_end_date4", "home_dept_code",
+                    "home_dept_descr", "supervisor_id", "supervisor_fname",
+                    "supervisor_lname"])
                 writer = csv.writer(fout)
                 # Write the output file
                 writer.writerows(diff_rows)
@@ -336,22 +336,52 @@ def main():
                 # Do updates to id_rec
                 #################################################################
 
-                # Insert or update as needed to ID_rec
-                q_insert_id_rec = '''
-                INSERT INTO id_rec
-                    (fullname, lastname, firstname, middlename, addr_line1,
-                    addr_line2, addr_line3, city, st, zip, ctry, AA, ss_no,
-                    Decsd)
-                VALUES({0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},"PERM")
-                ''' .format(row["PayrollName"], row["LastName"], row["FirstName"],
+                # Check to see if record exists in id_rec
+                q_select_id_rec = '''  
+                Select id_rec.id, id_rec.fullname From id_rec 
+                Where id_rec.id = {0}
+                ''' .format(row["CarthID"])
+                print(q_select_id_rec)
+                scr.write(q_select_id_rec+'\n');
+                logger.info("select from id_rec table"+'\r\n');
+                sqlresult = do_sql(q_select_id_rec, earl=EARL)
+                results = sqlresult.fetchone()
+
+                if results == None:
+                    # Insert or update as needed to ID_rec
+                    q_insert_id_rec = '''
+                    INSERT INTO id_rec
+                        (fullname, lastname, firstname, middlename, addr_line1,
+                        addr_line2, addr_line3, city, st, zip, ctry, AA, ss_no,
+                        Decsd)
+                    VALUES({0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},"PERM",{11},"N")
+                    ''' .format(row["PayrollName"], row["LastName"], row["FirstName"],
                             row["MiddleName"], row["PrimaryAddress1"], row["PrimaryAddress2"],
                             row["PrimaryAddress3"], row["PrimaryCity"],
-                row["PrimaryStateCode"], row["PrimaryZip"], row["PrimaryCountryCode"],
-                row["SSN"], "")
-                print(q_insert_id_rec)
-                scr.write(q_insert_id_rec+'\n');
-                logger.info("Inserted into id_rec table"+'\r\n');
-                # do_sql(q_insert_id_rec, key=DEBUG, earl=EARL)
+                            row["PrimaryStateCode"], row["PrimaryZip"], row["PrimaryCountryCode"],
+                            row["SSN"], "")
+                    print(q_insert_id_rec)
+                    scr.write(q_insert_id_rec+'\n');
+                    logger.info("Inserted into id_rec table"+'\r\n');
+                    # do_sql(q_insert_id_rec, key=DEBUG, earl=EARL)
+                else:
+                    print("do update and archive address")
+                    q_update_id_rec = '''
+                        update id_rec set fullname = "{0}",
+                        lastname = "{1}", firstname = "{2}",
+                        middlename = "{3}", ss_no = "{4}", decsd = "N",
+                        add_date = "{5}", upd_date = "{6}", ofc_add_by = "HR"
+                        where id = {7}
+                    '''.format(row["PayrollName"],row["LastName"],row["FirstName"],
+                               row["MiddleName"], row["SSN"], row["Hire_RehireDate"],
+                               row["PosEffectiveDate"], row["CarthID"])
+                    print(q_update_id_rec)
+                    scr.write(q_update_id_rec + '\n');
+                    logger.info("Update id_rec table" + '\r\n');
+                    # do_sql(q_update_id_rec, key=DEBUG, earl=EARL)
+
+
+
                 # sql = sql & " upd_date, ofc_add_by, correct_addr, prev_name_id, " \
                 #             "inquiry_no"
                 # sql = sql & ") values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
