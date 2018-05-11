@@ -296,36 +296,42 @@ def main():
                 {71},{72},{73},{74},{75},{76},{77},{78},{79},{80},
                 {81},{82},{83},{84},{85},{86},{87},{88},{89},{90},
                 {91},{92},{93},TODAY);
-                '''.format(row["FileNumber"], row["CarthID"], row["LastName"],
-                row["FirstName"], row["MiddleName"], row["Salutation"],
-                row["PayrollName"], row["PreferredName"], row["BirthDate"],
-                row["Gender"], row["MaritalStatus"], row["Race"], row["RaceDescr"],
-                row["Ethnicity"], row["EthnicityIDMeth"], row["PersonalEmail"],
-                row["PrimaryAddress1"], row["PrimaryAddress2"], row["PrimaryAddress3"],
-                row["PrimaryCity"], row["PrimaryStateCode"], row["PrimaryStateDescr"],
-                row["PrimaryZip"], row["PrimaryCounty"], row["PrimaryCountry"],
-                row["PrimaryCountryCode"], row["PrimaryLegalAddress"], row["HomePhone"],
-                row["MobilePhone"], row["WorkPhone"], row["WCWorkPhone"], row["WCWorkEmail"],
-                row["UseWorkforNotification"], row["LegalAddress1"], row["LegalAddress2"],
-                row["LegalAddress3"], row["LegalCity"], row["LegalStateCode"],
-                row["LegalStateDescription"], row["LegalZip"], row["LegalCounty"],
-                row["LegalCountry"], row["LegalCountryCode"], row["SSN"], row["HireDate"],
-                row["Hire_RehireDate"], row["RehireDate"], row["PosStartDate"],
-                row["PosEffectiveDate"], row["PosEffectiveEndDate"], row["TerminationDate"],
-                row["PositionStatus"], row["StatusEffectiveDate"], row["StatusEffEndDate"],
-                row["AdjServiceDate"], row["Archived"], row["PositionID"], row["PrimaryPosition"],
-                row["PayrollCompCode"], row["PayrollCompName"], row["CIP"], row["WorkerCatCode"],
-                row["WorkerCatDescr"], row["JobTitleCode"], row["JobTitleDescr"], row["HomeCostCode"],
-                row["HomeCostDescr"], row["JobClassCode"], row["JobClassDescr"],
-                row["JobDescription"], row["JobFunctionCode"],
-                row["JobFunctionDescription"], row["RoomNumber"], row["LocationCode"],
-                row["LocationDescription"], row["LeaveStartDate"], row["LeaveReturnDate"],
-                row["HomeCostNumber2"], row["PayrollCode2"], row["PositionEffDate2"],
-                row["PositionEndDate2"], row["HomeCostNumber3"], row["PayrollCode3"],
-                row["PositionEffDate3"], row["PositionEndDate3"], row["HomeCostNumber4"],
-                row["PayrollCode4"], row["PositionEffDate4"], row["PositionEndDate4"],
-                row["HomeDeptCode"], row["HomeDeptDescr"], row["SupervisorID"],
-                row["SupervisorFName"], row["SupervisorLName"])
+                '''.format(row["file_number"], row["carth_id"], row["last_name"],
+                           row["first_name"], row["middle_name"], row["salutation"],
+                           row["payroll_name"], row["preferred_name"], row["birth_date"],
+                           row["gender"], row["marital_status"], row["race"],
+                           row["race_descr"], row["ethnicity"], row["ethnicity_id_meth"],
+                           row["personal_email"], row["primary_address1"],
+                           row["primary_address2"], row["primary_address1"],
+                           row["primary_city"], row["primary_state_code"],
+                           row["primary_state_descr"], row["primary_zip"],
+                           row["primary_county"], row["primary_country"],
+                           row["primary_country_code"], row["primary_legal_address"],
+                           row["home_phone"], row["mobile_phone"], row["work_phone"],
+                           row["wc_work_phone"], row["wc_work_email"],
+                           row["use_work_for_notification"], row["legal_address1"],
+                           row["legal_address2"], row["legal_address3"], row["legal_city"],
+                           row["legal_state_code"], row["legal_state_description"],
+                           row["legal_zip"], row["legal_county"], row["legal_country"],
+                           row["legal_country_code"], row["ssn"], row["hire_date"],
+                           row["hire_rehire_date"], row["rehire_date"], row["pos_start_date"],
+                           row["pos_effective_date"], row["pos_effective_end_date"],
+                           row["termination_date"], row["position_status"],
+                           row["status_effective_date"], row["status_eff_end_date"],
+                           row["adj_service_date"], row["archived"], row["position_id"],
+                           row["primary_position"], row["payroll_comp_code"],
+                           row["payroll_comp_name"], row["cip"], row["worker_cat_code"],
+                           row["worker_cat_descr"], row["job_title_code"], row["job_title_descr"],
+                           row["home_cost_code"], row["home_cost_descr"], row["job_class_code"],
+                           row["job_class_descr"], row["job_description"], row["job_function_code"],
+                           row["job_function_description"], row["room_number"], row["location_code"],
+                           row["location_description"], row["leave_start_date"], row["leave_return_date"],
+                           row["home_cost_number2"], row["payroll_code2"], row["position_eff_date2"],
+                           row["position_end_date2"], row["home_cost_number3"], row["payroll_code3"],
+                           row["position_eff_date3"], row["position_end_date3"], row["home_cost_number4"],
+                           row["payroll_code4"], row["position_eff_date4"], row["position_end_date4"],
+                           row["home_dept_code"], row["home_dept_descr"], row["supervisor_id"],
+                           row["supervisor_fname"], row["supervisor_lname"])
                 print(q_cc_adp_rec)
                 scr.write(q_cc_adp_rec+'\n');
                 logger.info("Inserted into adp_rec table"+'\r\n');
@@ -338,12 +344,13 @@ def main():
 
                 # Check to see if record exists in id_rec
                 q_select_id_rec = '''  
-                Select id_rec.id, id_rec.fullname From id_rec 
-                Where id_rec.id = {0}
-                ''' .format(row["CarthID"])
+                SELECT id_rec.id, id_rec.fullname
+                FROM id_rec 
+                WHERE id_rec.id = {0}
+                ''' .format(row["carth_id"])
                 print(q_select_id_rec)
                 scr.write(q_select_id_rec+'\n');
-                logger.info("select from id_rec table"+'\r\n');
+                logger.info("Select from id_rec table"+'\r\n');
                 sqlresult = do_sql(q_select_id_rec, earl=EARL)
                 results = sqlresult.fetchone()
 
@@ -353,13 +360,15 @@ def main():
                     INSERT INTO id_rec
                         (fullname, lastname, firstname, middlename, addr_line1,
                         addr_line2, addr_line3, city, st, zip, ctry, AA, ss_no,
-                        Decsd)
-                    VALUES({0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},"PERM",{11},"N")
-                    ''' .format(row["PayrollName"], row["LastName"], row["FirstName"],
-                            row["MiddleName"], row["PrimaryAddress1"], row["PrimaryAddress2"],
-                            row["PrimaryAddress3"], row["PrimaryCity"],
-                            row["PrimaryStateCode"], row["PrimaryZip"], row["PrimaryCountryCode"],
-                            row["SSN"], "")
+                        decsd)
+                    VALUES({0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},"PERM",
+                    {11},"N")
+                    ''' .format(row["payroll_name"], row["last_name"],
+                                row["first_name"], row["middle_name"],
+                                row["primary_address1"], row["primary_address2"],
+                                row["primary_address3"], row["primary_city"],
+                                row["primary_state_code"], row["primary_zip"],
+                                row["primary_country_code"], row["ssn"])
                     print(q_insert_id_rec)
                     scr.write(q_insert_id_rec+'\n');
                     logger.info("Inserted into id_rec table"+'\r\n');
@@ -372,15 +381,14 @@ def main():
                         middlename = "{3}", ss_no = "{4}", decsd = "N",
                         add_date = "{5}", upd_date = "{6}", ofc_add_by = "HR"
                         where id = {7}
-                    '''.format(row["PayrollName"],row["LastName"],row["FirstName"],
-                               row["MiddleName"], row["SSN"], row["Hire_RehireDate"],
-                               row["PosEffectiveDate"], row["CarthID"])
+                    '''.format(row["payroll_name"],row["last_name"],
+                               row["first_name"], row["middle_name"], row["ssn"],
+                               row["hire_rehire_date"], row["pos_effective_date"],
+                               row["carth_id"])
                     print(q_update_id_rec)
                     scr.write(q_update_id_rec + '\n');
                     logger.info("Update id_rec table" + '\r\n');
                     # do_sql(q_update_id_rec, key=DEBUG, earl=EARL)
-
-
 
                 # sql = sql & " upd_date, ofc_add_by, correct_addr, prev_name_id, " \
                 #             "inquiry_no"
@@ -390,13 +398,13 @@ def main():
                     # City, State, Zip, Ctry)
                     # If sAddrChg = "True" Then Update_Addr()
 
-                if row["PersonalEmail"] != '':
+                if row["personal_email"] != '':
                     # Insert email into aa_rec
                     q_insert_aa_rec = '''
                     INSERT INTO aa_rec
                         (id, aa, beg_date, "line1)
                         VALUES ({0}, "EML2", TODAY, "{1}");
-                    ''' .format(row["CarthID"], row["PersonalEmail"])
+                    ''' .format(row["carth_id"], row["personal_email"])
                     print(q_insert_aa_rec)
                     scr.write(q_insert_aa_rec+'\n');
                     logger.info("Inserted into aa_rec table"+'\r\n');
