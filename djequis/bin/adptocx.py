@@ -4,6 +4,8 @@ import pysftp
 import csv
 import datetime
 from datetime import date
+from datetime import datetime, timedelta
+import codecs
 import time
 from time import strftime
 import argparse
@@ -13,7 +15,7 @@ import shutil
 import re
 import logging
 from logging.handlers import SMTPHandler
-#import adp_ftp
+
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -51,6 +53,7 @@ from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
+from djequis.adp.addresssubs import archive_address
 #from djequis.adp.readadpfiles import finddifferences
 from djtools.fields import TODAY
 
@@ -188,57 +191,75 @@ def main():
         # STEP 1--
         # Read files and write out differences
         #################################################################
-        with open(new_adp_file) as fin1:
-            with open(last_adp_file) as fin2:
-                # Process input files
-                read1 = csv.reader(fin1)
-                read2 = csv.reader(fin2)
 
-                # Skip headers
-                read1.next()
-                read2.next()
-                diff_rows = (row1 for row1, row2 in zip(read1, read2) if
-                             row1 != row2)
+        # Need to delete the differences file to start fresh
+        if os.path.isfile(adp_diff_file):
+            os.remove(adp_diff_file)
 
-            # Open output file
-            with open(adp_diff_file, 'w') as fout:
-                csvWriter = csv.writer(fout, delimiter=',')
-                # Write the output file header
-                csvWriter.writerow(["file_number", "carth_id", "last_name",
-                    "first_name", "middle_name", "salutation", "payroll_name",
-                    "preferred_name", "birth_date", "gender", "marital_status",
-                    "race", "race_descr", "ethnicity", "ethnicity_id_meth",
-                    "personal_email", "primary_address1", "primary_address2",
-                    "primary_address3", "primary_city", "primary_state_code",
-                    "primary_state_descr", "primary_zip", "primary_county",
-                    "primary_country", "primary_country_code", "primary_legal_address",
-                    "home_phone", "mobile_phone", "work_phone", "wc_work_phone",
-                    "wc_work_email", "use_work_for_notification", "legal_address1",
-                    "legal_address2", "legal_address3", "legal_city", "legal_state_code",
-                    "legal_state_description", "legal_zip", "legal_county", "legal_country",
-                    "legal_country_code", "ssn", "hire_date", "hire_rehire_date",
-                    "rehire_date", "pos_start_date", "pos_effective_date", "pos_effective_end_date",
-                    "termination_date", "position_status", "status_effective_date",
-                    "status_eff_end_date", "adj_service_date", "archived", "position_id",
-                    "primary_position", "payroll_comp_code", "payroll_comp_name", "cip",
-                    "worker_cat_code", "worker_cat_descr", "job_title_code", "job_title_descr",
-                    "home_cost_code", "home_cost_descr", "job_class_code", "job_class_descr",
-                    "job_description", "job_function_code", "job_function_description",
-                    "room_number", "location_code",  "location_description",
-                    "leave_start_date",  "leave_return_date", "home_cost_number2",
-                    "payroll_code2", "position_eff_date2",  "position_end_date2",
-                    "home_cost_number3",  "payroll_code3", "position_eff_date3",
-                    "position_end_date3", "home_cost_number4", "payroll_code4",
-                    "position_eff_date4",  "position_end_date4", "home_dept_code",
-                    "home_dept_descr", "supervisor_id", "supervisor_fname",
-                    "supervisor_lname"])
-                writer = csv.writer(fout)
-                # Write the output file
-                writer.writerows(diff_rows)
-        # Close opened files
-        fin1.close()
-        fin2.close()
-        fout.close()
+
+        # Read in both files and compare
+        # the codecs function prevents the header from ADP getting
+        # into the comparison - needed because of extra characters in header
+        with codecs.open(new_adp_file, 'r',
+                         encoding='utf-8-sig') as t1, codecs.open(last_adp_file,
+                'r', encoding='utf-8-sig') as t2:
+
+            newfile = t1.readlines()
+            oldfile = t2.readlines()
+
+            # This uses sets to compare the two files
+            # reterns additions or changes in new but not in original
+            bigb = set(newfile) - set(oldfile)
+
+            # Write to output file
+            with open(adp_diff_file, 'wb') as file_out:
+                # Write header row
+                csvWriter = csv.writer(file_out)
+                csvWriter.writerow(
+                    ["file_number", "carth_id", "last_name", "first_name",
+                     "middle_name", "salutation", "payroll_name",
+                     "preferred_name", "birth_date", "gender", "marital_status",
+                     "race", "race_descr", "ethnicity", "ethnicity_id_meth",
+                     "personal_email", "primary_address1", "primary_address2",
+                     "primary_address3", "primary_city", "primary_state_code",
+                     "primary_state_descr", "primary_zip", "primary_county",
+                     "primary_country", "primary_country_code",
+                     "primary_legal_address", "home_phone", "mobile_phone",
+                     "work_phone", "wc_work_phone", "wc_work_email",
+                     "use_work_for_notification", "legal_address1",
+                     "legal_address2", "legal_address3", "legal_city",
+                     "legal_state_code", "legal_state_description", "legal_zip",
+                     "legal_county", "legal_country", "legal_country_code",
+                     "ssn", "hire_date", "hire_rehire_date", "rehire_date",
+                     "pos_start_date", "pos_effective_date",
+                     "pos_effective_end_date", "termination_date",
+                     "position_status", "status_effective_date",
+                     "status_eff_end_date", "adj_service_date", "archived",
+                     "position_id", "primary_position", "payroll_comp_code",
+                     "payroll_comp_name", "cip", "worker_cat_code",
+                     "worker_cat_descr", "job_title_code", "job_title_descr",
+                     "home_cost_code", "home_cost_descr", "job_class_code",
+                     "job_class_descr", "job_description", "job_function_code",
+                     "job_function_description", "room_number", "location_code",
+                     "location_description", "leave_start_date",
+                     "leave_return_date", "home_cost_number2", "payroll_code2",
+                     "position_eff_date2", "position_end_date2",
+                     "home_cost_number3", "payroll_code3", "position_eff_date3",
+                     "position_end_date3", "home_cost_number4", "payroll_code4",
+                     "position_eff_date4", "position_end_date4",
+                     "home_dept_code", "home_dept_descr", "supervisor_id",
+                     "supervisor_fname", "supervisor_lname"])
+
+                for line_no, line in enumerate(bigb):
+                    x = line.split(',')
+                    file_out.write(line)
+                    # print('File = ' + x[0] + ', ID = ' + x[
+                    #     1] + ', First = ' + x[3] + ', Last = ' + x[6])
+
+            # close the files
+            t1.close()
+            t2.close()
+            file_out.close()
 
         scr.write('---------------------------------------------------------\n')
         scr.write('-- CREATES APPLICATION FROM APD TO CX DATA \n')
@@ -285,8 +306,8 @@ def main():
                 home_cost_number_4, payroll_company_code_4, position_effective_date_4, 
                 position_end_date_4, home_depart_num_code, home_depart_num_descr, 
                 supervisor_id, supervisor_firstname, supervisor_lastname, date_stamp)
-                VALUES 
-                ({0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},
+                    VALUES 
+                    ({0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},
                 {11},{12},{13},{14},{15},{16},{17},{18},{19},{20},
                 {21},{22},{23},{24},{25},{26},{27},{28},{29},{30},
                 {31},{32},{33},{34},{35},{36},{37},{38},{39},{40},
@@ -332,132 +353,394 @@ def main():
                            row["payroll_code4"], row["position_eff_date4"], row["position_end_date4"],
                            row["home_dept_code"], row["home_dept_descr"], row["supervisor_id"],
                            row["supervisor_fname"], row["supervisor_lname"])
-                print(q_cc_adp_rec)
+                #print(q_cc_adp_rec)
                 scr.write(q_cc_adp_rec+'\n');
-                logger.info("Inserted into adp_rec table"+'\r\n');
+                logger.info("Inserted into adp_rec table");
                 # do_sql(q_cc_adp_rec, key=DEBUG, earl=EARL)
 
                 #################################################################
                 # STEP 2b--
                 # Do updates to id_rec
                 #################################################################
+                # If ADP File is missing the Carthage ID, we cannot process the record
+                if row["carth_id"] == "":
+                    print('No Carthage ID - abort this record and email HR')
 
-                # Check to see if record exists in id_rec
-                q_select_id_rec = '''  
-                SELECT id_rec.id, id_rec.fullname
-                FROM id_rec 
-                WHERE id_rec.id = {0}
-                ''' .format(row["carth_id"])
-                print(q_select_id_rec)
-                scr.write(q_select_id_rec+'\n');
-                logger.info("Select from id_rec table"+'\r\n');
-                sqlresult = do_sql(q_select_id_rec, earl=EARL)
-                results = sqlresult.fetchone()
+                    # email HR if CarthID is missing
+                    SUBJECT = 'No Carthage ID - abort this record and email HR'
+                    BODY = 'No Carthage ID, process aborted. Name = {0}, ADP File = {1}'.format(row["payroll_name"],row["file_number"])
+                    sendmail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
+                        BODY, SUBJECT
+                    )
+                    logger.error('There was no carthage ID in file, row skipped. Name = {0}, ADP File = {1}'.format(row["payroll_name"],row["file_number"]))
+                # Exclude student employees from process, paycode DPW
+                elif row["payroll_comp_code"] != 'DPW':
+                    # Check to see if record exists in id_rec
+                    q_select_id_rec = '''  
+                    SELECT id_rec.id, id_rec.fullname
+                    FROM id_rec 
+                    WHERE id_rec.id = {0}
+                    ''' .format(row["carth_id"])
+                    scr.write(q_select_id_rec+'\n');
+                    logger.info("Select from id_rec table");
+                    sqlresult = do_sql(q_select_id_rec, earl=EARL)
+                    results = sqlresult.fetchone()
 
-                if results == None:
-                    # Insert or update as needed to ID_rec
-                    q_insert_id_rec = '''
-                    INSERT INTO id_rec
-                        (fullname, lastname, firstname, middlename, addr_line1,
-                        addr_line2, addr_line3, city, st, zip, ctry, AA, ss_no,
-                        decsd)
-                    VALUES({0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},"PERM",
-                    {11},"N")
-                    ''' .format(row["payroll_name"], row["last_name"],
-                                row["first_name"], row["middle_name"],
-                                row["primary_address1"], row["primary_address2"],
-                                row["primary_address3"], row["primary_city"],
-                                row["primary_state_code"], row["primary_zip"],
-                                row["primary_country_code"], row["ssn"])
-                    print(q_insert_id_rec)
-                    scr.write(q_insert_id_rec+'\n');
-                    logger.info("Inserted into id_rec table"+'\r\n');
-                    # do_sql(q_insert_id_rec, key=DEBUG, earl=EARL)
-                else:
-                    print("do update and archive address")
-                    q_update_id_rec = '''
-                        update id_rec set fullname = "{0}",
-                        lastname = "{1}", firstname = "{2}",
-                        middlename = "{3}", ss_no = "{4}", decsd = "N",
-                        add_date = "{5}", upd_date = "{6}", ofc_add_by = "HR"
-                        where id = {7}
-                    '''.format(row["payroll_name"],row["last_name"],
-                               row["first_name"], row["middle_name"], row["ssn"],
-                               row["hire_rehire_date"], row["pos_effective_date"],
-                               row["carth_id"])
-                    print(q_update_id_rec)
-                    scr.write(q_update_id_rec + '\n');
-                    logger.info("Update id_rec table" + '\r\n');
-                    # do_sql(q_update_id_rec, key=DEBUG, earl=EARL)
+                    if results == None:
+                        # Insert or update as needed to ID_rec
+                        q_insert_id_rec = '''
+                        INSERT INTO id_rec
+                            (fullname, lastname, firstname, middlename, addr_line1,
+                            addr_line2, addr_line3, city, st, zip, ctry, AA, ss_no,
+                            decsd)
+                        VALUES({0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},"PERM",
+                        {11},"N")
+                        ''' .format(row["payroll_name"], row["last_name"],
+                                    row["first_name"], row["middle_name"],
+                                    row["primary_address1"], row["primary_address2"],
+                                    row["primary_address3"], row["primary_city"],
+                                    row["primary_state_code"], row["primary_zip"],
+                                    row["primary_country_code"], row["ssn"])
+                        #print(q_insert_id_rec)
+                        scr.write(q_insert_id_rec+'\n');
+                        logger.info("Inserted into id_rec table");
+                        #do_sql(q_insert_id_rec, key=DEBUG, earl=EARL)
+                    else:
+                        q_update_id_rec = '''
+                            update id_rec set fullname = "{0}",
+                            lastname = "{1}", firstname = "{2}",
+                            middlename = "{3}", ss_no = "{4}", decsd = "N",
+                            add_date = "{5}", upd_date = "{6}", ofc_add_by = "HR"
+                            where id = {7}
+                        '''.format(row["payroll_name"],row["last_name"],
+                                   row["first_name"], row["middle_name"], row["ssn"],
+                                   row["hire_rehire_date"], row["pos_effective_date"],
+                                   row["carth_id"])
+                        #print(q_update_id_rec)
+                        scr.write(q_update_id_rec + '\n');
+                        logger.info("Update id_rec table");
+                        # do_sql(q_update_id_rec, key=DEBUG, earl=EARL)
 
-                # sql = sql & " upd_date, ofc_add_by, correct_addr, prev_name_id, " \
-                #             "inquiry_no"
-                # sql = sql & ") values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+
+
+
                     #also need to deal with address changes
                     # sAddrChg = CheckAddress(ID, FullName, Addr1, Addr2, Addr3,
                     # City, State, Zip, Ctry)
                     # If sAddrChg = "True" Then Update_Addr()
+                    # Search for existing address record
+                    q_check_addr = '''
+                        SELECT id, addr_line1, addr_line2, addr_line3, city, 
+                            st, zip, ctry 
+                        From id_rec 
+                        Where id = {0}
+                            '''.format(row["carth_id"])
+                    print(q_check_addr)
+                    logger.info("Select address info from id_rec table");
+                    sql_id_address = do_sql(q_check_addr, earl=EARL)
+                    addr_result = sql_id_address.fetchone()
+                    if addr_result == None:   #No person in id rec?
+                        logger.info("Employee not in id rec for id number {0}".format(row["carth_id"]));
+                        print("Employee not in id rec for id number {0}".format(row["carth_id"]))
 
-                if row["personal_email"] != '':
-                    # Insert email into aa_rec
-                    q_insert_aa_rec = '''
-                    INSERT INTO aa_rec
-                        (id, aa, beg_date, "line1)
-                        VALUES ({0}, "EML2", TODAY, "{1}");
-                    ''' .format(row["carth_id"], row["personal_email"])
-                    print(q_insert_aa_rec)
-                    scr.write(q_insert_aa_rec+'\n');
-                    logger.info("Inserted into aa_rec table"+'\r\n');
-                    #do_sql(q_insert_aa_cell, key=DEBUG, earl=EARL)
-                # else:
-                #     print("No email from ADP")
-                #
-                #Check to update phone in aa_rec
-    
-                #################################################################
-                # STEP 2c--
-                # Do updates to profile_rec
-                #################################################################
-    
-    
-                #################################################################
-                # STEP 2d--
-                # Do updates to cvid_rec
-                #################################################################
-    
-    
-                #################################################################
-                # STEP 2e--
-                # Do updates to job_rec
-                #################################################################
-                    # Must account for Division, Dept
-                    # use PCN Codes to tie employee to job number
-                    # validate a number of fields as needed
-                    # add GL Func code to func_area in position table
-                    # if there is a secondary job record, do the same..
+                    # Update ID Rec and arcive aa rec
+                    elif addr_result[1].strip() != row["primary_address1"] \
+                         or addr_result[2].strip() != row["primary_address2"] \
+                         or addr_result[3].strip() != row["primary_address3"] \
+                         or addr_result[4].strip() != row["primary_city"] \
+                         or addr_result[5].strip() != row["primary_state_code"] \
+                         or addr_result[6].strip() != row["primary_zip"] \
+                         or addr_result[7].strip() != row["primary_country_code"]:
 
-        # set destination directory for which the sql file will be archived to
-        archived_destination = ('{0}apdtocx_output-{1}.sql'.format(
-            settings.ADP_CSV_ARCHIVED, datetimestr
-        ))
-        # set name for the sqloutput file
-        sqloutput = ('{0}/apdtocx_output.sql'.format(os.getcwd()))
-        # Check to see if sql file exists, if not send Email
-        if os.path.isfile("apdtocx_output.sql") != True:
-            # there was no file found on the server
-            SUBJECT = '[APD To CX Application] failed'
-            BODY = "There was no .sql output file to move."
-            sendmail(
-                settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
-                BODY, SUBJECT
-            )
-            logger.error("There was no .sql output file to move.")
-        else:
-            # rename and move the file to the archive directory
-            shutil.move(sqloutput, archived_destination)
+                         #now check to see if address is a duplicate in aa_rec
+                         #find max start date to determine what date to insert
+                         #insert or update as needed
+
+                        print("Update: no match on " + addr_result[1])  # Compare ADP address to CX address
+
+                        q_update_id_rec_addr = '''
+                             update id_rec set addr_line1 = "{0}",
+                                  addr_line2 = "{1}", 
+                                  addr_line3 = "{2}",
+                                  city = "{3}", 
+                                  st = "{4}", 
+                                  zip = "{5}", 
+                                  ctry = "{6}", 
+                             where id = {7}
+                                  '''.format(row["primary_address1"],
+                                      row["primary_address2"],
+                                      row["primary_address3"],
+                                      row["primary_city"],
+                                      row["primary_state_code"],
+                                      row["primary_zip"],
+                                      row["primary_country_code"],
+                                      row["carth_id"])
+                        #print(q_update_id_rec_addr)
+                        scr.write(q_update_id_rec_addr + '\n');
+                        logger.info("Update address in id_rec table");
+
+                        # do_sql(q_update_id_rec_addr, key=DEBUG, earl=EARL)
+                        print('Change in address - do change for aa_rec')
+
+                        #########################################################
+                        # Routine to deal with aa_rec
+                        #########################################################
+                        q_check_aa_adr = '''
+                            SELECT id, aa, aa_no, beg_date, line1, line2, line3, 
+                            city, st, zip, ctry 
+                            From aa_rec
+                            Where id = {0}
+                            and aa in ('PERM','PREV','SCND')
+                            and end_date is null
+                            '''.format(row["carth_id"])
+                        sql_id_address = do_sql(q_check_aa_adr, earl=EARL)
+                        addr_result = sql_id_address.fetchone()
+                        print(q_check_aa_adr)
+                        print("Addr Result = ")
+                        print(addr_result)
+                        # logger.info("Select address info from id_rec table");
+
+                        #################################
+                        #  Find the max start date of all PREV entries with a null end date
+                        #################################
+
+                        q_check_aa_date = '''
+                            SELECT max(beg_date), ID, aa, line1, end_date
+                            as date_end
+                            From aa_rec 
+                            Where id = {0}
+                            and aa = 'PREV'
+                            and end_date is null
+                            group by id, aa, end_date, line1
+                            '''.format(row["carth_id"])
+                        print(q_check_aa_date)
+                        # logger.info("Select address info from id_rec table");
+                        sql_date = do_sql(q_check_aa_date, earl=EARL)
+                        date_result = sql_date.fetchone()
+                        # print date_result
+
+                        #################################
+                        # Define date variables
+                        #################################
+                        if date_result == None:  # No aa rec found
+                            a1 = ""
+                            max_date = datetime.now().strftime("%Y/%m/%d")
+                        # Make sure dates don't overlap
+                        else:
+                            print(date_result)
+                            max_date = date.strftime(date_result[0], "%Y/%m/%d")
+                            a1 = date_result[3]
+
+                        print("A1 = " + a1)
+                        print("Max date = " + str(max_date))
+                        print("Now = " + str(datetime.now()))
+
+                        # Scenario 1
+                        # This means that the ID_Rec address will change
+                        # but nothing exists in aa_rec, so we will only insert as 'PREV'
+                        if addr_result == None:  # No address in aa rec?
+                            print("No existing record - Insert only")
+                            # call function to insert record
+                            insert_aa(row["carth_id"],  row["payroll_name"],
+                                 row["primary_address1"], row["primary_address2"],
+                                 row["primary_address3"], row["primary_city"],
+                                 row["primary_state_code"],
+                                 row["primary_zip"], row["primary_country_code"], max_date)
+
+                        # Scenario 2
+                        # if record found in aa_rec, then we will need more options
+                        # Find out if the record is an exact match with another address
+                        # Question is, what is enough of a match to update rather than insert new?
+                        # id, fullname, addr1, addr2, addr3, cty, st, zp, ctry
+                        # (1003664, 'PREV', 158, datetime.date(2010, 2, 2),
+                        # '15008 Lost Canyon Ct.#102', '', '', 'Woodbridge', 'VA', '22191', 'USA')
+                        elif addr_result[4] == addr1 \
+                                and addr_result[9] == zp:
+                            # and addr_result[7] == cty \
+                            # and addr_result[8] == st \
+                            # and addr_result[10] == ctry:
+                            # or addr_result[5] == addr2 \
+                            # or addr_result[6] == addr3 \
+
+                            #################################
+                            # Match found then we are UPDATING only....
+                            #################################
+                            print("Match - UPDATE only")
+                            update_aa(addr_result[0], addr_result[1],
+                                      addr_result[2], fullname,
+                                      addr_result[4], addr_result[5],
+                                      addr_result[6], addr_result[7],
+                                      addr_result[8], addr_result[9],
+                                      addr_result[10], addr_result[3])
+
+                            print(
+                                "An Address exists and matches new data - Update new")
+
+                        # to avoid overlapping dates
+                        # Scenario 3 - AA Rec exists but does not match new address.
+                        # End old, insert new
+                        else:
+                            if max_date >= str(datetime.now()):
+                                beg_date = max_date  # add one day...
+                            else:
+                                beg_date = datetime.now().strftime("%m/%d/%Y")
+
+                            end_date_aa(addr_result[0], addr_result[2], fullname,
+                                        addr_result[3],
+                                        datetime.now().strftime("%m/%d/%Y"))
+                            insert_aa(row["carth_id"], row["payroll_name"],
+                                      row["primary_address1"], row["primary_address2"],
+                                      row["primary_address3"], row["primary_city"],
+                                      row["primary_state_code"],
+                                      row["primary_zip"],  row["primary_country_code"], beg_date)
+
+                            print("No Match - Enddate old record, Insert New")
+                            print(
+                                "An Address exists but does not match - end current, insert new")
+
+
+                    else:
+                        print("sql addr " + addr_result[1].strip() + " loop address = " + row["primary_address1"].strip())
+                        print("Address matches, no changes needed")
+
+                        # if addr1 = addr_line1 and addr2 = addr_line2 and
+                        # addr3 = addr_line3
+                        # and cty = city and st = state and zp = zip and ctry
+                        # = country:
+                        # bArchive = False
+                        # bChange = False
+
+
+
+
+                    if row["personal_email"] != '':
+                        # Insert email into aa_rec
+                        q_insert_aa_rec = '''
+                        INSERT INTO aa_rec
+                            (id, aa, beg_date, "line1)
+                            VALUES ({0}, "EML2", TODAY, "{1}");
+                        ''' .format(row["carth_id"], row["personal_email"])
+                        print(q_insert_aa_rec)
+                        scr.write(q_insert_aa_rec+'\n');
+                        logger.info("Inserted into aa_rec table");
+                        #do_sql(q_insert_aa_cell, key=DEBUG, earl=EARL)
+                    # else:
+                    #     print("No email from ADP")
+                    #
+                    #Check to update phone in aa_rec
+
+                    #################################################################
+                    # STEP 2c--
+                    # Do updates to profile_rec
+                    #################################################################
+
+
+                    #################################################################
+                    # STEP 2d--
+                    # Do updates to cvid_rec
+                    #################################################################
+
+
+                    #################################################################
+                    # STEP 2e--
+                    # Do updates to job_rec
+                    #################################################################
+                        # Must account for Division, Dept
+                        # use PCN Codes to tie employee to job number
+                        # validate a number of fields as needed
+                        # add GL Func code to func_area in position table
+                        # if there is a secondary job record, do the same..
+
+            # set destination directory for which the sql file will be archived to
+            archived_destination = ('{0}apdtocx_output-{1}.sql'.format(
+                settings.ADP_CSV_ARCHIVED, datetimestr
+            ))
+            # set name for the sqloutput file
+            sqloutput = ('{0}/apdtocx_output.sql'.format(os.getcwd()))
+            # Check to see if sql file exists, if not send Email
+            if os.path.isfile("apdtocx_output.sql") != True:
+                # there was no file found on the server
+                SUBJECT = '[APD To CX Application] failed'
+                BODY = "There was no .sql output file to move."
+                sendmail(
+                    settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
+                    BODY, SUBJECT
+                )
+                logger.error("There was no .sql output file to move.")
+            else:
+                # rename and move the file to the archive directory
+                shutil.move(sqloutput, archived_destination)
+
+            ######################################################################
+            # The last step - move last to archive, rename new file to _last
+            ######################################################################
+            #adptocx_archive = ('{0}adptocxlast_{1}.csv'.format(settings.ADP_CSV_ARCHIVED,datetimestr))
+            #shutil.move(last_adp_file, adptocx_archive)
+
+            #adptocx_rename = ('{0}ADPtoCXLast.csv'.format(settings.ADP_CSV_OUTPUT))
+            #shutil.move(new_adp_file,adptocx_rename)
 
     except Exception as e:
         print(e)
+
+###################################################
+# SQL Functions
+###################################################
+def insert_aa(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry, beg_date):
+    print("insert aa completed")
+
+    q_insert_aa = '''INSERT INTO aa_rec(id, aa, beg_date, peren, end_date,
+                         line1, line2, line3, city, st, 
+                         zip, ctry, phone, phone_ext, ofc_add_by, 
+                         cell_carrier, opt_out)
+                      VALUES
+                         ({0},{1},{2},{3},{4},
+                         {5},{6},{7},{8},{9},
+                         {10},{11},{12},{13},{14},
+                         {15},{16})
+                         '''.format(id, "PERM", beg_date, "N", "",
+                                    addr1, addr2, addr3, cty, st,
+                                    zp, ctry, "", "", "HR",
+                                    "", "")
+    # logger.info("insert address into aa_rec table");
+    # sql_aa_insert = do_sql(q_insert_aa, earl=EARL)
+    # insert_result = sql_aa_insert.fetchone(
+    print(q_insert_aa)
+    print("insert aa completed")
+
+def update_aa(id, aa, aanum, fllname, add1, add2, add3, cty, st, zip, ctry, begdate):
+    print("update aa completed")
+
+    q_update_aa = '''update aa_rec 
+                      set line1 = "{4}",
+                      line2 = "{5}",
+                      line3 = "{6}",
+                      city = "{8}",
+                      st = "{9}",
+                      zip = "{10}",
+                      ctry = "{11}"  
+                      where aa_no = {2}
+                      '''.format(id, aa, aanum ,fllname, add1, add2, add3,
+                                 begdate, cty, st, zip, ctry)
+    # logger.info("update address info in aa_rec table");
+    # sql_aa_insert = do_sql(q_insert_aa, earl=EARL)
+    # insert_result = sql_aa_insert.fetchone(
+    print(q_update_aa)
+
+
+def end_date_aa(id, aa_num, fullname, begdate, enddate):
+        print("end Date aa completed")
+
+        q_update_aa = '''update aa_rec 
+                          set end_date = {4}
+                          where id = {0}
+                          and aa_no = {1}
+                          and beg_date = {3}
+                          '''.format(id, aa_num, fullname, begdate, enddate)
+        # logger.info("update address info in aa_rec table");
+        # sql_aa_insert = do_sql(q_insert_aa, earl=EARL)
+        # insert_result = sql_aa_insert.fetchone(
+        print(q_update_aa)
 
 
 if __name__ == "__main__":
