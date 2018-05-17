@@ -554,8 +554,8 @@ def main():
                         # id, fullname, addr1, addr2, addr3, cty, st, zp, ctry
                         # (1003664, 'PREV', 158, datetime.date(2010, 2, 2),
                         # '15008 Lost Canyon Ct.#102', '', '', 'Woodbridge', 'VA', '22191', 'USA')
-                        elif addr_result[4] == addr1 \
-                                and addr_result[9] == zp:
+                        elif addr_result[4] == row["primary_address1"] \
+                                and addr_result[9] == row["primary_zip"]:
                             # and addr_result[7] == cty \
                             # and addr_result[8] == st \
                             # and addr_result[10] == ctry:
@@ -567,7 +567,7 @@ def main():
                             #################################
                             print("Match - UPDATE only")
                             update_aa(addr_result[0], addr_result[1],
-                                      addr_result[2], fullname,
+                                      addr_result[2], row["payroll_name"],
                                       addr_result[4], addr_result[5],
                                       addr_result[6], addr_result[7],
                                       addr_result[8], addr_result[9],
@@ -585,7 +585,7 @@ def main():
                             else:
                                 beg_date = datetime.now().strftime("%m/%d/%Y")
 
-                            end_date_aa(addr_result[0], addr_result[2], fullname,
+                            end_date_aa(addr_result[0], addr_result[2], row["payroll_name"],
                                         addr_result[3],
                                         datetime.now().strftime("%m/%d/%Y"))
                             insert_aa(row["carth_id"], row["payroll_name"],
