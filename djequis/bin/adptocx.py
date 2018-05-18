@@ -273,6 +273,7 @@ def main():
             for row in d_reader:
                 # print([col + '=' + row[col] for col in d_reader.fieldnames])
                 # print(row["File Number"])
+                print('carthid = {0}, Fullname = {1}'.format(row["carth_id"],row["payroll_name"]))
 
                 #################################################################
                 # STEP 2a--
@@ -422,12 +423,7 @@ def main():
                         # do_sql(q_update_id_rec, key=DEBUG, earl=EARL)
 
 
-
-
                     #also need to deal with address changes
-                    # sAddrChg = CheckAddress(ID, FullName, Addr1, Addr2, Addr3,
-                    # City, State, Zip, Ctry)
-                    # If sAddrChg = "True" Then Update_Addr()
                     # Search for existing address record
                     q_check_addr = '''
                         SELECT id, addr_line1, addr_line2, addr_line3, city, 
@@ -435,13 +431,13 @@ def main():
                         From id_rec 
                         Where id = {0}
                             '''.format(row["carth_id"])
-                    print(q_check_addr)
+                    #print(q_check_addr)
                     logger.info("Select address info from id_rec table");
                     sql_id_address = do_sql(q_check_addr, earl=EARL)
                     addr_result = sql_id_address.fetchone()
                     if addr_result == None:   #No person in id rec?
                         logger.info("Employee not in id rec for id number {0}".format(row["carth_id"]));
-                        print("Employee not in id rec for id number {0}".format(row["carth_id"]))
+                        #print("Employee not in id rec for id number {0}".format(row["carth_id"]))
 
                     # Update ID Rec and arcive aa rec
                     elif addr_result[1].strip() != row["primary_address1"] \
@@ -456,7 +452,7 @@ def main():
                          #find max start date to determine what date to insert
                          #insert or update as needed
 
-                        print("Update: no match on " + addr_result[1])  # Compare ADP address to CX address
+                        #print("Update: no match in ID_REC on " + addr_result[1])  # Compare ADP address to CX address
 
                         q_update_id_rec_addr = '''
                              update id_rec set addr_line1 = "{0}",
@@ -480,7 +476,8 @@ def main():
                         logger.info("Update address in id_rec table");
 
                         # do_sql(q_update_id_rec_addr, key=DEBUG, earl=EARL)
-                        print('Change in address - do change for aa_rec')
+                        #print('ID Rec Updated')
+                        #print('Change in address - do change for aa_rec')
 
                         #########################################################
                         # Routine to deal with aa_rec
@@ -495,9 +492,8 @@ def main():
                             '''.format(row["carth_id"])
                         sql_id_address = do_sql(q_check_aa_adr, earl=EARL)
                         addr_result = sql_id_address.fetchone()
-                        print(q_check_aa_adr)
-                        print("Addr Result = ")
-                        print(addr_result)
+                        #print(q_check_aa_adr)
+                        #print("AA Rec Addr Result = " + str(addr_result))
                         # logger.info("Select address info from id_rec table");
 
                         #################################
@@ -513,7 +509,7 @@ def main():
                             and end_date is null
                             group by id, aa, end_date, line1
                             '''.format(row["carth_id"])
-                        print(q_check_aa_date)
+                        #print(q_check_aa_date)
                         # logger.info("Select address info from id_rec table");
                         sql_date = do_sql(q_check_aa_date, earl=EARL)
                         date_result = sql_date.fetchone()
@@ -527,19 +523,19 @@ def main():
                             max_date = datetime.now().strftime("%Y/%m/%d")
                         # Make sure dates don't overlap
                         else:
-                            print(date_result)
+                            #print(date_result)
                             max_date = date.strftime(date_result[0], "%Y/%m/%d")
                             a1 = date_result[3]
 
-                        print("A1 = " + a1)
-                        print("Max date = " + str(max_date))
-                        print("Now = " + str(datetime.now()))
+                        #print("A1 = " + a1)
+                        #print("Max date = " + str(max_date))
+                        #print("Now = " + str(datetime.now()))
 
                         # Scenario 1
                         # This means that the ID_Rec address will change
                         # but nothing exists in aa_rec, so we will only insert as 'PREV'
                         if addr_result == None:  # No address in aa rec?
-                            print("No existing record - Insert only")
+                            #print("No existing record in AA Rec - Insert only")
                             # call function to insert record
                             insert_aa(row["carth_id"],  row["payroll_name"],
                                  row["primary_address1"], row["primary_address2"],
@@ -565,16 +561,15 @@ def main():
                             #################################
                             # Match found then we are UPDATING only....
                             #################################
-                            print("Match - UPDATE only")
-                            update_aa(addr_result[0], addr_result[1],
-                                      addr_result[2], row["payroll_name"],
-                                      addr_result[4], addr_result[5],
-                                      addr_result[6], addr_result[7],
-                                      addr_result[8], addr_result[9],
-                                      addr_result[10], addr_result[3])
+                            # update_aa(addr_result[0], addr_result[1],
+                            #           addr_result[2], row["payroll_name"],
+                            #           addr_result[4], addr_result[5],
+                            #           addr_result[6], addr_result[7],
+                            #           addr_result[8], addr_result[9],
+                            #           addr_result[10], addr_result[3])
 
-                            print(
-                                "An Address exists and matches new data - Update new")
+                             print(
+                                 "An Address exists and matches new data - Update with new")
 
                         # to avoid overlapping dates
                         # Scenario 3 - AA Rec exists but does not match new address.
@@ -594,15 +589,15 @@ def main():
                                       row["primary_state_code"],
                                       row["primary_zip"],  row["primary_country_code"], beg_date)
 
-                            print("No Match - Enddate old record, Insert New")
-                            print(
-                                "An Address exists but does not match - end current, insert new")
+                            # print(
+                            #     "An Address exists but does not match - end current, insert new")
 
 
                     else:
-                        print("sql addr " + addr_result[1].strip() + " loop address = " + row["primary_address1"].strip())
+                        #print("sql addr " + addr_result[1].strip() + " loop address = " + row["primary_address1"].strip())
                         print("Address matches, no changes needed")
 
+                        # To be deleted....
                         # if addr1 = addr_line1 and addr2 = addr_line2 and
                         # addr3 = addr_line3
                         # and cty = city and st = state and zp = zip and ctry
@@ -610,17 +605,30 @@ def main():
                         # bArchive = False
                         # bChange = False
 
-
-
-
                     if row["personal_email"] != '':
+                        print(row["personal_email"])
+                        q_check_email = '''
+                            SELECT aa_rec.aa, aa_rec.id, aa_rec.line1, 
+                            aa_rec.aa_no, aa_rec.beg_date 
+                            FROM aa_rec
+                            WHERE aa_rec.id = {0}
+                            AND aa_rec.aa = 'EML2' 
+                            AND aa_rec.end_date IS NULL
+                            '''.format(row["carth_id"])
+                        print(q_check_email)
+                        # logger.info("Select email info from aa_rec table");
+                        sql_email = do_sql(q_check_email, earl=EARL)
+                        email_result = sql_email.fetchone()
+                        print("Email = " + str(email_result))
+
+
                         # Insert email into aa_rec
                         q_insert_aa_rec = '''
                         INSERT INTO aa_rec
                             (id, aa, beg_date, "line1)
                             VALUES ({0}, "EML2", TODAY, "{1}");
                         ''' .format(row["carth_id"], row["personal_email"])
-                        print(q_insert_aa_rec)
+                        #print(q_insert_aa_rec)
                         scr.write(q_insert_aa_rec+'\n');
                         logger.info("Inserted into aa_rec table");
                         #do_sql(q_insert_aa_cell, key=DEBUG, earl=EARL)
@@ -687,8 +695,6 @@ def main():
 # SQL Functions
 ###################################################
 def insert_aa(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry, beg_date):
-    print("insert aa completed")
-
     q_insert_aa = '''INSERT INTO aa_rec(id, aa, beg_date, peren, end_date,
                          line1, line2, line3, city, st, 
                          zip, ctry, phone, phone_ext, ofc_add_by, 
@@ -705,11 +711,11 @@ def insert_aa(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry, beg_date):
     # logger.info("insert address into aa_rec table");
     # sql_aa_insert = do_sql(q_insert_aa, earl=EARL)
     # insert_result = sql_aa_insert.fetchone(
-    print(q_insert_aa)
-    print("insert aa completed")
+    #print(q_insert_aa)
+    #print("insert aa completed")
 
 def update_aa(id, aa, aanum, fllname, add1, add2, add3, cty, st, zip, ctry, begdate):
-    print("update aa completed")
+    #print("update aa completed")
 
     q_update_aa = '''update aa_rec 
                       set line1 = "{4}",
@@ -725,11 +731,11 @@ def update_aa(id, aa, aanum, fllname, add1, add2, add3, cty, st, zip, ctry, begd
     # logger.info("update address info in aa_rec table");
     # sql_aa_insert = do_sql(q_insert_aa, earl=EARL)
     # insert_result = sql_aa_insert.fetchone(
-    print(q_update_aa)
+    #print(q_update_aa)
 
 
 def end_date_aa(id, aa_num, fullname, begdate, enddate):
-        print("end Date aa completed")
+        #print("end Date aa completed")
 
         q_update_aa = '''update aa_rec 
                           set end_date = {4}
@@ -740,7 +746,7 @@ def end_date_aa(id, aa_num, fullname, begdate, enddate):
         # logger.info("update address info in aa_rec table");
         # sql_aa_insert = do_sql(q_insert_aa, earl=EARL)
         # insert_result = sql_aa_insert.fetchone(
-        print(q_update_aa)
+        #print(q_update_aa)
 
 
 if __name__ == "__main__":
