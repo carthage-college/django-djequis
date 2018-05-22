@@ -537,7 +537,7 @@ def main():
                         if addr_result == None:  # No address in aa rec?
                             #print("No existing record in AA Rec - Insert only")
                             # call function to insert record
-                            insert_aa(row["carth_id"],  row["payroll_name"],
+                            fnct_insert_aa(row["carth_id"],  row["payroll_name"],
                                  row["primary_address1"], row["primary_address2"],
                                  row["primary_address3"], row["primary_city"],
                                  row["primary_state_code"],
@@ -561,15 +561,15 @@ def main():
                             #################################
                             # Match found then we are UPDATING only....
                             #################################
-                            # update_aa(addr_result[0], addr_result[1],
-                            #           addr_result[2], row["payroll_name"],
-                            #           addr_result[4], addr_result[5],
-                            #           addr_result[6], addr_result[7],
-                            #           addr_result[8], addr_result[9],
-                            #           addr_result[10], addr_result[3])
+                            fnct_update_aa(addr_result[0], addr_result[1],
+                                       addr_result[2], row["payroll_name"],
+                                       addr_result[4], addr_result[5],
+                                       addr_result[6], addr_result[7],
+                                       addr_result[8], addr_result[9],
+                                       addr_result[10], addr_result[3])
 
-                             print(
-                                 "An Address exists and matches new data - Update with new")
+                            print(
+                                "An Address exists and matches new data - Update with new")
 
                         # to avoid overlapping dates
                         # Scenario 3 - AA Rec exists but does not match new address.
@@ -580,10 +580,11 @@ def main():
                             else:
                                 beg_date = datetime.now().strftime("%m/%d/%Y")
 
-                            end_date_aa(addr_result[0], addr_result[2], row["payroll_name"],
+                            end_date_aa(addr_result[0], addr_result[2],
+                                        addr_result[4], row["payroll_name"],
                                         addr_result[3],
                                         datetime.now().strftime("%m/%d/%Y"))
-                            insert_aa(row["carth_id"], row["payroll_name"],
+                            fnct_insert_aa(row["carth_id"], row["payroll_name"],
                                       row["primary_address1"], row["primary_address2"],
                                       row["primary_address3"], row["primary_city"],
                                       row["primary_state_code"],
@@ -622,26 +623,80 @@ def main():
                         print("Email = " + str(email_result))
 
 
-                        # Insert email into aa_rec
-                        q_insert_aa_rec = '''
-                        INSERT INTO aa_rec
-                            (id, aa, beg_date, "line1)
-                            VALUES ({0}, "EML2", TODAY, "{1}");
-                        ''' .format(row["carth_id"], row["personal_email"])
-                        #print(q_insert_aa_rec)
-                        scr.write(q_insert_aa_rec+'\n');
-                        logger.info("Inserted into aa_rec table");
-                        #do_sql(q_insert_aa_cell, key=DEBUG, earl=EARL)
-                    # else:
-                    #     print("No email from ADP")
-                    #
+                        if email_result == None:
+                            print("none")
+                        elif email_result[4] == row["personal_email"]:
+                            print("no change")
+                        else:
+                            # Insert email into aa_rec
+                            fnct_insert_aa(row["carth_id"], row["payroll_name"],
+                                      row["personal_email"],"","","","","","",
+                                      datetime.now().strftime("%Y/%m/%d"))
+
+                    else:
+                        print("No email from ADP")
+
                     #Check to update phone in aa_rec
 
                     #################################################################
                     # STEP 2c--
                     # Do updates to profile_rec
                     #################################################################
+                    # Find out if record exists to determine update vs insert
 
+                    q_select_prof_rec = '''  
+                        SELECT profile_rec.id
+                        FROM profile_rec 
+                        WHERE profile_rec.id = {0}
+                        '''.format(row["carth_id"])
+                    scr.write(q_select_prof_rec + '\n');
+                    logger.info("Select from profile_rec table");
+                    sql_prof_rslt = do_sql(q_select_prof_rec, earl=EARL)
+                    prof_rslt = sql_prof_rslt.fetchone()
+                    print("Prof Result = " + str(prof_rslt))
+
+                    # create ethnicity dictionary
+                    racecode = {
+                        '1': 'WH',
+                        '2': 'BL',
+                        '4': 'AS',
+                        '6': 'AP',
+                        '9': 'MU'
+                    }
+                    race = racecode.get(row["race"])
+
+                    ethnicity = {
+                        'Not Hispanic or Latino': 'N',
+                        'HISPANIC OR LATINO': 'Y'
+                    }
+                    ethnicity = ethnicity.get(row["ethnicity"])
+
+                    if prof_rslt == None:
+                        # Insert or update as needed to ID_rec
+                        q_insert_prof_rec = '''
+                            INSERT INTO profile_rec (id, ethnic_code, sex, 
+                                race, hispanic, birth_date, prof_last_upd_date)
+                                values ({0},{1},{2},{3}, "",{4},TODAY) 
+                            '''.format(row["carth_id"], ethnicity,
+                                       row["gender"], race,
+                                       row["birth_date"])
+                        print(q_insert_prof_rec)
+                        scr.write(q_insert_prof_rec + '\n');
+                        logger.info("Inserted into profile_rec table");
+                        #do_sql(q_insert_prof_rec, key=DEBUG, earl=EARL)
+                    else:
+                        q_update_prof_rec = '''
+                            UPDATE profile_rec SET sex = "{0}",
+                            ethnic_code = "{1}", race = "{2}",
+                            hispanic = "", birth_date = "{3}", 
+                            prof_last_upd_date = TODAY
+                            where id = {4}
+                        '''.format(row["gender"], ethnicity,
+                                   race, row["birth_date"], row["carth_id"])
+                        print(q_update_prof_rec)
+                        scr.write(q_update_prof_rec + '\n');
+                        logger.info("Update profile_rec table");
+                        # do_sql(q_update_prof_rec, key=DEBUG, earl=EARL)
 
                     #################################################################
                     # STEP 2d--
@@ -694,7 +749,7 @@ def main():
 ###################################################
 # SQL Functions
 ###################################################
-def insert_aa(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry, beg_date):
+def fnct_insert_aa(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry, beg_date):
     q_insert_aa = '''INSERT INTO aa_rec(id, aa, beg_date, peren, end_date,
                          line1, line2, line3, city, st, 
                          zip, ctry, phone, phone_ext, ofc_add_by, 
@@ -708,13 +763,14 @@ def insert_aa(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry, beg_date):
                                     addr1, addr2, addr3, cty, st,
                                     zp, ctry, "", "", "HR",
                                     "", "")
-    # logger.info("insert address into aa_rec table");
-    # sql_aa_insert = do_sql(q_insert_aa, earl=EARL)
+    #scr.write(q_insert_aa + '\n');
+    #logger.info("Inserted " + addr1 + "into aa_rec table for " + fullname + ", ID = " + id);
+    #sql_aa_insert = do_sql(q_insert_aa, earl=EARL)
     # insert_result = sql_aa_insert.fetchone(
     #print(q_insert_aa)
-    #print("insert aa completed")
+    print("Inserted " + addr1 + "into aa_rec table for " + fullname + ", ID = " + str(id))
 
-def update_aa(id, aa, aanum, fllname, add1, add2, add3, cty, st, zip, ctry, begdate):
+def fnct_update_aa(id, aa, aanum, fullname, add1, add2, add3, cty, st, zip, ctry, begdate):
     #print("update aa completed")
 
     q_update_aa = '''update aa_rec 
@@ -726,27 +782,29 @@ def update_aa(id, aa, aanum, fllname, add1, add2, add3, cty, st, zip, ctry, begd
                       zip = "{10}",
                       ctry = "{11}"  
                       where aa_no = {2}
-                      '''.format(id, aa, aanum ,fllname, add1, add2, add3,
+                      '''.format(id, aa, aanum ,fullname, add1, add2, add3,
                                  begdate, cty, st, zip, ctry)
-    # logger.info("update address info in aa_rec table");
+    #logger.info("Updated " + addr1 + "in aa_rec table for " + fullname + ", ID = " + id);
     # sql_aa_insert = do_sql(q_insert_aa, earl=EARL)
     # insert_result = sql_aa_insert.fetchone(
     #print(q_update_aa)
+    print("Updated " + add1 + "in aa_rec table for " + fullname + ", ID = " + str(id))
 
 
-def end_date_aa(id, aa_num, fullname, begdate, enddate):
+def end_date_aa(id, aa_num, addr1, fullname, begdate, enddate):
         #print("end Date aa completed")
 
-        q_update_aa = '''update aa_rec 
-                          set end_date = {4}
-                          where id = {0}
-                          and aa_no = {1}
-                          and beg_date = {3}
-                          '''.format(id, aa_num, fullname, begdate, enddate)
-        # logger.info("update address info in aa_rec table");
-        # sql_aa_insert = do_sql(q_insert_aa, earl=EARL)
-        # insert_result = sql_aa_insert.fetchone(
-        #print(q_update_aa)
+    q_update_aa = '''update aa_rec 
+                      set end_date = {4}
+                      where id = {0}
+                      and aa_no = {1}
+                      and beg_date = {3}
+                      '''.format(id, aa_num, fullname, begdate, enddate)
+    #logger.info("End dated " + addr1 + "in aa_rec table for " + fullname + ", ID = " + id);
+    # sql_aa_insert = do_sql(q_insert_aa, earl=EARL)
+    # insert_result = sql_aa_insert.fetchone(
+    #print(q_update_aa)
+    print("End dated " + addr1 + "in aa_rec table for " + fullname + ", ID = " + str(id))
 
 
 if __name__ == "__main__":
