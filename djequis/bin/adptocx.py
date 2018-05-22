@@ -703,7 +703,41 @@ def main():
                     # Do updates to cvid_rec
                     #################################################################
 
+                    q_select_cvid_rec = '''  
+                       SELECT cvid_rec.cx_id
+                       FROM cvid_rec 
+                       WHERE cvid_rec.cx_id = {0}
+                       '''.format(row["carth_id"])
+                    print(q_select_cvid_rec)
+                    scr.write(q_select_cvid_rec + '\n');
+                    logger.info("Select from cvid_rec table");
+                    sql_cvid_rslt = do_sql(q_select_cvid_rec, earl=EARL)
+                    cvid_rslt = sql_cvid_rslt.fetchone()
 
+                    if cvid_rslt == None:
+                        # Insert or update as needed to ID_rec
+                        q_insert_cvid_rec = '''
+                           INSERT INTO cvid_rec (old_id, old_id_num, adp_id, 
+                               ssn, cx_id, cx_id_char, adp_associate_id)
+                               VALUES ("{0}",{0},"{1}","{2}",{0},"{0}","{3}") 
+                           '''.format(row["carth_id"], row["file_number"],
+                                      row["ssn"], "adp_associate_id")
+                        print(q_insert_cvid_rec)
+                        scr.write(q_insert_cvid_rec + '\n');
+                        logger.info("Inserted into cvid_rec table");
+                        # do_sql(q_insert_cvid_rec, key=DEBUG, earl=EARL)
+                    else:
+                        q_update_cvid_rec = '''
+                           UPDATE cvid_rec SET old_id = "{0}", old_id_num = {0}, 
+                           adp_id = "{1}", ssn = "{2}", cx_id = {0}, 
+                           adp_associate_id = "{3}" 
+                           WHERE cx_id = {0}
+                       '''.format(row["carth_id"], row["file_number"],
+                                row["ssn"], "adp_associate_id")
+                        print(q_update_cvid_rec)
+                        scr.write(q_update_cvid_rec + '\n');
+                        logger.info("Update cvid_rec table");
+                        # do_sql(q_update_cvid_rec, key=DEBUG, earl=EARL)
                     #################################################################
                     # STEP 2e--
                     # Do updates to job_rec
