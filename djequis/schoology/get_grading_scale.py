@@ -45,6 +45,13 @@ parser.add_argument(
     dest='score'
 )
 parser.add_argument(
+    '-e', '--scale',
+    required=True,
+    help="scale ID",
+    dest='scale'
+)
+
+parser.add_argument(
     "--test",
     action='store_true',
     help="Dry run?",
@@ -74,7 +81,7 @@ def main():
 
     final = 0
     for g in grading_scale['grading_scale']:
-        if g['id'] == 1:
+        if g['id'] == scale:
             for level in g['scale']['level']:
                 if score >= level['cutoff']:
                     final = level['grade']
@@ -87,6 +94,7 @@ if __name__ == '__main__':
     section_id = args.section_id
     # make sure grade is an integer
     score = int(args.score)
+    scale= int(args.scale)
     test = args.test
 
     sys.exit(main())
