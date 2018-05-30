@@ -56,6 +56,7 @@ from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 from djtools.fields import TODAY
+from djequis.adp.utilities import fn_validate_field
 
 DEBUG = settings.INFORMIX_DEBUG
 
@@ -254,7 +255,7 @@ def process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         ##############################################################
         # validate the position, division, department
         ##############################################################
-        print("....Deal with division...")
+        # print("....Deal with division...")
         hrdivision = fn_validate_field(businessunitcode,"hrdiv","hrdiv",
                             "hrdiv_table", "char")
         if hrdivision == None or hrdivision == "":
@@ -276,7 +277,7 @@ def process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             # print(q_upd_div)
 
 
-        print("....Deal with department...")
+        # print("....Deal with department...")
         hrdepartment = fn_validate_field(homedeptcode[:3],"hrdept","hrdept",
                         "hrdept_table", "char")
         if hrdepartment==None or hrdepartment=="" or len(hrdepartment)==0:
@@ -310,7 +311,7 @@ def process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         v_job_function_code = fn_validate_field(jobfunctioncode,"hrstat",
                                 "hrstat", "hrstat_table","char")
         if v_job_function_code == None or len(v_job_function_code)==0:
-            print('Code ' + jobfunctioncode + ' returned no hrstat info')
+            # print('Code ' + jobfunctioncode + ' returned no hrstat info')
             # Insert into hr_stat
             # This query works 5/25/18
             q_ins_stat = '''INSERT INTO hrstat_table(hrstat, txt, 
@@ -353,7 +354,7 @@ def process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         # Something in the formatting of the date is failing...
         # and beg_date = '{2}'
 
-        print(q_get_job)
+        # print(q_get_job)
         sql_job = do_sql(q_get_job, earl=EARL)
 
         if sql_job != None:
@@ -375,7 +376,7 @@ def process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                                         jobfunctioncode, businessunitcode,
                                         func_code, datetime.now().strftime("%Y-%m-%d"),
                                         jobtitledescr, rank)
-                print(q_ins_job)
+                # print(q_ins_job)
                 print("New Job Record for " + last + ', id = ' + str(carthid))
         else:
             row = sql_job.fetchone()
