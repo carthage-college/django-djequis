@@ -96,13 +96,11 @@ engine = get_engine(EARL)
 # Common function to validate that a record exists
 #########################################################
 def fn_validate_field(searchval, keyfield, retfield, table, keytype):
-    print(keytype)
     if keytype == "char":
-        qval_sql = "select distinct " + retfield + " FROM " + table \
-                   + " WHERE " + keyfield + " = '" + str(
-            searchval) + "'"
+        qval_sql = "SELECT DISTINCT " + retfield + " FROM " + table \
+                   + " WHERE " + keyfield + " = '" + str(searchval) + "'"
     elif keytype == "integer":
-        qval_sql = "select distinct " + retfield + " FROM " + table \
+        qval_sql = "SELECT DISTINCT " + retfield + " FROM " + table \
                    + " WHERE " + keyfield + " = " + str(searchval)
 
     # print(qval_sql)
@@ -123,6 +121,34 @@ def fn_validate_field(searchval, keyfield, retfield, table, keytype):
         print(e)
 
 
+def fn_check_duplicates(searchval, keyfield, retfield, table, testval, keytype):
+    if keytype == "char":
+        qval_sql = "SELECT " + retfield + " FROM " + table + " WHERE " \
+                   + keyfield + " = '" + str(searchval) + "' AND " + retfield \
+                   + " != " + str(testval)
+    elif keytype == "integer":
+        qval_sql = "SELECT " + retfield + " FROM " + table \
+                   + " WHERE " + keyfield + " = " + searchval \
+                   + " AND " + retfield + " != " + str(testval)
+
+    print(qval_sql)
+
+    try:
+        sql_val = do_sql(qval_sql, earl=EARL)
+        if sql_val != None:
+            row = sql_val.fetchone()
+
+            if row == None:
+                return (0)
+            else:
+                return (row[0])
+        else:
+            return (0)
+
+    except Exception as e:
+        print(e)
+        return e
+
 #########################################################
 # Specific function to deal with email in aa_rec
 #########################################################
@@ -141,15 +167,13 @@ def fn_set_email2(email, id, fullname):
         sql_email = do_sql(q_check_email, earl=EARL)
         email_result = sql_email.fetchone()
         if email_result == None:
-            print("none ...")
             print("New Email will be = " + email)
             fnct_insert_aa(id, fullname,
                            email, "", "", "", "", "", "",
                            datetime.now().strftime("%Y/%m/%d"))
-            return("New")
+            return("New email")
         elif email_result[2] == email:
-            print("no change")
-            return("No Change")
+            return("No email Change")
         else:
             # End date current EML2
             print("Existing email = " + email_result[0])
@@ -161,7 +185,7 @@ def fn_set_email2(email, id, fullname):
             fnct_insert_aa(id, fullname, email, "", "", "", "", "", "",
                            datetime.now().strftime("%Y/%m/%d"))
             print("New Email will be = " + email)
-            return("Update")
+            return("Updated email")
 
     except Exception as e:
         print(e)
@@ -170,8 +194,10 @@ def fn_set_email2(email, id, fullname):
 
 #########################################################
 # Specific function to insert into aa_rec
+# Should this remain in the addresssubs.py file?
+# I think it would only be called from there
 #########################################################
-def fnct_insert_aa(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry, beg_date):
+def fn_insert_aa(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry, beg_date):
     q_insert_aa = '''INSERT INTO aa_rec(id, aa, beg_date, peren, end_date,
                          line1, line2, line3, city, st, 
                          zip, ctry, phone, phone_ext, ofc_add_by, 
@@ -194,8 +220,10 @@ def fnct_insert_aa(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry, beg_dat
 
 #########################################################
 # Specific function to update aa_rec
+# Should this remain in the addresssubs.py file?
+# I think it would only be called from there
 #########################################################
-def fnct_update_aa(id, aa, aanum, fullname, add1, add2, add3, cty, st, zip, ctry, begdate):
+def fn_update_aa(id, aa, aanum, fullname, add1, add2, add3, cty, st, zip, ctry, begdate):
     #print("update aa completed")
 
     q_update_aa = '''update aa_rec 
@@ -217,6 +245,8 @@ def fnct_update_aa(id, aa, aanum, fullname, add1, add2, add3, cty, st, zip, ctry
 
 #########################################################
 # Specific function to end date a record in aa_rec
+# Should this remain in the addresssubs.py file?
+# I think it would only be called from there
 #########################################################
 def fn_end_date_aa(id, aa_num, addr1, fullname, begdate, enddate):
 # print("end Date aa completed")
@@ -235,6 +265,14 @@ def fn_end_date_aa(id, aa_num, addr1, fullname, begdate, enddate):
             "ID = " + str(id))
 
 
+def fn_convert_date(date):
+    if date != "":
+        ndate = datetime.strptime(date, "%m-%d-%Y")
+        retdate = datetime.strftime(ndate, "%Y/%m/%d")
+    else:
+        retdate = ""
+
+    return retdate
 
 
 
