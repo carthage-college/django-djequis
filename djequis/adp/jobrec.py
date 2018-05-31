@@ -93,11 +93,12 @@ EARL = INFORMIX_EARL_TEST
 # establish database connection
 engine = get_engine(EARL)
 
-def process_job(carthid, workercatcode, workercatdescr, businessunitcode,
+def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                 businessunitdescr, homedeptcode, homedeptdescr, jobtitlecode,
                 jobtitledescr, positionstart, poseffectend, payrollcompcode,
-                jobfunctioncode, jobfuncdtiondescription, primaryposition,
-                supervisorid, last, first, middle):
+                jobfunctioncode, jobfuncdtiondescription, jobclass,
+                jobclassdescr, primaryposition, supervisorid, last, first,
+                middle):
     # create logger
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
@@ -118,19 +119,30 @@ def process_job(carthid, workercatcode, workercatdescr, businessunitcode,
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
+
     try:
         ##############################################################
         # must validate ID of supervisor
         # Split PCN_Aggr (Home Cost Number) into separate components
         # first I should determine if this is an insert or update - see if
         #   pcn_aggr is in the pos_table
-
-        ##############################################################
         # validate function code in the func_table
         # Place dept number in func_area field in position table
+        # Must account for Division, Dept
+        # use PCN Codes to tie employee to job number
+        # validate a number of fields as needed
+        # add GL Func code to func_area in position table
+        # if there is a secondary job record, do the same..
+        ##############################################################
 
         spvrID = fn_validate_supervisor(supervisorid[3:10])
 
+        # Construct the pcn code from existing items?
+        # func_area = left(homedeptcode,3)
+        # hrdept/pcn_03 = homedeptcode[:3]
+        # pcn_04 = job title code
+        # hrdiv = business unit code
+        # pcn_aggr = jobfunctioncode-businessunitcode-homedeptcode-jobtitlecode
         pcnaggr = payrollcompcode + "-" + businessunitcode + "-" \
                       + homedeptcode[:3] + "-" + jobtitlecode
 
@@ -151,9 +163,9 @@ def process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         print("Supervisor = " + str(spvrID) +'\n')
 
         ##############################################################
-        # validate hrpay, - This is probably OK to just validate.
-        # Not much change - move to the top?  Validate first before other
-        # items?
+        # validate hrpay, values in this table should not change without
+        # a project request as they affect a number of things
+        ##############################################################
         hrpay_rslt = fn_validate_field(payrollcompcode,"hrpay","hrpay",
                             "hrpay_table", "char")
         if hrpay_rslt != '':
@@ -162,18 +174,14 @@ def process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             print('Invalid Payroll Company Code ' + payrollcompcode + '\n')
             logger.info("Invalid Payroll Company Code " + payrollcompcode + '\n')
             raise ValueError("Invalid Payroll Company Code (HRPay) " + payrollcompcode + '\n')
-        # Will we construct the pcn code from existing items?
-        # if so...
-        # func_area = left(homedeptcode,3)
-        # hrdept/pcn_03 = homedeptcode[:3]
-        # pcn_04 = job title code
-        # hrdiv = business unit code
-        # pcn_aggr = jobfunctioncode-businessunitcode-homedeptcode-jobtitlecode
 
 
+
+        ##############################################################
         # New table in Informix - Worker Category
         # Not maintained in CX, so we will have to maintain it with
         # inserts and updates
+        ##############################################################
         v_workercatcode = fn_validate_field(workercatcode,"work_cat_code",
                     "work_cat_code","cc_work_cat_table","char")
         if v_workercatcode == None or len(str(v_workercatcode)) == 0:
@@ -188,8 +196,9 @@ def process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                       '''.format(workercatcode, workercatdescr)
             # print(q_upd_wc)
 
-        #     ##############################################################
+        ###############################################################
         # Use PCN Agg to find TPos FROM position rec
+        ###############################################################
         v_tpos = fn_validate_field(pcnaggr,"pcn_aggr","tpos_no",
                         "pos_table","char")
         print("v-tpos = " + str(v_tpos))
@@ -227,30 +236,19 @@ def process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             print("Validated t_pos = " + str(v_tpos))
             # This  query works . 5/25/18
             q_upd_pos = '''UPDATE pos_table SET pcn_aggr = "{0}", pcn_01 = "{1}", 
-                                pcn_02 = "{2}", pcn_03 = "{3}", pcn_04 = "{4}", 
-                                descr = "{5}", ofc = "{6}", func_area = "{7}", 
-                                supervisor_no = {8}, tenure_track = "{9}", 
-                                fte = {10}, max_jobs = {11}, hrpay = "{12}", 
-                                active_date = "{13}", 
-                                inactive_date = '' WHERE tpos_no = {14} 
-                               '''.format(pcnaggr, jobfunctioncode,
-                                          businessunitcode,
-                                          func_code, jobtitlecode,
-                                          jobtitledescr,
-                                          'ofc', func_code,
-                                          supervisorid[3:9],
-                                          'tenure', 0, 0, payrollcompcode,
-                                          datetime.now().strftime("%Y-%m-%d"),
-                                          v_tpos)
-
+                    pcn_02 = "{2}", pcn_03 = "{3}", pcn_04 = "{4}", 
+                    descr = "{5}", ofc = "{6}", func_area = "{7}", 
+                    supervisor_no = {8}, tenure_track = "{9}", 
+                    fte = {10}, max_jobs = {11}, hrpay = "{12}", 
+                    active_date = "{13}", 
+                    inactive_date = '' WHERE tpos_no = {14} 
+                   '''.format(pcnaggr, jobfunctioncode, businessunitcode,
+                              func_code, jobtitlecode, jobtitledescr,
+                              'ofc', func_code, supervisorid[3:9],
+                              'tenure', 0, 0, payrollcompcode,
+                              datetime.now().strftime("%Y-%m-%d"),
+                              v_tpos)
             # print(q_upd_pos)
-
-            # IMPORTANT??
-            # Assume if no match we will insert
-            # Need new tpos_no (Serial), descr (char 32), func_area (char 4),
-            # This else may need to go down, include other validations within
-            # first if
-
 
         ##############################################################
         # validate the position, division, department
@@ -303,11 +301,11 @@ def process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                                                                 "%Y-%m-%d"))
 
         # print(q_upd_dept + '\n')
-        print("Existing HR Department = " + hrdepartment)
-
+             print("Existing HR Department = " + hrdepartment)
 
         ##############################################################
         # validate hrstat,
+        ##############################################################
         v_job_function_code = fn_validate_field(jobfunctioncode,"hrstat",
                                 "hrstat", "hrstat_table","char")
         if v_job_function_code == None or len(v_job_function_code)==0:
@@ -333,6 +331,7 @@ def process_job(carthid, workercatcode, workercatdescr, businessunitcode,
 
         ##############################################################
         # Determine job rank for job_rec
+        ##############################################################
         rank = ''
         if primaryposition == 'Yes' and poseffectend == '':
             rank = 1
@@ -344,7 +343,8 @@ def process_job(carthid, workercatcode, workercatdescr, businessunitcode,
 
 
         # ##############################################################
-        #If job rec exists in job_rec, update, else insert
+        # If job rec exists in job_rec -update, else insert
+        # ##############################################################
         q_get_job = '''SELECT job_no, tpos_no, id
                         FROM job_rec
                         WHERE tpos_no = {0}
@@ -362,20 +362,24 @@ def process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                 #     insert
                 print('Code ' + str(v_tpos) + ' returned no job info for '
                        + last + ' id = ' + str(carthid))
+
+            # NOTE:  NEED TO ADD JOB CLASS CODE into HRCLASS field
                 # Insert into job rec
                 # Query works as of 5/29/18
                 q_ins_job = ''' INSERT INTO job_rec
                 (tpos_no, descr, bjob_no, id, hrpay, supervisor_no,
                  hrstat, egp_type, hrdiv, hrdept, comp_beg_date, comp_end_date,
                  beg_date, end_date, active_ctrct, ctrct_stat, excl_srvc_hrs,
-                 excl_web_time, job_title, title_rank)
+                 excl_web_time, job_title, title_rank, hrclass)
                  VALUES ({0}, "{1}", 0, {2}, "{3}", {4}, "{5}", "{6}", "{7}", 
-                 "N/A", null, null, "{8}", null, "N", "N/A", "N", "N", "{9}", {10})
+                 "N/A", null, null, "{8}", null, "N", "N/A", "N", "N", "{9}", 
+                 {10},"{11}","{12}"
                                      '''.format(v_tpos, jobtitledescr, carthid,
                                         payrollcompcode, spvrID,
                                         jobfunctioncode, businessunitcode,
                                         func_code, datetime.now().strftime("%Y-%m-%d"),
-                                        jobtitledescr, rank)
+                                        jobtitledescr, rank, workercatcode,
+                                        jobclass)
                 # print(q_ins_job)
                 print("New Job Record for " + last + ', id = ' + str(carthid))
         else:
@@ -383,20 +387,21 @@ def process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             job_rslt = row
             valid_job = job_rslt
             print('valid job found')
-            q_upd_job = ''' UPDATE job_rec SET descr = "{1}", bjob_no = 0, 
-                    id = {2}, hrpay = "{3}", supervisor_no = {4},
-                    hrstat = "{5}", egp_type = "", hrdiv "{6}", hrdept = "{7}", 
-                    comp_beg_date = null, comp_end_date = null,
-                    beg_date = {8}, end_date = null, active_ctrct = "", 
-                    ctrct_stat = "", excl_srvc_hrs = 0, excl_web_time = "", 
-                    job_title = "{1}", title_rank = ""
-                    WHERE tpos_no = {0})
-                          '''.format(v_tpos, jobtitledescr, carthid,
-                              payrollcompcode, spvrID, jobfunctioncode,
-                              businessunitcode, func_code,
-                              datetime.now().strftime("%Y-%m-%d"),
-                              jobtitledescr, rank,
-                              datetime.now().strftime("%Y-%m-%d"))
+            q_upd_job = ''' 
+                UPDATE job_rec SET descr = "{1}", bjob_no = 0, 
+                id = {2}, hrpay = "{3}", supervisor_no = {4},
+                hrstat = "{5}", egp_type = "", hrdiv "{6}", hrdept = "{7}", 
+                comp_beg_date = null, comp_end_date = null,
+                beg_date = {8}, end_date = null, active_ctrct = "", 
+                ctrct_stat = "", excl_srvc_hrs = 0, excl_web_time = "", 
+                job_title = "{1}", title_rank = "", worker_ctgry = "{9}",
+                hrclass = "{10}" 
+                WHERE tpos_no = {0})
+                    '''.format(v_tpos, jobtitledescr, carthid,
+                    payrollcompcode, spvrID, jobfunctioncode,
+                    businessunitcode, func_code,
+                    datetime.now().strftime("%Y-%m-%d"),
+                    jobtitledescr, rank, workercatcode, jobclass)
             #print(q_upd_job)
             print("Update Job Record for " + last + ', id = ' + str(carthid))
 
@@ -453,22 +458,29 @@ def process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             # print(sql_emp_upd)
             print("Update HREMP_REC, ")
 
-       ##############################################################
+
+        ##############################################################
+        # To do....
+        # Job Class Code, HRClass field in Job Rec
+        # Need to add definitions as needed in hrclass_table
+        ##############################################################
+        # If job Class Code != ""
+        #    update
+        # elif
+        #    insert jobclass, jobclassdescr
+
+        ##############################################################
         # Faculty Qualifications - This will go into facqual_rec...
         # and qual_table - No longer part of Job Title
+        # Probably not in scope as these titles do not affect pay
         ##############################################################
-        #
-        #
-        #
-        #
-        #
-        #
+
     except Exception as e:
         print(e)
 
-
-
-
+##########################################################
+# Functions
+##########################################################
 def fn_validate_supervisor(id):
     q_val_super = '''SELECT hrstat FROM job_rec WHERE id = {0}
                                            '''.format(id)
