@@ -113,7 +113,7 @@ engine = get_engine(EARL)
 #    end date old record and insert new
 ######################################################
 
-def archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry):
+def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry):
   # try
 
     #################################
@@ -122,10 +122,10 @@ def archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry):
 
     q_check_aa_adr = '''SELECT id, aa, aa_no, beg_date, line1, line2, line3, 
                         city, st, zip, ctry 
-                        From aa_rec 
-                        Where id = {0}
-                        and aa in ('PERM','PREV','SCND')
-                        and end_date is null
+                        FROM aa_rec 
+                        WHERE id = {0}
+                        AND aa in ('PERM','PREV','SCND')
+                        AND end_date is null
                         '''.format(id)
     sql_id_address = do_sql(q_check_aa_adr, earl=EARL)
     addr_result = sql_id_address.fetchone()
@@ -138,13 +138,13 @@ def archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry):
     #  Find the max start date of all PREV entries with a null end date
     #################################
 
-    q_check_aa_date = '''SELECT max(beg_date), ID, aa, line1, end_date
-                                   as date_end
-                                   From aa_rec 
+    q_check_aa_date = '''SELECT MAX(beg_date), ID, aa, line1, end_date
+                                   AS date_end
+                                   FROM aa_rec 
                                    Where id = {0}
-                                   and aa = 'PREV'
-                                   and end_date is null
-                                   group by id, aa, end_date, line1
+                                   AND aa = 'PREV'
+                                   AND end_date is null
+                                   GROUP BY id, aa, end_date, line1
                                    '''.format(id)
     #                       '''.format(row["carth_id"])
     print(q_check_aa_date)
