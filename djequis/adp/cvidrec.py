@@ -51,7 +51,7 @@ os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 # from djequis.core.utils import sendmail
-from djequis.adp.utilities import fn_validate_field
+from djequis.adp.utilities import fn_validate_field, fn_check_duplicates
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_TEST
@@ -94,7 +94,7 @@ EARL = INFORMIX_EARL_TEST
 engine = get_engine(EARL)
 
 
-def process_cvid(carthid, adpid, ssn, adp_assoc_id):
+def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id):
     # create logger
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
@@ -118,26 +118,31 @@ def process_cvid(carthid, adpid, ssn, adp_assoc_id):
 
     try:
         ##############################################################
+        # Inserts or updates as needed into cvid_rec
+        ##############################################################
+
+        # print(carthid, adpid, ssn, adp_assoc_id)
+
         # Validate the cx_id
-        # Should also check for duplicates of the adp_id and associate_id
-        # Inserts or updates accordingly
-
-        print(carthid, adpid, ssn, adp_assoc_id)
-
         v_cx_id = fn_validate_field(carthid, "cx_id", "cx_id", "cvid_rec",
                     "integer")
         print("CX_ID = " + str(v_cx_id))
 
-        v_adp_id = fn_validate_field(adpid, "adp_id", "adp_d", "cvid_rec",
-                                    "char")
+        # Should also check for duplicates of the adp_id and associate_id
+        # What to do in that case?
+        v_adp_id = fn_check_duplicates(adpid, "adp_id", "cx_id", "cvid_rec",
+                                 v_cx_id, "char")
         print("ADP_ID = " + str(v_adp_id))
 
-        v_assoc_id = fn_validate_field(adp_assoc_id, "adp_associate_id",
-                       "adp_associate_id", "cvid_rec", "char")
-        print("Associate ID = " + v_assoc_id)
+        # By definition, associate ID cannot be a duplicate in ADP, but
+        # possibility of duplicate might exist in CX
+        v_assoc_id = fn_check_duplicates(adp_assoc_id, "adp_associate_id",
+                       "cx_id", "cvid_rec", v_cx_id, "char")
+        print("Associate ID = " + str(v_assoc_id))
 
 
-        if v_cx_id == None:
+
+        if v_cx_id == None and v_assoc_id == 0 and v_adp_id == 0:
             # Insert or update as needed to ID_rec
             q_insert_cvid_rec = '''
                INSERT INTO cvid_rec (old_id, old_id_num, adp_id, 
@@ -149,7 +154,12 @@ def process_cvid(carthid, adpid, ssn, adp_assoc_id):
             scr.write(q_insert_cvid_rec + '\n');
             logger.info("Inserted into cvid_rec table");
             # do_sql(q_insert_cvid_rec, key=DEBUG, earl=EARL)
+        elif str(v_cx_id) != v_assoc_id and v_assoc_id != 0:
+            print('Duplicate Associate ID found')
+        elif str(v_cx_id) != str(v_adp_id) and v_adp_id != 0:
+            print('Duplicate ADP ID found')
         else:
+            # sql works - 5/30/18
             q_update_cvid_rec = '''
                UPDATE cvid_rec SET old_id = "{0}", old_id_num = {0}, 
                adp_id = "{1}", ssn = "{2}", cx_id = {0}, 
@@ -160,9 +170,6 @@ def process_cvid(carthid, adpid, ssn, adp_assoc_id):
             print(q_update_cvid_rec)
             logger.info("Update cvid_rec table");
             # do_sql(q_update_cvid_rec, key=DEBUG, earl=EARL)
-
-
-
 
     except Exception as e:
         print(e)
