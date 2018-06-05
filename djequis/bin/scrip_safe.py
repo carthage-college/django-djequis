@@ -24,7 +24,6 @@ from reportlab.lib.units import inch
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.pagesizes import portrait
 
-
 # set up command-line options
 desc = """
     Fetch transcripts from our server, generate PDFs based on them,
@@ -82,14 +81,14 @@ def paint_pdf(phile):
 
 def main():
     # go to our storage directory on this server
-    os.chdir(settings.LOCAL_PATH)
+    os.chdir(settings.SCRIP_SAFE_LOCAL_PATH)
     # obtain a list of file names from transcript spool
     philes = []
-    with pysftp.Connection(**settings.LOCAL_CONNECTION) as sftp:
-        sftp.cwd(settings.LOCAL_SPOOL)
+    with pysftp.Connection(**settings.SCRIP_SAFE_LOCAL_CONNECTION) as sftp:
+        sftp.cwd(settings.SCRIP_SAFE_LOCAL_SPOOL)
         for attr in sftp.listdir_attr():
             phile = attr.filename
-            if phile.startswith(settings.FILE_PREFIX, 0):
+            if phile.startswith(settings.SCRIP_SAFE_FILE_PREFIX, 0):
                 try:
                     sftp.get(phile, preserve_mtime=True)
                     # generate PDFs
@@ -108,14 +107,14 @@ def main():
         print "philes = {}".format(philes)
 
     # transfer the PDFs to scripsafe
-    with pysftp.Connection(**settings.XTRNL_CONNECTION) as sftp:
+    with pysftp.Connection(**settings.SCRIP_SAFE_XTRNL_CONNECTION) as sftp:
         for f in philes:
             sftp.put("{}.pdf".format(f), preserve_mtime=True)
 
     # backup and cleanup
-    with pysftp.Connection(**settings.LOCAL_CONNECTION) as sftp:
+    with pysftp.Connection(**settings.SCRIP_SAFE_LOCAL_CONNECTION) as sftp:
         for f in philes:
-            sftp.cwd(settings.LOCAL_BACKUP)
+            sftp.cwd(settings.SCRIP_SAFE_LOCAL_BACKUP)
             # copy transcripts to archive
             try:
                 sftp.put(f, preserve_mtime=True)
