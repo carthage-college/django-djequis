@@ -52,10 +52,10 @@ def main():
     '''
 
     if test:
-        print 'this is a test'
+        print("this is a test")
         logger.debug("debug = {}".format(test))
     else:
-        print 'this is not a test'
+        print("this is not a test")
 
 
 ######################
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     equis = args.equis
     test = args.test
 
-    print args
+    if test:
+        print(args)
 
     sys.exit(main())
-
