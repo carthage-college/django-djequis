@@ -51,6 +51,7 @@ os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 # from djequis.core.utils import sendmail
+from djequis.adp.aarec import fn_archive_address
 from djequis.adp.utilities import fn_validate_field
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
@@ -93,7 +94,7 @@ EARL = INFORMIX_EARL_TEST
 # establish database connection
 engine = get_engine(EARL)
 
-def fn_process_idrec(carth_id, fullname, lastname, firstname, middlename,
+def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middlename,
         addr_line1, addr_line2, addr_line3, city, st, zip, ctry, ss_no, phone,
         decsd, eff_date):
 
@@ -119,13 +120,13 @@ def fn_process_idrec(carth_id, fullname, lastname, firstname, middlename,
 
     try:
 
-        ##########################################################
-        # Determine if record exists to avoid duplicates
-        ##########################################################
+            ##########################################################
+            # Determine if record exists to avoid duplicates
+            ##########################################################
         v_id = fn_validate_field(carth_id, "id", "id", "id_rec", "integer")
         print(v_id)
 
-        if v_id == "":
+        if v_id == 0:
             # In the initial scope, there should be no case where we insert
             # a new record into id_rec - HR begins in CX and creates the record
             # to obtain an ID#.
@@ -138,9 +139,9 @@ def fn_process_idrec(carth_id, fullname, lastname, firstname, middlename,
             #         (id, fullname, lastname, firstname, middlename, addr_line1,
             #         addr_line2, addr_line3, city, st, zip, ctry, AA, ss_no,
             #         phone, decsd, upd_date, ofc_add_by)
-            #     VALUES({0},"{1}","{2}","{3}","{4}",
-            #     "{5}","{6}","{7}","{8}","{9}","{10}","{11}","PERM","{12}",
-            #     "{13}","N","{14}","HR")
+            #     VALUES({0},'{1}','{2}','{3}','{4}',
+            #     '{5}','{6}','{7}','{8}','{9}','{10}','{11}',"PERM",'{12}',
+            #     '{13}',"N",'{14}',"HR")
             #     '''.format(carth_id, fullname, lastname, firstname,
             #            middlename, addr_line1, addr_line2,
             #            addr_line3, city, st, zip, ctry, ss_no, phone, eff_date)
@@ -149,58 +150,56 @@ def fn_process_idrec(carth_id, fullname, lastname, firstname, middlename,
             # do_sql(q_insert_id_rec, key=DEBUG, earl=EARL)
             SUBJECT = 'No matcining ID in id_rec - abort and email HR'
             BODY = 'No matching ID in id_rec, process aborted. Name = {0}, \
-                                  ADP File = {1}'.format(row["payroll_name"], \
-                                                         row["file_number"])
-            sendmail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
-                     BODY, SUBJECT
-                     )
+                                  ADP File = {1}'.format(fullname, file_number)
+            print(SUBJECT)
+            # sendmail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
+            #          BODY, SUBJECT
+            #          )
             logger.error('There was no matching ID in id_Rec table, row \
                                        skipped. Name = {0}, \
-                                       ADP File = {1}'.format(
-                row["payroll_name"], \
-                row["file_number"]))
+                                       ADP File = {1}'.format(fullname,
+                                                              file_number))
         else:
             # For update, handle demographics and address separately
             # This sql works 5/30/18
             try:
                 q_update_id_rec = '''
-                            update id_rec set fullname = "{0}",
-                            lastname = "{1}", firstname = "{2}",
-                            middlename = "{3}", ss_no = "{4}", 
-                            decsd = "N", upd_date = "{5}", 
+                            update id_rec set fullname = '{0}',
+                            lastname = '{1}', firstname = '{2}',
+                            middlename = '{3}', ss_no = '{4}',
+                            decsd = "N", upd_date = '{5}',
                             ofc_add_by = "HR"
                             where id = {6}
                         '''.format(fullname, lastname, firstname,
                                middlename, ss_no, eff_date,
                                carth_id)
                 print(q_update_id_rec)
-                logger.info("Update id_rec table");
-                # do_sql(q_update_id_rec, key=DEBUG, earl=EARL)
+                # logger.info("Update id_rec table");
+                # # do_sql(q_update_id_rec, key=DEBUG, earl=EARL)
             except Exception as err:
-                logger.error(err, exc_info=True)
                 return (err.message)
-
+                logger.error(err, exc_info=True)
+            
             try:
-                # also need to deal with address changes
-                # Search for existing address record
+                #     # also need to deal with address changes
+                #     # Search for existing address record
                 q_check_addr = '''
-                            SELECT id, addr_line1, addr_line2, addr_line3, city, 
-                                st, zip, ctry 
-                            From id_rec 
+                            SELECT id, addr_line1, addr_line2, addr_line3, city,
+                                st, zip, ctry
+                            From id_rec
                             Where id = {0}
                                 '''.format(carth_id)
                 # print(q_check_addr)
                 logger.info("Select address info from id_rec table");
-                sql_id_address = do_sql(q_check_addr, earl=EARL)
+                sql_id_address = do_sql(q_check_addr, key=DEBUG, earl=EARL)
                 addr_result = sql_id_address.fetchone()
                 if addr_result == None:  # No person in id rec? Should never happen
-                    logger.info("Employee not in id rec for id number {0}".format(
-                        carth_id));
-                    # print("Employee not in id rec for id number {0}".format(row[
+                    logger.info('Employee not in id rec for id number {0}'.format(carth_id));
+                    # print("Employee not in id rec for id number {0}'.format(row[
                     # "carth_id"]))
 
 
-            # Update ID Rec and archive aa rec
+                # Update ID Rec and archive aa rec
                 elif addr_result[1].strip() != addr_line1 \
                     or addr_result[2].strip() != addr_line2 \
                     or addr_result[3].strip() != addr_line3 \
@@ -208,7 +207,7 @@ def fn_process_idrec(carth_id, fullname, lastname, firstname, middlename,
                     or addr_result[5].strip() != st \
                     or addr_result[6].strip() != zip \
                     or addr_result[7].strip() != ctry:
-                    # print("Update: no match in ID_REC on " + addr_result[1])  #
+                        print("Update: no match in ID_REC on " + addr_result[1])  #
 
             except Exception as err:
                 logger.error(err, exc_info=True)
@@ -219,16 +218,16 @@ def fn_process_idrec(carth_id, fullname, lastname, firstname, middlename,
                 # Compare ADP address to CX address
                 # query works - 05/30/18
                 q_update_id_rec_addr = '''
-                                 update id_rec set addr_line1 = "{0}",
-                                      addr_line2 = "{1}", addr_line3 = "{2}",
-                                      city = "{3}", st = "{4}", zip = "{5}", 
-                                      ctry = "{6}" 
+                                 update id_rec set addr_line1 = '{0}',
+                                      addr_line2 = '{1}', addr_line3 = '{2}',
+                                      city = '{3}', st = '{4}', zip = '{5}',
+                                      ctry = '{6}'
                                  where id = {7}
                                       '''.format(addr_line1, addr_line2,
                                           addr_line3, city, st, zip, ctry,
                                           carth_id)
                 print(q_update_id_rec_addr)
-                logger.info("Update address in id_rec table");
+                # logger.info("Update address in id_rec table");
                 # do_sql(q_update_id_rec_addr, key=DEBUG, earl=EARL)
             except Exception as err:
                 logger.error(err, exc_info=True)
@@ -240,11 +239,11 @@ def fn_process_idrec(carth_id, fullname, lastname, firstname, middlename,
                 # now check to see if address is a duplicate in aa_rec
                 # find max start date to determine what date to insert
                 # insert or update as needed
-                fn_archive_address(carth_id, fullname, addr_line1, addr_line2,
+            fn_archive_address(carth_id, fullname, addr_line1, addr_line2,
                         addr_line3, city, st, zip, ctry)
 
 
-        # return "x"
+            # return "x"
 
     except Exception as e:
         print(e)
