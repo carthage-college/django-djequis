@@ -49,19 +49,25 @@ os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 from djequis.core.utils import sendmail
 
-from djzbar.utils.informix import do_sql
+# from djzbar.utils.informix import do_sql
+from djequis.adp.utilities import do_sql
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
-from djequis.adp.aarec import fn_archive_address
+from djequis.adp.idrec import fn_process_idrec
+from djequis.adp.aarec import fn_archive_address, fn_insert_aa, \
+    fn_update_aa, fn_end_date_aa, fn_set_email2
 from djequis.adp.cvidrec import fn_process_cvid
 from djequis.adp.jobrec import fn_process_job
-from djequis.adp.utilities import fn_validate_field, fn_insert_aa, \
-    fn_update_aa, fn_end_date_aa
+from djequis.adp.utilities import fn_validate_field, fn_convert_date, \
+    fn_format_phone
 from djequis.adp.profilerec import fn_process_profile_rec
 from djtools.fields import TODAY
 
+# normally set as 'debug" in SETTINGS
 DEBUG = settings.INFORMIX_DEBUG
+
+
 
 # set up command-line options
 desc = """
@@ -182,18 +188,19 @@ def main():
         # set global variable
         global EARL
         # determines which database is being called from the command line
-        if database == 'cars':
-            EARL = INFORMIX_EARL_PROD
-        elif database == 'train':
-            EARL = INFORMIX_EARL_TEST
-        else:
-            # this will raise an error when we call get_engine()
-            # below but the argument parser should have taken
-            # care of this scenario and we will never arrive here.
-            EARL = None
-        # establish database connection
-        engine = get_engine(EARL)
-
+        # if database == 'cars':
+        #     EARL = INFORMIX_EARL_PROD
+        # elif database == 'train':
+        #     EARL = INFORMIX_EARL_TEST
+        # elif database == 'default'
+        EARL="default"
+        # else:
+        #     # this will raise an error when we call get_engine()
+        #     # below but the argument parser should have taken
+        #     # care of this scenario and we will never arrive here.
+        #     EARL = None
+        # # establish database connection
+        # engine = get_engine(EARL)
         #################################################################
         # STEP 1--
         # Read files and write out differences
@@ -281,7 +288,22 @@ def main():
             d_reader = csv.DictReader(f, delimiter=',')
             for row in d_reader:
                 print('carthid = {0}, Fullname = {1}'.format(row["carth_id"],row["payroll_name"]))
+                # print("Use as legal {0}".format(row["primary_legal_address"]))
+                ethnic_code = {
+                    'Not Hispanic or Latino': 'N',
+                    'HISPANIC OR LATINO': 'Y'
+                }
 
+                is_hispanic = ethnic_code.get(row["ethnicity"])
+
+                racecode = {
+                    '1': 'WH',
+                    '2': 'BL',
+                    '4': 'AS',
+                    '6': 'AP',
+                    '9': 'MU'
+                }
+                race = racecode.get(row["race"])
                 #################################################################
                 # STEP 2a--
                 # Write entire row to cc_adp_rec table
@@ -317,61 +339,69 @@ def main():
                 business_unit_code, business_unit_descr, reports_to_name,
                 reports_to_position_id, reports_to_associate_id, 
                 employee_associate_id, date_stamp)
-                    VALUES 
-                    ({0},{1},"{2}","{3}","{4}",
-                    "{5}","{6}","{7}","{8}","{9}","{10}",
-                "{11}","{12}","{13}","{14}",
-                "{15}","{16}","{17}",
-                "{18}","{19}","{20}","{21}",
-                "{22}","{23}","{24}","{25}",
-                "{26}","{27}","{28}","{29}",
-                "{30}", "{31}","{32}",
-                "{33}","{34}","{35}",
-                "{36}","{37}","{38}","{39}",
-                "{40}","{41}","{42}",
-                "{43}","{44}","{45}","{46}","{47}",
-                "{48}","{49}",
-                "{50}", "{51}","{52}",
-                "{53}","{54}","{55}",
-                "{56}","{57}","{58}","{59}",
-                "{60}","{61}","{62},"{63}"",
-                "{64}","{65}","{66}",
-                "{67}","{68}","{69}","{70}",
-                "{71}",{72},"{73}","{74}","{75}",
-                "{76}","{77}","{78}",
-                "{79}","{80}","{81}",
-                "{82}","{83}","{84}",
-                "{85}","{86}","{87}",
-                "{88}","{89}","{90}",
-                "{91}","{92}","{93}",
-                "{94}","{95}","{96}",
-                "{97}","{98}","{99}","{100}");
+                    VALUES
+                    ({0},{1},'{2}','{3}','{4}',
+                    '{5}','{6}','{7}','{8}','{9}','{10}',
+                '{11}','{12}','{13}','{14}',
+                '{15}','{16}','{17}',
+                '{18}','{19}','{20}','{21}',
+                '{22}','{23}','{24}','{25}',
+                '{26}','{27}','{28}','{29}',
+                '{30}', '{31}','{32}',
+                '{33}','{34}','{35}',
+                '{36}','{37}','{38}','{39}',
+                '{40}','{41}','{42}',
+                '{43}','{44}','{45}','{46}','{47}',
+                '{48}','{49}',
+                '{50}', '{51}','{52}',
+                '{53}','{54}','{55}',
+                '{56}','{57}','{58}','{59}',
+                '{60}','{61}','{62}','{63}',
+                '{64}','{65}','{66}',
+                '{67}','{68}','{69}','{70}',
+                '{71}',{72},'{73}','{74}','{75}',
+                '{76}','{77}','{78}',
+                '{79}','{80}','{81}',
+                '{82}','{83}','{84}',
+                '{85}','{86}','{87}',
+                '{88}','{89}','{90}',
+                '{91}','{92}','{93}',
+                '{94}','{95}','{96}',
+                '{97}','{98}','{99}','{100}');
                 '''.format(row["file_number"], row["carth_id"], row["last_name"],
                        row["first_name"], row["middle_name"], row["salutation"],
                        row["payroll_name"], row["preferred_name"],
-                       row["birth_date"], row["gender"],
-                       row["marital_status"], row["race"],
-                       row["race_descr"], row["ethnicity"],
+                       fn_convert_date(row["birth_date"]), (row["gender"][:1]),
+                       row["marital_status"], race,
+                       row["race_descr"], is_hispanic,
                        row["ethnicity_id_meth"], row["personal_email"],
                        row["primary_address1"], row["primary_address2"],
-                       row["primary_address1"], row["primary_city"],
+                       row["primary_address3"], row["primary_city"],
                        row["primary_state_code"], row["primary_state_descr"],
                        row["primary_zip"], row["primary_county"],
                        row["primary_country"], row["primary_country_code"],
-                       row["primary_legal_address"], row["home_phone"],
-                       row["mobile_phone"], row["work_phone"],
+                       (row["primary_legal_address"][:1]),
+                       fn_format_phone(row["home_phone"]),
+                       fn_format_phone(row["mobile_phone"]), row["work_phone"],
                        row["wc_work_phone"], row["wc_work_email"],
-                       row["use_work_for_notification"], row["legal_address1"],
+                       (row["use_work_for_notification"][:1]),
+                       row["legal_address1"],
                        row["legal_address2"], row["legal_address3"],
                        row["legal_city"], row["legal_state_code"],
                        row["legal_state_description"], row["legal_zip"],
                        row["legal_county"], row["legal_country"],
-                       row["legal_country_code"], row["ssn"], row["hire_date"],
-                       row["hire_rehire_date"], row["rehire_date"],
-                       row["pos_start_date"], row["pos_effective_date"],
-                       row["pos_effective_end_date"], row["termination_date"],
-                       row["position_status"], row["status_effective_date"],
-                       row["status_eff_end_date"], row["adj_service_date"],
+                       row["legal_country_code"], row["ssn"],
+                       fn_convert_date(row["hire_date"]),
+                       fn_convert_date(row["hire_rehire_date"]),
+                       fn_convert_date(row["rehire_date"]),
+                       fn_convert_date(row["pos_start_date"]),
+                       fn_convert_date(row["pos_effective_date"]),
+                       fn_convert_date(row["pos_effective_end_date"]),
+                       fn_convert_date(row["termination_date"]),
+                       row["position_status"],
+                       fn_convert_date(row["status_effective_date"]),
+                       fn_convert_date(row["status_eff_end_date"]),
+                       fn_convert_date(row["adj_service_date"]),
                        row["archived"], row["position_id"],
                        row["primary_position"], row["payroll_comp_code"],
                        row["payroll_comp_name"], row["cip"],
@@ -396,9 +426,9 @@ def main():
                        row["reports_to_pos_id"], row["reports_to_assoc_id"],
                        row["employee_assoc_id"],
                        datetime.now().strftime("%Y-%m-%d"))
-                # print(q_cc_adp_rec)
-                scr.write(q_cc_adp_rec+'\n');
-                logger.info("Inserted into adp_rec table");
+                print(q_cc_adp_rec)
+                # scr.write(q_cc_adp_rec+'\n');
+                # logger.info("Inserted into adp_rec table");
                 # do_sql(q_cc_adp_rec, key=DEBUG, earl=EARL)
 
                 ###############################################################
@@ -435,18 +465,18 @@ def main():
                         ########################################
                         # This will take care of addresses and demographics
                         ########################################
-                        fn_process_idrec(row["carth_id"], row["payroll_name"],
+                        fn_process_idrec(row["carth_id"], row["file_number"],
+                                 row["payroll_name"],
                                  row["last_name"], row["first_name"],
                                  row["middle_name"], row["primary_address1"],
                                  row["primary_address2"],
-                                 row["primary_address1"],
+                                 row["primary_address3"],
                                  row["primary_city"],
                                  row["primary_state_code"],
                                  row["primary_zip"], row["primary_country"],
                                  row["ssn"], row["home_phone"],
                                  row["position_status"],
                                  fn_convert_date(row["pos_effective_date"]))
-
 
                     else:
                         # print("sql addr " + addr_result[1].strip() + " loop
