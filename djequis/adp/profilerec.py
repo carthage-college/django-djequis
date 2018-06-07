@@ -146,7 +146,7 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
             q_insert_prof_rec = '''
                        INSERT INTO profile_rec (id, sex, 
                            race, hispanic, birth_date, prof_last_upd_date)
-                           VALUES ({0}, "{1}", "{2}", "{3}", "{4}", "{5}") 
+                           VALUES ({0}, '{1}', '{2}', '{3}', '{4}', '{5}') 
                        '''.format(id, sex, race, is_hispanic, birth_date,
                               prof_last_upd_date)
             print(q_insert_prof_rec)
@@ -155,10 +155,10 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
             # do_sql(q_insert_prof_rec, key=DEBUG, earl=EARL)
         else:
             q_update_prof_rec = '''
-                       UPDATE profile_rec SET sex = "{0}",
-                           hispanic = "{1}", race = "{2}",
-                           birth_date = "{3}", 
-                           prof_last_upd_date = "{5}"
+                       UPDATE profile_rec SET sex = '{0}',
+                           hispanic = '{1}', race = '{2}',
+                           birth_date = '{3}', 
+                           prof_last_upd_date = '{5}'
                            WHERE id = {4}
                        '''.format(sex, is_hispanic, race, birth_date, id,
                                   prof_last_upd_date)
