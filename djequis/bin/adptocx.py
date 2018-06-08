@@ -1,4 +1,5 @@
 import os
+import string
 import sys
 import pysftp
 import csv
@@ -14,6 +15,7 @@ from sqlalchemy import text
 import shutil
 import re
 import logging
+import string
 from logging.handlers import SMTPHandler
 
 
@@ -50,7 +52,7 @@ os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 from djequis.core.utils import sendmail
 
 # from djzbar.utils.informix import do_sql
-from djequis.adp.utilities import do_sql
+from djequis.adp.utilities import do_sql, do_sql2
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
@@ -308,67 +310,80 @@ def main():
                 # STEP 2a--
                 # Write entire row to cc_adp_rec table
                 #################################################################
+
                 q_cc_adp_rec = '''
-                INSERT INTO cc_adp_rec
-                (file_no, carthage_id, lastname, firstname, middlename, 
-                salutation, fullname, pref_name, birth_date, gender, marital_status, race, 
-                race_descr, hispanic, race_id_method, personal_email, 
-                primary_addr_line1, primary_addr_line2, primary_addr_line3,
-                primary_addr_city, primary_addr_st, primary_addr_state, primary_addr_zip, 
-                primary_addr_county, primary_addr_country, primary_addr_country_code, 
-                primary_addr_as_legal, home_phone, cell_phone, work_phone, 
-                work_contact_phone, work_contact_email, work_contact_notification, 
-                legal_addr_line1, legal_addr_line2, legal_addr_line3, 
-                legal_addr_city, legal_addr_st, legal_addr_state, legal_addr_zip, 
-                legal_addr_county, legal_addr_country, legal_addr_country_code,
-                ssn, hire_date, hire_rehire_date, rehire_date, position_start_date, 
-                position_effective_date, position_effective_end_date, 
-                termination_date, position_status, status_effective_date,
-                status_effective_end_date, adjusted_service_date, archived_employee,
-                position_id, primary_position, payroll_company_code, payroll_company_name,
-                cip_code, worker_category_code, worker_category_descr, job_title_code, 
-                job_title_descr, home_cost_number_code, home_cost_number_descr, 
-                job_class_code, job_class_descr, job_descr, job_function_code, 
-                job_function_descr, room, bldg, bldg_name, leave_of_absence_start_date, 
-                leave_of_absence_return_date, home_cost_number_2, payroll_company_code_2, 
-                position_effective_date_2, position_end_date_2, home_cost_number_3, 
-                payroll_company_code_3, position_effective_date_3, position_end_date_3, 
-                home_cost_number_4, payroll_company_code_4, position_effective_date_4, 
-                position_end_date_4, home_depart_num_code, home_depart_num_descr, 
-                supervisor_id, supervisor_firstname, supervisor_lastname, 
-                business_unit_code, business_unit_descr, reports_to_name,
-                reports_to_position_id, reports_to_associate_id, 
-                employee_associate_id, date_stamp)
-                    VALUES
-                    ({0},{1},'{2}','{3}','{4}',
-                    '{5}','{6}','{7}','{8}','{9}','{10}',
-                '{11}','{12}','{13}','{14}',
-                '{15}','{16}','{17}',
-                '{18}','{19}','{20}','{21}',
-                '{22}','{23}','{24}','{25}',
-                '{26}','{27}','{28}','{29}',
-                '{30}', '{31}','{32}',
-                '{33}','{34}','{35}',
-                '{36}','{37}','{38}','{39}',
-                '{40}','{41}','{42}',
-                '{43}','{44}','{45}','{46}','{47}',
-                '{48}','{49}',
-                '{50}', '{51}','{52}',
-                '{53}','{54}','{55}',
-                '{56}','{57}','{58}','{59}',
-                '{60}','{61}','{62}','{63}',
-                '{64}','{65}','{66}',
-                '{67}','{68}','{69}','{70}',
-                '{71}',{72},'{73}','{74}','{75}',
-                '{76}','{77}','{78}',
-                '{79}','{80}','{81}',
-                '{82}','{83}','{84}',
-                '{85}','{86}','{87}',
-                '{88}','{89}','{90}',
-                '{91}','{92}','{93}',
-                '{94}','{95}','{96}',
-                '{97}','{98}','{99}','{100}');
-                '''.format(row["file_number"], row["carth_id"], row["last_name"],
+                INSERT INTO cc_adp_rec (file_no, carthage_id, lastname, firstname, middlename, 
+               salutation, fullname, pref_name, birth_date, gender, 
+               marital_status, race, 
+               race_descr, hispanic, race_id_method, personal_email, 
+               primary_addr_line1, primary_addr_line2, primary_addr_line3,
+               primary_addr_city, primary_addr_st, primary_addr_state, 
+               primary_addr_zip, 
+               primary_addr_county, primary_addr_country, 
+               primary_addr_country_code, 
+               primary_addr_as_legal, home_phone, cell_phone, work_phone, 
+               work_contact_phone, work_contact_email, 
+               work_contact_notification, 
+               legal_addr_line1, legal_addr_line2, legal_addr_line3, 
+               legal_addr_city, legal_addr_st, legal_addr_state, 
+               legal_addr_zip, 
+               legal_addr_county, legal_addr_country, legal_addr_country_code,
+               ssn, hire_date, hire_rehire_date, rehire_date, 
+               position_start_date, 
+               position_effective_date, position_effective_end_date, 
+               termination_date, position_status, status_effective_date,
+               status_effective_end_date, adjusted_service_date, 
+               archived_employee,
+               position_id, primary_position, payroll_company_code, 
+               payroll_company_name,
+               cip_code, worker_category_code, worker_category_descr, 
+               job_title_code, 
+               job_title_descr, home_cost_number_code, home_cost_number_descr, 
+               job_class_code, job_class_descr, job_descr, job_function_code, 
+               job_function_descr, room, bldg, bldg_name, 
+               leave_of_absence_start_date, 
+               leave_of_absence_return_date, home_cost_number_2, 
+               payroll_company_code_2, 
+               position_effective_date_2, position_end_date_2, 
+               home_cost_number_3, 
+               payroll_company_code_3, position_effective_date_3, 
+               position_end_date_3, 
+               home_cost_number_4, payroll_company_code_4, 
+               position_effective_date_4, 
+               position_end_date_4, home_depart_num_code, 
+               home_depart_num_descr, 
+               supervisor_id, supervisor_firstname, supervisor_lastname, 
+               business_unit_code, business_unit_descr, reports_to_name,
+               reports_to_position_id, reports_to_associate_id, 
+               employee_associate_id, date_stamp) VALUES
+                   (%s,%s,%s,%s,%s,%s,%s,%s,%s,
+               %s,%s,%s,%s,%s,%s,%s,
+               %s,%s,%s,%s,%s,%s,%s,%s,
+               %s,%s,%s,%s,%s,%s,%s,
+               %s,%s,%s,
+               %s,%s,%s,%s,
+               %s,%s,%s,
+               %s,%s,%s,%s,%s,
+               %s,%s,
+               %s,%s,
+               %s,%s,%s,
+               %s,%s,%s,
+               %s,%s,%s,%s,
+               %s,%s,%s,%s,
+               %s,%s,%s,
+               %s,%s,%s,%s,
+               %s,%s,%s,%s,%s,
+               %s,%s,%s,
+               %s,%s,%s,
+               %s,%s,%s,
+               %s,%s,%s,
+               %s,%s,%s,
+               %s,%s,%s,
+               %s,%s,%s,
+               %s,%s,%s,%s)'''
+
+
+                cc_adp_args = (row["file_number"], row["carth_id"], row["last_name"],
                        row["first_name"], row["middle_name"], row["salutation"],
                        row["payroll_name"], row["preferred_name"],
                        fn_convert_date(row["birth_date"]), (row["gender"][:1]),
@@ -412,25 +427,37 @@ def main():
                        row["job_description"], row["job_function_code"],
                        row["job_function_description"], row["room_number"],
                        row["location_code"], row["location_description"],
-                       row["leave_start_date"], row["leave_return_date"],
+                       fn_convert_date(row["leave_start_date"]),
+                       fn_convert_date(row["leave_return_date"]),
                        row["home_cost_number2"], row["payroll_code2"],
-                       row["position_eff_date2"], row["position_end_date2"],
+                       fn_convert_date(row["position_eff_date2"]),
+                       fn_convert_date(row["position_end_date2"]),
                        row["home_cost_number3"], row["payroll_code3"],
-                       row["position_eff_date3"], row["position_end_date3"],
+                       fn_convert_date(row["position_eff_date3"]),
+                       fn_convert_date(row["position_end_date3"]),
                        row["home_cost_number4"], row["payroll_code4"],
-                       row["position_eff_date4"], row["position_end_date4"],
+                       fn_convert_date(row["position_eff_date4"]),
+                       fn_convert_date(row["position_end_date4"]),
                        row["home_dept_code"], row["home_dept_descr"],
                        row["supervisor_id"], row["supervisor_fname"],
                        row["supervisor_lname"], row["business_unit_code"],
                        row["business_unit_descr"], row["reports_to_name"],
                        row["reports_to_pos_id"], row["reports_to_assoc_id"],
                        row["employee_assoc_id"],
-                       datetime.now().strftime("%Y-%m-%d"))
-                print(q_cc_adp_rec)
+                       datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
+                # print(q_cc_adp_rec)
+                # print(cc_adp_args)
                 # scr.write(q_cc_adp_rec+'\n');
                 # logger.info("Inserted into adp_rec table");
-                # do_sql(q_cc_adp_rec, key=DEBUG, earl=EARL)
 
+                #####################################
+                # Note:  Had to pass different arguments to get insert to work
+                # with date nulls.   do_sql2, instead of Kirk's do_sql
+                # do_sql(q_cc_adp_rec + str(cc_adp_args), key=DEBUG, earl=EARL)
+                # do_sql2(q_cc_adp_rec, cc_adp_args)
+
+                # fn_convert_date(row["termination_date"]),
                 ###############################################################
                 # STEP 2b--
                 # Do updates to id_rec
@@ -457,81 +484,116 @@ def main():
                 # Exclude student employees from process, paycode DPW
                 elif row["payroll_comp_code"] != 'DPW':
                     # Check to see if record exists in id_rec
+                    # Do this first, or everything else is moot
                     results = fn_validate_field(row["carth_id"],"id","id",
                                                 "id_rec","integer")
                     print("ID Validate result = " + str(results))
 
-                    if results == None:
+                    if results is None:
+                        SUBJECT = 'No matcining ID in id_rec - abort and ' \
+                                  'email HR'
+                        BODY = 'No matching ID in id_rec, process aborted. ' \
+                               'Name = {0}, \
+                                                       ADP File = {1}'.format(
+                            fullname, file_number)
+                        print(SUBJECT)
+                        # sendmail(settings.ADP_TO_EMAIL,
+                        # settings.ADP_FROM_EMAIL,
+                        #          BODY, SUBJECT
+                        #          )
+                        logger.error('There was no matching ID in id_Rec \
+                                     table, row skipped. Name = {0}, \
+                                     ADP File = {1}'.format(fullname, file_number))
+
+
+                        # fn_process_idrec(row["carth_id"], row["file_number"],
+                        #          row["payroll_name"],
+                        #          row["last_name"], row["first_name"],
+                        #          row["middle_name"], row["primary_address1"],
+                        #          row["primary_address2"],
+                        #          row["primary_address3"],
+                        #          row["primary_city"],
+                        #          row["primary_state_code"],
+                        #          row["primary_zip"], row["primary_country"],
+                        #          row["ssn"], row["home_phone"],
+                        #          row["position_status"],
+                        #          fn_convert_date(row["pos_effective_date"]))
+
+                    else:
                         ########################################
                         # This will take care of addresses and demographics
                         ########################################
+                        print("Deal with Address")
                         fn_process_idrec(row["carth_id"], row["file_number"],
                                  row["payroll_name"],
                                  row["last_name"], row["first_name"],
-                                 row["middle_name"], row["primary_address1"],
+                                 row["middle_name"],
+                                 row["primary_address1"],
                                  row["primary_address2"],
                                  row["primary_address3"],
                                  row["primary_city"],
                                  row["primary_state_code"],
-                                 row["primary_zip"], row["primary_country"],
+                                 row["primary_zip"],
+                                 row["primary_country"],
+                                 row["primary_country_code"],
                                  row["ssn"], row["home_phone"],
                                  row["position_status"],
                                  fn_convert_date(row["pos_effective_date"]))
 
-                    else:
                         # print("sql addr " + addr_result[1].strip() + " loop
                         # address = " + row["primary_address1"].strip())
-                        print("Address matches, no changes needed")
 
-                    if row["personal_email"] != '':
-                        email_result = fn_set_email2(row["personal_email"],
-                                                       row["carth_id"])
-                        print("Email = " + str(email_result))
-                    else:
-                        print("No email from ADP")
 
-                    #Check to update phone in aa_rec
-                    if row["mobile_phone"] != "":
-                        cell = fn_set_cell_phone(row["mobile_phone"],
-                                 row["carth_id"], row["payroll_name"])
-                        print("Cell phone result: " + cell)
-                    else:
-                        print("No Cell")
+                    #
+                    # if row["personal_email"] != '':
+                    #     email_result = fn_set_email2(row["personal_email"],
+                    #                                    row["carth_id"])
+                    #     print("Email = " + str(email_result))
+                    # else:
+                    #     print("No email from ADP")
+                    #
+                    # #Check to update phone in aa_rec
+                    # if row["mobile_phone"] != "":
+                    #     cell = fn_set_cell_phone(row["mobile_phone"],
+                    #              row["carth_id"], row["payroll_name"])
+                    #     print("Cell phone result: " + cell)
+                    # else:
+                    #     print("No Cell")
 
                     ###########################################################
                     # STEP 2c--
                     # Do updates to profile_rec (profilerec.py)
                     ##########################################################
-                    prof_rec = fn_process_profile_rec(row["carth_id"],
-                                row["ethnicity"], row["gender"], row["race"],
-                                row["birth_date"],
-                                datetime.now().strftime("%Y-%m-%d"))
-
-                    print(prof_rec)
+                    # prof_rec = fn_process_profile_rec(row["carth_id"],
+                    #             row["ethnicity"], row["gender"], row["race"],
+                    #             row["birth_date"],
+                    #             datetime.now().strftime("%Y-%m-%d"))
+                    #
+                    # print(prof_rec)
 
                     ##########################################################
                     # STEP 2d--
                     # Do updates to cvid_rec (cvidrec.py)
                     ##########################################################
-                    fn_process_cvid(row["carth_id"], row["file_number"],
-                                 row["ssn"], row["employee_assoc_id"])
+                    # fn_process_cvid(row["carth_id"], row["file_number"],
+                    #              row["ssn"], row["employee_assoc_id"])
 
                     ##########################################################
                     # STEP 2e--
                     # Do updates to job_rec (jobrec.py)
                     ##########################################################
-                    fn_process_job(row["carth_id"], row["worker_cat_code"],
-                            row["worker_cat_descr"], row["business_unit_code"],
-                            row["business_unit_descr"], row["home_dept_code"],
-                            row["home_dept_descr"], row["job_title_code"],
-                            row["job_title_descr"], row["pos_start_date"],
-                            row["pos_effective_end_date"],
-                            row["payroll_comp_code"], row["job_function_code"],
-                            row["job_function_description"],
-                            row["job_class_code"], row["job_class_descr"],
-                            row["primary_position"], row["supervisor_id"],
-                            row["last_name"], row["first_name"],
-                            row["middle_name"])
+                    # fn_process_job(row["carth_id"], row["worker_cat_code"],
+                    #         row["worker_cat_descr"], row["business_unit_code"],
+                    #         row["business_unit_descr"], row["home_dept_code"],
+                    #         row["home_dept_descr"], row["job_title_code"],
+                    #         row["job_title_descr"], row["pos_start_date"],
+                    #         row["pos_effective_end_date"],
+                    #         row["payroll_comp_code"], row["job_function_code"],
+                    #         row["job_function_description"],
+                    #         row["job_class_code"], row["job_class_descr"],
+                    #         row["primary_position"], row["supervisor_id"],
+                    #         row["last_name"], row["first_name"],
+                    #         row["middle_name"])
 
 
             # set destination directory for which the sql file will be archived to
