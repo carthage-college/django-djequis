@@ -51,7 +51,8 @@ os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 # from djequis.core.utils import sendmail
 from djequis.adp.utilities import fn_convert_date
-from djzbar.utils.informix import do_sql
+from djequis.adp.utilities import do_sql, do_sql2
+# from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
@@ -83,14 +84,15 @@ global EARL
 # if database == 'cars':
 #    EARL = INFORMIX_EARL_PROD
 # elif database == 'train':
-EARL = INFORMIX_EARL_TEST
+# EARL = INFORMIX_EARL_TEST
+EARL = "default"
 # else:
     # this will raise an error when we call get_engine()
     # below but the argument parser should have taken
     # care of this scenario and we will never arrive here.
 #    EARL = None
 # establish database connection
-engine = get_engine(EARL)
+# engine = get_engine(EARL)
 
 
 ######################################################
@@ -128,7 +130,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry):
                         AND aa in ('PERM','PREV','SCND')
                         AND end_date is null
                         '''.format(id)
-    sql_id_address = do_sql(q_check_aa_adr, earl=EARL)
+    sql_id_address = do_sql(q_check_aa_adr, key=DEBUG, earl=EARL)
     addr_result = sql_id_address.fetchone()
     print(q_check_aa_adr)
     print("Addr Result = ")
@@ -150,7 +152,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry):
     #                       '''.format(row["carth_id"])
     print(q_check_aa_date)
     # logger.info("Select address info from id_rec table");
-    sql_date = do_sql(q_check_aa_date, earl=EARL)
+    sql_date = do_sql(q_check_aa_date, key=DEBUG, earl=EARL)
     date_result = sql_date.fetchone()
     #print date_result
 
@@ -260,7 +262,7 @@ def fn_update_aa(id, aa, aanum, fllname, add1, add2, add3, cty, st, zip, ctry, b
                       '''.format(id, aa, aanum ,fllname, add1, add2, add3,
                                  begdate, cty, st, zip, ctry)
     # logger.info("update address info in aa_rec table");
-    # sql_aa_insert = do_sql(q_insert_aa, earl=EARL)
+    # sql_aa_insert = do_sql(q_insert_aa, key=DEBUG, earl=EARL)
     # insert_result = sql_aa_insert.fetchone(
     print(q_update_aa)
     print("update aa completed")
@@ -275,7 +277,7 @@ def fn_end_date_aa(id, aa_num, fullname, begdate, enddate):
                           and beg_date = '{3}'
                           '''.format(id, aa_num, fullname, begdate, enddate)
         # logger.info("update address info in aa_rec table");
-        # sql_aa_insert = do_sql(q_insert_aa, earl=EARL)
+        # sql_aa_insert = do_sql(q_insert_aa, key=DEBUG, earl=EARL)
         # insert_result = sql_aa_insert.fetchone(
         print(q_update_aa)
         print("end Date aa completed")
@@ -290,7 +292,7 @@ def fn_set_cell_phone(phone, id, fullname):
         WHERE aa_rec.id = {0} AND aa_rec.aa = 'CELL' AND aa_rec.end_date is null
             '''.format(id)
 
-    # sql_cell = do_sql(q_check_cell, earl=EARL)
+    # sql_cell = do_sql(q_check_cell, key=DEBUG, earl=EARL)
     cell_result = sql_cell.fetchone()
     if cell_result == None:
         print("No Cell")
