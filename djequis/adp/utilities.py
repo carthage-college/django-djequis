@@ -18,6 +18,8 @@ import re
 import logging
 from logging.handlers import SMTPHandler
 import codecs
+import unicodedata
+
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -50,7 +52,7 @@ os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 from djequis.core.utils import sendmail
-from djzbar.utils.informix import do_sql
+# from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
@@ -82,15 +84,15 @@ global EARL
 # if database == 'cars':
 #    EARL = INFORMIX_EARL_PROD
 # elif database == 'train':
-EARL = INFORMIX_EARL_TEST
-# EARL = "default"
+# EARL = INFORMIX_EARL_TEST
+EARL = "default"
 # else:
     # this will raise an error when we call get_engine()
     # below but the argument parser should have taken
     # care of this scenario and we will never arrive here.
 #    EARL = None
 # establish database connection
-engine = get_engine(EARL)
+# engine = get_engine(EARL)
 
 #########################################################
 # Common function to validate that a record exists
@@ -105,26 +107,28 @@ def fn_validate_field(searchval, keyfield, retfield, table, keytype):
         qval_sql = "SELECT DISTINCT " + retfield + " FROM " + table \
                    + " WHERE " + keyfield + " = " + str(searchval)
 
-    print(qval_sql)
+    print("Validate Field SQL = " + qval_sql)
 
-    # try:
-    #     # sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
-    #     if sql_val != None:
-    #         row = sql_val.fetchone()
-    #         if row == None:
-    #             if keytype == "char":
-    #                 return ""
-    #             else:
-    #                 return 0
-    #         else:
-    #             return (row[0])
-    #     else:
-    #         if keytype == "char":
-    #             return ""
-    #         else:
-    #             return 0
-    # except Exception as e:
-    #     print(e)
+    try:
+        sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
+        print("sql_val = " + str(sql_val))
+        if sql_val is not None:
+            return sql_val
+            # row = sql_val.fetchone()
+            # if row is not None:
+            #     return row[0]
+            # else:
+            #     if keytype == "char":
+            #         return ""
+            #     else:
+            #         return 0
+        else:
+            if keytype == "char":
+                return ""
+            else:
+                return 0
+    except Exception as e:
+        print(e)
 
 
 def fn_check_duplicates(searchval, keyfield, retfield, table, testval, keytype):
@@ -141,62 +145,18 @@ def fn_check_duplicates(searchval, keyfield, retfield, table, testval, keytype):
 
     try:
         sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
-        if sql_val != None:
+        if sql_val is not None:
             row = sql_val.fetchone()
             if row == None:
-                return (0)
+                return 0
             else:
-                return (row[0])
+                return row[0]
         else:
-            return (0)
+            return 0
 
     except Exception as e:
         print(e)
         return e
-
-#########################################################
-# Specific function to deal with email in aa_rec
-#########################################################
-# def fn_set_email2(email, id, fullname):
-#     q_check_email = '''
-#                   SELECT aa_rec.aa, aa_rec.id, aa_rec.line1,
-#                   aa_rec.aa_no, aa_rec.beg_date
-#                   FROM aa_rec
-#                   WHERE aa_rec.id = {0}
-#                   AND aa_rec.aa = 'EML2'
-#                   AND aa_rec.end_date IS NULL
-#                   '''.format(id)
-#     print(q_check_email)
-#     # logger.info("Select email info from aa_rec table");
-#     try:
-#         sql_email = do_sql(q_check_email, key=DEBUG, earl=EARL)
-#         email_result = sql_email.fetchone()
-#         if email_result == None:
-#             print("New Email will be = " + email)
-#             fnct_insert_aa(id, fullname,
-#                            email, "", "", "", "", "", "",
-#                            datetime.now().strftime("%Y/%m/%d"))
-#             return("New email")
-#         elif email_result[2] == email:
-#             return("No email Change")
-#         else:
-#             # End date current EML2
-#             print("Existing email = " + email_result[0])
-#             fn_end_date_aa(id, "EML2", email_result[2],
-#                         fullname,
-#                         email_result[4],
-#                         datetime.now().strftime("%Y-%m-%d"))
-#             # insert new
-#             fnct_insert_aa(id, fullname, email, "", "", "", "", "", "",
-#                            datetime.now().strftime("%Y/%m/%d"))
-#             print("New Email will be = " + email)
-#             return("Updated email")
-#
-#     except Exception as e:
-#         print(e)
-
-
-
 
 
 def fn_convert_date(date):
@@ -204,9 +164,9 @@ def fn_convert_date(date):
         ndate = datetime.strptime(date, "%m/%d/%Y")
         retdate = datetime.strftime(ndate, "%Y-%m-%d")
     else:
-        retdate = ""
+        retdate = None
 
-    print(retdate)
+    # print(retdate)
     return retdate
 
 
@@ -220,20 +180,72 @@ def fn_format_phone(phone):
 
 def do_sql(sql, key, earl):
 
-    print(sql)
-    print(key)
-    print(earl)
+    print("SQL = " + sql)
+    # print(key)
+    # print(earl)
 
     cursor = connections[earl].cursor()
+    try:
+        if key == "test":
+            print(sql)
+        else:
+            print(key)
+            cursor.execute(sql)
+            objects = cursor.fetchall()
 
-    if key == "test":
-        print(sql)
-    else:
-        print(key)
-        cursor.execute(sql)
-        objects = cursor.fetchall()
-        # print(objects)
+            if objects is not None:
 
+                if isinstance(object, tuple):
+                    print("!")
+                    for o in objects:
+                        print(o[0])
+                        return o[0]
+                else:
+                    print(type(objects))
+            else:
+                print("do_sql returned nothing")
+                return 0
+
+
+    except Exception as e:
+        print(e.message)
+        return e
+
+def do_sql2(sql, args):
+
+    # print(myData)
+    print(sql)
+    print(args)
+
+    cursor = connections[EARL].cursor()
+    cursor.execute(sql, args)
+    # cursor.close()
+    objects = cursor.fetchall()
+    if objects is not None:
+        print objects
         for o in objects:
-             print(o)
-
+            print(o[0])
+            print(o[1])
+            print(o[2])
+            print(o[3])
+            return o[0]
+        else:
+            return 0
+# if __name__ == "__main__":
+#     args = parser.parse_args()
+#     test = args.test
+#     database = args.database
+#
+#     if not database:
+#         print "mandatory option missing: database name\n"
+#         parser.print_help()
+#         exit(-1)
+#     else:
+#         database = database.lower()
+#
+#     if database != 'cars' and database != 'train':
+#         print "database must be: 'cars' or 'train'\n"
+#         parser.print_help()
+#         exit(-1)
+#
+#     sys.exit(main())
