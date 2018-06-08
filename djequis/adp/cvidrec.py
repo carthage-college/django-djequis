@@ -84,14 +84,15 @@ global EARL
 # if database == 'cars':
 #    EARL = INFORMIX_EARL_PROD
 # elif database == 'train':
-EARL = INFORMIX_EARL_TEST
+# EARL = INFORMIX_EARL_TEST
+EARL = "default"
 # else:
     # this will raise an error when we call get_engine()
     # below but the argument parser should have taken
     # care of this scenario and we will never arrive here.
 #    EARL = None
 # establish database connection
-engine = get_engine(EARL)
+# engine = get_engine(EARL)
 
 
 def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id):
@@ -155,7 +156,7 @@ def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id):
             print(q_insert_cvid_rec)
             scr.write(q_insert_cvid_rec + '\n');
             logger.info("Inserted into cvid_rec table");
-            # do_sql(q_insert_cvid_rec, key=DEBUG, earl=EARL)
+            do_sql(q_insert_cvid_rec, key=DEBUG, earl=EARL)
         elif str(v_cx_id) != v_assoc_match and v_assoc_match != 0:
             print('Duplicate Associate ID found')
         elif str(v_cx_id) != str(v_adp_match) and v_adp_match != 0:
@@ -171,7 +172,7 @@ def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id):
                       ssn, adp_assoc_id)
             print(q_update_cvid_rec)
             logger.info("Update cvid_rec table");
-            # do_sql(q_update_cvid_rec, key=DEBUG, earl=EARL)
+            do_sql(q_update_cvid_rec, key=DEBUG, earl=EARL)
 
     except Exception as e:
         print(e)
