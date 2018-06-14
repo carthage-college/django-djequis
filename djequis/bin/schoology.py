@@ -153,19 +153,18 @@ def main():
         # The Faculty/Staff portion gets all employees with active job records
         # within the last year.
 
-
         # Dict Value 'ENROLLMENT' returns all students and instructors enrolled
-        # in a course/section with a start date less than six months from the current date.
+        # in a course/section with a start date less than six months from the
+        # current date.
 
         # Dict Value 'CROSSLIST' returns two different sections that have the
         # same meeting time and place but may have a different course number
         # for a program it looks six months ahead
         ########################################################################
         sql = do_sql(value, key=DEBUG, earl=EARL)
+
         rows = sql.fetchall()
-        for row in rows:
-            if test:
-                print row
+
         # set directory and filename to be stored
         # ex. /data2/www/data/schoology/COURSES.csv
         filename = ('{0}{1}.csv'.format(settings.SCHOOLOGY_CSV_OUTPUT,key))
@@ -177,44 +176,76 @@ def main():
         # create .csv file
         csvfile = open(filename,"w");
         output = csv.writer(csvfile)
-        # write header row to file
-        if key == 'COURSES': # write header row for COURSES and SECTIONS
-            output.writerow([
-                "Course Name", "Department", "Course Code", "Credits", "Description",
-                "Section Name", "Section School Code", "Section Code",
-                "Section Description", "Location", "School", "Grading Period"
-                ])
-        if key == 'USERS': # write header row for USERS
-            output.writerow([
-                "First Name", "Preferred First Name", "Middle Name", "Last Name",
-                "Name Prefix", "User Name", "Email", "Unique ID", "Role", "School",
-                "Schoology ID", "Position", "Pwd", "Gender", "Graduation Year",
-                "Additional Schools" 
-            ])
-        if key == 'ENROLLMENT': # write header row for ENROLLMENT
-            output.writerow([
-                "Course Code", "Section Code", "Section School Code", "Unique ID",
-                "Enrollment Type", "Grade Period" 
-            ])
-        if key == 'CROSSLIST': # write header row for CROSSLIST
-            output.writerow([
-                "Meeting Number", "Cross-listed Section Code", "Target Code" 
-            ])
         if rows is not None:
+            if key == 'COURSES': # write header row for COURSES and SECTIONS
+                output.writerow([
+                    "Course Name", "Department", "Course Code", "Credits",
+                    "Description", "Section Name", "Section School Code",
+                    "Section Code", "Section Description", "Location", "School",
+                    "Grading Period"
+                    ])
+            if key == 'USERS': # write header row for USERS
+                output.writerow([
+                    "First Name", "Preferred First Name", "Middle Name",
+                    "Last Name", "Name Prefix", "User Name", "Email",
+                    "Unique ID", "Role", "School", "Schoology ID", "Position",
+                    "Pwd", "Gender", "Graduation Year", "Additional Schools"
+                    ])
+            if key == 'ENROLLMENT': # write header row for ENROLLMENT
+                output.writerow([
+                    "Course Code", "Section Code", "Section School Code",
+                    "Unique ID", "Enrollment Type", "Grade Period"
+                    ])
+            if key == 'CROSSLIST': # write header row for CROSSLIST
+                output.writerow([
+                    "Meeting Number", "Cross-listed Section Code", "Target Code" 
+                    ])
+            # creating the data rows for the .csv files
             for row in rows:
-                output.writerow(row)
+                if test:
+                    print(row)
+                if key == 'COURSES': # write data row for COURSES
+                    output.writerow([
+                        row["coursename"], row["department"],
+                        row["coursecode"], row["credits"], row["descr"],
+                        row["sectionname"], row["secschoolcode"],
+                        row["sectioncode"], row["secdescr"], row["location"],
+                        row["school"], row["gradingperiod"]
+                        ])
+                if key == 'USERS': # write data row for USERS
+                    output.writerow([
+                        row["firstname"], row["preferred_first_name"],
+                        row["middlename"], row["lastname"], row["name_prefix"],
+                        row["username"], row["email"],
+                        ("{0:.0f}".format(0 if row['uniqueid'] is None else row['uniqueid'])),
+                        row["role"], row["school"], row["schoology_id"],
+                        row["position"], row["pwd"], row["gender"],
+                        row["gradyr"], row["additional_schools"]
+                        ])
+                if key == 'ENROLLMENT': # write data row for ENROLLMENT
+                    output.writerow([
+                        row["coursecode"], row["sectioncode"],
+                        row["secschoolcode"],
+                        ("{0:.0f}".format(0 if row['uniqueuserid'] is None else row['uniqueuserid'])),
+                        row["enrollmenttype"], row["gradeperiod"]
+                        ])
+                if key == 'CROSSLIST': # write data row for CROSSLIST
+                    output.writerow([
+                        row["mtg_no"], row["crls_code"], row["targ_code"]
+                        ])
         else:
-            SUBJECT = 'SCHOOLOGY UPLOAD failed'
-            BODY = 'No values in list.'
-            sendmail(
-                settings.SCHOOLOGY_TO_EMAIL,settings.SCHOOLOGY_FROM_EMAIL,
-                BODY, SUBJECT
-            )
+           SUBJECT = 'SCHOOLOGY UPLOAD failed'
+           BODY = 'No values in list.'
+           sendmail(
+               settings.SCHOOLOGY_TO_EMAIL,settings.SCHOOLOGY_FROM_EMAIL,
+               BODY, SUBJECT
+           )
         csvfile.close()
         # renaming old filename to newfilename and move to archive location
         shutil.copy(filename, archive_destination)
     if not test:
         file_download()
+
 
 if __name__ == "__main__":
     args = parser.parse_args()

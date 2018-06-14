@@ -5,8 +5,8 @@
 # or inactive automatically.
 COURSES = '''
     SELECT 
-        TRIM(jenzccd_rec.title) Coursename, TRIM(jenzdpt_rec.descr) Department,
-        TRIM(jenzcrs_rec.course_code) CourseCode, jenzcrs_rec.hrs Credits,
+        TRIM(jenzccd_rec.title) coursename, TRIM(jenzdpt_rec.descr) department,
+        TRIM(jenzcrs_rec.course_code) coursecode, jenzcrs_rec.hrs credits,
         TRIM(jenzccd_rec.title)||'-'||TRIM(jenzcrs_rec.sec)||' '||  CASE
             WHEN TRIM(x) = TRIM(y) THEN x
             ELSE  x||' / '||y
@@ -14,13 +14,13 @@ COURSES = '''
         TRIM(jenzcrs_rec.sec)||'-'||TRIM(InstrName)||' '||CASE
             WHEN TRIM(x) = TRIM(y) THEN x
             ELSE  x||' / '||y
-         END SectiONName,
-        TRIM(jenzcrs_rec.coursekey) SecSchoolCode,
-        LEFT(jenzcrs_rec.course_code,8)||'-'||TRIM(jenzcrs_rec.sec)||' '||TRIM(jenzcrs_rec.term_code) SectionCode,
+         END sectionname,
+        TRIM(jenzcrs_rec.coursekey) secschoolcode,
+        LEFT(jenzcrs_rec.course_code,8)||'-'||TRIM(jenzcrs_rec.sec)||' '||TRIM(jenzcrs_rec.term_code) sectioncode,
             CASE
             WHEN TRIM(x) = TRIM(y) THEN x
-            ELSE  x||' / '||y END AS SecDescr, nvl(TRIM(bldg)||' '||TRIM(ROOM),'TBA') location,
-        'Carthage College' School, TRIM(jenzcrs_rec.term_code) GradingPeriod
+            ELSE  x||' / '||y END AS secdescr, nvl(TRIM(bldg)||' '||TRIM(ROOM),'TBA') location,
+        'Carthage College' school, TRIM(jenzcrs_rec.term_code) gradingperiod
     FROM
         jenzcrs_rec
     JOIN
@@ -86,15 +86,15 @@ USERS = '''
     SELECT DISTINCT
         id_rec.firstname, addree_rec.alt_name preferred_first_name, id_rec.middlename,
         id_rec.lastname, id_rec.title name_prefix, trim(jenzprs_rec.host_username) username,
-        TRIM(jenzprs_rec.e_mail) EMAIL, to_number(jenzprs_rec.host_id) UniqueID,
+        TRIM(jenzprs_rec.e_mail) email, to_number(jenzprs_rec.host_id) uniqueid,
         CASE WHEN NVL(MIN(jenzcst_rec.status_code),'x') = 'STU' THEN 'STU'
              WHEN NVL(MIN(jenzcst_rec.status_code),'x') = 'x' AND title1.job_title IS NULL THEN 'STU'
-             ELSE 'FAC' END AS ROLE,
+             ELSE 'FAC' END AS role,
         'Carthage College' school, jenzprs_rec.host_id schoology_id,
         CASE NVL(title1.job_title,'x') WHEN 'x' THEN '' ELSE TRIM(title1.job_title) END||
         CASE NVL(title2.job_title,'x') WHEN 'x' THEN '' ELSE '; '||TRIM(title2.job_title) END||
         CASE NVL(title3.job_title,'x') WHEN 'x' THEN '' ELSE '; '||TRIM(title3.job_title) END
-        Position, '' pwd, '' gender, '' GradYr, '' additional_schools
+        position, '' pwd, '' gender, '' gradyr, '' additional_schools
     FROM jenzprs_rec
         LEFT JOIN jenzcst_rec
         ON jenzprs_rec.host_id = jenzcst_rec.host_id
@@ -129,11 +129,11 @@ USERS = '''
 # with a start date less than six months from the current date.
 ENROLLMENT = '''
     SELECT
-        jenzcrp_rec.course_code CourseCode,
-        LEFT(jenzcrs_rec.course_code,8)||'-'||TRIM(jenzcrs_rec.sec)||' '||TRIM(jenzcrs_rec.term_code) SectionCode,
-        jenzcrs_rec.coursekey SecSchoolCode, jenzcrp_rec.host_id UniqueUserID,
-        jenzcrp_rec.status_code EnrollmentType, jenzcrp_rec.term_code GradePeriod,
-        jenztrm_rec.start_date
+        trim(jenzcrp_rec.course_code) coursecode,
+        LEFT(jenzcrs_rec.course_code,8)||'-'||TRIM(jenzcrs_rec.sec)||' '||TRIM(jenzcrs_rec.term_code) sectioncode,
+        trim(jenzcrs_rec.coursekey) secschoolcode, to_number(jenzcrp_rec.host_id) uniqueuserid,
+        trim(jenzcrp_rec.status_code) enrollmenttype,
+        trim(jenzcrp_rec.term_code) gradeperiod, jenztrm_rec.start_date
     FROM
         jenzcrp_rec
     JOIN

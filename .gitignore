@@ -99,3 +99,4 @@ djequis/settings/development.py
 settings.py
 wsgi.py
 commonapp_output.sql
+*_rsa

@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.db import connections
 
 from djtools.utils.mail import send_mail
-from djtools.utils.database import dictfetchall, do_mysql
+from djtools.utils.database import dictfetchall
 
 from djzbar.decorators.auth import portal_auth_required
 

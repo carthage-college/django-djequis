@@ -15,7 +15,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djequis.settings')
 import django
 django.setup()
 
-from django.conf import settings
+from django.db import connections
 
 import argparse
 import logging
@@ -34,10 +34,16 @@ Accepts as input...
 parser = argparse.ArgumentParser(description=desc)
 
 parser.add_argument(
-    '-x', '--equis',
+    '-d', '--database',
     required=True,
-    help="Lorem ipsum dolor sit amet.",
-    dest='equis'
+    help="Database connection name from settings e.g. default",
+    dest='database'
+)
+parser.add_argument(
+    '-s', '--sql',
+    required=True,
+    help="A simple SQL incantation for testing e.g. 'SELECT * FROM auth_user'",
+    dest='sql'
 )
 parser.add_argument(
     '--test',
@@ -51,11 +57,16 @@ def main():
     main function
     '''
 
+    cursor = connections[database].cursor()
+
     if test:
-        print("this is a test")
-        logger.debug("debug = {}".format(test))
+        print(sql)
     else:
-        print("this is not a test")
+        cursor.execute(sql)
+        objects = cursor.fetchall()
+
+        for o in objects:
+            print(o)
 
 
 ######################
@@ -64,10 +75,12 @@ def main():
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    equis = args.equis
+    database = args.database
+    sql = args.sql
     test = args.test
 
     if test:
         print(args)
 
     sys.exit(main())
+
