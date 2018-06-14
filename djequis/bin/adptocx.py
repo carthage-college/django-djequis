@@ -435,12 +435,6 @@ def main():
 
                 #  # scr.write(q_cc_adp_rec+'\n');
                 #  # logger.info("Inserted into adp_rec table");
-                #
-                #  #####################################
-                #  # Note:  Had to pass different arguments to get insert to work
-                #  # with date nulls.   do_sql2, instead of Kirk's do_sql
-                #  # do_sql(q_cc_adp_rec + str(cc_adp_args), key=DEBUG, earl=EARL)
-                #  do_sql2(q_cc_adp_rec, cc_adp_args)
 
                 # fn_convert_date(row["termination_date"]),
                 ###############################################################
@@ -490,7 +484,11 @@ def main():
                                      table, row skipped. Name = {0}, \
                                      ADP File = {1}'.format(fullname, file_number))
 
-
+                        # We should theoretically never insert an ID record
+                        #  unless at some point they don't need the cx_id in
+                        #  ADP and can let CX create new ID numbers
+                        # programatically
+                        #
                         # fn_process_idrec(row["carth_id"], row["file_number"],
                         #          row["payroll_name"],
                         #          row["last_name"], row["first_name"],
