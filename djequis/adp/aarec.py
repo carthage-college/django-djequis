@@ -56,6 +56,7 @@ from djequis.adp.utilities import do_sql, do_sql2
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
+from djzbar.settings import INFORMIX_EARL_SANDBOX
 from djtools.fields import TODAY
 
 DEBUG = settings.INFORMIX_DEBUG
@@ -85,14 +86,14 @@ global EARL
 #    EARL = INFORMIX_EARL_PROD
 # elif database == 'train':
 # EARL = INFORMIX_EARL_TEST
-EARL = "default"
+EARL = INFORMIX_EARL_SANDBOX
 # else:
     # this will raise an error when we call get_engine()
     # below but the argument parser should have taken
     # care of this scenario and we will never arrive here.
 #    EARL = None
 # establish database connection
-# engine = get_engine(EARL)
+engine = get_engine(EARL)
 
 
 ######################################################
@@ -132,9 +133,14 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry):
                         '''.format(id)
     sql_id_address = do_sql(q_check_aa_adr, key=DEBUG, earl=EARL)
     addr_result = sql_id_address.fetchone()
+
     print(q_check_aa_adr)
-    print("Addr Result = ")
-    print(addr_result)
+    print("Addr Result = " + str(addr_result))
+    if addr_result is None:
+        found_aa_num = 0
+    else:
+        found_aa_num = addr_result[2]
+    print(found_aa_num)
     # logger.info("Select address info from id_rec table");
 
     #################################
@@ -154,32 +160,31 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry):
     # logger.info("Select address info from id_rec table");
     sql_date = do_sql(q_check_aa_date, key=DEBUG, earl=EARL)
     date_result = sql_date.fetchone()
-    #print date_result
+    print(date_result)
 
-    #################################
+#################################
     # Define date variables
     #################################
-    if date_result == None:  #No aa rec found
+    if found_aa_num == 0 or date_result is None:  #No aa rec found
         a1 = ""
-        max_date = datetime.now().strftime("%Y-%m-%d")
+        max_date = datetime.now().strftime("%m/%d/%Y")
     # Make sure dates don't overlap
     else:
-        print(date_result)
-        max_date = date.strftime(date_result[0],"%Y-%m-%d")
+        max_date = date.strftime(date_result[0],"%m/%d/%Y")
         a1 = date_result[3]
 
     print("A1 = " + a1 )
     print("Max date = " + str(max_date))
-    print("Now = " + str(datetime.now()))
 
 
     # Scenario 1
     # This means that the ID_Rec address will change
     # but nothing exists in aa_rec, so we will only insert as 'PREV'
-    if addr_result == None:  # No address in aa rec?
+    if found_aa_num == 0:  # No address in aa rec?
           print("No existing record - Insert only")
           # call function to insert record
-          fn_insert_aa(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry, max_date)
+          fn_insert_aa(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
+                       max_date)
 
     # Scenario 2
     # if record found in aa_rec, then we will need more options
@@ -196,6 +201,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry):
         # or addr_result[5] == addr2 \
         # or addr_result[6] == addr3 \
 
+        print("An Address exists and matches new data - Update new")
         #################################
         # Match found then we are UPDATING only....
         #################################
@@ -203,20 +209,40 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry):
               addr_result[4],addr_result[5],addr_result[6],addr_result[7],
               addr_result[8], addr_result[9],addr_result[10],addr_result[3])
 
-        print("An Address exists and matches new data - Update new")
+
 
     # to avoid overlapping dates
     # Scenario 3 - AA Rec exists but does not match new address.
     # End old, insert new
     else:
         if max_date >= str(datetime.now()):
+            print("Check Max " + max_date)
             beg_date = max_date  # add one day...
+            print("Check Beg " + beg_date)
         else:
-            beg_date = datetime.now().strftime("%Y-%m-%d")
+            timestamp = datetime.now().strftime("%m/%d/%Y")
+            fn_end_date_aa(addr_result[0], found_aa_num, fullname,
+                        timestamp, 'PREV')
+            ######################################################
+            # Timing issue here, it tries the insert before the end date
+            # entry is fully committed
+            # Need to add something to make sure the end date is in place
+            # or I get a duplicate error
+            #########################################################
+            q_check_enddate = '''SELECT aa_no, id, end_date 
+                                FROM aa_rec 
+                                WHERE aa_no = {0}
+                                AND aa = 'PREV'
+                                    '''.format(found_aa_num)
+            q_confirm_enddate = do_sql(q_check_enddate, key=DEBUG, earl=EARL)
+            v_enddate = q_confirm_enddate.fetchone()
 
-        fn_end_date_aa(addr_result[0],addr_result[2],fullname,addr_result[3],
-                    datetime.now().strftime("%Y-%m-%d"))
-        fn_insert_aa(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry, beg_date)
+            print(q_check_enddate)
+            if v_enddate is not None:
+                fn_insert_aa(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
+                         addr_result[3].strftime("%m/%d/%Y"))
+            else:
+                print("Failure on insert.  Could not verify enddate of previous")
 
         print("An Address exists but does not match - end current, insert new")
 
@@ -229,57 +255,54 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry):
 ###################################################
 # Query works 06/05/18
 def fn_insert_aa(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry, beg_date):
-    q_insert_aa = '''INSERT INTO aa_rec(id, aa, beg_date, peren, end_date,
-                         line1, line2, line3, city, st, 
-                         zip, ctry, phone, phone_ext, ofc_add_by, 
-                         cell_carrier, opt_out)
-                      VALUES
-                         ({0},'{1}','{2}','{3}','{4}',
-                         '{5}','{6}','{7}','{8}','{9}',
-                         '{10}','{11}','{12}','{13}','{14}',
-                         '{15}','{16}')
-                         '''.format(id, "PERM", beg_date, "N", "",
-                                    addr1, addr2, addr3, cty, st,
-                                    zp, ctry, "", "", "HR",
-                                    "", "")
+    q_insert_aa = '''INSERT INTO aa_rec(id, aa, beg_date, peren, end_date, 
+        line1, line2, line3, city, st, zip, ctry, phone, phone_ext, 
+        ofc_add_by, cell_carrier, opt_out)
+                      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
+    q_ins_aa_args=(id, "PERM", beg_date, "N", "", addr1, addr2, addr3, cty, st,
+                                    zp, ctry, "", "", "HR", "", "")
+
+    engine.execute(q_insert_aa,q_ins_aa_args)
     # logger.info("insert address into aa_rec table");
-    # sql_aa_insert = do_sql(q_insert_aa, earl=EARL)
-    # insert_result = sql_aa_insert.fetchone(
     print(q_insert_aa)
+    print(q_ins_aa_args)
     print("insert aa completed")
 
 # Query works 06/05/18
 def fn_update_aa(id, aa, aanum, fllname, add1, add2, add3, cty, st, zip, ctry, begdate):
     q_update_aa = '''update aa_rec 
-                      set line1 = '{4}',
-                      line2 = '{5}',
-                      line3 = '{6}',
-                      city = '{8}',
-                      st = '{9}',
-                      zip = '{10}',
-                      ctry = '{11}'  
-                      where aa_no = {2}
-                      '''.format(id, aa, aanum ,fllname, add1, add2, add3,
-                                 begdate, cty, st, zip, ctry)
+                      set line1 = ?,
+                      line2 = ?,
+                      line3 = ?,
+                      city = ?,
+                      st = ?,
+                      zip = ?,
+                      ctry = ?  
+                      where aa_no = ?'''
+    q_upd_aa_args=(add1, add2, add3, cty, st, zip,
+                   ctry, aanum)
     # logger.info("update address info in aa_rec table");
-    # sql_aa_insert = do_sql(q_insert_aa, key=DEBUG, earl=EARL)
-    # insert_result = sql_aa_insert.fetchone(
+    engine.execute(q_update_aa, q_upd_aa_args)
+
     print(q_update_aa)
+    print(q_upd_aa_args)
     print("update aa completed")
 
 # Query works 06/05/18
-def fn_end_date_aa(id, aa_num, fullname, begdate, enddate):
+def fn_end_date_aa(id, aa_num, fullname, enddate, aa):
 
-        q_update_aa = '''update aa_rec 
-                          set end_date = '{4}'
-                          where id = {0}
-                          and aa_no = {1}
-                          and beg_date = '{3}'
-                          '''.format(id, aa_num, fullname, begdate, enddate)
+        q_enddate_aa = '''update aa_rec 
+                          set end_date = ?, aa = ?
+                          where id = ?
+                          and aa_no = ?'''
+        q_enddate_aa_args=(enddate, aa, id, aa_num)
+
+        print("Log end date aa for " + fullname)
         # logger.info("update address info in aa_rec table");
-        # sql_aa_insert = do_sql(q_insert_aa, key=DEBUG, earl=EARL)
-        # insert_result = sql_aa_insert.fetchone(
-        print(q_update_aa)
+        print(q_enddate_aa)
+        print(q_enddate_aa_args)
+
+        engine.execute(q_enddate_aa, q_enddate_aa_args)
         print("end Date aa completed")
 
     # print(max_date)
@@ -292,7 +315,7 @@ def fn_set_cell_phone(phone, id, fullname):
         WHERE aa_rec.id = {0} AND aa_rec.aa = 'CELL' AND aa_rec.end_date is null
             '''.format(id)
 
-    # sql_cell = do_sql(q_check_cell, key=DEBUG, earl=EARL)
+    sql_cell = do_sql(q_check_cell, key=DEBUG, earl=EARL)
     cell_result = sql_cell.fetchone()
     if cell_result == None:
         print("No Cell")
@@ -323,7 +346,7 @@ def fn_set_email2(email, id, fullname):
             print("New Email will be = " + email)
             fnct_insert_aa(id, fullname,
                            email, "", "", "", "", "", "",
-                           datetime.now().strftime("%Y/%m/%d"))
+                           datetime.now().strftime("%m/%d/%Y"))
             return("New email")
         elif email_result[2] == email:
             return("No email Change")
@@ -332,11 +355,10 @@ def fn_set_email2(email, id, fullname):
             print("Existing email = " + email_result[0])
             fn_end_date_aa(id, "EML2", email_result[2],
                         fullname,
-                        email_result[4],
-                        datetime.now().strftime("%Y-%m-%d"))
+                        datetime.now().strftime("%m/%d/%Y"))
             # insert new
             fnct_insert_aa(id, fullname, email, "", "", "", "", "", "",
-                           datetime.now().strftime("%Y/%m/%d"))
+                           datetime.now().strftime("%m/%d/%Y"))
             print("New Email will be = " + email)
             return("Updated email")
 
