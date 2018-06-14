@@ -51,8 +51,7 @@ os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 # from djequis.core.utils import sendmail
 from djequis.adp.utilities import fn_convert_date
-from djequis.adp.utilities import do_sql, do_sql2
-# from djzbar.utils.informix import do_sql
+from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
@@ -155,14 +154,13 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry):
                                    AND end_date is null
                                    GROUP BY id, aa, end_date, line1
                                    '''.format(id)
-    #                       '''.format(row["carth_id"])
     print(q_check_aa_date)
     # logger.info("Select address info from id_rec table");
     sql_date = do_sql(q_check_aa_date, key=DEBUG, earl=EARL)
     date_result = sql_date.fetchone()
     print(date_result)
 
-#################################
+    #################################
     # Define date variables
     #################################
     if found_aa_num == 0 or date_result is None:  #No aa rec found
@@ -184,7 +182,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry):
           print("No existing record - Insert only")
           # call function to insert record
           fn_insert_aa(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
-                       max_date)
+                       datetime.now().strftime("%m/%d/%Y"))
 
     # Scenario 2
     # if record found in aa_rec, then we will need more options
@@ -209,40 +207,43 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry):
               addr_result[4],addr_result[5],addr_result[6],addr_result[7],
               addr_result[8], addr_result[9],addr_result[10],addr_result[3])
 
-
-
     # to avoid overlapping dates
     # Scenario 3 - AA Rec exists but does not match new address.
     # End old, insert new
     else:
         if max_date >= str(datetime.now()):
-            print("Check Max " + max_date)
-            beg_date = max_date  # add one day...
-            print("Check Beg " + beg_date)
+            end_date = max_date
         else:
-            timestamp = datetime.now().strftime("%m/%d/%Y")
-            fn_end_date_aa(addr_result[0], found_aa_num, fullname,
-                        timestamp, 'PREV')
-            ######################################################
-            # Timing issue here, it tries the insert before the end date
-            # entry is fully committed
-            # Need to add something to make sure the end date is in place
-            # or I get a duplicate error
-            #########################################################
-            q_check_enddate = '''SELECT aa_no, id, end_date 
-                                FROM aa_rec 
-                                WHERE aa_no = {0}
-                                AND aa = 'PREV'
-                                    '''.format(found_aa_num)
-            q_confirm_enddate = do_sql(q_check_enddate, key=DEBUG, earl=EARL)
-            v_enddate = q_confirm_enddate.fetchone()
+            end_date = datetime.now().strftime("%m/%d/%Y")
 
-            print(q_check_enddate)
-            if v_enddate is not None:
-                fn_insert_aa(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
-                         addr_result[3].strftime("%m/%d/%Y"))
-            else:
-                print("Failure on insert.  Could not verify enddate of previous")
+        x = datetime.strptime(end_date, "%m/%d/%Y") + timedelta(days=1)
+        beg_date = x.strftime("%m/%d/%Y")
+
+        print("Check begin date = " + beg_date)
+
+        fn_end_date_aa(addr_result[0], found_aa_num, fullname,
+                       end_date, 'PREV')
+        ######################################################
+        # Timing issue here, it tries the insert before the end date
+        # entry is fully committed
+        # Need to add something to make sure the end date is in place
+        # or I get a duplicate error
+        #########################################################
+        q_check_enddate = '''SELECT aa_no, id, end_date 
+                            FROM aa_rec 
+                            WHERE aa_no = {0}
+                            AND aa = 'PREV'
+                                '''.format(found_aa_num)
+        q_confirm_enddate = do_sql(q_check_enddate, key=DEBUG, earl=EARL)
+        print(q_check_enddate)
+        v_enddate = q_confirm_enddate.fetchone()
+
+
+        if v_enddate is not None:
+            fn_insert_aa(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
+                     beg_date)
+        else:
+            print("Failure on insert.  Could not verify enddate of previous")
 
         print("An Address exists but does not match - end current, insert new")
 
