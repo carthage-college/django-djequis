@@ -55,6 +55,7 @@ from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
+from djzbar.settings import INFORMIX_EARL_SANDBOX
 from djtools.fields import TODAY
 from djequis.adp.utilities import fn_validate_field
 
@@ -84,7 +85,9 @@ global EARL
 # if database == 'cars':
 #    EARL = INFORMIX_EARL_PROD
 # elif database == 'train':
-EARL = INFORMIX_EARL_TEST
+# EARL = INFORMIX_EARL_TEST
+# elif database == 'cx_sandbox'
+EARL = INFORMIX_EARL_SANDBOX
 # else:
     # this will raise an error when we call get_engine()
     # below but the argument parser should have taken
@@ -182,19 +185,22 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         # Not maintained in CX, so we will have to maintain it with
         # inserts and updates
         ##############################################################
-        v_workercatcode = fn_validate_field(workercatcode,"work_cat_code",
-                    "work_cat_code","cc_work_cat_table","char")
-        if v_workercatcode == None or len(str(v_workercatcode)) == 0:
-            q_ins_wc = '''INSERT INTO cc_work_cat_table (work_cat_code,
-                      work_cat_descr, active_date) VALUES ({0},'{1}','{2}')
-                      '''.format(workercatcode,workercatdescr,
-                      datetime.now().strftime("%Y-%m-%d"))
-            # print(q_ins_wc)
-        else:
-            q_upd_wc = '''UPDATE cc_work_cat_table set work_cat_desc = '{1}'
-                      WHERE work_cat_code = {0}
-                      '''.format(workercatcode, workercatdescr)
-            # print(q_upd_wc)
+        # v_workercatcode = fn_validate_field(workercatcode,"work_cat_code",
+        #             "work_cat_code","cc_work_cat_table","char")
+        # if v_workercatcode == None or len(str(v_workercatcode)) == 0:
+        #     q_ins_wc = '''INSERT INTO cc_work_cat_table (work_cat_code,
+        #               work_cat_descr, active_date) VALUES (?,?,?)'''
+        #     q_ins_wc_args = (workercatcode,workercatdescr,
+        #               datetime.now().strftime("%m/%d/%Y"))
+        #     print(q_ins_wc)
+        #     print(q_ins_wc_args)
+        # else:
+        #     q_upd_wc = '''UPDATE cc_work_cat_table set work_cat_desc = ?
+        #           WHERE work_cat_code = ?'''
+        #
+        #     q_upd_wc_args = (workercatdescr, workercatcode)
+        #     print(q_upd_wc)
+        #     print(q_upd_wc_args)
 
         ###############################################################
         # Use PCN Agg to find TPos FROM position rec
@@ -208,47 +214,47 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             q_ins_pos = '''INSERT INTO pos_table(pcn_aggr, pcn_01, pcn_02, pcn_03, 
                       pcn_04, descr, ofc, func_area, supervisor_no, 
                       tenure_track, fte, max_jobs, hrpay, active_date) 
-                      VALUES('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}',
-                      {8},'{9}',{10},{11},'{12}','{13}')
-                     '''.format(pcnaggr,payrollcompcode,businessunitcode,
+                      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
+            q_ins_pos_args = (pcnaggr,payrollcompcode,businessunitcode,
                                 func_code,jobtitlecode, jobtitledescr,
                                 'ofc', func_code, supervisorid[3:9],
                                 'tenure', 0, 0, payrollcompcode,
-                                datetime.now().strftime("%Y-%m-%d"))
+                                datetime.now().strftime("%m/%d/%Y"))
 
+            print(q_ins_pos)
+            print(q_ins_pos_args)
             # Need to return the tpos_no as it is created in the INSERT
-            test_pcn = "EXT-PROV-ENG-CHR"   #use this if not doing live insert
+            # test_pcn = "EXT-PROV-ENG-CHR"   #use this if not doing live insert
             # for test
 
             print("New t_pos needed for = " + pcnaggr)
             # This select query works . 5/25/18
             q_get_tpos = '''SELECT tpos_no FROM pos_table
                        WHERE pcn_aggr = '{0}'
-                       '''.format(test_pcn)
+                       '''.format(pcnaggr)
             #    if tpos exists return the tpos number to find the job record
-            sql_tpos = do_sql(q_get_tpos, key=DEBUG, earl=EARL)
-            row = sql_tpos.fetchone()
-            tpos_result = row[0]
-            v_tpos = tpos_result
+            # sql_tpos = do_sql(q_get_tpos, key=DEBUG, earl=EARL)
+            # row = sql_tpos.fetchone()
+            # tpos_result = row[0]
+            # v_tpos = tpos_result
             print("New tpos = " + str(v_tpos))
             # print(q_ins_pos)
         else:
             print("Validated t_pos = " + str(v_tpos))
             # This  query works . 5/25/18
-            q_upd_pos = '''UPDATE pos_table SET pcn_aggr = '{0}', pcn_01 = '{1}', 
-                    pcn_02 = '{2}', pcn_03 = '{3}', pcn_04 = '{4}', 
-                    descr = '{5}', ofc = '{6}', func_area = '{7}', 
-                    supervisor_no = {8}, tenure_track = '{9}', 
-                    fte = {10}, max_jobs = {11}, hrpay = '{12}', 
-                    active_date = '{13}', 
-                    inactive_date = '' WHERE tpos_no = {14} 
-                   '''.format(pcnaggr, jobfunctioncode, businessunitcode,
+            q_upd_pos = '''UPDATE pos_table SET pcn_aggr = ?, pcn_01 = ?, 
+                    pcn_02 = ?, pcn_03 = ?, pcn_04 = ?, descr = ?, ofc = ?, 
+                    func_area = ?, supervisor_no = ?, tenure_track = ?, 
+                    fte = ?, max_jobs = ?, hrpay = ?, active_date = ?, 
+                    inactive_date = '' WHERE tpos_no = ?'''
+            q_upd_pos_args = (pcnaggr, jobfunctioncode, businessunitcode,
                               func_code, jobtitlecode, jobtitledescr,
                               'ofc', func_code, supervisorid[3:9],
                               'tenure', 0, 0, payrollcompcode,
-                              datetime.now().strftime("%Y-%m-%d"),
+                              datetime.now().strftime("%m/%d/%Y"),
                               v_tpos)
-            # print(q_upd_pos)
+            print(q_upd_pos)
+            print(q_upd_pos_args)
 
         ##############################################################
         # validate the position, division, department
@@ -259,20 +265,20 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         if hrdivision == None or hrdivision == "":
             # This query works 5/25/18
             q_ins_div = '''INSERT INTO hrdiv_table(hrdiv, descr, beg_date, 
-                            end_date) VALUES('{0}','{1}','{2}',null)
-                            '''.format(businessunitcode, businessunitdescr,
-                                datetime.now().strftime("%Y-%m-%d"))
+                            end_date) VALUES(?,?,?,null)'''
+            q_ins_div_args = (businessunitcode, businessunitdescr,
+                                datetime.now().strftime("%m/%d/%Y"))
             print("New HR Division = " + businessunitcode  + '\n')
-            # print(q_ins_div)
+            print(q_ins_div + str(q_ins_div_args))
         else:
             # This query works 5/25/18
-            q_upd_div = '''UPDATE hrdiv_table SET descr = '{0}', 
-                          beg_date = '{1}' WHERE hrdiv = '{2}' 
-                          '''.format(businessunitdescr,
-                          datetime.now().strftime("%Y-%m-%d"),
+            q_upd_div = '''UPDATE hrdiv_table SET descr = ?, 
+                          beg_date = ? WHERE hrdiv = ?'''
+            q_upd_div_args = format(businessunitdescr,
+                          datetime.now().strftime("%m/%d/%Y"),
                           businessunitcode)
             print("Existing HR Division = " + hrdivision + '\n')
-            # print(q_upd_div)
+            print(q_upd_div + str(q_upd_div_args))
 
 
         # print("....Deal with department...")
@@ -281,27 +287,22 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         if hrdepartment==None or hrdepartment=="" or len(hrdepartment)==0:
             # This query works 5/25/18
             q_ins_dept = '''INSERT INTO hrdept_table(hrdept, hrdiv, descr, 
-                                beg_date, end_date) VALUES('{0}','{1}','{2}',
-                                '{3}', null)
-                                  '''.format(homedeptcode[:3],
-                                  businessunitcode, homedeptdescr,
-                                  datetime.now().strftime("%Y-%m-%d"))
+                                beg_date, end_date) VALUES(?,?,?,?,None)'''
+            q_ins_dept_args = (homedeptcode[:3], businessunitcode,
+                               homedeptdescr,
+                               datetime.now().strftime("%m/%d/%Y"))
 
             print("New HR Department = " + homedeptcode[:3])
-            # print(q_ins_dept+'\n')
+            print(q_ins_dept + str(q_ins_dept_args) +'\n')
         else:
-             # This query works 5/25/18
-             q_upd_dept = '''UPDATE hrdept_table SET hrdiv = '{1}', 
-                                       descr = '{2}', beg_date = '{3}' WHERE 
-                                       hrdept = '{0}' 
-                                                 '''.format(func_code,
-                                                            businessunitcode,
-                                                            homedeptdescr,
-                                                            datetime.now().strftime(
-                                                                "%Y-%m-%d"))
+            # This query works 5/25/18
+            q_upd_dept = '''UPDATE hrdept_table SET hrdiv = ?, descr = ?, 
+                  beg_date = ? WHERE hrdept = ?'''
+            q_upd_dept_args = (businessunitcode, homedeptdescr,
+                               datetime.now().strftime("%m/%d/%Y"), func_code)
 
-        # print(q_upd_dept + '\n')
-             print("Existing HR Department = " + hrdepartment)
+            print(q_upd_dept + str(q_upd_dept_args) + '\n')
+            print("Existing HR Department = " + hrdepartment)
 
         ##############################################################
         # validate hrstat,
@@ -316,18 +317,18 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                            active_date, inactive_date) VALUES('{0}','{1}','{2}',null)
                            '''.format(jobfunctioncode,
                                jobfuncdtiondescription,
-                               datetime.now().strftime("%Y-%m-%d"))
+                               datetime.now().strftime("%m/%d/%Y"))
             # print(q_ins_stat)
             print("New Job Function Code = " + jobfunctioncode)
         else:
-            hrstat_rslt = row[0]
-            valid_hrstat = hrstat_rslt
+            # hrstat_rslt = row[0]
+            # valid_hrstat = hrstat_rslt
             print("Existing Job Function Code = " + v_job_function_code)
             # This query works 5/25/18
-            q_upd_stat = '''UPDATE hrstat_table SET txt = '{1}' 
-                          WHERE hrstat = '{0}'
-                        '''.format(v_job_function_code, jobfuncdtiondescription)
-            print(q_upd_stat)
+            q_upd_stat = '''UPDATE hrstat_table SET txt = ? 
+                          WHERE hrstat = ?'''
+            q_upd_stat_args = (jobfuncdtiondescription, v_job_function_code)
+            print(q_upd_stat + str(q_upd_stat_args))
 
         ##############################################################
         # Determine job rank for job_rec
@@ -366,21 +367,21 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             # NOTE:  NEED TO ADD JOB CLASS CODE into HRCLASS field
                 # Insert into job rec
                 # Query works as of 5/29/18
-                q_ins_job = ''' INSERT INTO job_rec
-                (tpos_no, descr, bjob_no, id, hrpay, supervisor_no,
-                 hrstat, egp_type, hrdiv, hrdept, comp_beg_date, comp_end_date,
-                 beg_date, end_date, active_ctrct, ctrct_stat, excl_srvc_hrs,
-                 excl_web_time, job_title, title_rank, hrclass)
-                 VALUES ({0}, '{1}', 0, {2}, '{3}', {4}, '{5}', '{6}', '{7}', 
-                 "N/A", null, null, '{8}', null, "N", "N/A", "N", "N", '{9}', 
-                 {10},'{11}','{12}'
-                                     '''.format(v_tpos, jobtitledescr, carthid,
+                q_ins_job = '''INSERT INTO job_rec
+                  (tpos_no, descr, bjob_no, id, hrpay, supervisor_no,
+                  hrstat, egp_type, hrdiv, hrdept, comp_beg_date, comp_end_date,
+                  beg_date, end_date, active_ctrct, ctrct_stat, excl_srvc_hrs,
+                  excl_web_time, job_title, title_rank, hrclass)
+                  VALUES (?, ?, 0, ?, ?, ?, ?, ?, ?, "N/A", null, null, ?, null, 
+                  "N", "N/A", "N", "N", ?, ?, ?, ?)'''
+
+                q_ins_job_args = (v_tpos, jobtitledescr, carthid,
                                         payrollcompcode, spvrID,
                                         jobfunctioncode, businessunitcode,
-                                        func_code, datetime.now().strftime("%Y-%m-%d"),
+                                        func_code, datetime.now().strftime("%m/%d/%Y"),
                                         jobtitledescr, rank, workercatcode,
                                         jobclass)
-                # print(q_ins_job)
+                print(q_ins_job + str(q_ins_job_args))
                 print("New Job Record for " + last + ', id = ' + str(carthid))
         else:
             row = sql_job.fetchone()
@@ -395,12 +396,12 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                 end_date = null, active_ctrct = "", ctrct_stat = "",  
                 excl_srvc_hrs = 0, excl_web_time = "", job_title = '{1}', 
                 title_rank = "", worker_ctgry = '{9}', hrclass = '{10}' 
-                WHERE job_no = {0}) '''.format(valid_job, jobtitledescr,
-                    carthid, payrollcompcode, spvrID, jobfunctioncode,
-                    businessunitcode, func_code,
-                    datetime.now().strftime("%Y-%m-%d"), jobtitledescr,
-                    rank, workercatcode, jobclass)
-            print(q_upd_job)
+                WHERE job_no = {0}) '''
+            q_upd_job_args = (jobtitledescr, carthid, payrollcompcode, spvrID,
+                    jobfunctioncode, businessunitcode, func_code,
+                    datetime.now().strftime("%m/%d/%Y"), jobtitledescr,
+                    rank, workercatcode, jobclass, valid_job)
+            print(q_upd_job + str(q_upd_job_args))
             print("Update Job Record for " + last + ', id = ' + str(carthid))
 
 
@@ -431,29 +432,28 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         if row == None:
             print("No Emp record")
             # This query works  5/25/18
-            sql_emp_insert = '''INSERT into hremp_rec (id, home_tpos_no, 
+            q_emp_insert = '''INSERT into hremp_rec (id, home_tpos_no, 
                 ss_first, ss_middle, ss_last, ss_suffix, tenure, tenure_date, 
                 is_tenured, is_tenure_track)
-                VALUES({0},{1}, 
-                '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', 
-                  '{8}','{9}')
-                    '''.format(carthid, v_tpos, first,middle,last,"","","",
+                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ? )'''
+            q_emp_ins_args = (carthid, v_tpos, first,middle,last,"","","",
                         is_tenured,is_tenure_track)
-            # print(sql_emp_insert)
+            print(q_emp_insert + q_emp_ins_args)
             print("Insert into hremp_rec")
         else:
             print('Found Emp Rec')
             emp_rslt = row
             # print(emp_rslt)
             # this query words - 05/25/2018
-            sql_emp_upd = '''UPDATE hremp_rec SET home_tpos_no = {1}, 
-            ss_first = '{2}', ss_middle = '{3}', ss_last = '{4}', 
-            ss_suffix = '{5}', tenure = '{6}', tenure_date = '{7}',
-            is_tenured = '{8}', is_tenure_track = '{9}'
-            WHERE id = {0}
-            '''.format(carthid, v_tpos, first, middle, last, "", "", "",
-                 is_tenured,is_tenure_track)
-            # print(sql_emp_upd)
+            q_emp_upd = '''UPDATE hremp_rec SET home_tpos_no = ?, 
+                ss_first = ?, ss_middle = ?, ss_last = ?, ss_suffix = ?, 
+                tenure = ?, tenure_date = ?, is_tenured = ?, 
+                is_tenure_track = ?
+                WHERE id = ?'''
+
+            q_emp_upd_args = (v_tpos, first, middle, last, "", "", "",
+                 is_tenured,is_tenure_track, carthid)
+            print(q_emp_upd + q_emp_upd_args)
             print("Update HREMP_REC, ")
 
 
