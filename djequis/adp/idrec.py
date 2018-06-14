@@ -53,11 +53,11 @@ os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 # from djequis.core.utils import sendmail
 from djequis.adp.aarec import fn_archive_address
 from djequis.adp.utilities import fn_validate_field
-# from djzbar.utils.informix import do_sql
-from djequis.adp.utilities import do_sql
+from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
+from djzbar.settings import INFORMIX_EARL_SANDBOX
 from djtools.fields import TODAY
 
 DEBUG = settings.INFORMIX_DEBUG
@@ -87,18 +87,19 @@ global EARL
 #    EARL = INFORMIX_EARL_PROD
 # elif database == 'train':
 # EARL = INFORMIX_EARL_TEST
-EARL = "default"
+EARL = INFORMIX_EARL_SANDBOX
 # else:
     # this will raise an error when we call get_engine()
     # below but the argument parser should have taken
     # care of this scenario and we will never arrive here.
 #    EARL = None
 # establish database connection
-# engine = get_engine(EARL)
+engine = get_engine(EARL)
 
 def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middlename,
         addr_line1, addr_line2, addr_line3, city, st, zip, ctry, ctry_cod, ss_no, phone,
         decsd, eff_date):
+    print("Start ID Rec Processing")
 
     # create logger
     logger = logging.getLogger(__name__)
@@ -122,20 +123,21 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
 
 
     try:
-        q_update_id_rec = '''
-                    update id_rec set fullname = '{0}',
-                    lastname = '{1}', firstname = '{2}',
-                    middlename = '{3}', ss_no = '{4}',
-                    decsd = "N", upd_date = '{5}',
-                    ofc_add_by = "HR"
-                    where id = {6}
-                '''.format(fullname, lastname, firstname,
-                       middlename, ss_no, eff_date,
-                       carth_id)
-        # logger.info("Update id_rec table");
 
-        x = do_sql(q_update_id_rec, key=DEBUG, earl=EARL)
-        print(x)
+        q_update_id_rec = ('''update id_rec set fullname = ?, lastname = ?, 
+            firstname = ?, middlename = ?, ss_no = ?, decsd = 'N', 
+            upd_date = ?, ofc_add_by = 'HR' 
+            where id = ?''')
+
+        q_update_id_args = (fullname, lastname, firstname, middlename, ss_no, eff_date,
+                       carth_id)
+
+        print(q_update_id_rec)
+        print(q_update_id_args)
+        # logger.info("Update id_rec table");
+        engine.execute(q_update_id_rec, q_update_id_args)
+        # x = do_sql(q_update_id_rec, key=DEBUG, earl=EARL)
+
 
     except Exception as err:
         print(err.message)
@@ -146,35 +148,57 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
     try:
         #     # also need to deal with address changes
         #     # Search for existing address record
+        print(" In Check Address")
         q_check_addr = '''
                     SELECT id, addr_line1, addr_line2, addr_line3, city,
                         st, zip, ctry
                     From id_rec
                     Where id = {0}
                         '''.format(carth_id)
-        logger.info("Select address info from id_rec table");
-        sql_id_address = do_sql(q_check_addr, key=DEBUG, earl=EARL)
-        addr_result = sql_id_address
-        print(addr_result)
+        # logger.info("Select address info from id_rec table");
+        addr_result = do_sql(q_check_addr, key=DEBUG, earl=EARL)
+        # addr_result = sql_id_address[0]
 
-        if addr_result == None:  # No person in id rec? Should never happen
-            logger.info('Employee not in id rec for id number {0}'.format(carth_id));
-            print("Employee not in id rec for id number " + carth_id)
-            # "carth_id"]))
+        row = addr_result.fetchone()
+
+        if str(row[0]) == '0' or str(row[0]) == '':  # No person in id rec? Should never happen
+        #     # logger.info('Employee not in id rec for id number {0}'.format(carth_id));
+             print("Employee not in id rec for id number " + carth_id)
 
         # Update ID Rec and archive aa rec
-        elif addr_result[1].strip() != addr_line1 \
-            or addr_result[2].strip() != addr_line2 \
-            or addr_result[3].strip() != addr_line3 \
-            or addr_result[4].strip() != city \
-            or addr_result[5].strip() != st \
-            or addr_result[6].strip() != zip \
-            or addr_result[7].strip() != ctry_cod:
+        elif (row[1].strip() != addr_line1
+            or row[2].strip() != addr_line2
+            or row[3].strip() != addr_line3
+            or row[4].strip() != city
+            or row[5].strip() != st
+            or row[6].strip() != zip
+            or row[7].strip() != ctry_cod):
 
             print("Update: no match in ID_REC on " + addr_result[1])  #
 
+            q_update_id_rec_addr = ('''update id_rec set addr_line1 = ?, 
+                 addr_line2 = ?, addr_line3 = ?, city = ?, st = ?, zip = ?, 
+                 ctry = ? where id = ?''')
+            q_update_id_addr_args = (addr_line1, addr_line2, addr_line3, city, st,
+                                    zip, ctry_cod, carth_id)
+
+            print(q_update_id_rec_addr)
+            print(q_update_id_addr_args)
+
+            engine.execute(q_update_id_rec_addr, q_update_id_addr_args)
+
+            #########################################################
+            # Routine to deal with aa_rec
+            #########################################################
+            # now check to see if address is a duplicate in aa_rec
+            # find max start date to determine what date to insert
+            # insert or update as needed
+
+            fn_archive_address(carth_id, fullname, addr_line1, addr_line2,
+                         addr_line3, city, st, zip, ctry_cod)
+
         else:
-            print(addr_result[1])
+            print("No Change " + row[1])
 
     except Exception as err:
         print(err.message)
@@ -182,34 +206,6 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
         return (err.message)
 
 
-    try:
-        # Compare ADP address to CX address
-        # query works - 05/30/18
-        q_update_id_rec_addr = '''
-                         update id_rec set addr_line1 = '{0}',
-                              addr_line2 = '{1}', addr_line3 = '{2}',
-                              city = '{3}', st = '{4}', zip = '{5}',
-                              ctry = '{6}'
-                         where id = {7}
-                              '''.format(addr_line1, addr_line2,
-                                  addr_line3, city, st, zip, ctry_cod,
-                                  carth_id)
-        print(q_update_id_rec_addr)
-        # logger.info("Update address in id_rec table");
-        do_sql(q_update_id_rec_addr, key=DEBUG, earl=EARL)
-    except Exception as err:
-        logger.error(err, exc_info=True)
-        return (err.message)
-
-        #########################################################
-        # Routine to deal with aa_rec
-        #########################################################
-        # now check to see if address is a duplicate in aa_rec
-        # find max start date to determine what date to insert
-        # insert or update as needed
-
-    # fn_archive_address(carth_id, fullname, addr_line1, addr_line2,
-    #             addr_line3, city, st, zip, ctry_cod)
 
 
             # return "x"
