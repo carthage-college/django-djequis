@@ -52,10 +52,11 @@ os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 from djequis.core.utils import sendmail
-# from djzbar.utils.informix import do_sql
+from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
+from djzbar.settings import INFORMIX_EARL_SANDBOX
 from djtools.fields import TODAY
 
 DEBUG = settings.INFORMIX_DEBUG
@@ -85,14 +86,14 @@ global EARL
 #    EARL = INFORMIX_EARL_PROD
 # elif database == 'train':
 # EARL = INFORMIX_EARL_TEST
-EARL = "default"
+EARL = INFORMIX_EARL_SANDBOX
 # else:
     # this will raise an error when we call get_engine()
     # below but the argument parser should have taken
     # care of this scenario and we will never arrive here.
 #    EARL = None
 # establish database connection
-# engine = get_engine(EARL)
+engine = get_engine(EARL)
 
 #########################################################
 # Common function to validate that a record exists
@@ -111,22 +112,23 @@ def fn_validate_field(searchval, keyfield, retfield, table, keytype):
 
     try:
         sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
-        print("sql_val = " + str(sql_val))
+        # print("sql_val = " + str(sql_val))
         if sql_val is not None:
-            return sql_val
-            # row = sql_val.fetchone()
-            # if row is not None:
-            #     return row[0]
-            # else:
-            #     if keytype == "char":
-            #         return ""
-            #     else:
-            #         return 0
+            row = sql_val.fetchone()
+            if row is not None:
+                return row[0]
+            else:
+                if keytype == "char":
+                    return ""
+                else:
+                    return 0
+
         else:
             if keytype == "char":
                 return ""
             else:
                 return 0
+
     except Exception as e:
         print(e)
 
@@ -162,7 +164,8 @@ def fn_check_duplicates(searchval, keyfield, retfield, table, testval, keytype):
 def fn_convert_date(date):
     if date != "":
         ndate = datetime.strptime(date, "%m/%d/%Y")
-        retdate = datetime.strftime(ndate, "%Y-%m-%d")
+        retdate = datetime.strftime(ndate, "%m/%d/%Y")
+        # retdate = datetime.strftime(ndate, "%Y-%m-%d")
     else:
         retdate = None
 
@@ -178,59 +181,71 @@ def fn_format_phone(phone):
         return ""
 
 
-def do_sql(sql, key, earl):
-
-    print("SQL = " + sql)
-    # print(key)
-    # print(earl)
-
-    cursor = connections[earl].cursor()
-    try:
-        if key == "test":
-            print(sql)
-        else:
-            print(key)
-            cursor.execute(sql)
-            objects = cursor.fetchall()
-
-            if objects is not None:
-
-                if isinstance(object, tuple):
-                    print("!")
-                    for o in objects:
-                        print(o[0])
-                        return o[0]
-                else:
-                    print(type(objects))
-            else:
-                print("do_sql returned nothing")
-                return 0
-
-
-    except Exception as e:
-        print(e.message)
-        return e
+# def do_sql(sql, key, earl):
+#
+#     print("SQL = " + sql)
+#     # print(key)
+#     # print(earl)
+#
+#     cursor = connections[earl].cursor()
+#     try:
+#         if key == "test":
+#             print(sql)
+#         else:
+#             print(key)
+#             cursor.execute(sql)
+#             objects = cursor.fetchall()
+#
+#             if objects is not None:
+#
+#                 if isinstance(object, tuple):
+#                     print("!")
+#                     for o in objects:
+#                         print(o[0])
+#                         return o[0]
+#                 else:
+#                     print(type(objects))
+#             else:
+#                 print("do_sql returned nothing")
+#                 return 0
+#
+#
+#     except Exception as e:
+#         print(e.message)
+#         return e
 
 def do_sql2(sql, args):
 
-    # print(myData)
+    print(EARL)
+    print(INFORMIX_EARL_TEST)
     print(sql)
     print(args)
 
-    cursor = connections[EARL].cursor()
-    cursor.execute(sql, args)
+    # cursor = connections[EARL].cursor()
+    # cursor.execute(sql, args)
+
+    engine.execute(sql, args)
+
+
     # cursor.close()
-    objects = cursor.fetchall()
-    if objects is not None:
-        print objects
-        for o in objects:
-            print(o[0])
-            print(o[1])
-            print(o[2])
-            print(o[3])
-            return o[0]
-        else:
-            return 0
+    # objects = cursor.fetchall()
+    # if objects is not None:
+    #     print objects
+    #     for o in objects:
+    #         print(o[0])
+    #         print(o[1])
+    #         print(o[2])
+    #         print(o[3])
+    #         return o[0]
+    #     else:
+    #         return 0
+
+# def do_sql3(sql, args):
+#
+#     engine.execute(sql, args)
+
+
+
 # if __name__ == "__main__":
 #     args = parser.parse_args()
 #     test = args.test
