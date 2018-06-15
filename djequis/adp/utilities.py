@@ -86,6 +86,7 @@ global EARL
 #    EARL = INFORMIX_EARL_PROD
 # elif database == 'train':
 # EARL = INFORMIX_EARL_TEST
+# elif database == 'sandbox':
 EARL = INFORMIX_EARL_SANDBOX
 # else:
     # this will raise an error when we call get_engine()
@@ -181,86 +182,3 @@ def fn_format_phone(phone):
         return ""
 
 
-# def do_sql(sql, key, earl):
-#
-#     print("SQL = " + sql)
-#     # print(key)
-#     # print(earl)
-#
-#     cursor = connections[earl].cursor()
-#     try:
-#         if key == "test":
-#             print(sql)
-#         else:
-#             print(key)
-#             cursor.execute(sql)
-#             objects = cursor.fetchall()
-#
-#             if objects is not None:
-#
-#                 if isinstance(object, tuple):
-#                     print("!")
-#                     for o in objects:
-#                         print(o[0])
-#                         return o[0]
-#                 else:
-#                     print(type(objects))
-#             else:
-#                 print("do_sql returned nothing")
-#                 return 0
-#
-#
-#     except Exception as e:
-#         print(e.message)
-#         return e
-
-def do_sql2(sql, args):
-
-    print(EARL)
-    print(INFORMIX_EARL_TEST)
-    print(sql)
-    print(args)
-
-    # cursor = connections[EARL].cursor()
-    # cursor.execute(sql, args)
-
-    engine.execute(sql, args)
-
-
-    # cursor.close()
-    # objects = cursor.fetchall()
-    # if objects is not None:
-    #     print objects
-    #     for o in objects:
-    #         print(o[0])
-    #         print(o[1])
-    #         print(o[2])
-    #         print(o[3])
-    #         return o[0]
-    #     else:
-    #         return 0
-
-# def do_sql3(sql, args):
-#
-#     engine.execute(sql, args)
-
-
-
-# if __name__ == "__main__":
-#     args = parser.parse_args()
-#     test = args.test
-#     database = args.database
-#
-#     if not database:
-#         print "mandatory option missing: database name\n"
-#         parser.print_help()
-#         exit(-1)
-#     else:
-#         database = database.lower()
-#
-#     if database != 'cars' and database != 'train':
-#         print "database must be: 'cars' or 'train'\n"
-#         parser.print_help()
-#         exit(-1)
-#
-#     sys.exit(main())
