@@ -86,7 +86,7 @@ global EARL
 #    EARL = INFORMIX_EARL_PROD
 # elif database == 'train':
 # EARL = INFORMIX_EARL_TEST
-# elif database == 'cx_sandbox'
+# elif database == 'sandbox'
 EARL = INFORMIX_EARL_SANDBOX
 # else:
     # this will raise an error when we call get_engine()
@@ -160,7 +160,6 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             raise ValueError(
                 "Invalid Function  Code (HRPay) " + homedeptcode[:3] + '\n')
 
-        # pcnaggr = "ADM-VPLI-LIS-INSTS"
         print('\n' + '----------------------')
         print('\n' + pcnaggr)
         print("Supervisor = " + str(spvrID) +'\n')
@@ -179,28 +178,29 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             # raise ValueError("Invalid Payroll Company Code (HRPay) " + payrollcompcode + '\n')
 
 
-
         ##############################################################
         # New table in Informix - Worker Category
         # Not maintained in CX, so we will have to maintain it with
         # inserts and updates
-        ##############################################################
-        # v_workercatcode = fn_validate_field(workercatcode,"work_cat_code",
-        #             "work_cat_code","cc_work_cat_table","char")
-        # if v_workercatcode == None or len(str(v_workercatcode)) == 0:
-        #     q_ins_wc = '''INSERT INTO cc_work_cat_table (work_cat_code,
-        #               work_cat_descr, active_date) VALUES (?,?,?)'''
-        #     q_ins_wc_args = (workercatcode,workercatdescr,
-        #               datetime.now().strftime("%m/%d/%Y"))
-        #     print(q_ins_wc)
-        #     print(q_ins_wc_args)
-        # else:
-        #     q_upd_wc = '''UPDATE cc_work_cat_table set work_cat_desc = ?
-        #           WHERE work_cat_code = ?'''
-        #
-        #     q_upd_wc_args = (workercatdescr, workercatcode)
-        #     print(q_upd_wc)
-        #     print(q_upd_wc_args)
+        #############################################################
+        v_workercatcode = fn_validate_field(workercatcode,"work_cat_code",
+                    "work_cat_code","cc_work_cat_table","char")
+        if v_workercatcode == None or len(str(v_workercatcode)) == 0:
+            q_ins_wc = '''INSERT INTO cc_work_cat_table (work_cat_code,
+                      work_cat_descr, active_date) VALUES (?,?,?)'''
+            q_ins_wc_args = (workercatcode,workercatdescr,
+                      datetime.now().strftime("%m/%d/%Y"))
+            print(q_ins_wc)
+            print(q_ins_wc_args)
+            engine.execute(q_ins_wc, q_ins_wc_args)
+        else:
+            q_upd_wc = '''UPDATE cc_work_cat_table set work_cat_descr = ?
+                  WHERE work_cat_code = ?'''
+
+            q_upd_wc_args = (workercatdescr, workercatcode)
+            print(q_upd_wc)
+            print(q_upd_wc_args)
+            engine.execute(q_upd_wc, q_upd_wc_args)
 
         ###############################################################
         # Use PCN Agg to find TPos FROM position rec
@@ -514,7 +514,6 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             # Else do nothing
         else:
             print("No Job Class")
-            #    insert jobclass, jobclassdescr
 
         ##############################################################
         # Faculty Qualifications - This will go into facqual_rec...
@@ -558,24 +557,3 @@ def fn_validate_supervisor(id):
         else:
             return(id)
 
-
-
-
-if __name__ == "__main__":
-    args = parser.parse_args()
-    test = args.test
-    database = args.database
-
-    if not database:
-        print "mandatory option missing: database name\n"
-        parser.print_help()
-        exit(-1)
-    else:
-        database = database.lower()
-
-    if database != 'cars' and database != 'train':
-        print "database must be: 'cars' or 'train'\n"
-        parser.print_help()
-        exit(-1)
-
-    sys.exit(main())
