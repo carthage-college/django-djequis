@@ -51,8 +51,7 @@ os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 from djequis.core.utils import sendmail
 
-# from djzbar.utils.informix import do_sql
-from djequis.adp.utilities import do_sql, do_sql2
+from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_SANDBOX
 from djzbar.settings import INFORMIX_EARL_TEST
@@ -195,9 +194,8 @@ def main():
         #     EARL = INFORMIX_EARL_PROD
         # elif database == 'train':
         # EARL = INFORMIX_EARL_TEST
+        # elif database == 'sandbox':
         EARL = INFORMIX_EARL_SANDBOX
-        # elif database == 'default'
-        # EARL="default"
         # else:
         #     # this will raise an error when we call get_engine()
         #     # below but the argument parser should have taken
@@ -313,128 +311,130 @@ def main():
                 # Write entire row to cc_adp_rec table
                 #################################################################
 
-                q_cc_adp_rec = ("INSERT INTO cc_adp_rec (file_no, carthage_id, lastname, firstname, middlename, \
-                salutation, fullname, pref_name, birth_date, gender, \
-                marital_status, race, \
-                race_descr, hispanic, race_id_method, personal_email, \
-                primary_addr_line1, primary_addr_line2, primary_addr_line3, \
-                primary_addr_city, primary_addr_st, primary_addr_state, \
-                primary_addr_zip, \
-                primary_addr_county, primary_addr_country, \
-                primary_addr_country_code, \
-                primary_addr_as_legal, home_phone, cell_phone, work_phone, \
-                work_contact_phone, work_contact_email, \
-                work_contact_notification, \
-                legal_addr_line1, legal_addr_line2, legal_addr_line3, \
-                legal_addr_city, legal_addr_st, legal_addr_state, \
-                legal_addr_zip, \
-                legal_addr_county, legal_addr_country, legal_addr_country_code, \
-                ssn, hire_date, hire_rehire_date, rehire_date, \
-                position_start_date, \
-                position_effective_date, position_effective_end_date, \
-                termination_date, position_status, status_effective_date, \
-                status_effective_end_date, adjusted_service_date, \
-                archived_employee, \
-                position_id, primary_position, payroll_company_code, \
-                payroll_company_name, \
-                cip_code, worker_category_code, worker_category_descr, \
-                job_title_code, \
-                job_title_descr, home_cost_number_code, home_cost_number_descr, \
-                job_class_code, job_class_descr, job_descr, job_function_code, \
-                job_function_descr, room, bldg, bldg_name, \
-                leave_of_absence_start_date, \
-                leave_of_absence_return_date, home_cost_number_2, \
-                payroll_company_code_2, \
-                position_effective_date_2, position_end_date_2, \
-                home_cost_number_3, \
-                payroll_company_code_3, position_effective_date_3, \
-                position_end_date_3, \
-                home_cost_number_4, payroll_company_code_4, \
-                position_effective_date_4, position_end_date_4, \
-                home_depart_num_code, home_depart_num_descr, \
-                supervisor_id, supervisor_firstname, supervisor_lastname, \
-                business_unit_code, business_unit_descr, reports_to_name, \
-                reports_to_position_id, reports_to_associate_id, \
-                employee_associate_id, date_stamp) \
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
-                 ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
-                 ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
-                 ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
-                 ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  ?, \
-                 ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
-                 ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+                try:
+                    q_cc_adp_rec = ("INSERT INTO cc_adp_rec (file_no, carthage_id, lastname, firstname, middlename, \
+                    salutation, fullname, pref_name, birth_date, gender, \
+                    marital_status, race, \
+                    race_descr, hispanic, race_id_method, personal_email, \
+                    primary_addr_line1, primary_addr_line2, primary_addr_line3, \
+                    primary_addr_city, primary_addr_st, primary_addr_state, \
+                    primary_addr_zip, \
+                    primary_addr_county, primary_addr_country, \
+                    primary_addr_country_code, \
+                    primary_addr_as_legal, home_phone, cell_phone, work_phone, \
+                    work_contact_phone, work_contact_email, \
+                    work_contact_notification, \
+                    legal_addr_line1, legal_addr_line2, legal_addr_line3, \
+                    legal_addr_city, legal_addr_st, legal_addr_state, \
+                    legal_addr_zip, \
+                    legal_addr_county, legal_addr_country, legal_addr_country_code, \
+                    ssn, hire_date, hire_rehire_date, rehire_date, \
+                    position_start_date, \
+                    position_effective_date, position_effective_end_date, \
+                    termination_date, position_status, status_effective_date, \
+                    status_effective_end_date, adjusted_service_date, \
+                    archived_employee, \
+                    position_id, primary_position, payroll_company_code, \
+                    payroll_company_name, \
+                    cip_code, worker_category_code, worker_category_descr, \
+                    job_title_code, \
+                    job_title_descr, home_cost_number_code, home_cost_number_descr, \
+                    job_class_code, job_class_descr, job_descr, job_function_code, \
+                    job_function_descr, room, bldg, bldg_name, \
+                    leave_of_absence_start_date, \
+                    leave_of_absence_return_date, home_cost_number_2, \
+                    payroll_company_code_2, \
+                    position_effective_date_2, position_end_date_2, \
+                    home_cost_number_3, \
+                    payroll_company_code_3, position_effective_date_3, \
+                    position_end_date_3, \
+                    home_cost_number_4, payroll_company_code_4, \
+                    position_effective_date_4, position_end_date_4, \
+                    home_depart_num_code, home_depart_num_descr, \
+                    supervisor_id, supervisor_firstname, supervisor_lastname, \
+                    business_unit_code, business_unit_descr, reports_to_name, \
+                    reports_to_position_id, reports_to_associate_id, \
+                    employee_associate_id, date_stamp) \
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
+                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
+                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
+                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
+                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  ?, \
+                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
+                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 
 
-                cc_adp_args = (row["file_number"], row["carth_id"], row["last_name"],
-                row["first_name"], row["middle_name"], row["salutation"],
-                row["payroll_name"], row["preferred_name"],
-                fn_convert_date(row["birth_date"]), (row["gender"][:1]),
-                row["marital_status"], race,
-                row["race_descr"], is_hispanic,
-                row["ethnicity_id_meth"], row["personal_email"],
-                row["primary_address1"], row["primary_address2"],
-                row["primary_address3"], row["primary_city"],
-                row["primary_state_code"], row["primary_state_descr"],
-                row["primary_zip"], row["primary_county"],
-                row["primary_country"], row["primary_country_code"],
-                (row["primary_legal_address"][:1]),
-                fn_format_phone(row["home_phone"]),
-                fn_format_phone(row["mobile_phone"]), row["work_phone"],
-                row["wc_work_phone"], row["wc_work_email"],
-                (row["use_work_for_notification"][:1]),
-                row["legal_address1"],
-                row["legal_address2"], row["legal_address3"],
-                row["legal_city"], row["legal_state_code"],
-                row["legal_state_description"], row["legal_zip"],
-                row["legal_county"], row["legal_country"],
-                row["legal_country_code"], row["ssn"],
-                row["hire_date"],
-                fn_convert_date(row["hire_rehire_date"]),
-                fn_convert_date(row["rehire_date"]),
-                fn_convert_date(row["pos_start_date"]),
-                fn_convert_date(row["pos_effective_date"]),
-                fn_convert_date(row["pos_effective_end_date"]),
-                fn_convert_date(row["termination_date"]),
-                row["position_status"],
-                fn_convert_date(row["status_effective_date"]),
-                fn_convert_date(row["status_eff_end_date"]),
-                fn_convert_date(row["adj_service_date"]),
-                row["archived"], row["position_id"],
-                row["primary_position"], row["payroll_comp_code"],
-                row["payroll_comp_name"], row["cip"],
-                row["worker_cat_code"], row["worker_cat_descr"],
-                row["job_title_code"], row["job_title_descr"],
-                row["home_cost_code"], row["home_cost_descr"],
-                row["job_class_code"], row["job_class_descr"],
-                row["job_description"], row["job_function_code"],
-                row["job_function_description"], row["room_number"],
-                row["location_code"], row["location_description"],
-                fn_convert_date(row["leave_start_date"]),
-                fn_convert_date(row["leave_return_date"]),
-                row["home_cost_number2"], row["payroll_code2"],
-                fn_convert_date(row["position_eff_date2"]),
-                fn_convert_date(row["position_end_date2"]),
-                row["home_cost_number3"], row["payroll_code3"],
-                fn_convert_date(row["position_eff_date3"]),
-                fn_convert_date(row["position_end_date3"]),
-                row["home_cost_number4"], row["payroll_code4"],
-                fn_convert_date(row["position_eff_date4"]),
-                fn_convert_date(row["position_end_date4"]),
-                row["home_dept_code"], row["home_dept_descr"],
-                row["supervisor_id"], row["supervisor_fname"],
-                row["supervisor_lname"], row["business_unit_code"],
-                row["business_unit_descr"], row["reports_to_name"],
-                row["reports_to_pos_id"], row["reports_to_assoc_id"],
-                row["employee_assoc_id"],
-                datetime.now().strftime("%m-%d-%Y"))
+                    cc_adp_args = (row["file_number"], row["carth_id"], row["last_name"],
+                    row["first_name"], row["middle_name"], row["salutation"],
+                    row["payroll_name"], row["preferred_name"],
+                    fn_convert_date(row["birth_date"]), (row["gender"][:1]),
+                    row["marital_status"], race,
+                    row["race_descr"], is_hispanic,
+                    row["ethnicity_id_meth"], row["personal_email"],
+                    row["primary_address1"], row["primary_address2"],
+                    row["primary_address3"], row["primary_city"],
+                    row["primary_state_code"], row["primary_state_descr"],
+                    row["primary_zip"], row["primary_county"],
+                    row["primary_country"], row["primary_country_code"],
+                    (row["primary_legal_address"][:1]),
+                    fn_format_phone(row["home_phone"]),
+                    fn_format_phone(row["mobile_phone"]), row["work_phone"],
+                    row["wc_work_phone"], row["wc_work_email"],
+                    (row["use_work_for_notification"][:1]),
+                    row["legal_address1"],
+                    row["legal_address2"], row["legal_address3"],
+                    row["legal_city"], row["legal_state_code"],
+                    row["legal_state_description"], row["legal_zip"],
+                    row["legal_county"], row["legal_country"],
+                    row["legal_country_code"], row["ssn"],
+                    row["hire_date"],
+                    fn_convert_date(row["hire_rehire_date"]),
+                    fn_convert_date(row["rehire_date"]),
+                    fn_convert_date(row["pos_start_date"]),
+                    fn_convert_date(row["pos_effective_date"]),
+                    fn_convert_date(row["pos_effective_end_date"]),
+                    fn_convert_date(row["termination_date"]),
+                    row["position_status"],
+                    fn_convert_date(row["status_effective_date"]),
+                    fn_convert_date(row["status_eff_end_date"]),
+                    fn_convert_date(row["adj_service_date"]),
+                    row["archived"], row["position_id"],
+                    row["primary_position"], row["payroll_comp_code"],
+                    row["payroll_comp_name"], row["cip"],
+                    row["worker_cat_code"], row["worker_cat_descr"],
+                    row["job_title_code"], row["job_title_descr"],
+                    row["home_cost_code"], row["home_cost_descr"],
+                    row["job_class_code"], row["job_class_descr"],
+                    row["job_description"], row["job_function_code"],
+                    row["job_function_description"], row["room_number"],
+                    row["location_code"], row["location_description"],
+                    fn_convert_date(row["leave_start_date"]),
+                    fn_convert_date(row["leave_return_date"]),
+                    row["home_cost_number2"], row["payroll_code2"],
+                    fn_convert_date(row["position_eff_date2"]),
+                    fn_convert_date(row["position_end_date2"]),
+                    row["home_cost_number3"], row["payroll_code3"],
+                    fn_convert_date(row["position_eff_date3"]),
+                    fn_convert_date(row["position_end_date3"]),
+                    row["home_cost_number4"], row["payroll_code4"],
+                    fn_convert_date(row["position_eff_date4"]),
+                    fn_convert_date(row["position_end_date4"]),
+                    row["home_dept_code"], row["home_dept_descr"],
+                    row["supervisor_id"], row["supervisor_fname"],
+                    row["supervisor_lname"], row["business_unit_code"],
+                    row["business_unit_descr"], row["reports_to_name"],
+                    row["reports_to_pos_id"], row["reports_to_assoc_id"],
+                    row["employee_assoc_id"],datetime.now())
+                    # print(q_cc_adp_rec)
+                    # print(cc_adp_args)
 
-                print(q_cc_adp_rec)
-                print(cc_adp_args)
+                    engine.execute(q_cc_adp_rec, cc_adp_args)
 
-                engine.execute(q_cc_adp_rec, cc_adp_args)
+                    #  # scr.write(q_cc_adp_rec+'\n');
+                    logger.info("Inserted into adp_rec table");
 
-                #  # scr.write(q_cc_adp_rec+'\n');
-                #  # logger.info("Inserted into adp_rec table");
+                except Exception as e:
+                    print(e)
 
                 # fn_convert_date(row["termination_date"]),
                 ###############################################################
@@ -526,8 +526,6 @@ def main():
                         # print("sql addr " + addr_result[1].strip() + " loop
                         # address = " + row["primary_address1"].strip())
 
-
-
                         if row["personal_email"] != '':
                             email_result = fn_set_email2(row["personal_email"],
                                                            row["carth_id"])
@@ -548,10 +546,10 @@ def main():
                         # Do updates to profile_rec (profilerec.py)
                         ##########################################################
                         # Initial test done against cx 6/12/18
-                        # prof_rec = fn_process_profile_rec(row["carth_id"],
-                        #             row["ethnicity"], row["gender"], row["race"],
-                        #             row["birth_date"],
-                        #             datetime.now().strftime("%m/%d/%Y"))
+                        prof_rec = fn_process_profile_rec(row["carth_id"],
+                                    row["ethnicity"], row["gender"], row["race"],
+                                    row["birth_date"],
+                                    datetime.now().strftime("%m/%d/%Y"))
                         #
                         # print(prof_rec)
 
@@ -560,8 +558,8 @@ def main():
                         # Do updates to cvid_rec (cvidrec.py)
                         ##########################################################
                         #Initial test done against cx 6/12/18
-                        # fn_process_cvid(row["carth_id"], row["file_number"],
-                        #               row["ssn"], row["employee_assoc_id"])
+                        fn_process_cvid(row["carth_id"], row["file_number"],
+                                      row["ssn"], row["employee_assoc_id"])
 
                         ##########################################################
                         # STEP 2e--
