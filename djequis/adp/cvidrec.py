@@ -51,7 +51,7 @@ os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 # from djequis.core.utils import sendmail
-from djequis.adp.utilities import fn_validate_field, fn_check_duplicates #, do_sql, do_sql2
+from djequis.adp.utilities import fn_validate_field, fn_check_duplicates 
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_TEST
@@ -86,6 +86,7 @@ global EARL
 #    EARL = INFORMIX_EARL_PROD
 # elif database == 'train':
 # EARL = INFORMIX_EARL_TEST
+# elif database == 'sandbox':
 EARL = INFORMIX_EARL_SANDBOX
 # else:
     # this will raise an error when we call get_engine()
@@ -149,8 +150,6 @@ def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id):
             # Insert or update as needed to ID_rec
             # Insert works 06/12/18
 
-            # mydata = ('111', 'Foobar', '1/1/18', None)
-
             q_insert_cvid_rec = '''INSERT INTO cvid_rec (old_id, old_id_num, 
               adp_id, ssn, cx_id, cx_id_char, adp_associate_id) 
               VALUES (?,?,?,?,?,?,?)'''
@@ -160,9 +159,7 @@ def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id):
 
             engine.execute(q_insert_cvid_rec, args)
             # scr.write(q_insert_cvid_rec + '\n');
-            # logger.info("Inserted into cvid_rec table");
-            # do_sql(q_insert_cvid_rec, key=DEBUG, earl=EARL)
-            # do_sql2(q_insert_cvid_rec, cv_args)
+            logger.info("Inserted into cvid_rec table");
         elif str(v_cx_id) != v_assoc_match and v_assoc_match != 0:
             print('Duplicate Associate ID found')
         elif str(v_cx_id) != str(v_adp_match) and v_adp_match != 0:
@@ -174,30 +171,8 @@ def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id):
                 WHERE cx_id = ?'''
             args = (carthid, carthid, adpid, ssn, adp_assoc_id, carthid)
             print(q_update_cvid_rec)
-            #  logger.info("Update cvid_rec table");
-            # do_sql(q_update_cvid_rec, key=DEBUG, earl=EARL)
+            logger.info("Update cvid_rec table");
             engine.execute(q_update_cvid_rec, args)
-
 
     except Exception as e:
         print(e)
-
-
-if __name__ == "__main__":
-    args = parser.parse_args()
-    test = args.test
-    database = args.database
-
-    if not database:
-        print "mandatory option missing: database name\n"
-        parser.print_help()
-        exit(-1)
-    else:
-        database = database.lower()
-
-    if database != 'cars' and database != 'train':
-        print "database must be: 'cars' or 'train'\n"
-        parser.print_help()
-        exit(-1)
-
-    sys.exit(main())
