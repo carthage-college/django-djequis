@@ -86,7 +86,7 @@ global EARL
 #    EARL = INFORMIX_EARL_PROD
 # elif database == 'train':
 # EARL = INFORMIX_EARL_TEST
-# elif database = 'cs_sandbox'
+# elif database = 'sandbox'
 EARL = INFORMIX_EARL_SANDBOX
 # else:
     # this will raise an error when we call get_engine()
@@ -157,7 +157,6 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
             engine.execute(q_insert_prof_rec, q_ins_prof_args)
             # scr.write(q_insert_prof_rec + '\n');
             logger.info("Inserted into profile_rec table");
-            # do_sql(q_insert_prof_rec, key=DEBUG, earl=EARL)
 
         else:
             q_update_prof_rec = '''
@@ -173,27 +172,7 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
             engine.execute(q_update_prof_rec, q_upd_prof_args)
             # scr.write(q_update_prof_rec + '\n');
             logger.info("Update profile_rec table");
-            # do_sql(q_update_prof_rec, key=DEBUG, earl=EARL)
 
     except Exception as e:
         print(e)
 
-
-if __name__ == "__main__":
-    args = parser.parse_args()
-    test = args.test
-    database = args.database
-
-    if not database:
-        print "mandatory option missing: database name\n"
-        parser.print_help()
-        exit(-1)
-    else:
-        database = database.lower()
-
-    if database != 'cars' and database != 'train':
-        print "database must be: 'cars' or 'train'\n"
-        parser.print_help()
-        exit(-1)
-
-    sys.exit(main())
