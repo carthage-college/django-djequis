@@ -87,6 +87,7 @@ global EARL
 #    EARL = INFORMIX_EARL_PROD
 # elif database == 'train':
 # EARL = INFORMIX_EARL_TEST
+# elif database == 'sandbox':
 EARL = INFORMIX_EARL_SANDBOX
 # else:
     # this will raise an error when we call get_engine()
@@ -212,21 +213,3 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
 
 
 
-# if __name__ == "__main__":
-#     args = parser.parse_args()
-#     test = args.test
-#     database = args.database
-#
-#     if not database:
-#         print "mandatory option missing: database name\n"
-#         parser.print_help()
-#         exit(-1)
-#     else:
-#         database = database.lower()
-#
-#     if database != 'cars' and database != 'train':
-#         print "database must be: 'cars' or 'train'\n"
-#         parser.print_help()
-#         exit(-1)
-#
-#     sys.exit(main())
