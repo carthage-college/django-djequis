@@ -188,7 +188,7 @@ def main():
         if not response:
             print("no response")
         else:
-            print("{} object(s) found for provisioning.".format(len(people))
+            print("{} object(s) found for provisioning.".format(len(people)))
             for p in people:
                 try:
                     sql = INSERT_EMAIL_RECORD(cid=p.id, ldap=p.loginid)
