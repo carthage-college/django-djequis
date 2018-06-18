@@ -106,7 +106,7 @@ engine = get_engine(EARL)
 def fn_process_second_job(carthid, workercatcode, workercatdescr, pcnaggr,
                 busunitcode, homedeptcode, homedeptdescr, room, bldg, jobtitledescr,
                 positionstart, poseffectend, workcatcode, jobfunctioncode,
-                jobfuncdtiondescription, primarypos, supervisorid, rank):
+                jobfuncdtiondescription, primarypos, supervisorid, rank, fullname):
 
     # create logger
     logger = logging.getLogger(__name__)
@@ -131,37 +131,48 @@ def fn_process_second_job(carthid, workercatcode, workercatdescr, pcnaggr,
 
     try:
         ##############################################################
-        # must validate ID of supervisor
+        # Differs from regular job rec routine
+        # Most of the information has already been validated since this
+        # job is in the same record row as the primary
+        # Same supervisor as primary job
+        # Sane homedept code for the EMPLOYEE
+        # Same business unit code for the EMPLOYEE
+        # Same room and building, but probably can ignore since not primary position
+        # Same worker category code and description, no validation needed
+        # Payroll company code COULD be different, but shouldn't be
+        # Job Function Code should be the same
         # Split PCN_Aggr (Home Cost Number) into separate components
         # first I should determine if this is an insert or update - see if
         #   pcn_aggr is in the pos_table
-        # validate function code in the func_table
+        # see if pcn code returns a position number
+        # validate function code in the func_table (Position 2)
         # Place dept number in func_area field in position table
-        # Must account for Division, Dept
+        # Must validate Division, Dept
+        # NOT assuming custom field is correct, will notify if no matches
         # use PCN Codes to tie employee to job number
-        # validate a number of fields as needed
-        # add GL Func code to func_area in position table
-        # if there is a secondary job record, do the same..
         ##############################################################
 
 
-        # disassmble pcn code into parts JobType, Div, Dept, Job code
 
+        ###############################################################
+        # disassmble pcn code into parts JobType, Div, Dept, Job code
+        ###############################################################
         print(pcnaggr)
         len = pcnaggr.__len__()
         pos1 = pcnaggr.find('-', 0)
         paycode = pcnaggr[:pos1]
-        print("Job Type = " + str(paycode))
         pos2 = pcnaggr.find('-', pos1 + 1, len)
         div = pcnaggr[pos1 + 1:pos2]
-        print("Div = " + str(div))
         pos3 = pcnaggr.find('-', pos2 + 1, len)
         dept = pcnaggr[pos2 + 1:pos3]
-        print("Dept = " + str(dept))
         jobnum = pcnaggr[pos3 + 1:len]
-        print("Job number =" + str(jobnum))
 
+        # print("Job Type = " + str(paycode))
+        # print("Div = " + str(div))
+        # print("Dept = " + str(dept))
+        # print("Job number =" + str(jobnum))
 
+        spvrID = supervisorid[3:10]
 
         ###############################################################
         # Use PCN Agg to find TPos FROM position rec
@@ -170,8 +181,8 @@ def fn_process_second_job(carthid, workercatcode, workercatdescr, pcnaggr,
                         "pos_table","char")
         print("v-tpos = " + str(v_tpos))
 
-
-        if v_tpos == None or len(str(v_tpos)) == 0:
+        if v_tpos == 0:
+        # if v_tpos == None or len(str(v_tpos)) == 0:
             print("Position not valid")
         else:
             print("Validated t_pos = " + str(v_tpos))
@@ -227,10 +238,10 @@ def fn_process_second_job(carthid, workercatcode, workercatdescr, pcnaggr,
 
 
 
-        # ##############################################################
-        # # validate hrpay, values in this table should not change without
-        # # a project request as they affect a number of things
-        # ##############################################################
+        ##############################################################
+        # validate hrpay, values in this table should not change without
+        # a project request as they affect a number of things
+        ##############################################################
         hrpay_rslt = fn_validate_field(paycode,"hrpay","hrpay",
                             "hrpay_table", "char")
         if hrpay_rslt != '':
@@ -239,38 +250,50 @@ def fn_process_second_job(carthid, workercatcode, workercatdescr, pcnaggr,
             print('Invalid Payroll Company Code ' + str(paycode) + '\n')
             # logger.info("Invalid Payroll Company Code " + paycode + '\n')
             # raise ValueError("Invalid Payroll Company Code (HRPay) " + paycode + '\n')
-        #
-        #
-        #
-        # func_code = fn_validate_field(dept,"func","func",
-        #             "func_table", "char")
-        # if func_code != '':
-        #     print('Validated func_code = ' + dept + '\n')
-        # else:
-        #     print('Invalid Function Code ' + dept + '\n')
-        #     logger.info(
-        #         "Invalid Function  Code " + dept + '\n')
-        #     raise ValueError(
-        #         "Invalid Function  Code (HRPay) " + dept + '\n')
-        #
-        # print('\n' + '----------------------')
-        # print('\n' + pcnaggr)
-        #
-        #
-        # ##############################################################
-        # # Need some additional info from existing cx records
-        # ##############################################################
-        # sql = "SELECT distinct job_rec.job_title, job_rec.hrstat FROM " \
-        #       "job_rec Where tpos_no = ?"
-        #
-        #
-        # ##############################################################
-        # # validate the position, division, department
-        # ##############################################################
-        # # print("....Deal with division...")
-        # hrdivision = fn_validate_field(div,"hrdiv","hrdiv",
-        #                     "hrdiv_table", "char")
-        # if hrdivision == None or hrdivision == "":
+
+
+
+        func_code = fn_validate_field(dept,"func","func",
+                    "func_table", "char")
+        if func_code != '':
+            print('Validated func_code = ' + dept + '\n')
+        else:
+            print('Invalid Function Code ' + dept + '\n')
+            logger.info(
+                "Invalid Function  Code " + dept + '\n')
+            raise ValueError(
+                "Invalid Function  Code (HRPay) " + dept + '\n')
+
+        print('\n' + '----------------------')
+        print('\n' + pcnaggr)
+
+
+        ##############################################################
+        # Need some additional info from existing cx records
+        # ADP does not have field for second job title
+        ##############################################################
+        q_get_title = '''SELECT distinct job_rec.job_title  
+              FROM job_rec Where tpos_no = {0}'''.format(v_tpos)
+
+        print(q_get_title)
+
+        sql_title = do_sql(q_get_title, key=DEBUG, earl=EARL)
+        titlerow = sql_title.fetchone()
+        if titlerow is None:
+            print("Job Title Not found")
+        else:
+            jr_jobtitle = titlerow[0]
+
+
+        ##############################################################
+        # validate the position, division, department
+        ##############################################################
+        # print("....Deal with division...")
+        hrdivision = fn_validate_field(div,"hrdiv","hrdiv",
+                            "hrdiv_table", "char")
+
+        if hrdivision == None or hrdivision == "":
+            print("HR Div not valid - " + div)
         #     # This query works 5/25/18
         #     q_ins_div = '''INSERT INTO hrdiv_table(hrdiv, descr, beg_date,
         #                     end_date) VALUES(?,?,?,null)'''
@@ -278,7 +301,7 @@ def fn_process_second_job(carthid, workercatcode, workercatdescr, pcnaggr,
         #                         datetime.now().strftime("%m/%d/%Y"))
         #     print("New HR Division = " + div  + '\n')
         #     # print(q_ins_div + str(q_ins_div_args))
-        #     engine.execute(q_ins_div, q_ins_div_args)
+        #     # engine.execute(q_ins_div, q_ins_div_args)
         # else:
         #     # This query works 5/25/18
         #     q_upd_div = '''UPDATE hrdiv_table SET descr = ?,
@@ -287,13 +310,16 @@ def fn_process_second_job(carthid, workercatcode, workercatdescr, pcnaggr,
         #                   datetime.now().strftime("%m/%d/%Y"),
         #                   div)
         #     print("Existing HR Division = " + hrdivision + '\n')
-        #     # print(q_upd_div + str(q_upd_div_args))
-        #     engine.execute(q_upd_div, q_upd_div_args)
-        #
-        # # print("....Deal with department...")
-        # hrdepartment = fn_validate_field(dept,"hrdept","hrdept",
-        #                 "hrdept_table", "char")
-        # if hrdepartment==None or hrdepartment=="" or len(hrdepartment)==0:
+            # print(q_upd_div + str(q_upd_div_args))
+            # engine.execute(q_upd_div, q_upd_div_args)
+
+        # print("....Deal with department...")
+        hrdepartment = fn_validate_field(dept,"hrdept","hrdept",
+                        "hrdept_table", "char")
+        print(hrdepartment)
+
+        if hrdepartment==None or hrdepartment=="":
+            print("HR Dept not valid - " + dept)
         #     # This query works 5/25/18
         #     q_ins_dept = '''INSERT INTO hrdept_table(hrdept, hrdiv, descr,
         #                         beg_date, end_date) VALUES(?,?,?,?,?)'''
@@ -318,87 +344,74 @@ def fn_process_second_job(carthid, workercatcode, workercatdescr, pcnaggr,
         #
         #
         #
-        #
         # ##############################################################
-        # # Determine job rank for second job_rec
+        # # Rank is based on which column from ADP for second job_rec
         # ##############################################################
-        # rank = ''
-        # if primaryposition == 'Yes' and poseffectend == '':
-        #     rank = 1
-        # elif primaryposition == 'No' and poseffectend == '':
-        #     rank = 2
-        # elif poseffectend != '':
-        #     rank = ''
-        # print("Rank = " + str(rank) +'\n')
-        #
-        #
-        # # ##############################################################
-        # # If job rec exists in job_rec -update, else insert
-        # # ##############################################################
-        # q_get_job = '''SELECT job_no
-        #                 FROM job_rec
-        #                 WHERE tpos_no = {0}
-        #                 and id = {1}
-        #                 and end_date is null
-        #                               '''.format(v_tpos,carthid,positionstart)
-        # # Something in the formatting of the date is failing...
-        # # and beg_date = '{2}'
-        #
-        # print(q_get_job)
-        # sql_job = do_sql(q_get_job, key=DEBUG, earl=EARL)
-        # jobrow = sql_job.fetchone()
-        # if jobrow is None:
-        #     print("Job Number not found in job rec")
-        #     #  if no record, no duplicate
-        #     #     insert
-        #     # NOTE:  NEED TO ADD JOB CLASS CODE into HRCLASS field
-        #     # Insert into job rec
-        #     # Query works as of 5/29/18
-        #     q_ins_job = '''INSERT INTO job_rec
-        #       (tpos_no, descr, bjob_no, id, hrpay, supervisor_no,
-        #       hrstat, egp_type, hrdiv, hrdept, comp_beg_date,
-        #       comp_end_date,
-        #       beg_date, end_date, active_ctrct, ctrct_stat, excl_srvc_hrs,
-        #       excl_web_time, job_title, title_rank, worker_ctgry, hrclass)
-        #       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-        #       ?, ?,
-        #        ?, ?, ?)'''
-        #
-        #     q_ins_job_args = (v_tpos, jobtitledescr, 0, carthid,
-        #                       paycode, spvrID, jobfunctioncode,
-        #                       'R',
-        #                       div, func_code, None, None,
-        #                       datetime.now().strftime("%m/%d/%Y"), None,
-        #                       'N', 'N/A', 'N',
-        #                       'N', jobtitledescr, rank, workercatcode,
-        #                       jobclass)
-        #     print(q_ins_job + str(q_ins_job_args))
-        #     print("New Job Record for " + last + ', id = ' + str(carthid))
-        #     engine.execute(q_ins_job, q_ins_job_args)
-        #
-        # else:
-        #     # jobrow = sql_job.fetchone()
-        #     print('valid job found = ' + str(jobrow[0]))
-        #     print('v_tpos = ' + str(v_tpos) )
-        #
-        #     q_upd_job = '''
-        #         UPDATE job_rec SET descr = ?,
-        #         id = ?, hrpay = ?, supervisor_no = ?,
-        #         hrstat = ?, hrdiv = ?, hrdept = ?,
-        #         beg_date = ?, end_date = ?,
-        #         job_title = ?,
-        #         title_rank = ?, worker_ctgry = ?, hrclass = ?
-        #         WHERE job_no = ?'''
-        #     q_upd_job_args = (jobtitledescr, carthid, paycode, spvrID,
-        #             jobfunctioncode, div, func_code,
-        #             datetime.now().strftime("%m/%d/%Y"),
-        #             None if poseffectend == '' else poseffectend,
-        #             jobtitledescr, rank, workercatcode, jobclass, jobrow[0])
-        #     print(q_upd_job)
-        #     print(q_upd_job_args)
-        #
-        #     print("Update Job Record for " + last + ', id = ' + str(carthid))
-        #     engine.execute(q_upd_job, q_upd_job_args)
+        print("Rank = " + str(rank) +'\n')
+
+
+        # ##############################################################
+        # If job rec exists for employee in job_rec -update, else insert
+        # ##############################################################
+        q_get_job = '''SELECT job_no
+                        FROM job_rec
+                        WHERE tpos_no = {0}
+                        and id = {1}
+                        and end_date is null
+                                      '''.format(v_tpos,carthid,positionstart)
+
+
+        print(q_get_job)
+        sql_job = do_sql(q_get_job, key=DEBUG, earl=EARL)
+        jobrow = sql_job.fetchone()
+        if jobrow is None:
+            print("Job Number not found in job rec")
+            #  if no record, no duplicate
+            #     insert
+            q_ins_job = '''INSERT INTO job_rec
+              (tpos_no, descr, bjob_no, id, hrpay, supervisor_no,
+              hrstat, egp_type, hrdiv, hrdept, comp_beg_date,
+              comp_end_date,
+              beg_date, end_date, active_ctrct, ctrct_stat, excl_srvc_hrs,
+              excl_web_time, job_title, title_rank, worker_ctgry)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+              ?, ?,
+               ?, ?)'''
+
+            q_ins_job_args = (v_tpos, jr_jobtitle, 0, carthid,
+                              paycode, spvrID, jobfunctioncode,
+                              'R',
+                              div, func_code, None, None,
+                              datetime.now().strftime("%m/%d/%Y"), None,
+                              'N', 'N/A', 'N',
+                              'N', jobtitledescr, rank, workercatcode)
+            print(q_ins_job + str(q_ins_job_args))
+            print("New Job Record for " + fullname + ', id = ' + str(carthid))
+            engine.execute(q_ins_job, q_ins_job_args)
+
+        else:
+            # jobrow = sql_job.fetchone()
+            print('valid job found = ' + str(jobrow[0]))
+            print('v_tpos = ' + str(v_tpos) )
+
+            q_upd_job = '''
+                UPDATE job_rec SET descr = ?,
+                id = ?, hrpay = ?, supervisor_no = ?,
+                hrstat = ?, hrdiv = ?, hrdept = ?,
+                beg_date = ?, end_date = ?,
+                job_title = ?,
+                title_rank = ?, worker_ctgry = ?
+                WHERE job_no = ?'''
+            q_upd_job_args = (jr_jobtitle, carthid, paycode, spvrID,
+                    jobfunctioncode, div, func_code,
+                    datetime.now().strftime("%m/%d/%Y"),
+                    None if poseffectend == '' else poseffectend,
+                    jobtitledescr, rank, workercatcode, jobrow[0])
+            print(q_upd_job)
+            print(q_upd_job_args)
+
+            print("Update Job Record for " + fullname + ', id = ' + str(carthid))
+            engine.execute(q_upd_job, q_upd_job_args)
         #
         #
 
