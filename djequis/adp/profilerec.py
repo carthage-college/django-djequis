@@ -51,11 +51,12 @@ os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 # from djequis.core.utils import sendmail
-from djequis.adp.utilities import fn_validate_field
+from djequis.adp.utilities import fn_validate_field, fn_convert_date
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
+from djzbar.settings import INFORMIX_EARL_SANDBOX
 from djtools.fields import TODAY
 
 DEBUG = settings.INFORMIX_DEBUG
@@ -84,7 +85,9 @@ global EARL
 # if database == 'cars':
 #    EARL = INFORMIX_EARL_PROD
 # elif database == 'train':
-EARL = INFORMIX_EARL_TEST
+# EARL = INFORMIX_EARL_TEST
+# elif database = 'sandbox'
+EARL = INFORMIX_EARL_SANDBOX
 # else:
     # this will raise an error when we call get_engine()
     # below but the argument parser should have taken
@@ -121,7 +124,7 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
         ##########################################################
         #  Find out if record exists to determine update vs insert
         ##########################################################
-        prof_rslt = fn_validate_field("id", "id", "id",
+        prof_rslt = fn_validate_field(id, "id", "id",
                                       "profile_rec", "integer")
         print("Prof Result = " + str(prof_rslt))
 
@@ -139,54 +142,37 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
             'HISPANIC OR LATINO': 'Y'
         }
         is_hispanic = ethnic_code.get(ethnicity)
-        print(ethnic_code)
+        print(is_hispanic)
 
-        if prof_rslt == None:
+        if prof_rslt is None or prof_rslt == 0:
             # Insert or update as needed
             q_insert_prof_rec = '''
                        INSERT INTO profile_rec (id, sex, 
                            race, hispanic, birth_date, prof_last_upd_date)
-                           VALUES ({0}, "{1}", "{2}", "{3}", "{4}", "{5}") 
-                       '''.format(id, sex, race, is_hispanic, birth_date,
-                              prof_last_upd_date)
+                           VALUES (?, ?, ?, ?, ?, ?) '''
+            q_ins_prof_args=(id, sex, race, is_hispanic,
+                birth_date, prof_last_upd_date)
             print(q_insert_prof_rec)
+            print(q_ins_prof_args)
+            engine.execute(q_insert_prof_rec, q_ins_prof_args)
             # scr.write(q_insert_prof_rec + '\n');
             logger.info("Inserted into profile_rec table");
-            # do_sql(q_insert_prof_rec, key=DEBUG, earl=EARL)
+
         else:
             q_update_prof_rec = '''
-                       UPDATE profile_rec SET sex = "{0}",
-                           hispanic = "{1}", race = "{2}",
-                           birth_date = "{3}", 
-                           prof_last_upd_date = "{5}"
-                           WHERE id = {4}
-                       '''.format(sex, is_hispanic, race, birth_date, id,
-                                  prof_last_upd_date)
+                       UPDATE profile_rec SET sex = ?,
+                           hispanic = ?, race = ?,
+                           birth_date = ?, 
+                           prof_last_upd_date = ?
+                           WHERE id = ?'''
+            q_upd_prof_args = (sex, is_hispanic, race,
+                birth_date, prof_last_upd_date, id)
             print(q_update_prof_rec)
+            print(q_upd_prof_args)
+            engine.execute(q_update_prof_rec, q_upd_prof_args)
             # scr.write(q_update_prof_rec + '\n');
             logger.info("Update profile_rec table");
-            # do_sql(q_update_prof_rec, key=DEBUG, earl=EARL)
-
 
     except Exception as e:
         print(e)
 
-
-if __name__ == "__main__":
-    args = parser.parse_args()
-    test = args.test
-    database = args.database
-
-    if not database:
-        print "mandatory option missing: database name\n"
-        parser.print_help()
-        exit(-1)
-    else:
-        database = database.lower()
-
-    if database != 'cars' and database != 'train':
-        print "database must be: 'cars' or 'train'\n"
-        parser.print_help()
-        exit(-1)
-
-    sys.exit(main())

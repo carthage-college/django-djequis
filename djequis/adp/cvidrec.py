@@ -51,11 +51,12 @@ os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 # from djequis.core.utils import sendmail
-from djequis.adp.utilities import fn_validate_field, fn_check_duplicates
+from djequis.adp.utilities import fn_validate_field, fn_check_duplicates 
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
+from djzbar.settings import INFORMIX_EARL_SANDBOX
 from djtools.fields import TODAY
 
 DEBUG = settings.INFORMIX_DEBUG
@@ -84,7 +85,9 @@ global EARL
 # if database == 'cars':
 #    EARL = INFORMIX_EARL_PROD
 # elif database == 'train':
-EARL = INFORMIX_EARL_TEST
+# EARL = INFORMIX_EARL_TEST
+# elif database == 'sandbox':
+EARL = INFORMIX_EARL_SANDBOX
 # else:
     # this will raise an error when we call get_engine()
     # below but the argument parser should have taken
@@ -126,70 +129,50 @@ def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id):
         # Validate the cx_id
         v_cx_id = fn_validate_field(carthid, "cx_id", "cx_id", "cvid_rec",
                     "integer")
-        print("CX_ID = " + str(v_cx_id))
+        print("CX_ID = " + str(carthid))
+        print("v_CX_ID = " + str(v_cx_id))
 
         # Should also check for duplicates of the adp_id and associate_id
         # What to do in that case?
-        v_adp_id = fn_check_duplicates(adpid, "adp_id", "cx_id", "cvid_rec",
+        v_adp_match = fn_check_duplicates(adpid, "adp_id", "cx_id", "cvid_rec",
                                  v_cx_id, "char")
-        print("ADP_ID = " + str(v_adp_id))
+        print("Found_ID = " + str(v_adp_match))
 
         # By definition, associate ID cannot be a duplicate in ADP, but
         # possibility of duplicate might exist in CX
-        v_assoc_id = fn_check_duplicates(adp_assoc_id, "adp_associate_id",
+        v_assoc_match = fn_check_duplicates(adp_assoc_id, "adp_associate_id",
                        "cx_id", "cvid_rec", v_cx_id, "char")
-        print("Associate ID = " + str(v_assoc_id))
+        print("Found ID = " + str(v_assoc_match))
 
 
 
-        if v_cx_id == None and v_assoc_id == 0 and v_adp_id == 0:
+        if v_cx_id == 0 and v_assoc_match == 0 and v_adp_match == 0:
             # Insert or update as needed to ID_rec
-            q_insert_cvid_rec = '''
-               INSERT INTO cvid_rec (old_id, old_id_num, adp_id, 
-                   ssn, cx_id, cx_id_char, adp_associate_id)
-                   VALUES ("{0}",{0},"{1}","{2}",{0},"{0}","{3}") 
-               '''.format(carthid, adpid,
-                          ssn, adp_assoc_id)
+            # Insert works 06/12/18
+
+            q_insert_cvid_rec = '''INSERT INTO cvid_rec (old_id, old_id_num, 
+              adp_id, ssn, cx_id, cx_id_char, adp_associate_id) 
+              VALUES (?,?,?,?,?,?,?)'''
+            args = (carthid, carthid, adpid, ssn, carthid, carthid, adp_assoc_id)
+
             print(q_insert_cvid_rec)
-            scr.write(q_insert_cvid_rec + '\n');
+
+            engine.execute(q_insert_cvid_rec, args)
+            # scr.write(q_insert_cvid_rec + '\n');
             logger.info("Inserted into cvid_rec table");
-            # do_sql(q_insert_cvid_rec, key=DEBUG, earl=EARL)
-        elif str(v_cx_id) != v_assoc_id and v_assoc_id != 0:
+        elif str(v_cx_id) != v_assoc_match and v_assoc_match != 0:
             print('Duplicate Associate ID found')
-        elif str(v_cx_id) != str(v_adp_id) and v_adp_id != 0:
+        elif str(v_cx_id) != str(v_adp_match) and v_adp_match != 0:
             print('Duplicate ADP ID found')
         else:
-            # sql works - 5/30/18
-            q_update_cvid_rec = '''
-               UPDATE cvid_rec SET old_id = "{0}", old_id_num = {0}, 
-               adp_id = "{1}", ssn = "{2}", cx_id = {0}, 
-               adp_associate_id = "{3}" 
-               WHERE cx_id = {0}
-           '''.format(carthid, adpid,
-                      ssn, adp_assoc_id)
+            # sql works - 6/12/18
+            q_update_cvid_rec = '''UPDATE cvid_rec SET old_id = ?, 
+                old_id_num = ?, adp_id = ?, ssn = ?, adp_associate_id = ? 
+                WHERE cx_id = ?'''
+            args = (carthid, carthid, adpid, ssn, adp_assoc_id, carthid)
             print(q_update_cvid_rec)
             logger.info("Update cvid_rec table");
-            # do_sql(q_update_cvid_rec, key=DEBUG, earl=EARL)
+            engine.execute(q_update_cvid_rec, args)
 
     except Exception as e:
         print(e)
-
-
-if __name__ == "__main__":
-    args = parser.parse_args()
-    test = args.test
-    database = args.database
-
-    if not database:
-        print "mandatory option missing: database name\n"
-        parser.print_help()
-        exit(-1)
-    else:
-        database = database.lower()
-
-    if database != 'cars' and database != 'train':
-        print "database must be: 'cars' or 'train'\n"
-        parser.print_help()
-        exit(-1)
-
-    sys.exit(main())

@@ -89,6 +89,8 @@ ENV/
 .ropeproject
 
 # misc
+scratch*.py
+temp*.py
 *.gz
 *.py[cod]
 *.log
