@@ -58,7 +58,7 @@ from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 from djequis.adp.idrec import fn_process_idrec
 from djequis.adp.aarec import fn_archive_address, fn_insert_aa, \
-    fn_update_aa, fn_end_date_aa, fn_set_email2
+    fn_update_aa, fn_end_date_aa, fn_set_email2, fn_set_cell_phone
 from djequis.adp.cvidrec import fn_process_cvid
 from djequis.adp.jobrec import fn_process_job
 from djequis.adp.utilities import fn_validate_field, fn_convert_date, \
@@ -444,7 +444,7 @@ def main():
                 # basic demographic information
                 ###############################################################
                 # If ADP File is missing the Carthage ID, we cannot process the
-                # record
+                # record - For ALL in file
                 # email HR if CarthID is missing
                 if row["carth_id"] == "":
                     print('No Carthage ID - abort this record and email HR')
@@ -459,13 +459,11 @@ def main():
                              skipped. Name = {0}, \
                              ADP File = {1}'.format(row["payroll_name"], \
                                                     row["file_number"]))
-
-                # Exclude student employees from process, paycode DPW
-                elif row["payroll_comp_code"] != 'DPW':
+                else:
                     # Check to see if record exists in id_rec
                     # Do this first, or everything else is moot
-                    results = fn_validate_field(row["carth_id"],"id","id",
-                                                "id_rec","integer")
+                    results = fn_validate_field(row["carth_id"], "id", "id",
+                                                "id_rec", "integer")
                     print("ID Validate result = " + str(results))
 
                     if results is None:
@@ -481,8 +479,10 @@ def main():
                         #          BODY, SUBJECT
                         #          )
                         logger.error('There was no matching ID in id_Rec \
-                                     table, row skipped. Name = {0}, \
-                                     ADP File = {1}'.format(fullname, file_number))
+                                                    table, row skipped. Name '
+                                     '= {0}, \
+                                                    ADP File = {1}'.format(
+                            fullname, file_number))
 
                         # We should theoretically never insert an ID record
                         #  unless at some point they don't need the cx_id in
@@ -502,81 +502,141 @@ def main():
                         #          row["position_status"],
                         #          fn_convert_date(row["pos_effective_date"]))
 
-                    else:
-                        ########################################
-                        # This will take care of addresses and demographics
-                        ########################################
-                        # print("Deal with Address")
-                        fn_process_idrec(row["carth_id"], row["file_number"],
-                                 row["payroll_name"],
-                                 row["last_name"], row["first_name"],
-                                 row["middle_name"],
-                                 row["primary_address1"],
-                                 row["primary_address2"],
-                                 row["primary_address3"],
-                                 row["primary_city"],
-                                 row["primary_state_code"],
-                                 row["primary_zip"],
-                                 row["primary_country"],
-                                 row["primary_country_code"],
-                                 row["ssn"], row["home_phone"],
-                                 row["position_status"],
-                                 fn_convert_date(row["pos_effective_date"]))
-
-                        # print("sql addr " + addr_result[1].strip() + " loop
-                        # address = " + row["primary_address1"].strip())
-
-                        if row["personal_email"] != '':
-                            email_result = fn_set_email2(row["personal_email"],
-                                                           row["carth_id"])
-                            print("Email = " + str(email_result))
-                        else:
-                            print("No email from ADP")
-
-                        #Check to update phone in aa_rec
-                        if row["mobile_phone"] != "":
-                            cell = fn_set_cell_phone(row["mobile_phone"],
-                                     row["carth_id"], row["payroll_name"])
-                            print("Cell phone result: " + cell)
-                        else:
-                            print("No Cell")
-
-                        ###########################################################
-                        # STEP 2c--
-                        # Do updates to profile_rec (profilerec.py)
-                        ##########################################################
+                        # Student employees should have cvid_rec for
+                        # provisioning
                         # Initial test done against cx 6/12/18
-                        prof_rec = fn_process_profile_rec(row["carth_id"],
-                                    row["ethnicity"], row["gender"], row["race"],
-                                    row["birth_date"],
-                                    datetime.now().strftime("%m/%d/%Y"))
-                        #
-                        # print(prof_rec)
+                    else:
+
+                        # Exclude student employees from main process,
+                        # paycode DPW
+                        if row["payroll_comp_code"] != 'DPW':
+
+                            ########################################
+                            # This will take care of addresses and demographics
+                            ########################################
+                            # print("Deal with Address")
+                            id_rslt = fn_process_idrec(row["carth_id"], row["file_number"],
+                                     row["payroll_name"],
+                                     row["last_name"], row["first_name"],
+                                     row["middle_name"],
+                                     row["primary_address1"],
+                                     row["primary_address2"],
+                                     row["primary_address3"],
+                                     row["primary_city"],
+                                     row["primary_state_code"],
+                                     row["primary_zip"],
+                                     row["primary_country"],
+                                     row["primary_country_code"],
+                                     row["ssn"], row["home_phone"],
+                                     row["position_status"],
+                                     fn_convert_date(row["pos_effective_date"]))
+
+                            print("ID Result = " + str(id_rslt))
+                            # print("sql addr " + addr_result[1].strip() + " loop
+                            # address = " + row["primary_address1"].strip())
+
+                            if row["personal_email"] != '':
+                                email_result = fn_set_email2(row["personal_email"],
+                                              row["carth_id"],row["payroll_name"])
+                                print("Email = " + str(email_result))
+                            else:
+                                print("No email from ADP")
+
+                            #Check to update phone in aa_rec
+                            if row["mobile_phone"] != "":
+                                cell = fn_set_cell_phone(row["mobile_phone"],
+                                         row["carth_id"], row["payroll_name"])
+                                print("Cell phone result: " + cell)
+                            else:
+                                print("No Cell")
+
+                            ###########################################################
+                            # STEP 2c--
+                            # Do updates to profile_rec (profilerec.py)
+                            ##########################################################
+                            # Initial test done against cx 6/12/18
+                            prof_rec = fn_process_profile_rec(row["carth_id"],
+                                        row["ethnicity"], row["gender"], row["race"],
+                                        row["birth_date"],
+                                        datetime.now().strftime("%m/%d/%Y"))
+                            #
+                            # print(prof_rec)
+
+                            ##########################################################
+                            # STEP 2d--
+                            # Do updates to cvid_rec (cvidrec.py)
+                            ##########################################################
+                            #Initial test done against cx 6/12/18
+                            fn_process_cvid(row["carth_id"], row["file_number"],
+                                          row["ssn"], row["employee_assoc_id"])
+
+                            ##########################################################
+                            # STEP 2e--
+                            # Do updates to job_rec (jobrec.py)
+                            ##########################################################
+                            fn_process_job(row["carth_id"], row["worker_cat_code"],
+                                    row["worker_cat_descr"], row["business_unit_code"],
+                                    row["business_unit_descr"], row["home_dept_code"],
+                                    row["home_dept_descr"], row["job_title_code"],
+                                    row["job_title_descr"], row["pos_start_date"],
+                                    row["pos_effective_end_date"],
+                                    row["payroll_comp_code"], row["job_function_code"],
+                                    row["job_function_description"],
+                                    row["job_class_code"], row["job_class_descr"],
+                                    row["primary_position"], row["supervisor_id"],
+                                    row["last_name"], row["first_name"],
+                                    row["middle_name"])
+
+                            ##########################################################
+                            # STEP 2f--
+                            # Add SCHL record to aa_rec (Directory Name -  Location
+                            ##########################################################
+                            # Check to see if one exists
+
+                            # If not write new
+                            # May include carthage work phone, ext,
+                            # builing code and room (LH 444)
+
+                            loc_code = {
+                                '1': 'LH',
+                                '2': 'CC',
+                                '3': 'DSC',
+                                '4': 'HL',
+                                '5': 'JAC',
+                                '6': 'TWC',
+                                '7': 'TC',
+                                '11': 'MADR',
+                                '15': 'SC',
+                                '16': 'TA'
+                            }
+                            loc = loc_code.get(loc)
+
+                            fn_set_schl_rec(row["carth_id"], row["payroll_name"],
+                                "", "", loc, row["room_number"])
+
+                            ##########################################################
+                            # STEP 3--
+                            # Check for and process secondary jobs
+                            # Different process now, Custom field for PCNAggr
+                            #
+                            ##########################################################
 
                         ##########################################################
-                        # STEP 2d--
-                        # Do updates to cvid_rec (cvidrec.py)
+                        # Finally for student employees
                         ##########################################################
-                        #Initial test done against cx 6/12/18
-                        fn_process_cvid(row["carth_id"], row["file_number"],
-                                      row["ssn"], row["employee_assoc_id"])
+                        else:
+                             ##########################################################
+                             # Do updates to cvid_rec (cvidrec.py) for students
+                             # for provisioning
+                             ##########################################################
+                             fn_process_cvid(row["carth_id"],
+                                             row["file_number"],
+                                             row["ssn"],
+                                             row["employee_assoc_id"])
 
-                        ##########################################################
-                        # STEP 2e--
-                        # Do updates to job_rec (jobrec.py)
-                        ##########################################################
-                        fn_process_job(row["carth_id"], row["worker_cat_code"],
-                                row["worker_cat_descr"], row["business_unit_code"],
-                                row["business_unit_descr"], row["home_dept_code"],
-                                row["home_dept_descr"], row["job_title_code"],
-                                row["job_title_descr"], row["pos_start_date"],
-                                row["pos_effective_end_date"],
-                                row["payroll_comp_code"], row["job_function_code"],
-                                row["job_function_description"],
-                                row["job_class_code"], row["job_class_descr"],
-                                row["primary_position"], row["supervisor_id"],
-                                row["last_name"], row["first_name"],
-                                row["middle_name"])
+
+
+
 
 
             # set destination directory for which the sql file will be archived to
