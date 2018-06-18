@@ -190,18 +190,61 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                       work_cat_descr, active_date) VALUES (?,?,?)'''
             q_ins_wc_args = (workercatcode,workercatdescr,
                       datetime.now().strftime("%m/%d/%Y"))
-            print(q_ins_wc)
-            print(q_ins_wc_args)
+            # print(q_ins_wc)
+            # print(q_ins_wc_args)
             engine.execute(q_ins_wc, q_ins_wc_args)
         else:
             q_upd_wc = '''UPDATE cc_work_cat_table set work_cat_descr = ?
                   WHERE work_cat_code = ?'''
 
             q_upd_wc_args = (workercatdescr, workercatcode)
-            print(q_upd_wc)
-            print(q_upd_wc_args)
+            # print(q_upd_wc)
+            # print(q_upd_wc_args)
             engine.execute(q_upd_wc, q_upd_wc_args)
 
+            ##############################################################
+            # To do....
+            # Job Class Code, HRClass field in Job Rec
+            # Need to add definitions as needed in hrclass_table
+            ##############################################################
+            jobclass = 'GA'
+            jobclassdescr = 'Graduate Assistant'
+            if jobclass != "":
+                print(jobclass)
+                print(jobclassdescr)
+                # Find out if class is in the hrclass table
+                q_hrclass = '''SELECT * FROM hrclass_table 
+                        WHERE hrclass = "{0}"
+                        AND inactive_date is null'''.format(jobclass)
+
+                jclass = do_sql(q_hrclass, key=DEBUG, earl=EARL)
+                row = jclass.fetchone()
+
+                if row is None:
+                    q_hrclass_ins = '''INSERT INTO hrclass_table
+                        	(hrclass, txt, active_date, inactive_date)
+                            VALUES 
+        	                  (?, ?, ?, ?)'''
+                    q_hrclass_ins_args = (jobclass, jobclassdescr,
+                                          datetime.now().strftime("%m/%d/%Y"),
+                                          None)
+                    engine.execute(q_hrclass_ins, q_hrclass_ins_args)
+                else:
+                    print(row[1])
+                    if row[1] != jobclassdescr:
+                        q_hrclass_upd = '''UPDATE hrclass_table
+                                SET txt = ?
+                                WHERE hrclass = ?'''
+                        q_hrclass_upd_args = (jobclassdescr, jobclass)
+
+                        engine.execute(q_hrclass_upd, q_hrclass_upd_args)
+                    else:
+                        print("No change in HRClass Description")
+
+                # If not, insert
+                # Else do nothing
+            else:
+                print("No Job Class")
         ###############################################################
         # Use PCN Agg to find TPos FROM position rec
         ###############################################################
@@ -221,8 +264,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                                 'tenure', 0, 0, payrollcompcode,
                                 datetime.now().strftime("%m/%d/%Y"),'')
 
-            print(q_ins_pos)
-            print(q_ins_pos_args)
+            # print(q_ins_pos)
+            # print(q_ins_pos_args)
 
             engine.execute(q_ins_pos, q_ins_pos_args)
             # Need to return the tpos_no as it is created in the INSERT
@@ -256,8 +299,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                               'tenure', 0, 0, payrollcompcode,
                               datetime.now().strftime("%m/%d/%Y"),
                               v_tpos)
-            print(q_upd_pos)
-            print(q_upd_pos_args)
+            # print(q_upd_pos)
+            # print(q_upd_pos_args)
 
         ##############################################################
         # validate the position, division, department
@@ -272,7 +315,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             q_ins_div_args = (businessunitcode, businessunitdescr,
                                 datetime.now().strftime("%m/%d/%Y"))
             print("New HR Division = " + businessunitcode  + '\n')
-            print(q_ins_div + str(q_ins_div_args))
+            # print(q_ins_div + str(q_ins_div_args))
             engine.execute(q_ins_div, q_ins_div_args)
         else:
             # This query works 5/25/18
@@ -282,7 +325,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                           datetime.now().strftime("%m/%d/%Y"),
                           businessunitcode)
             print("Existing HR Division = " + hrdivision + '\n')
-            print(q_upd_div + str(q_upd_div_args))
+            # print(q_upd_div + str(q_upd_div_args))
             engine.execute(q_upd_div, q_upd_div_args)
 
         # print("....Deal with department...")
@@ -297,7 +340,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                                datetime.now().strftime("%m/%d/%Y"),None)
 
             print("New HR Department = " + homedeptcode[:3])
-            print(q_ins_dept + str(q_ins_dept_args) +'\n')
+            # print(q_ins_dept + str(q_ins_dept_args) +'\n')
             engine.execute(q_ins_dept, q_ins_dept_args)
         else:
             # This query works 5/25/18
@@ -306,7 +349,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             q_upd_dept_args = (businessunitcode, homedeptdescr,
                                datetime.now().strftime("%m/%d/%Y"), func_code)
 
-            print(q_upd_dept + str(q_upd_dept_args) + '\n')
+            # print(q_upd_dept + str(q_upd_dept_args) + '\n')
             print("Existing HR Department = " + hrdepartment)
             engine.execute(q_upd_dept, q_upd_dept_args)
         ##############################################################
@@ -324,7 +367,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             q_ins_stat_args = (jobfunctioncode,
                                jobfuncdtiondescription,
                                datetime.now().strftime("%m/%d/%Y"))
-            print(q_ins_stat)
+            # print(q_ins_stat)
 
             print("New Job Function Code = " + jobfunctioncode)
             engine.execute(q_ins_stat, q_ins_stat_args)
@@ -336,7 +379,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             q_upd_stat = '''UPDATE hrstat_table SET txt = ? 
                           WHERE hrstat = ?'''
             q_upd_stat_args = (jobfuncdtiondescription, v_job_function_code)
-            print(q_upd_stat + str(q_upd_stat_args))
+            # print(q_upd_stat + str(q_upd_stat_args))
             engine.execute(q_upd_stat, q_upd_stat_args)
         ##############################################################
         # Determine job rank for job_rec
@@ -365,8 +408,9 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
 
         print(q_get_job)
         sql_job = do_sql(q_get_job, key=DEBUG, earl=EARL)
-        if sql_job is None:
-            print("Jobrow = " + str(jobrow))
+        jobrow = sql_job.fetchone()
+        if jobrow is None:
+            print("Job Number not found in job rec")
             #  if no record, no duplicate
             #     insert
             # NOTE:  NEED TO ADD JOB CLASS CODE into HRCLASS field
@@ -395,7 +439,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             engine.execute(q_ins_job, q_ins_job_args)
 
         else:
-            jobrow = sql_job.fetchone()
+            # jobrow = sql_job.fetchone()
             print('valid job found = ' + str(jobrow[0]))
             print('v_tpos = ' + str(v_tpos) )
 
@@ -451,7 +495,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ? )'''
             q_emp_ins_args = (carthid, v_tpos, first,middle,last,"","","",
                         is_tenured,is_tenure_track)
-            print(q_emp_insert + q_emp_ins_args)
+            print(q_emp_insert)
+            print(q_emp_ins_args)
             print("Insert into hremp_rec")
             engine.execute(q_emp_insert, q_emp_ins_args)
         else:
@@ -467,53 +512,12 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
 
             q_emp_upd_args = (v_tpos, first, middle, last, "", "", "",
                  is_tenured,is_tenure_track, carthid)
-            print(q_emp_upd, q_emp_upd_args)
+            print(q_emp_upd)
+            print(q_emp_upd_args)
             print("Update HREMP_REC, ")
             engine.execute(q_emp_upd, q_emp_upd_args)
 
-        ##############################################################
-        # To do....
-        # Job Class Code, HRClass field in Job Rec
-        # Need to add definitions as needed in hrclass_table
-        ##############################################################
-        jobclass = 'GA'
-        jobclassdescr = 'Graduate Assistant'
-        if jobclass != "":
-            print(jobclass)
-            print(jobclassdescr)
-            # Find out if class is in the hrclass table
-            q_hrclass = '''SELECT * FROM hrclass_table 
-                WHERE hrclass = "{0}"
-                AND inactive_date is null'''.format(jobclass)
 
-            jclass = do_sql(q_hrclass, key=DEBUG, earl=EARL)
-            row = jclass.fetchone()
-
-            if row is None:
-                q_hrclass_ins = '''INSERT INTO hrclass_table
-                	(hrclass, txt, active_date, inactive_date)
-                    VALUES 
-	                  (?, ?, ?, ?)'''
-                q_hrclass_ins_args = (jobclass, jobclassdescr,
-                    datetime.now().strftime("%m/%d/%Y"), None )
-                engine.execute(q_hrclass_ins, q_hrclass_ins_args)
-            else:
-                print(row[1])
-                if row[1] != jobclassdescr:
-                    q_hrclass_upd = '''UPDATE hrclass_table
-                        SET txt = ?
-                        WHERE hrclass = ?'''
-                    q_hrclass_upd_args = (jobclassdescr, jobclass)
-
-                    engine.execute(q_hrclass_upd, q_hrclass_upd_args)
-                else:
-                    print("No change in HRClass Description")
-
-
-            # If not, insert
-            # Else do nothing
-        else:
-            print("No Job Class")
 
         ##############################################################
         # Faculty Qualifications - This will go into facqual_rec...
