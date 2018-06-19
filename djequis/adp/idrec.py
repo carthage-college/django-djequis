@@ -133,8 +133,8 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
         q_update_id_args = (fullname, lastname, firstname, middlename, ss_no, eff_date,
                        carth_id)
 
-        print(q_update_id_rec)
-        print(q_update_id_args)
+        # print(q_update_id_rec)
+        # print(q_update_id_args)
         # logger.info("Update id_rec table");
         engine.execute(q_update_id_rec, q_update_id_args)
         # x = do_sql(q_update_id_rec, key=DEBUG, earl=EARL)
@@ -149,57 +149,65 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
     try:
         #     # also need to deal with address changes
         #     # Search for existing address record
-        print(" In Check Address")
-        q_check_addr = '''
-                    SELECT id, addr_line1, addr_line2, addr_line3, city,
-                        st, zip, ctry
-                    From id_rec
-                    Where id = {0}
-                        '''.format(carth_id)
-        # logger.info("Select address info from id_rec table");
-        addr_result = do_sql(q_check_addr, key=DEBUG, earl=EARL)
-        # addr_result = sql_id_address[0]
 
-        row = addr_result.fetchone()
+        if ctry_cod != '':
+            cntry = fn_validate_field(ctry_cod, 'ctry', 'ctry', 'ctry_table', 'char')
+            print("Valid Country Code = " + cntry)
+            print(" In Check Address")
+            q_check_addr = '''
+                        SELECT id, addr_line1, addr_line2, addr_line3, city,
+                            st, zip, ctry
+                        From id_rec
+                        Where id = {0}
+                            '''.format(carth_id)
+            # logger.info("Select address info from id_rec table");
+            addr_result = do_sql(q_check_addr, key=DEBUG, earl=EARL)
+            # addr_result = sql_id_address[0]
 
-        if str(row[0]) == '0' or str(row[0]) == '':  # No person in id rec? Should never happen
-        #     # logger.info('Employee not in id rec for id number {0}'.format(carth_id));
-             print("Employee not in id rec for id number " + carth_id)
+            row = addr_result.fetchone()
+            # x = str(row[1]).rstrip()
+            # print("Address result row = " + x)
+            if str(row[0]) == '0' or str(row[0]) == '':  # No person in id rec? Should never happen
+            #     # logger.info('Employee not in id rec for id number {0}'.format(carth_id));
+                 print("Employee not in id rec for id number " + carth_id)
 
-        # Update ID Rec and archive aa rec
-        elif (row[1].strip() != addr_line1
-            or row[2].strip() != addr_line2
-            or row[3].strip() != addr_line3
-            or row[4].strip() != city
-            or row[5].strip() != st
-            or row[6].strip() != zip
-            or row[7].strip() != ctry_cod):
+            # Update ID Rec and archive aa rec
+            elif (row[1].strip() != addr_line1
+                or row[2].strip() != addr_line2
+                or row[3].strip() != addr_line3
+                or row[4].strip() != city
+                or row[5].strip() != st
+                or row[6].strip() != zip
+                or row[7].strip() != ctry_cod):
 
-            print("Update: no match in ID_REC on " + addr_result[1])  #
+                print("Update: no match in ID_REC on " + row[1])  #
 
-            q_update_id_rec_addr = ('''update id_rec set addr_line1 = ?, 
-                 addr_line2 = ?, addr_line3 = ?, city = ?, st = ?, zip = ?, 
-                 ctry = ? where id = ?''')
-            q_update_id_addr_args = (addr_line1, addr_line2, addr_line3, city, st,
-                                    zip, ctry_cod, carth_id)
+                q_update_id_rec_addr = ('''update id_rec set addr_line1 = ?,
+                     addr_line2 = ?, addr_line3 = ?, city = ?, st = ?, zip = ?,
+                     ctry = ? where id = ?''')
+                q_update_id_addr_args = (addr_line1, addr_line2, addr_line3, city, st,
+                                        zip, cntry, carth_id)
 
-            print(q_update_id_rec_addr)
-            print(q_update_id_addr_args)
+                print(q_update_id_rec_addr)
+                print(q_update_id_addr_args)
 
-            engine.execute(q_update_id_rec_addr, q_update_id_addr_args)
+                engine.execute(q_update_id_rec_addr, q_update_id_addr_args)
 
-            #########################################################
-            # Routine to deal with aa_rec
-            #########################################################
-            # now check to see if address is a duplicate in aa_rec
-            # find max start date to determine what date to insert
-            # insert or update as needed
+                #########################################################
+                # Routine to deal with aa_rec
+                #########################################################
+                # now check to see if address is a duplicate in aa_rec
+                # find max start date to determine what date to insert
+                # insert or update as needed
 
-            fn_archive_address(carth_id, fullname, addr_line1, addr_line2,
-                         addr_line3, city, st, zip, ctry_cod)
+                fn_archive_address(carth_id, fullname, addr_line1, addr_line2,
+                             addr_line3, city, st, zip, cntry)
 
-        else:
-            print("No Change " + row[1])
+            else:
+                print("No Change " + row[1])
+
+        elif cntry is None:
+            print("invalid country code" + ctry_cod)
 
     except Exception as err:
         print(err.message)
