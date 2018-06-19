@@ -144,16 +144,19 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
         is_hispanic = ethnic_code.get(ethnicity)
         print(is_hispanic)
 
+        age = fn_calculate_age(birth_date)
+        print("Age = " + str(age))
+
         if prof_rslt is None or prof_rslt == 0:
             # Insert or update as needed
             q_insert_prof_rec = '''
                        INSERT INTO profile_rec (id, sex, 
-                           race, hispanic, birth_date, prof_last_upd_date)
-                           VALUES (?, ?, ?, ?, ?, ?) '''
+                           race, hispanic, birth_date, age, prof_last_upd_date)
+                           VALUES (?, ?, ?, ?, ?, ?, ?) '''
             q_ins_prof_args=(id, sex, race, is_hispanic,
-                birth_date, prof_last_upd_date)
-            print(q_insert_prof_rec)
-            print(q_ins_prof_args)
+                birth_date, age, prof_last_upd_date)
+            # print(q_insert_prof_rec)
+            # print(q_ins_prof_args)
             engine.execute(q_insert_prof_rec, q_ins_prof_args)
             # scr.write(q_insert_prof_rec + '\n');
             logger.info("Inserted into profile_rec table");
@@ -162,11 +165,11 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
             q_update_prof_rec = '''
                        UPDATE profile_rec SET sex = ?,
                            hispanic = ?, race = ?,
-                           birth_date = ?, 
+                           birth_date = ?, age = ?,
                            prof_last_upd_date = ?
                            WHERE id = ?'''
             q_upd_prof_args = (sex, is_hispanic, race,
-                birth_date, prof_last_upd_date, id)
+                birth_date, age, prof_last_upd_date, id)
             print(q_update_prof_rec)
             print(q_upd_prof_args)
             engine.execute(q_update_prof_rec, q_upd_prof_args)
@@ -176,3 +179,15 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
     except Exception as e:
         print(e)
 
+
+
+def fn_calculate_age(bdate):
+    # print("Birtdate = " + bdate)
+    d_born = datetime.strptime(bdate, '%m/%d/%Y')
+
+    # print(d_born)
+    today = date.today()
+    # print(today)
+    age = today.year - d_born.year - ((today.month, today.day) < (d_born.month, d_born.day))
+    # print(age)
+    return(age)
