@@ -207,8 +207,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             # Job Class Code, HRClass field in Job Rec
             # Need to add definitions as needed in hrclass_table
             ##############################################################
-            jobclass = 'GA'
-            jobclassdescr = 'Graduate Assistant'
+            # jobclass = 'GA'
+            # jobclassdescr = 'Graduate Assistant'
             if jobclass != "":
                 print(jobclass)
                 print(jobclassdescr)
