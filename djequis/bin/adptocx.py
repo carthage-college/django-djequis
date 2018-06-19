@@ -58,7 +58,7 @@ from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 from djequis.adp.idrec import fn_process_idrec
 from djequis.adp.aarec import fn_archive_address, fn_insert_aa, \
-    fn_update_aa, fn_end_date_aa, fn_set_email2, fn_set_cell_phone
+    fn_update_aa, fn_end_date_aa, fn_set_email2, fn_set_cell_phone, fn_set_schl_rec
 from djequis.adp.cvidrec import fn_process_cvid
 from djequis.adp.jobrec import fn_process_job
 from djequis.adp.utilities import fn_validate_field, fn_convert_date, \
@@ -489,18 +489,20 @@ def main():
                         #  ADP and can let CX create new ID numbers
                         # programatically
                         #
-                        # fn_process_idrec(row["carth_id"], row["file_number"],
-                        #          row["payroll_name"],
-                        #          row["last_name"], row["first_name"],
-                        #          row["middle_name"], row["primary_address1"],
-                        #          row["primary_address2"],
-                        #          row["primary_address3"],
-                        #          row["primary_city"],
-                        #          row["primary_state_code"],
-                        #          row["primary_zip"], row["primary_country"],
-                        #          row["ssn"], row["home_phone"],
-                        #          row["position_status"],
-                        #          fn_convert_date(row["pos_effective_date"]))
+                        fn_process_idrec(row["carth_id"], row["file_number"],
+                                 row["payroll_name"],
+                                 row["last_name"], row["first_name"],
+                                 row["middle_name"], row["primary_address1"],
+                                 row["primary_address2"],
+                                 row["primary_address3"],
+                                 row["primary_city"],
+                                 row["primary_state_code"],
+                                 row["primary_zip"], row["primary_country"],
+                                 row["ssn"], row["home_phone"],
+                                 row["position_status"],
+                                 fn_convert_date(row["hire_date"]))
+                        # Use hire date if we do the initial insert...
+                        ##          fn_convert_date(row["pos_effective_date"]))
 
                         # Student employees should have cvid_rec for
                         # provisioning
@@ -542,7 +544,7 @@ def main():
                             else:
                                 print("No email from ADP")
 
-                            #Check to update phone in aa_rec
+                            Check to update phone in aa_rec
                             if row["mobile_phone"] != "":
                                 cell = fn_set_cell_phone(row["mobile_phone"],
                                          row["carth_id"], row["payroll_name"])
@@ -596,7 +598,7 @@ def main():
                             # If not write new
                             # May include carthage work phone, ext,
                             # builing code and room (LH 444)
-
+                            print("Begin Schl record process")
                             loc_code = {
                                 '1': 'LH',
                                 '2': 'CC',
@@ -609,7 +611,9 @@ def main():
                                 '15': 'SC',
                                 '16': 'TA'
                             }
-                            loc = loc_code.get(loc)
+                            # print(str(loc_code))
+                            loc = loc_code.get(row["location_code"])
+                            print("loc = " + loc)
 
                             fn_set_schl_rec(row["carth_id"], row["payroll_name"],
                                 "", "", loc, row["room_number"])
@@ -685,8 +689,8 @@ if __name__ == "__main__":
     else:
         database = database.lower()
 
-    if database != 'cars' and database != 'train':
-        print "database must be: 'cars' or 'train'\n"
+    if database != 'cars' and database != 'train' and database != 'sandbox':
+        print "database must be: 'cars' or 'train' or 'sandbox'\n"
         parser.print_help()
         exit(-1)
 
