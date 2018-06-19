@@ -1,24 +1,21 @@
-import string
-import datetime
 import os
-import io
+import string
 import sys
 import pysftp
 import csv
 import datetime
 from datetime import date
 from datetime import datetime, timedelta
+import codecs
 import time
 from time import strftime
 import argparse
-import uuid
+#import uuid
 from sqlalchemy import text
 import shutil
-import re
+#import re
 import logging
 from logging.handlers import SMTPHandler
-import codecs
-import unicodedata
 
 
 # python path
@@ -57,6 +54,7 @@ from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 from djzbar.settings import INFORMIX_EARL_SANDBOX
+
 from djtools.fields import TODAY
 
 DEBUG = settings.INFORMIX_DEBUG
@@ -99,8 +97,6 @@ engine = get_engine(EARL)
 #########################################################
 # Common function to validate that a record exists
 #########################################################
-
-
 def fn_validate_field(searchval, keyfield, retfield, table, keytype):
     if keytype == "char":
         qval_sql = "SELECT DISTINCT " + retfield + " FROM " + table \
@@ -108,9 +104,7 @@ def fn_validate_field(searchval, keyfield, retfield, table, keytype):
     elif keytype == "integer":
         qval_sql = "SELECT DISTINCT " + retfield + " FROM " + table \
                    + " WHERE " + keyfield + " = " + str(searchval)
-
-    print("Validate Field SQL = " + qval_sql)
-
+    #print("Validate Field SQL = " + qval_sql)
     try:
         sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
         # print("sql_val = " + str(sql_val))
@@ -123,7 +117,6 @@ def fn_validate_field(searchval, keyfield, retfield, table, keytype):
                     return ""
                 else:
                     return 0
-
         else:
             if keytype == "char":
                 return ""
@@ -133,7 +126,9 @@ def fn_validate_field(searchval, keyfield, retfield, table, keytype):
     except Exception as e:
         print(e)
 
-
+#########################################################
+# Common function to prevent duplicate entries
+#########################################################
 def fn_check_duplicates(searchval, keyfield, retfield, table, testval, keytype):
     if keytype == "char":
         qval_sql = "SELECT " + retfield + " FROM " + table + " WHERE " \
@@ -143,9 +138,7 @@ def fn_check_duplicates(searchval, keyfield, retfield, table, testval, keytype):
         qval_sql = "SELECT " + retfield + " FROM " + table \
                    + " WHERE " + keyfield + " = " + searchval \
                    + " AND " + retfield + " != " + str(testval)
-
-    print(qval_sql)
-
+    #print(qval_sql)
     try:
         sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
         if sql_val is not None:
@@ -161,7 +154,9 @@ def fn_check_duplicates(searchval, keyfield, retfield, table, testval, keytype):
         print(e)
         return e
 
-
+#########################################################
+# Common function to format date for CX
+#########################################################
 def fn_convert_date(date):
     if date != "":
         ndate = datetime.strptime(date, "%m/%d/%Y")
@@ -169,11 +164,12 @@ def fn_convert_date(date):
         # retdate = datetime.strftime(ndate, "%Y-%m-%d")
     else:
         retdate = None
-
     # print(retdate)
     return retdate
 
-
+#########################################################
+# Common function to format phone for CX
+#########################################################
 def fn_format_phone(phone):
     if phone != "":
         v =  phone[1:4]+phone[6:9]+phone[10:14]
@@ -181,4 +177,15 @@ def fn_format_phone(phone):
     else:
         return ""
 
-
+#########################################################
+# Common function to calculate age from ADP birthdate
+#########################################################
+def fn_calculate_age(bdate):
+    # print("Birtdate = " + bdate)
+    d_born = datetime.strptime(bdate, '%m/%d/%Y')
+    # print(d_born)
+    today = date.today()
+    # print(today)
+    age = today.year - d_born.year - ((today.month, today.day) < (d_born.month, d_born.day))
+    # print(age)
+    return(age)
