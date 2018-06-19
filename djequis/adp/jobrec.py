@@ -514,7 +514,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                  is_tenured,is_tenure_track, carthid)
             print(q_emp_upd)
             print(q_emp_upd_args)
-            print("Update HREMP_REC, ")
+            print("Update HREMP_REC")
             engine.execute(q_emp_upd, q_emp_upd_args)
 
 
