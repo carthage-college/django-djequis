@@ -326,7 +326,7 @@ def fn_set_cell_phone(phone, id, fullname):
     try:
         sql_cell = do_sql(q_check_cell, key=DEBUG, earl=EARL)
         cell_result = sql_cell.fetchone()
-        if cell_result == None:
+        if cell_result is None:
             print("No Cell")
             fn_insert_aa(id, fullname, 'CELL',
                            phone, "", "", "", "", "", "",
@@ -348,8 +348,8 @@ def fn_set_cell_phone(phone, id, fullname):
             sql_end = do_sql(q_check_end, key=DEBUG, earl=EARL)
             end_rslt = sql_end.fetchone()
 
-            print(datetime.strftime(end_rslt[0], "%m/%d/%Y"))
-            print(datetime.strftime(datetime.now(), "%m/%d/%Y"))
+            # print(datetime.strftime(end_rslt[0], "%m/%d/%Y"))
+            # print(datetime.strftime(datetime.now(), "%m/%d/%Y"))
             if end_rslt[0] is None:
                 print('END IS NONE')
                 enddate = datetime.now().strftime("%m/%d/%Y")
