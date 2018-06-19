@@ -1,24 +1,22 @@
-import string
-import datetime
 import os
-import io
+import string
 import sys
 import pysftp
 import csv
 import datetime
 from datetime import date
 from datetime import datetime, timedelta
+import codecs
 import time
 from time import strftime
 import argparse
-import uuid
+#import uuid
 from sqlalchemy import text
 import shutil
-import re
+#import re
 import logging
 from logging.handlers import SMTPHandler
-#import adp_ftp
-import codecs
+
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -51,14 +49,18 @@ os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 # from djequis.core.utils import sendmail
-from djequis.adp.aarec import fn_archive_address
-from djequis.adp.utilities import fn_validate_field
+from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 from djzbar.settings import INFORMIX_EARL_SANDBOX
+
 from djtools.fields import TODAY
+
+# Imports for additional modules and functions written as part of this project
+from djequis.adp.aarec import fn_archive_address
+from djequis.adp.utilities import fn_validate_field
 
 DEBUG = settings.INFORMIX_DEBUG
 
@@ -82,18 +84,19 @@ parser.add_argument(
 
 # set global variable
 global EARL
+
 # determines which database is being called from the command line
 # if database == 'cars':
-#    EARL = INFORMIX_EARL_PROD
+#     EARL = INFORMIX_EARL_PROD
 # elif database == 'train':
-# EARL = INFORMIX_EARL_TEST
+#     EARL = INFORMIX_EARL_TEST
 # elif database == 'sandbox':
 EARL = INFORMIX_EARL_SANDBOX
 # else:
     # this will raise an error when we call get_engine()
     # below but the argument parser should have taken
     # care of this scenario and we will never arrive here.
-#    EARL = None
+    #EARL = None
 # establish database connection
 engine = get_engine(EARL)
 
@@ -101,6 +104,8 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
         addr_line1, addr_line2, addr_line3, city, st, zip, ctry, ctry_cod, ss_no, phone,
         decsd, eff_date):
     print("Start ID Rec Processing")
+    # write out the .sql file
+    scr = open("apdtocx_output.sql", "a")
 
     # create logger
     logger = logging.getLogger(__name__)
@@ -122,48 +127,39 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-
     try:
-
-        q_update_id_rec = ('''update id_rec set fullname = ?, lastname = ?, 
+        q_update_id_rec = ('''UPDATE id_rec SET fullname = ?, lastname = ?, 
             firstname = ?, middlename = ?, ss_no = ?, decsd = 'N', 
             upd_date = ?, ofc_add_by = 'HR' 
-            where id = ?''')
+            WHERE id = ?''')
 
         q_update_id_args = (fullname, lastname, firstname, middlename, ss_no, eff_date,
                        carth_id)
-
         # print(q_update_id_rec)
         # print(q_update_id_args)
-        # logger.info("Update id_rec table");
+        logger.info("Update id_rec table");
         engine.execute(q_update_id_rec, q_update_id_args)
-        # x = do_sql(q_update_id_rec, key=DEBUG, earl=EARL)
-
-
     except Exception as err:
         print(err.message)
         return (err.message)
         logger.error(err, exc_info=True)
 
-
     try:
-        #     # also need to deal with address changes
-        #     # Search for existing address record
-
+        # also need to deal with address changes
+        # Search for existing address record
         if ctry_cod != '':
             cntry = fn_validate_field(ctry_cod, 'ctry', 'ctry', 'ctry_table', 'char')
-            print("Valid Country Code = " + cntry)
-            print(" In Check Address")
+            #print("Valid Country Code = " + cntry)
+            #print(" In Check Address")
             q_check_addr = '''
                         SELECT id, addr_line1, addr_line2, addr_line3, city,
                             st, zip, ctry
-                        From id_rec
-                        Where id = {0}
+                        FROM id_rec
+                        WHERE id = {0}
                             '''.format(carth_id)
-            # logger.info("Select address info from id_rec table");
             addr_result = do_sql(q_check_addr, key=DEBUG, earl=EARL)
-            # addr_result = sql_id_address[0]
-
+            scr.write(q_check_addr + '\n');
+            logger.info("Get address info from id_rec table for comparision");
             row = addr_result.fetchone()
             # x = str(row[1]).rstrip()
             # print("Address result row = " + x)
@@ -182,30 +178,26 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
 
                 print("Update: no match in ID_REC on " + row[1])  #
 
-                q_update_id_rec_addr = ('''update id_rec set addr_line1 = ?,
+                q_update_id_rec_addr = ('''UPDATE id_rec SET addr_line1 = ?,
                      addr_line2 = ?, addr_line3 = ?, city = ?, st = ?, zip = ?,
-                     ctry = ? where id = ?''')
+                     ctry = ? WHERE id = ?''')
                 q_update_id_addr_args = (addr_line1, addr_line2, addr_line3, city, st,
                                         zip, cntry, carth_id)
 
-                print(q_update_id_rec_addr)
-                print(q_update_id_addr_args)
-
+                #print(q_update_id_rec_addr)
+                #print(q_update_id_addr_args)
                 engine.execute(q_update_id_rec_addr, q_update_id_addr_args)
-
+                scr.write(q_update_id_rec_addr + '\n');
                 #########################################################
                 # Routine to deal with aa_rec
                 #########################################################
                 # now check to see if address is a duplicate in aa_rec
                 # find max start date to determine what date to insert
                 # insert or update as needed
-
                 fn_archive_address(carth_id, fullname, addr_line1, addr_line2,
                              addr_line3, city, st, zip, cntry)
-
             else:
                 print("No Change " + row[1])
-
         elif cntry is None:
             print("invalid country code" + ctry_cod)
 
@@ -213,11 +205,7 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
         print(err.message)
         logger.error(err, exc_info=True)
         return (err.message)
-
-
-
-
-            # return "x"
-
+    finally:
+        logging.shutdown()
 
 
