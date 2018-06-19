@@ -10,12 +10,11 @@ import codecs
 import time
 from time import strftime
 import argparse
-import uuid
+#import uuid
 from sqlalchemy import text
 import shutil
-import re
+#import re
 import logging
-import string
 from logging.handlers import SMTPHandler
 
 
@@ -50,12 +49,15 @@ os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 from djequis.core.utils import sendmail
-
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_SANDBOX
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
+
+from djtools.fields import TODAY
+
+# Imports for additional modules and functions written as part of this project
 from djequis.adp.idrec import fn_process_idrec
 from djequis.adp.aarec import fn_archive_address, fn_insert_aa, \
     fn_update_aa, fn_end_date_aa, fn_set_email2, fn_set_cell_phone, fn_set_schl_rec
@@ -64,12 +66,10 @@ from djequis.adp.jobrec import fn_process_job
 from djequis.adp.utilities import fn_validate_field, fn_convert_date, \
     fn_format_phone
 from djequis.adp.profilerec import fn_process_profile_rec
-from djtools.fields import TODAY
+from djequis.adp.adp_ftp import file_download
 
 # normally set as 'debug" in SETTINGS
 DEBUG = settings.INFORMIX_DEBUG
-
-
 
 # set up command-line options
 desc = """
@@ -157,9 +157,6 @@ def main():
     # ==> python adptocx.py --database=cars
     # without the --test argument
     ############################################################################
-    # execute sftp code that needs to be executed in production only
-    if not test:
-        file_download()
 
     # set date and time to be added to the filename
     datetimestr = time.strftime("%Y%m%d%H%M%S")
@@ -190,19 +187,28 @@ def main():
         # set global variable
         global EARL
         # determines which database is being called from the command line
-        # if database == 'cars':
-        #     EARL = INFORMIX_EARL_PROD
-        # elif database == 'train':
-        # EARL = INFORMIX_EARL_TEST
-        # elif database == 'sandbox':
-        EARL = INFORMIX_EARL_SANDBOX
-        # else:
-        #     # this will raise an error when we call get_engine()
-        #     # below but the argument parser should have taken
-        #     # care of this scenario and we will never arrive here.
-        #     EARL = None
-        # # establish database connection
+        if database == 'cars':
+            EARL = INFORMIX_EARL_PROD
+        elif database == 'train':
+            EARL = INFORMIX_EARL_TEST
+        elif database == 'sandbox':
+            EARL = INFORMIX_EARL_SANDBOX
+        else:
+        # this will raise an error when we call get_engine()
+        # below but the argument parser should have taken
+        # care of this scenario and we will never arrive here.
+            EARL = None
+        # establish database connection
         engine = get_engine(EARL)
+
+        #################################################################
+        # STEP 0--
+        # Pull the file from the ADP FTP site
+        # execute sftp code that needs to be executed in production only
+        #################################################################
+        if not test:
+            file_download()
+
         #################################################################
         # STEP 1--
         # Read files and write out differences
@@ -211,7 +217,6 @@ def main():
         # Need to delete the differences file to start fresh
         if os.path.isfile(adp_diff_file):
             os.remove(adp_diff_file)
-
 
         # Read in both files and compare
         # the codecs function prevents the header from ADP getting
@@ -362,8 +367,6 @@ def main():
                      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  ?, \
                      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
                      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-
-
                     cc_adp_args = (row["file_number"], row["carth_id"], row["last_name"],
                     row["first_name"], row["middle_name"], row["salutation"],
                     row["payroll_name"], row["preferred_name"],
@@ -427,10 +430,8 @@ def main():
                     row["employee_assoc_id"],datetime.now())
                     # print(q_cc_adp_rec)
                     # print(cc_adp_args)
-
                     engine.execute(q_cc_adp_rec, cc_adp_args)
-
-                    #  # scr.write(q_cc_adp_rec+'\n');
+                    scr.write(q_cc_adp_rec+'\n');
                     logger.info("Inserted into adp_rec table");
 
                 except Exception as e:
@@ -473,11 +474,9 @@ def main():
                                'Name = {0}, \
                                                        ADP File = {1}'.format(
                             fullname, file_number)
-                        print(SUBJECT)
-                        # sendmail(settings.ADP_TO_EMAIL,
-                        # settings.ADP_FROM_EMAIL,
-                        #          BODY, SUBJECT
-                        #          )
+                        #print(SUBJECT)
+                        sendmail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
+                                 BODY, SUBJECT)
                         logger.error('There was no matching ID in id_Rec \
                                                     table, row skipped. Name '
                                      '= {0}, \
@@ -489,18 +488,18 @@ def main():
                         #  ADP and can let CX create new ID numbers
                         # programatically
                         #
-                        fn_process_idrec(row["carth_id"], row["file_number"],
-                                 row["payroll_name"],
-                                 row["last_name"], row["first_name"],
-                                 row["middle_name"], row["primary_address1"],
-                                 row["primary_address2"],
-                                 row["primary_address3"],
-                                 row["primary_city"],
-                                 row["primary_state_code"],
-                                 row["primary_zip"], row["primary_country"],
-                                 row["ssn"], row["home_phone"],
-                                 row["position_status"],
-                                 fn_convert_date(row["hire_date"]))
+                        # fn_process_idrec(row["carth_id"], row["file_number"],
+                        #          row["payroll_name"],
+                        #          row["last_name"], row["first_name"],
+                        #          row["middle_name"], row["primary_address1"],
+                        #          row["primary_address2"],
+                        #          row["primary_address3"],
+                        #          row["primary_city"],
+                        #          row["primary_state_code"],
+                        #          row["primary_zip"], row["primary_country"],
+                        #          row["ssn"], row["home_phone"],
+                        #          row["position_status"],
+                        #          fn_convert_date(row["hire_date"]))
                         # Use hire date if we do the initial insert...
                         ##          fn_convert_date(row["pos_effective_date"]))
 
@@ -508,11 +507,9 @@ def main():
                         # provisioning
                         # Initial test done against cx 6/12/18
                     else:
-
                         # Exclude student employees from main process,
                         # paycode DPW
                         if row["payroll_comp_code"] != 'DPW':
-
                             ########################################
                             # This will take care of addresses and demographics
                             ########################################
@@ -540,23 +537,22 @@ def main():
                             if row["personal_email"] != '':
                                 email_result = fn_set_email2(row["personal_email"],
                                               row["carth_id"],row["payroll_name"])
-                                print("Email = " + str(email_result))
-                            else:
-                                print("No email from ADP")
+                                #print("Email = " + str(email_result))
+                            #else: we can remove the else
+                                #print("No email from ADP")
 
-                            Check to update phone in aa_rec
+                            # Check to update phone in aa_rec
                             if row["mobile_phone"] != "":
                                 cell = fn_set_cell_phone(row["mobile_phone"],
                                          row["carth_id"], row["payroll_name"])
-                                print("Cell phone result: " + cell)
-                            else:
-                                print("No Cell")
+                                #print("Cell phone result: " + cell)
+                            #else: we can remove the else
+                                #print("No Cell")
 
                             ###########################################################
                             # STEP 2c--
                             # Do updates to profile_rec (profilerec.py)
                             ##########################################################
-                            # Initial test done against cx 6/12/18
                             prof_rec = fn_process_profile_rec(row["carth_id"],
                                         row["ethnicity"], row["gender"], row["race"],
                                         row["birth_date"],
@@ -568,7 +564,6 @@ def main():
                             # STEP 2d--
                             # Do updates to cvid_rec (cvidrec.py)
                             ##########################################################
-                            #Initial test done against cx 6/12/18
                             fn_process_cvid(row["carth_id"], row["file_number"],
                                           row["ssn"], row["employee_assoc_id"])
 
@@ -594,7 +589,6 @@ def main():
                             # Add SCHL record to aa_rec (Directory Name -  Location
                             ##########################################################
                             # Check to see if one exists
-
                             # If not write new
                             # May include carthage work phone, ext,
                             # builing code and room (LH 444)
@@ -613,7 +607,7 @@ def main():
                             }
                             # print(str(loc_code))
                             loc = loc_code.get(row["location_code"])
-                            print("loc = " + loc)
+                            #print("loc = " + loc)
 
                             fn_set_schl_rec(row["carth_id"], row["payroll_name"],
                                 "", "", loc, row["room_number"])
@@ -622,7 +616,6 @@ def main():
                             # STEP 3--
                             # Check for and process secondary jobs
                             # Different process now, Custom field for PCNAggr
-                            #
                             ##########################################################
 
                         ##########################################################
@@ -637,11 +630,6 @@ def main():
                                              row["file_number"],
                                              row["ssn"],
                                              row["employee_assoc_id"])
-
-
-
-
-
 
             # set destination directory for which the sql file will be archived to
             archived_destination = ('{0}apdtocx_output-{1}.sql'.format(
@@ -674,8 +662,8 @@ def main():
 
     except Exception as e:
         print(e)
-
-
+    finally:
+        logging.shutdown()
 
 if __name__ == "__main__":
     args = parser.parse_args()
