@@ -57,7 +57,8 @@ from djzbar.settings import INFORMIX_EARL_SANDBOX
 from djtools.fields import TODAY
 
 # Imports for additional modules and functions written as part of this project
-from djequis.adp.utilities import fn_validate_field, fn_check_duplicates
+from djequis.adp.utilities import fn_validate_field, fn_check_duplicates, \
+    fn_write_log
 
 DEBUG = settings.INFORMIX_DEBUG
 
@@ -100,26 +101,11 @@ engine = get_engine(EARL)
 scr = open("apdtocx_output.sql", "a")
 # set start_time in order to see how long script takes to execute
 start_time = time.time()
-# create logger
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-# create console handler and set level to info
-handler = logging.FileHandler('{0}apdtocx.log'.format(settings.LOG_FILEPATH))
-handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
-                              datefmt='%m/%d/%Y %I:%M:%S %p')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-# create error file handler and set level to error
-handler = logging.FileHandler('{0}apdtocx_error.log'.format(settings.LOG_FILEPATH))
-handler.setLevel(logging.ERROR)
-formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
-                              datefmt='%m/%d/%Y %I:%M:%S %p')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
 
+################################################
+# Start of processing
+################################################
 def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id):
-
     try:
         ##############################################################
         # Inserts or updates as needed into cvid_rec
@@ -153,7 +139,8 @@ def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id):
             # print(q_insert_cvid_rec)
             engine.execute(q_insert_cvid_rec, args)
             scr.write(q_insert_cvid_rec + '\n');
-            logger.info("Inserted into cvid_rec table");
+            fn_write_log("Inserted into cvid_rec table")
+            # logger.info("Inserted into cvid_rec table");
         elif str(v_cx_id) != v_assoc_match and v_assoc_match != 0:
             print('Duplicate Associate ID found')
         elif str(v_cx_id) != str(v_adp_match) and v_adp_match != 0:
@@ -166,11 +153,12 @@ def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id):
               WHERE cx_id = ?'''
             args = (carthid, carthid, adpid, ssn, adp_assoc_id, carthid)
             # print(q_update_cvid_rec)
-            logger.info("Update cvid_rec table");
+            # fn_write_log("Update cvid_rec table")
+            # logger.info("Update cvid_rec table");
             scr.write(q_update_cvid_rec + '\n');
             engine.execute(q_update_cvid_rec, args)
 
     except Exception as e:
         print(e)
-    finally:
-        logging.shutdown()
+    # finally:
+    #     logging.shutdown()
