@@ -58,7 +58,7 @@ from djzbar.settings import INFORMIX_EARL_SANDBOX
 from djtools.fields import TODAY
 
 # Imports for additional modules and functions written as part of this project
-from djequis.adp.utilities import fn_validate_field
+from djequis.adp.utilities import fn_validate_field, fn_write_log
 
 DEBUG = settings.INFORMIX_DEBUG
 
@@ -66,66 +66,51 @@ DEBUG = settings.INFORMIX_DEBUG
 desc = """
     Upload ADP data to CX
 """
-parser = argparse.ArgumentParser(description=desc)
-
-parser.add_argument(
-    "--test",
-    action='store_true',
-    help="Dry run?",
-    dest="test"
-)
-parser.add_argument(
-    "-d", "--database",
-    help="database name.",
-    dest="database"
-)
-
+# parser = argparse.ArgumentParser(description=desc)
+#
+# parser.add_argument(
+#     "--test",
+#     action='store_true',
+#     help="Dry run?",
+#     dest="test"
+# )
+# parser.add_argument(
+#     "-d", "--database",
+#     help="database name.",
+#     dest="database"
+# )
+#
 # set global variable
-global EARL
-# determines which database is being called from the command line
-# if database == 'cars':
-#    EARL = INFORMIX_EARL_PROD
-# elif database == 'train':
-# EARL = INFORMIX_EARL_TEST
-# elif database == 'sandbox'
-EARL = INFORMIX_EARL_SANDBOX
-# else:
-    # this will raise an error when we call get_engine()
-    # below but the argument parser should have taken
-    # care of this scenario and we will never arrive here.
-#    EARL = None
-# establish database connection
-engine = get_engine(EARL)
+# global EARL
+# # determines which database is being called from the command line
+# # if database == 'cars':
+# #    EARL = INFORMIX_EARL_PROD
+# # elif database == 'train':
+# # EARL = INFORMIX_EARL_TEST
+# # elif database == 'sandbox'
+# EARL = INFORMIX_EARL_SANDBOX
+# # else:
+#     # this will raise an error when we call get_engine()
+#     # below but the argument parser should have taken
+#     # care of this scenario and we will never arrive here.
+# #    EARL = None
+# # establish database connection
+# engine = get_engine(EARL)
 
 # write out the .sql file
 scr = open("apdtocx_output.sql", "a")
-# set start_time in order to see how long script takes to execute
-start_time = time.time()
-# create logger
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-# create console handler and set level to info
-handler = logging.FileHandler('{0}apdtocx.log'.format(settings.LOG_FILEPATH))
-handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
-                              datefmt='%m/%d/%Y %I:%M:%S %p')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-# create error file handler and set level to error
-handler = logging.FileHandler(
-    '{0}apdtocx_error.log'.format(settings.LOG_FILEPATH))
-handler.setLevel(logging.ERROR)
-formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
-                              datefmt='%m/%d/%Y %I:%M:%S %p')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
 
+
+#############################################
+# Begin Processing
+#############################################
 def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                 businessunitdescr, homedeptcode, homedeptdescr, jobtitlecode,
                 jobtitledescr, positionstart, poseffectend, payrollcompcode,
                 jobfunctioncode, jobfuncdtiondescription, jobclass,
                 jobclassdescr, primaryposition, supervisorid, last, first,
-                middle):
+                middle,EARL):
+    engine = get_engine(EARL)
 
     try:
         ##############################################################
@@ -142,7 +127,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         # if there is a secondary job record, do the same..
         ##############################################################
 
-        spvrID = fn_validate_supervisor(supervisorid[3:10])
+        spvrID = fn_validate_supervisor(supervisorid[3:10], EARL)
 
         # Construct the pcn code from existing items?
         # func_area = left(homedeptcode,3)
@@ -159,12 +144,11 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             print('Validated func_code = ' + homedeptcode[:3] + '\n')
         else:
             print('Invalid Function Code ' + homedeptcode[:3] + '\n')
-            logger.info(
-                "Invalid Function  Code " + homedeptcode[:3] + '\n')
-            scr.write(
-                'Invalid Function Code ' + homedeptcode[:3] + '\n');
-            raise ValueError(
-                "Invalid Function  Code (HRPay) " + homedeptcode[:3] + '\n')
+
+            fn_write_log("Invalid Function  Code " + homedeptcode[:3] + '\n')
+            scr.write('Invalid Function Code ' + homedeptcode[:3] + '\n');
+            # raise ValueError(
+            #     "Invalid Function  Code (HRPay) " + homedeptcode[:3] + '\n')
 
         #print('\n' + '----------------------')
         #print('\n' + pcnaggr)
@@ -182,24 +166,25 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         else:
             #print('Invalid Payroll Company Code ' + str(payrollcompcode) + '\n')
             scr.write('Invalid Payroll Company Code '+ str(payrollcompcode) +'\n');
-            logger.info("Invalid Payroll Company Code " + payrollcompcode + '\n')
+            fn_write_log("Invalid Payroll Company Code " + str(payrollcompcode) + '\n')
 
         ##############################################################
         # New table in Informix - Worker Category
         # Not maintained in CX, so we will have to maintain it with
         # inserts and updates
         #############################################################
+        print("Worker Cat Code")
         v_workercatcode = fn_validate_field(workercatcode,"work_cat_code",
                     "work_cat_code","cc_work_cat_table","char")
         if v_workercatcode == None or len(str(v_workercatcode)) == 0:
             q_ins_wc = '''
-              INSERT INTO cc_work_cat_table (work_cat_code, work_cat_descr, 
-                active_date) 
+              INSERT INTO cc_work_cat_table (work_cat_code, work_cat_descr,
+                active_date)
               VALUES (?,?,?)'''
             q_ins_wc_args = (workercatcode,workercatdescr,
                              datetime.now().strftime("%m/%d/%Y"))
-            # print(q_ins_wc)
-            # print(q_ins_wc_args)
+              # print(q_ins_wc)
+             # print(q_ins_wc_args)
             engine.execute(q_ins_wc, q_ins_wc_args)
             scr.write(q_ins_wc + '\n');
         else:
@@ -211,8 +196,9 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             # print(q_upd_wc)
             # print(q_upd_wc_args)
             engine.execute(q_upd_wc, q_upd_wc_args)
-            scr.write(q_upd_wc_args + '\n');
+            scr.write(q_upd_wc + '\n');
 
+            print("Exit Worker Cat Code")
             ##############################################################
             # To do....
             # Job Class Code, HRClass field in Job Rec
@@ -220,6 +206,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             ##############################################################
             # jobclass = 'GA'
             # jobclassdescr = 'Graduate Assistant'
+            print("Job Class Code")
             if jobclass != "":
                 print(jobclass)
                 print(jobclassdescr)
@@ -264,6 +251,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         ###############################################################
         # Use PCN Agg to find TPos FROM position rec
         ###############################################################
+        print("Find Tpos")
         v_tpos = fn_validate_field(pcnaggr,"pcn_aggr","tpos_no",
                         "pos_table","char")
         print("v-tpos = " + str(v_tpos))
@@ -280,7 +268,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                                 'tenure', 0, 0, payrollcompcode,
                                 datetime.now().strftime("%m/%d/%Y"),'')
             engine.execute(q_ins_pos, q_ins_pos_args)
-            scr.write(q_ins_pos_args + '\n');
+            scr.write(q_ins_pos + '\n');
             # Need to return the tpos_no as it is created in the INSERT
             # test_pcn = "EXT-PROV-ENG-CHR"   #use this if not doing live insert
             # for test
@@ -296,7 +284,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             row = sql_tpos.fetchone()
             tpos_result = row[0]
             v_tpos = tpos_result
-            #print("New tpos = " + str(v_tpos))
+            print("New tpos = " + str(v_tpos))
             # print(q_ins_pos)
         else:
             #print("Validated t_pos = " + str(v_tpos))
@@ -310,7 +298,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                               func_code, jobtitlecode, jobtitledescr,
                               'ofc', func_code, supervisorid[3:9],
                               'tenure', 0, 0, payrollcompcode,
-                              datetime.now().strftime("%m/%d/%Y"), null,
+                              datetime.now().strftime("%m/%d/%Y"), None,
                               v_tpos)
             # print(q_upd_pos)
             # print(q_upd_pos_args)
@@ -320,7 +308,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         ##############################################################
         # validate the position, division, department
         ##############################################################
-        # print("....Deal with division...")
+        print("....Deal with division...")
         hrdivision = fn_validate_field(businessunitcode,"hrdiv","hrdiv",
                             "hrdiv_table", "char")
         if hrdivision == None or hrdivision == "":
@@ -345,9 +333,9 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             print("Existing HR Division = " + hrdivision + '\n')
             # print(q_upd_div + str(q_upd_div_args))
             engine.execute(q_upd_div, q_upd_div_args)
-            scr.write(q_upd_div_args + '\n');
+            scr.write(q_upd_div + '\n');
 
-        # print("....Deal with department...")
+        print("....Deal with department...")
         hrdepartment = fn_validate_field(homedeptcode[:3],"hrdept","hrdept",
                         "hrdept_table", "char")
         if hrdepartment==None or hrdepartment=="" or len(hrdepartment)==0:
@@ -360,7 +348,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                                homedeptdescr,
                                datetime.now().strftime("%m/%d/%Y"),None)
             engine.execute(q_ins_dept, q_ins_dept_args)
-            scr.write(q_ins_dept_args + '\n');
+            scr.write(q_ins_dept + '\n');
         else:
             q_upd_dept = '''
               UPDATE hrdept_table SET hrdiv = ?, descr = ?, 
@@ -383,7 +371,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             q_ins_stat_args = (jobfunctioncode, jobfuncdtiondescription,
                                datetime.now().strftime("%m/%d/%Y"))
             engine.execute(q_ins_stat, q_ins_stat_args)
-            scr.write(q_ins_stat_args + '\n');
+            scr.write(q_ins_stat + '\n');
         else:
             # hrstat_rslt = row[0]
             # valid_hrstat = hrstat_rslt
@@ -409,6 +397,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         # ##############################################################
         # If job rec exists in job_rec -update, else insert
         # ##############################################################
+        print("Do Job Rec")
         q_get_job = '''
           SELECT job_no
           FROM job_rec
@@ -447,7 +436,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             #print(q_ins_job + str(q_ins_job_args))
             #print("New Job Record for " + last + ', id = ' + str(carthid))
             engine.execute(q_ins_job, q_ins_job_args)
-            scr.write(q_ins_job_args + '\n');
+            scr.write(q_ins_job + '\n');
             scr.write(
                 'New Job Record for " + last + ', id = ' + str(carthid)' + '\n');
 
@@ -478,7 +467,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         ##############################################################
         # TENURE - This will go into HREMP_REC...
         ##############################################################
-
+        print("Tenure")
         if workercatcode == "T":  #tenure
             is_tenured = "Y"
             is_tenure_track = "N"
@@ -515,7 +504,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             #print(q_emp_ins_args)
             #print("Insert into hremp_rec")
             engine.execute(q_emp_insert, q_emp_ins_args)
-            scr.write(q_emp_ins_args + '\n');
+            scr.write(q_emp_insert + '\n');
         else:
             #print('Found Emp Rec')
             scr.write('Found Employee a record in hremp_rec. \n');
@@ -547,7 +536,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
 ##########################################################
 # Functions
 ##########################################################
-def fn_validate_supervisor(id):
+def fn_validate_supervisor(id, EARL):
     q_val_super = '''SELECT hrstat FROM job_rec WHERE id = {0}
                                            '''.format(id)
     #print(q_val_super)
