@@ -10,10 +10,8 @@ import codecs
 import time
 from time import strftime
 import argparse
-#import uuid
 from sqlalchemy import text
 import shutil
-#import re
 import logging
 from logging.handlers import SMTPHandler
 
@@ -64,7 +62,7 @@ from djequis.adp.aarec import fn_archive_address, fn_insert_aa, \
 from djequis.adp.cvidrec import fn_process_cvid
 from djequis.adp.jobrec import fn_process_job
 from djequis.adp.utilities import fn_validate_field, fn_convert_date, \
-    fn_format_phone
+    fn_format_phone, fn_write_log, fn_write_error, fn_clear_logger
 from djequis.adp.profilerec import fn_process_profile_rec
 from djequis.adp.adp_ftp import file_download
 
@@ -127,28 +125,12 @@ def file_download():
             # sftp.remove(filename)
     sftp.close()
 
+# write out the .sql file
+scr = open("apdtocx_output.sql", "a")
+
 def main():
-    # write out the .sql file
-    scr = open("apdtocx_output.sql", "a")
     # set start_time in order to see how long script takes to execute
     start_time = time.time()
-    # create logger
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-    # create console handler and set level to info
-    handler = logging.FileHandler('{0}apdtocx.log'.format(settings.LOG_FILEPATH))
-    handler.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
-                                  datefmt='%m/%d/%Y %I:%M:%S %p')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    # create error file handler and set level to error
-    handler = logging.FileHandler('{0}apdtocx_error.log'.format(settings.LOG_FILEPATH))
-    handler.setLevel(logging.ERROR)
-    formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
-                                  datefmt='%m/%d/%Y %I:%M:%S %p')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
 
     ############################################################################
     # development server (bng), you would execute:
@@ -432,9 +414,10 @@ def main():
                     # print(cc_adp_args)
                     engine.execute(q_cc_adp_rec, cc_adp_args)
                     scr.write(q_cc_adp_rec+'\n');
-                    logger.info("Inserted into adp_rec table");
+                    fn_write_log("Inserted into adp_rec table");
 
                 except Exception as e:
+                    fn_write_error(e)
                     print(e)
 
                 # fn_convert_date(row["termination_date"]),
@@ -447,6 +430,7 @@ def main():
                 # If ADP File is missing the Carthage ID, we cannot process the
                 # record - For ALL in file
                 # email HR if CarthID is missing
+                print("In ID Rec sub")
                 if row["carth_id"] == "":
                     print('No Carthage ID - abort this record and email HR')
                     SUBJECT = 'No Carthage ID - abort this record and email HR'
@@ -456,7 +440,7 @@ def main():
                     sendmail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
                         BODY, SUBJECT
                     )
-                    logger.error('There was no carthage ID in file, row \
+                    fn_write_log('There was no carthage ID in file, row \
                              skipped. Name = {0}, \
                              ADP File = {1}'.format(row["payroll_name"], \
                                                     row["file_number"]))
@@ -477,7 +461,7 @@ def main():
                         #print(SUBJECT)
                         sendmail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
                                  BODY, SUBJECT)
-                        logger.error('There was no matching ID in id_Rec \
+                        fn_write_log('There was no matching ID in id_Rec \
                                                     table, row skipped. Name '
                                      '= {0}, \
                                                     ADP File = {1}'.format(
@@ -528,7 +512,7 @@ def main():
                                      row["primary_country_code"],
                                      row["ssn"], row["home_phone"],
                                      row["position_status"],
-                                     fn_convert_date(row["pos_effective_date"]))
+                                     fn_convert_date(row["pos_effective_date"]),EARL)
 
                             print("ID Result = " + str(id_rslt))
                             # print("sql addr " + addr_result[1].strip() + " loop
@@ -553,10 +537,11 @@ def main():
                             # STEP 2c--
                             # Do updates to profile_rec (profilerec.py)
                             ##########################################################
+                            print("In Profile Rec")
                             prof_rec = fn_process_profile_rec(row["carth_id"],
                                         row["ethnicity"], row["gender"], row["race"],
                                         row["birth_date"],
-                                        datetime.now().strftime("%m/%d/%Y"))
+                                        datetime.now().strftime("%m/%d/%Y"),EARL)
                             #
                             # print(prof_rec)
 
@@ -564,6 +549,7 @@ def main():
                             # STEP 2d--
                             # Do updates to cvid_rec (cvidrec.py)
                             ##########################################################
+                            print("In CVID_REC")
                             fn_process_cvid(row["carth_id"], row["file_number"],
                                           row["ssn"], row["employee_assoc_id"])
 
@@ -571,6 +557,7 @@ def main():
                             # STEP 2e--
                             # Do updates to job_rec (jobrec.py)
                             ##########################################################
+                            print("In Job Rec")
                             fn_process_job(row["carth_id"], row["worker_cat_code"],
                                     row["worker_cat_descr"], row["business_unit_code"],
                                     row["business_unit_descr"], row["home_dept_code"],
@@ -582,10 +569,51 @@ def main():
                                     row["job_class_code"], row["job_class_descr"],
                                     row["primary_position"], row["supervisor_id"],
                                     row["last_name"], row["first_name"],
-                                    row["middle_name"])
+                                    row["middle_name"],EARL)
 
                             ##########################################################
                             # STEP 2f--
+                            # Do updates to second job_rec (jobrec.py)
+                            ##########################################################
+                            print("In secondary Job Rec")
+
+                            if row[home_cost_number_2] != '':
+                                         fn_process_second_job(row["carth_id"],
+                                         row["worker_cat_code"],
+                                         row["home_cost_number2"],
+                                         row["job_title_descr"],
+                                         row["position_eff_date2"],
+                                         row["position_end_date2"],
+                                         row["job_function_code"],
+                                         row["supervisor_id"], 2,
+                                         row["payroll_name"], EARL)
+
+                            elif row[home_cost_number_3] != '':
+                                         fn_process_second_job(
+                                         row["carth_id"],
+                                         row["worker_cat_code"],
+                                         row["home_cost_number3"],
+                                         row["job_title_descr"],
+                                         row["position_eff_date3"],
+                                         row["position_end_date3"],
+                                         row["job_function_code"],
+                                         row["supervisor_id"], 3,
+                                         row["payroll_name"], EARL)
+
+                            elif row[home_cost_number_4] != '':
+                                         fn_process_second_job(
+                                         row["carth_id"],
+                                         row["worker_cat_code"],
+                                         row["home_cost_number4"],
+                                         row["job_title_descr"],
+                                         row["position_eff_date4"],
+                                         row["position_end_date4"],
+                                         row["job_function_code"],
+                                         row["supervisor_id"], 4,
+                                         row["payroll_name"], EARL)
+
+                            ##########################################################
+                            # STEP 2g--
                             # Add SCHL record to aa_rec (Directory Name -  Location
                             ##########################################################
                             # Check to see if one exists
@@ -631,6 +659,8 @@ def main():
                                              row["ssn"],
                                              row["employee_assoc_id"])
 
+                fn_clear_logger()
+
             # set destination directory for which the sql file will be archived to
             archived_destination = ('{0}apdtocx_output-{1}.sql'.format(
                 settings.ADP_CSV_ARCHIVED, datetimestr
@@ -646,7 +676,7 @@ def main():
                     settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
                     BODY, SUBJECT
                 )
-                logger.error("There was no .sql output file to move.")
+                fn_write_log("There was no .sql output file to move.")
             else:
                 # rename and move the file to the archive directory
                 shutil.move(sqloutput, archived_destination)
@@ -661,9 +691,14 @@ def main():
             #shutil.move(new_adp_file,adptocx_rename)
 
     except Exception as e:
+        fn_write_error(e)
         print(e)
-    finally:
-        logging.shutdown()
+    # finally:
+    #     logging.shutdown()
+
+
+
+
 
 if __name__ == "__main__":
     args = parser.parse_args()
