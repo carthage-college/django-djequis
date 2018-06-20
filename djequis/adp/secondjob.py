@@ -57,7 +57,7 @@ from djzbar.settings import INFORMIX_EARL_SANDBOX
 from djtools.fields import TODAY
 
 # Imports for additional modules and functions written as part of this project
-from djequis.adp.utilities import fn_validate_field
+from djequis.adp.utilities import fn_validate_field, fn_write_log, fn_write_error
 
 DEBUG = settings.INFORMIX_DEBUG
 
@@ -65,64 +65,44 @@ DEBUG = settings.INFORMIX_DEBUG
 desc = """
     Upload ADP data to CX
 """
-parser = argparse.ArgumentParser(description=desc)
-
-parser.add_argument(
-    "--test",
-    action='store_true',
-    help="Dry run?",
-    dest="test"
-)
-parser.add_argument(
-    "-d", "--database",
-    help="database name.",
-    dest="database"
-)
-
-# set global variable
-global EARL
-# determines which database is being called from the command line
-# if database == 'cars':
-#    EARL = INFORMIX_EARL_PROD
-# elif database == 'train':
-# EARL = INFORMIX_EARL_TEST
-# elif database == 'sandbox'
-EARL = INFORMIX_EARL_SANDBOX
-# else:
-    # this will raise an error when we call get_engine()
-    # below but the argument parser should have taken
-    # care of this scenario and we will never arrive here.
-#    EARL = None
-# establish database connection
-engine = get_engine(EARL)
+# parser = argparse.ArgumentParser(description=desc)
+#
+# parser.add_argument(
+#     "--test",
+#     action='store_true',
+#     help="Dry run?",
+#     dest="test"
+# )
+# parser.add_argument(
+#     "-d", "--database",
+#     help="database name.",
+#     dest="database"
+# )
+#
+# # set global variable
+# global EARL
+# # determines which database is being called from the command line
+# # if database == 'cars':
+# #    EARL = INFORMIX_EARL_PROD
+# # elif database == 'train':
+# # EARL = INFORMIX_EARL_TEST
+# # elif database == 'sandbox'
+# EARL = INFORMIX_EARL_SANDBOX
+# # else:
+#     # this will raise an error when we call get_engine()
+#     # below but the argument parser should have taken
+#     # care of this scenario and we will never arrive here.
+# #    EARL = None
+# # establish database connection
+# engine = get_engine(EARL)
 
 # write out the .sql file
 scr = open("apdtocx_output.sql", "a")
-# set start_time in order to see how long script takes to execute
-start_time = time.time()
-# create logger
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-# create console handler and set level to info
-handler = logging.FileHandler('{0}apdtocx.log'.format(settings.LOG_FILEPATH))
-handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
-                              datefmt='%m/%d/%Y %I:%M:%S %p')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-# create error file handler and set level to error
-handler = logging.FileHandler(
-    '{0}apdtocx_error.log'.format(settings.LOG_FILEPATH))
-handler.setLevel(logging.ERROR)
-formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
-                              datefmt='%m/%d/%Y %I:%M:%S %p')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
 
-def fn_process_second_job(carthid, workercatcode, workercatdescr, pcnaggr,
-                busunitcode, homedeptcode, homedeptdescr, room, bldg, jobtitledescr,
-                positionstart, poseffectend, workcatcode, jobfunctioncode,
-                jobfuncdtiondescription, primarypos, supervisorid, rank, fullname):
+def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
+                          positionstart, poseffectend, jobfunctioncode,
+                          supervisorid, rank, fullname, EARL):
+    engine = get_engine(EARL)
 
     try:
         ##############################################################
@@ -242,7 +222,7 @@ def fn_process_second_job(carthid, workercatcode, workercatdescr, pcnaggr,
             scr.write('Validated HRPay Code = ' + str(hrpay_rslt) + '\n');
         else:
             print('Invalid Payroll Company Code ' + str(paycode) + '\n')
-            scr.write('Invalid Payroll Company Code ' + str(paycode) + '\n');
+            fn_write_log('Invalid Payroll Company Code ' + str(paycode) + '\n');
             # logger.info("Invalid Payroll Company Code " + paycode + '\n')
             # raise ValueError("Invalid Payroll Company Code (HRPay) " + paycode + '\n')
 
@@ -252,8 +232,7 @@ def fn_process_second_job(carthid, workercatcode, workercatdescr, pcnaggr,
             scr.write('Validated Function Code = ' + dept + '\n');
         else:
             #print('Invalid Function Code ' + dept + '\n')
-            scr.write('Invalid Function Code = ' + dept + '\n');
-            raise ValueError("Invalid Function  Code (HRPay) " + dept + '\n')
+            fn_write_log('Invalid Function Code = ' + dept + '\n');
 
         #print('\n' + '----------------------')
         #print('\n' + pcnaggr)
@@ -268,8 +247,8 @@ def fn_process_second_job(carthid, workercatcode, workercatdescr, pcnaggr,
         sql_title = do_sql(q_get_title, key=DEBUG, earl=EARL)
         titlerow = sql_title.fetchone()
         if titlerow is None:
-            print("Job Title Not found")
-            scr.write('Job Title Not found.'+ '\n');
+            # print("Job Title Not found for tpos " + v_tpos)
+            fn_write_log('Job Title Not found for tpos ' + v_tpos+ '\n');
         else:
             jr_jobtitle = titlerow[0]
 
@@ -290,7 +269,7 @@ def fn_process_second_job(carthid, workercatcode, workercatdescr, pcnaggr,
         #print(hrdepartment)
         if hrdepartment==None or hrdepartment=="":
             #print("HR Dept not valid - " + dept)
-            scr.write('HR Dept not valid ' + dept + '\n');
+            fn_write_log('HR Dept not valid ' + dept + '\n');
 
         # ##############################################################
         # If job rec exists for employee in job_rec -update, else insert
@@ -324,7 +303,7 @@ def fn_process_second_job(carthid, workercatcode, workercatdescr, pcnaggr,
                               workercatcode)
             print(q_ins_job + str(q_ins_job_args))
             #print("New Job Record for " + fullname + ', id = ' + str(carthid))
-            scr.write('New Job Record for ' + fullname + ', id = ' + str(carthid) + '\n');
+            fn_write_log('New Job Record for ' + fullname + ', id = ' + str(carthid) + '\n');
             engine.execute(q_ins_job, q_ins_job_args)
             scr.write(q_ins_job + '\n');
         else:
@@ -349,7 +328,7 @@ def fn_process_second_job(carthid, workercatcode, workercatdescr, pcnaggr,
             #print("Update Job Record for " + fullname + ', id = ' + str(carthid))
             engine.execute(q_upd_job, q_upd_job_args)
             scr.write(q_upd_job + '\n');
-            scr.write('Update Job Record for ' + fullname + ', id = ' + str(
+            fn_write_log('Update Job Record for ' + fullname + ', id = ' + str(
                 carthid) + '\n');
 
         ##############################################################
@@ -359,5 +338,6 @@ def fn_process_second_job(carthid, workercatcode, workercatdescr, pcnaggr,
         ##############################################################
 
     except Exception as e:
-        print(e)
+        fn_write_error(e)
+        # print(e)
 
