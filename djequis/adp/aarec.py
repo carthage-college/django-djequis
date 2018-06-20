@@ -57,7 +57,7 @@ from djzbar.settings import INFORMIX_EARL_SANDBOX
 from djtools.fields import TODAY
 
 # Imports for additional modules and functions written as part of this project
-from djequis.adp.utilities import fn_convert_date
+from djequis.adp.utilities import fn_convert_date, fn_write_log
 
 DEBUG = settings.INFORMIX_DEBUG
 
@@ -100,23 +100,7 @@ engine = get_engine(EARL)
 scr = open("apdtocx_output.sql", "a")
 # set start_time in order to see how long script takes to execute
 start_time = time.time()
-# create logger
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-# create console handler and set level to info
-handler = logging.FileHandler('{0}apdtocx.log'.format(settings.LOG_FILEPATH))
-handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
-                              datefmt='%m/%d/%Y %I:%M:%S %p')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-# create error file handler and set level to error
-handler = logging.FileHandler('{0}apdtocx_error.log'.format(settings.LOG_FILEPATH))
-handler.setLevel(logging.ERROR)
-formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
-                              datefmt='%m/%d/%Y %I:%M:%S %p')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+
 
 ######################################################
 #  START HERE
@@ -161,7 +145,9 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry):
             found_aa_num = 0
         else:
             found_aa_num = addr_result[2]
-            logger.info("Existing archive record found.");
+            fn_write_log("Existing archive address record found in aa_rec for "
+                         + fullname + ", ID = " + str(id))
+            # logger.info("Existing archive record found.");
         #print(found_aa_num)
 
         #################################
@@ -286,10 +272,11 @@ def fn_insert_aa(id, fullname, aa, addr1, addr2, addr3, cty, st, zp, ctry, beg_d
 
     engine.execute(q_insert_aa,q_ins_aa_args)
     scr.write(q_insert_aa + '\n');
-    logger.info("Added archive address for " + fullname);
+    fn_write_log("Added archive address to aa_rec for " + fullname + ", ID = " + str(id))
+    # logger.info("Added archive address for " + fullname);
     #print(q_insert_aa)
     #print(q_ins_aa_args)
-    #print("insert aa completed")
+    print("insert aa completed")
 
 # Query works 06/05/18
 def fn_update_aa(id, aa, aanum, fllname, add1, add2, add3, cty, st, zip, ctry, begdate):
@@ -305,12 +292,13 @@ def fn_update_aa(id, aa, aanum, fllname, add1, add2, add3, cty, st, zip, ctry, b
       WHERE aa_no = ?'''
     q_upd_aa_args=(add1, add2, add3, cty, st, zip,
                    ctry, aanum)
-    logger.info("Updated address info in aa_rec table for " + fullname);
+    # logger.info("Updated address info in aa_rec table for " + fullname);
+    fn_write_log("Updated archive address to aa_rec for " + fullname + ", ID = " + str(id))
     scr.write(q_update_aa + '\n');
     engine.execute(q_update_aa, q_upd_aa_args)
     #print(q_update_aa)
     #print(q_upd_aa_args)
-    #print("update aa completed")
+    print("update aa completed")
 
 # Query works 06/05/18
 def fn_end_date_aa(id, aa_num, fullname, enddate, aa):
@@ -323,11 +311,13 @@ def fn_end_date_aa(id, aa_num, fullname, enddate, aa):
         q_enddate_aa_args=(enddate, aa, id, aa_num)
         engine.execute(q_enddate_aa, q_enddate_aa_args)
         #print("Log end date aa for " + fullname)
-        logger.info("Log end date aa_rec for " + fullname);
+        fn_write_log("Added end date to address to aa_rec for " + fullname +
+                      ", ID = " + str(id))
+        # logger.info("Log end date aa_rec for " + fullname);
         scr.write(q_enddate_aa + '\n');
         #print(q_enddate_aa)
         #print(q_enddate_aa_args)
-        #print("end Date aa completed")
+        print("end Date aa completed")
         return(1)
     except(e):
         return(0)
