@@ -60,7 +60,7 @@ from djtools.fields import TODAY
 
 # Imports for additional modules and functions written as part of this project
 from djequis.adp.aarec import fn_archive_address
-from djequis.adp.utilities import fn_validate_field
+from djequis.adp.utilities import fn_validate_field, fn_write_log, fn_write_error
 
 DEBUG = settings.INFORMIX_DEBUG
 
@@ -68,22 +68,22 @@ DEBUG = settings.INFORMIX_DEBUG
 desc = """
     Upload ADP data to CX
 """
-parser = argparse.ArgumentParser(description=desc)
-
-parser.add_argument(
-    "--test",
-    action='store_true',
-    help="Dry run?",
-    dest="test"
-)
-parser.add_argument(
-    "-d", "--database",
-    help="database name.",
-    dest="database"
-)
+# parser = argparse.ArgumentParser(description=desc)
+#
+# parser.add_argument(
+#     "--test",
+#     action='store_true',
+#     help="Dry run?",
+#     dest="test"
+# )
+# parser.add_argument(
+#     "-d", "--database",
+#     help="database name.",
+#     dest="database"
+# )
 
 # set global variable
-global EARL
+# global EARL
 
 # determines which database is being called from the command line
 # if database == 'cars':
@@ -91,41 +91,29 @@ global EARL
 # elif database == 'train':
 #     EARL = INFORMIX_EARL_TEST
 # elif database == 'sandbox':
-EARL = INFORMIX_EARL_SANDBOX
+# EARL = INFORMIX_EARL_SANDBOX
 # else:
     # this will raise an error when we call get_engine()
     # below but the argument parser should have taken
     # care of this scenario and we will never arrive here.
     #EARL = None
 # establish database connection
-engine = get_engine(EARL)
+# engine = get_engine(EARL)
+
+# write out the .sql file
+scr = open("apdtocx_output.sql", "a")
+
+#############################################
+# Begin Processing
+#############################################
 
 def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middlename,
         addr_line1, addr_line2, addr_line3, city, st, zip, ctry, ctry_cod, ss_no, phone,
-        decsd, eff_date):
+        decsd, eff_date, EARL):
     print("Start ID Rec Processing")
-    # write out the .sql file
-    scr = open("apdtocx_output.sql", "a")
+    print(EARL)
 
-    # create logger
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-    # create console handler and set level to info
-    handler = logging.FileHandler(
-        '{0}apdtocx.log'.format(settings.LOG_FILEPATH))
-    handler.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
-                                  datefmt='%m/%d/%Y %I:%M:%S %p')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    # create error file handler and set level to error
-    handler = logging.FileHandler(
-        '{0}apdtocx_error.log'.format(settings.LOG_FILEPATH))
-    handler.setLevel(logging.ERROR)
-    formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
-                                  datefmt='%m/%d/%Y %I:%M:%S %p')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    engine = get_engine(EARL)
 
     try:
         q_update_id_rec = ('''UPDATE id_rec SET fullname = ?, lastname = ?, 
@@ -137,12 +125,16 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                        carth_id)
         # print(q_update_id_rec)
         # print(q_update_id_args)
-        logger.info("Update id_rec table");
+        fn_write_log("Update id_rec table for " + fullname + ", ID = " + carth_id)
+        # logger.info("Update id_rec table");
         engine.execute(q_update_id_rec, q_update_id_args)
     except Exception as err:
         print(err.message)
         return (err.message)
-        logger.error(err, exc_info=True)
+        fn_write_error(err)
+        # logger.error(err, exc_info=True)
+
+
 
     try:
         # also need to deal with address changes
@@ -159,13 +151,11 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                             '''.format(carth_id)
             addr_result = do_sql(q_check_addr, key=DEBUG, earl=EARL)
             scr.write(q_check_addr + '\n');
-            logger.info("Get address info from id_rec table for comparision");
             row = addr_result.fetchone()
             # x = str(row[1]).rstrip()
             # print("Address result row = " + x)
             if str(row[0]) == '0' or str(row[0]) == '':  # No person in id rec? Should never happen
-            #     # logger.info('Employee not in id rec for id number {0}'.format(carth_id));
-                 print("Employee not in id rec for id number " + carth_id)
+                fn_write_log("Employee not in id rec for id number " + carth_id)
 
             # Update ID Rec and archive aa rec
             elif (row[1].strip() != addr_line1
@@ -186,6 +176,8 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
 
                 #print(q_update_id_rec_addr)
                 #print(q_update_id_addr_args)
+                fn_write_log(
+                    "Update id_rec table for " + fullname + ", ID = " + carth_id)
                 engine.execute(q_update_id_rec_addr, q_update_id_addr_args)
                 scr.write(q_update_id_rec_addr + '\n');
                 #########################################################
@@ -203,9 +195,10 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
 
     except Exception as err:
         print(err.message)
-        logger.error(err, exc_info=True)
-        return (err.message)
-    finally:
-        logging.shutdown()
+        fn_write_error(err)
+
+# logger.error(err, exc_info=True)
+#     finally:
+#          logging.shutdown()
 
 
