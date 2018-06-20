@@ -94,6 +94,28 @@ EARL = INFORMIX_EARL_SANDBOX
 # establish database connection
 engine = get_engine(EARL)
 
+# write out the .sql file
+scr = open("apdtocx_output.sql", "a")
+# set start_time in order to see how long script takes to execute
+start_time = time.time()
+# create logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+# create console handler and set level to info
+handler = logging.FileHandler('{0}apdtocx.log'.format(settings.LOG_FILEPATH))
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
+                              datefmt='%m/%d/%Y %I:%M:%S %p')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+# create error file handler and set level to error
+handler = logging.FileHandler(
+    '{0}apdtocx_error.log'.format(settings.LOG_FILEPATH))
+handler.setLevel(logging.ERROR)
+formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
+                              datefmt='%m/%d/%Y %I:%M:%S %p')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 #########################################################
 # Common function to validate that a record exists
 #########################################################
@@ -189,3 +211,21 @@ def fn_calculate_age(bdate):
     age = today.year - d_born.year - ((today.month, today.day) < (d_born.month, d_born.day))
     # print(age)
     return(age)
+
+
+
+# def fn_write_error(msg):
+#     logger.error(msg)
+#     return("Error logged")
+#
+# def fn_write_log(msg):
+#     logger.info(msg)
+#     return("Message logged")
+#
+# def fn_earl():
+#     # print(EARL)
+#     return(EARL)
+
+
+# def fn_send_mail(to, from, subject, message):
+#     return(0)
