@@ -146,6 +146,7 @@ def fn_validate_field(searchval, keyfield, retfield, table, keytype):
                 return 0
 
     except Exception as e:
+        fn_write_error(e)
         print(e)
 
 #########################################################
@@ -173,8 +174,8 @@ def fn_check_duplicates(searchval, keyfield, retfield, table, testval, keytype):
             return 0
 
     except Exception as e:
+        fn_write_error(e)
         print(e)
-        return e
 
 #########################################################
 # Common function to format date for CX
@@ -213,19 +214,18 @@ def fn_calculate_age(bdate):
     return(age)
 
 
+#########################################################
+# Common functions to handle logger messages and errors
+#########################################################
 
-# def fn_write_error(msg):
-#     logger.error(msg)
-#     return("Error logged")
-#
-# def fn_write_log(msg):
-#     logger.info(msg)
-#     return("Message logged")
-#
-# def fn_earl():
-#     # print(EARL)
-#     return(EARL)
+def fn_write_error(msg):
+    logger.error(msg)
+    return("Error logged")
 
+def fn_write_log(msg):
+    logger.info(msg)
+    return("Message logged")
 
-# def fn_send_mail(to, from, subject, message):
-#     return(0)
+def fn_clear_logger():
+    logging.shutdown()
+
