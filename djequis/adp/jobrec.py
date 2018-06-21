@@ -66,36 +66,6 @@ DEBUG = settings.INFORMIX_DEBUG
 desc = """
     Upload ADP data to CX
 """
-# parser = argparse.ArgumentParser(description=desc)
-#
-# parser.add_argument(
-#     "--test",
-#     action='store_true',
-#     help="Dry run?",
-#     dest="test"
-# )
-# parser.add_argument(
-#     "-d", "--database",
-#     help="database name.",
-#     dest="database"
-# )
-#
-# set global variable
-# global EARL
-# # determines which database is being called from the command line
-# # if database == 'cars':
-# #    EARL = INFORMIX_EARL_PROD
-# # elif database == 'train':
-# # EARL = INFORMIX_EARL_TEST
-# # elif database == 'sandbox'
-# EARL = INFORMIX_EARL_SANDBOX
-# # else:
-#     # this will raise an error when we call get_engine()
-#     # below but the argument parser should have taken
-#     # care of this scenario and we will never arrive here.
-# #    EARL = None
-# # establish database connection
-# engine = get_engine(EARL)
 
 # write out the .sql file
 scr = open("apdtocx_output.sql", "a")
@@ -139,7 +109,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                       + homedeptcode[:3] + "-" + jobtitlecode
 
         func_code = fn_validate_field(homedeptcode[:3],"func","func",
-                    "func_table", "char")
+                    "func_table", "char", EARL)
         if func_code != '':
             print('Validated func_code = ' + homedeptcode[:3] + '\n')
         else:
@@ -159,7 +129,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         # a project request as they affect a number of things
         ##############################################################
         hrpay_rslt = fn_validate_field(payrollcompcode,"hrpay","hrpay",
-                            "hrpay_table", "char")
+                            "hrpay_table", "char", EARL)
         if hrpay_rslt != '':
             #print('Validated HRPay Code = ' + str(hrpay_rslt) + '\n')
             scr.write('Valid HRPay Code ' + str(hrpay_rslt) + '\n');
@@ -175,7 +145,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         #############################################################
         print("Worker Cat Code")
         v_workercatcode = fn_validate_field(workercatcode,"work_cat_code",
-                    "work_cat_code","cc_work_cat_table","char")
+                    "work_cat_code","cc_work_cat_table","char", EARL)
         if v_workercatcode == None or len(str(v_workercatcode)) == 0:
             q_ins_wc = '''
               INSERT INTO cc_work_cat_table (work_cat_code, work_cat_descr,
@@ -198,7 +168,6 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             engine.execute(q_upd_wc, q_upd_wc_args)
             scr.write(q_upd_wc + '\n');
 
-            print("Exit Worker Cat Code")
             ##############################################################
             # To do....
             # Job Class Code, HRClass field in Job Rec
@@ -253,7 +222,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         ###############################################################
         print("Find Tpos")
         v_tpos = fn_validate_field(pcnaggr,"pcn_aggr","tpos_no",
-                        "pos_table","char")
+                        "pos_table","char", EARL)
         print("v-tpos = " + str(v_tpos))
 
         if v_tpos == None or len(str(v_tpos)) == 0:
@@ -308,9 +277,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         ##############################################################
         # validate the position, division, department
         ##############################################################
-        print("....Deal with division...")
         hrdivision = fn_validate_field(businessunitcode,"hrdiv","hrdiv",
-                            "hrdiv_table", "char")
+                            "hrdiv_table", "char", EARL)
         if hrdivision == None or hrdivision == "":
             q_ins_div = '''
               INSERT INTO hrdiv_table(hrdiv, descr, beg_date, end_date) 
@@ -335,9 +303,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             engine.execute(q_upd_div, q_upd_div_args)
             scr.write(q_upd_div + '\n');
 
-        print("....Deal with department...")
         hrdepartment = fn_validate_field(homedeptcode[:3],"hrdept","hrdept",
-                        "hrdept_table", "char")
+                        "hrdept_table", "char", EARL)
         if hrdepartment==None or hrdepartment=="" or len(hrdepartment)==0:
             # This query works 5/25/18
             q_ins_dept = '''
@@ -362,7 +329,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         # validate hrstat,
         ##############################################################
         v_job_function_code = fn_validate_field(jobfunctioncode,"hrstat",
-                                "hrstat", "hrstat_table","char")
+                                "hrstat", "hrstat_table","char", EARL)
         if v_job_function_code == None or len(v_job_function_code)==0:
             # Insert into hr_stat
             q_ins_stat = '''
@@ -463,6 +430,17 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             engine.execute(q_upd_job, q_upd_job_args)
             scr.write(q_upd_job + '\n');
             scr.write('Update Job Record for ' + last + ', id = ' + str(carthid) + '\n');
+
+
+        ##############################################################
+        # Question -  on first run, will we need to end date existing jobs that
+        # are NOT listed in ADP?   How to determine which those are if there
+        # is no match...Figure out in testing
+        # May be able to query cc_adp_rec and compare that to the job_rec
+        # table to find jobs NOT listed in ADP but still active in CX
+        # Not certain we can end date them without further evaluation
+        ##############################################################
+
 
         ##############################################################
         # TENURE - This will go into HREMP_REC...
