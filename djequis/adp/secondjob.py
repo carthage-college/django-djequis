@@ -65,36 +65,6 @@ DEBUG = settings.INFORMIX_DEBUG
 desc = """
     Upload ADP data to CX
 """
-# parser = argparse.ArgumentParser(description=desc)
-#
-# parser.add_argument(
-#     "--test",
-#     action='store_true',
-#     help="Dry run?",
-#     dest="test"
-# )
-# parser.add_argument(
-#     "-d", "--database",
-#     help="database name.",
-#     dest="database"
-# )
-#
-# # set global variable
-# global EARL
-# # determines which database is being called from the command line
-# # if database == 'cars':
-# #    EARL = INFORMIX_EARL_PROD
-# # elif database == 'train':
-# # EARL = INFORMIX_EARL_TEST
-# # elif database == 'sandbox'
-# EARL = INFORMIX_EARL_SANDBOX
-# # else:
-#     # this will raise an error when we call get_engine()
-#     # below but the argument parser should have taken
-#     # care of this scenario and we will never arrive here.
-# #    EARL = None
-# # establish database connection
-# engine = get_engine(EARL)
 
 # write out the .sql file
 scr = open("apdtocx_output.sql", "a")
@@ -151,7 +121,7 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
         # Use PCN Agg to find TPos FROM position rec
         ###############################################################
         v_tpos = fn_validate_field(pcnaggr,"pcn_aggr","tpos_no",
-                        "pos_table","char")
+                        "pos_table","char",EARL)
         # print("v-tpos = " + str(v_tpos))
 
         if v_tpos == 0:
@@ -216,7 +186,7 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
         # a project request as they affect a number of things
         ##############################################################
         hrpay_rslt = fn_validate_field(paycode,"hrpay","hrpay", "hrpay_table",
-                                       "char")
+                                       "char", EARL)
         if hrpay_rslt != '':
             #print('Validated HRPay Code = ' + str(hrpay_rslt) + '\n')
             scr.write('Validated HRPay Code = ' + str(hrpay_rslt) + '\n');
@@ -226,7 +196,7 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
             # logger.info("Invalid Payroll Company Code " + paycode + '\n')
             # raise ValueError("Invalid Payroll Company Code (HRPay) " + paycode + '\n')
 
-        func_code = fn_validate_field(dept,"func","func", "func_table", "char")
+        func_code = fn_validate_field(dept,"func","func", "func_table", "char",EARL)
         if func_code != '':
             #print('Validated func_code = ' + dept + '\n')
             scr.write('Validated Function Code = ' + dept + '\n');
@@ -257,7 +227,7 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
         ##############################################################
         # print("....Deal with division...")
         hrdivision = fn_validate_field(div,"hrdiv","hrdiv", "hrdiv_table",
-                                       "char")
+                                       "char",EARL)
 
         if hrdivision == None or hrdivision == "":
             #print("HR Div not valid - " + div)
@@ -265,7 +235,7 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
 
         # print("....Deal with department...")
         hrdepartment = fn_validate_field(dept,"hrdept","hrdept", "hrdept_table",
-                                         "char")
+                                         "char",EARL)
         #print(hrdepartment)
         if hrdepartment==None or hrdepartment=="":
             #print("HR Dept not valid - " + dept)
