@@ -65,36 +65,36 @@ DEBUG = settings.INFORMIX_DEBUG
 desc = """
     Upload ADP data to CX
 """
-parser = argparse.ArgumentParser(description=desc)
-
-parser.add_argument(
-    "--test",
-    action='store_true',
-    help="Dry run?",
-    dest="test"
-)
-parser.add_argument(
-    "-d", "--database",
-    help="database name.",
-    dest="database"
-)
-
-# set global variable
-global EARL
-# determines which database is being called from the command line
-# if database == 'cars':
-#    EARL = INFORMIX_EARL_PROD
-# elif database == 'train':
-# EARL = INFORMIX_EARL_TEST
-# elif database == 'sandbox':
-EARL = INFORMIX_EARL_SANDBOX
-# else:
-    # this will raise an error when we call get_engine()
-    # below but the argument parser should have taken
-    # care of this scenario and we will never arrive here.
-#    EARL = None
-# establish database connection
-engine = get_engine(EARL)
+# parser = argparse.ArgumentParser(description=desc)
+#
+# parser.add_argument(
+#     "--test",
+#     action='store_true',
+#     help="Dry run?",
+#     dest="test"
+# )
+# parser.add_argument(
+#     "-d", "--database",
+#     help="database name.",
+#     dest="database"
+# )
+#
+# # set global variable
+# global EARL
+# # determines which database is being called from the command line
+# # if database == 'cars':
+# #    EARL = INFORMIX_EARL_PROD
+# # elif database == 'train':
+# # EARL = INFORMIX_EARL_TEST
+# # elif database == 'sandbox':
+# EARL = INFORMIX_EARL_SANDBOX
+# # else:
+#     # this will raise an error when we call get_engine()
+#     # below but the argument parser should have taken
+#     # care of this scenario and we will never arrive here.
+# #    EARL = None
+# # establish database connection
+# engine = get_engine(EARL)
 
 # write out the .sql file
 scr = open("apdtocx_output.sql", "a")
@@ -123,7 +123,9 @@ start_time = time.time()
 #    end date old record and insert new
 ######################################################
 
-def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry):
+def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry, EARL):
+    # engine = get_engine(EARL)
+
     try:
         #################################
         #  See if there is already an Archive record
@@ -187,7 +189,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry):
         if found_aa_num == 0: # No address in aa rec?
               print("No existing record - Insert only")
               fn_insert_aa(id, fullname, 'PERM', addr1, addr2, addr3, cty, st, zp, ctry,
-                           datetime.now().strftime("%m/%d/%Y"))
+                           datetime.now().strftime("%m/%d/%Y"),EARL)
 
         # Scenario 2
         # if record found in aa_rec, then we will need more options
@@ -207,7 +209,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry):
             #################################
             fn_update_aa(addr_result[0],addr_result[1],addr_result[2], fullname,
                   addr_result[4],addr_result[5],addr_result[6],addr_result[7],
-                  addr_result[8], addr_result[9],addr_result[10],addr_result[3])
+                  addr_result[8], addr_result[9],addr_result[10],addr_result[3],EARL)
 
         # to avoid overlapping dates
         # Scenario 3 - AA Rec exists but does not match new address.
@@ -246,7 +248,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry):
 
             if v_enddate is not None:
                 fn_insert_aa(id, fullname, 'PERM', addr1, addr2, addr3, cty, st,
-                        zp, ctry, beg_date)
+                        zp, ctry, beg_date, EARL)
             else:
                 print("Failure on insert.  Could not verify enddate of previous")
 
@@ -261,7 +263,9 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry):
 # SQL Functions
 ###################################################
 # Query works 06/05/18
-def fn_insert_aa(id, fullname, aa, addr1, addr2, addr3, cty, st, zp, ctry, beg_date):
+def fn_insert_aa(id, fullname, aa, addr1, addr2, addr3, cty, st, zp, ctry, beg_date, EARL):
+    engine = get_engine(EARL)
+
     q_insert_aa = '''
         INSERT INTO aa_rec(id, aa, beg_date, peren, end_date, 
         line1, line2, line3, city, st, zip, ctry, phone, phone_ext, 
@@ -279,7 +283,9 @@ def fn_insert_aa(id, fullname, aa, addr1, addr2, addr3, cty, st, zp, ctry, beg_d
     print("insert aa completed")
 
 # Query works 06/05/18
-def fn_update_aa(id, aa, aanum, fllname, add1, add2, add3, cty, st, zip, ctry, begdate):
+def fn_update_aa(id, aa, aanum, fllname, add1, add2, add3, cty, st, zip, ctry, begdate, EARL):
+    engine = get_engine(EARL)
+
     q_update_aa = '''
       UPDATE aa_rec 
       SET line1 = ?,
@@ -301,7 +307,9 @@ def fn_update_aa(id, aa, aanum, fllname, add1, add2, add3, cty, st, zip, ctry, b
     print("update aa completed")
 
 # Query works 06/05/18
-def fn_end_date_aa(id, aa_num, fullname, enddate, aa):
+def fn_end_date_aa(id, aa_num, fullname, enddate, aa, EARL):
+    engine = get_engine(EARL)
+
     try:
         q_enddate_aa = '''
           UPDATE aa_rec
@@ -324,7 +332,9 @@ def fn_end_date_aa(id, aa_num, fullname, enddate, aa):
 #########################################################
 # Specific function to deal with cell phone in aa_rec
 #########################################################
-def fn_set_cell_phone(phone, id, fullname):
+def fn_set_cell_phone(phone, id, fullname, EARL):
+    engine = get_engine(EARL)
+
     q_check_cell = '''
         SELECT aa_rec.aa, aa_rec.id, aa_rec.phone, aa_rec.aa_no, 
         aa_rec.beg_date
@@ -393,7 +403,9 @@ def fn_set_cell_phone(phone, id, fullname):
 #########################################################
 # Specific function to deal with email in aa_rec
 #########################################################
-def fn_set_email2(email, id, fullname):
+def fn_set_email2(email, id, fullname,EARL):
+    engine = get_engine(EARL)
+
     q_check_email = '''
                   SELECT aa_rec.aa, aa_rec.id, aa_rec.line1, 
                   aa_rec.aa_no, aa_rec.beg_date 
@@ -457,7 +469,9 @@ def fn_set_email2(email, id, fullname):
     except Exception as e:
         print(e)
 
-def fn_set_schl_rec(id, fullname, phone, ext, loc, room):
+def fn_set_schl_rec(id, fullname, phone, ext, loc, room, EARL):
+    engine = get_engine(EARL)
+
     q_check_schl = '''
       SELECT id, aa_no, beg_date, end_date, line1, line3, phone, phone_ext 
       FROM aa_rec 

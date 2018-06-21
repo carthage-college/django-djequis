@@ -66,37 +66,6 @@ DEBUG = settings.INFORMIX_DEBUG
 desc = """
     Upload ADP data to CX
 """
-parser = argparse.ArgumentParser(description=desc)
-
-parser.add_argument(
-    "--test",
-    action='store_true',
-    help="Dry run?",
-    dest="test"
-)
-parser.add_argument(
-    "-d", "--database",
-    help="database name.",
-    dest="database"
-)
-
-# set global variable
-global EARL
-# determines which database is being called from the command line
-# if database == 'cars':
-#    EARL = INFORMIX_EARL_PROD
-# elif database == 'train':
-# EARL = INFORMIX_EARL_TEST
-# elif database == 'sandbox':
-EARL = INFORMIX_EARL_SANDBOX
-# else:
-    # this will raise an error when we call get_engine()
-    # below but the argument parser should have taken
-    # care of this scenario and we will never arrive here.
-#    EARL = None
-# establish database connection
-engine = get_engine(EARL)
-
 # write out the .sql file
 scr = open("apdtocx_output.sql", "a")
 # set start_time in order to see how long script takes to execute
@@ -105,7 +74,9 @@ start_time = time.time()
 ################################################
 # Start of processing
 ################################################
-def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id):
+def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id, EARL):
+    engine = get_engine(EARL)
+
     try:
         ##############################################################
         # Inserts or updates as needed into cvid_rec
@@ -113,20 +84,20 @@ def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id):
 
         # Validate the cx_id
         v_cx_id = fn_validate_field(carthid, "cx_id", "cx_id", "cvid_rec",
-                    "integer")
+                    "integer", EARL)
         #print("CX_ID = " + str(carthid))
         #print("v_CX_ID = " + str(v_cx_id))
 
         # Should also check for duplicates of the adp_id and associate_id
         # What to do in that case?
         v_adp_match = fn_check_duplicates(adpid, "adp_id", "cx_id", "cvid_rec",
-                                 v_cx_id, "char")
+                                 v_cx_id, "char", EARL)
         #print("Found_ID = " + str(v_adp_match))
 
         # By definition, associate ID cannot be a duplicate in ADP, but
         # possibility of duplicate might exist in CX
         v_assoc_match = fn_check_duplicates(adp_assoc_id, "adp_associate_id",
-                       "cx_id", "cvid_rec", v_cx_id, "char")
+                       "cx_id", "cvid_rec", v_cx_id, "char", EARL)
         #print("Found ID = " + str(v_assoc_match))
 
         if v_cx_id == 0 and v_assoc_match == 0 and v_adp_match == 0:

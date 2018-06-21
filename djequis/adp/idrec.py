@@ -68,37 +68,6 @@ DEBUG = settings.INFORMIX_DEBUG
 desc = """
     Upload ADP data to CX
 """
-# parser = argparse.ArgumentParser(description=desc)
-#
-# parser.add_argument(
-#     "--test",
-#     action='store_true',
-#     help="Dry run?",
-#     dest="test"
-# )
-# parser.add_argument(
-#     "-d", "--database",
-#     help="database name.",
-#     dest="database"
-# )
-
-# set global variable
-# global EARL
-
-# determines which database is being called from the command line
-# if database == 'cars':
-#     EARL = INFORMIX_EARL_PROD
-# elif database == 'train':
-#     EARL = INFORMIX_EARL_TEST
-# elif database == 'sandbox':
-# EARL = INFORMIX_EARL_SANDBOX
-# else:
-    # this will raise an error when we call get_engine()
-    # below but the argument parser should have taken
-    # care of this scenario and we will never arrive here.
-    #EARL = None
-# establish database connection
-# engine = get_engine(EARL)
 
 # write out the .sql file
 scr = open("apdtocx_output.sql", "a")
@@ -111,8 +80,6 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
         addr_line1, addr_line2, addr_line3, city, st, zip, ctry, ctry_cod, ss_no, phone,
         decsd, eff_date, EARL):
     print("Start ID Rec Processing")
-    print(EARL)
-
     engine = get_engine(EARL)
 
     try:
@@ -140,7 +107,7 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
         # also need to deal with address changes
         # Search for existing address record
         if ctry_cod != '':
-            cntry = fn_validate_field(ctry_cod, 'ctry', 'ctry', 'ctry_table', 'char')
+            cntry = fn_validate_field(ctry_cod, 'ctry', 'ctry', 'ctry_table', 'char', EARL)
             #print("Valid Country Code = " + cntry)
             #print(" In Check Address")
             q_check_addr = '''
