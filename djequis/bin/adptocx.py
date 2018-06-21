@@ -276,6 +276,7 @@ def main():
         with open(adp_diff_file, 'r') as f:
             d_reader = csv.DictReader(f, delimiter=',')
             for row in d_reader:
+                print('--------------------------------------------------')
                 print('carthid = {0}, Fullname = {1}'.format(row["carth_id"],row["payroll_name"]))
                 # print("Use as legal {0}".format(row["primary_legal_address"]))
                 ethnic_code = {
@@ -448,7 +449,7 @@ def main():
                     # Check to see if record exists in id_rec
                     # Do this first, or everything else is moot
                     results = fn_validate_field(row["carth_id"], "id", "id",
-                                                "id_rec", "integer")
+                                                "id_rec", "integer", EARL)
                     print("ID Validate result = " + str(results))
 
                     if results is None:
@@ -520,7 +521,7 @@ def main():
 
                             if row["personal_email"] != '':
                                 email_result = fn_set_email2(row["personal_email"],
-                                              row["carth_id"],row["payroll_name"])
+                                              row["carth_id"],row["payroll_name"], EARL)
                                 #print("Email = " + str(email_result))
                             #else: we can remove the else
                                 #print("No email from ADP")
@@ -528,7 +529,7 @@ def main():
                             # Check to update phone in aa_rec
                             if row["mobile_phone"] != "":
                                 cell = fn_set_cell_phone(row["mobile_phone"],
-                                         row["carth_id"], row["payroll_name"])
+                                         row["carth_id"], row["payroll_name"], EARL)
                                 #print("Cell phone result: " + cell)
                             #else: we can remove the else
                                 #print("No Cell")
@@ -551,7 +552,7 @@ def main():
                             ##########################################################
                             print("In CVID_REC")
                             fn_process_cvid(row["carth_id"], row["file_number"],
-                                          row["ssn"], row["employee_assoc_id"])
+                                          row["ssn"], row["employee_assoc_id"], EARL)
 
                             ##########################################################
                             # STEP 2e--
@@ -577,7 +578,7 @@ def main():
                             ##########################################################
                             print("In secondary Job Rec")
 
-                            if row[home_cost_number_2] != '':
+                            if row["home_cost_number2"] != '':
                                          fn_process_second_job(row["carth_id"],
                                          row["worker_cat_code"],
                                          row["home_cost_number2"],
@@ -588,7 +589,7 @@ def main():
                                          row["supervisor_id"], 2,
                                          row["payroll_name"], EARL)
 
-                            elif row[home_cost_number_3] != '':
+                            elif row["home_cost_number3"] != '':
                                          fn_process_second_job(
                                          row["carth_id"],
                                          row["worker_cat_code"],
@@ -600,7 +601,7 @@ def main():
                                          row["supervisor_id"], 3,
                                          row["payroll_name"], EARL)
 
-                            elif row[home_cost_number_4] != '':
+                            elif row["home_cost_number4"] != '':
                                          fn_process_second_job(
                                          row["carth_id"],
                                          row["worker_cat_code"],
@@ -638,13 +639,7 @@ def main():
                             #print("loc = " + loc)
 
                             fn_set_schl_rec(row["carth_id"], row["payroll_name"],
-                                "", "", loc, row["room_number"])
-
-                            ##########################################################
-                            # STEP 3--
-                            # Check for and process secondary jobs
-                            # Different process now, Custom field for PCNAggr
-                            ##########################################################
+                                "", "", loc, row["room_number"], EARL)
 
                         ##########################################################
                         # Finally for student employees
