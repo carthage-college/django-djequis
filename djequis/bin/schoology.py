@@ -128,18 +128,18 @@ def main():
     # formatting date and time string 
     datetimestr = time.strftime("%Y%m%d%H%M%S")
     # set dictionary
-    dict = {
+    sql_dict = {
         'COURSES': COURSES,
         'USERS': USERS,
         'ENROLLMENT': ENROLLMENT,
         'CROSSLIST': CROSSLIST
         }
-    for key, value in dict.items():
+    for key, value in sql_dict.items():
         ########################################################################
         # to print the dictionary key and rows of data, you would execute:
         ########################################################################
         if test:
-            print key
+            print(key)
         ########################################################################
         # Dict Value 'COURSES and SECTIONS' return all courses and sections with
         # a start date less than six months from the current date.
@@ -253,14 +253,14 @@ if __name__ == "__main__":
     database = args.database
     
     if not database:
-        print "mandatory option missing: database name\n"
+        print("mandatory option missing: database name\n")
         parser.print_help()
         exit(-1)
     else:
         database = database.lower()
 
     if database != 'cars' and database != 'train':
-        print "database must be: 'cars' or 'train'\n"
+        print("database must be: 'cars' or 'train'\n")
         parser.print_help()
         exit(-1)
 
