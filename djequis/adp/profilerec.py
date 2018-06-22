@@ -128,8 +128,12 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
             # scr.write(q_update_prof_rec + '\n');
             fn_write_log("Update profile_rec table");
 
+
+        return 1
+
     except Exception as e:
         print(e)
         fn_write_error(e)
+        return 0
     # finally:
     #     logging.shutdown()
