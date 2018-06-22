@@ -188,8 +188,8 @@ def main():
         # Pull the file from the ADP FTP site
         # execute sftp code that needs to be executed in production only
         #################################################################
-        if not test:
-            file_download()
+        # if not test:
+            # file_download()
 
         #################################################################
         # STEP 1--
@@ -275,6 +275,17 @@ def main():
         #################################################################
         with open(adp_diff_file, 'r') as f:
             d_reader = csv.DictReader(f, delimiter=',')
+
+            adpcount = 0
+            ccadpcount = 0
+            idcount = 0
+            cvidcount = 0
+            emailcount = 0
+            phonecount = 0
+            jobcount = 0
+            profilecount = 0
+            secondjobcount = 0
+
             for row in d_reader:
                 print('--------------------------------------------------')
                 print('carthid = {0}, Fullname = {1}'.format(row["carth_id"],row["payroll_name"]))
@@ -414,9 +425,10 @@ def main():
                     # print(q_cc_adp_rec)
                     # print(cc_adp_args)
                     engine.execute(q_cc_adp_rec, cc_adp_args)
+                    # ccadpcount =+ 1
                     scr.write(q_cc_adp_rec+'\n');
                     fn_write_log("Inserted into adp_rec table");
-
+                    ccadpcount = ccadpcount + 1
                 except Exception as e:
                     fn_write_error(e)
                     print(e)
@@ -516,6 +528,7 @@ def main():
                                      fn_convert_date(row["pos_effective_date"]),EARL)
 
                             print("ID Result = " + str(id_rslt))
+                            idcount = idcount + 1
                             # print("sql addr " + addr_result[1].strip() + " loop
                             # address = " + row["primary_address1"].strip())
 
@@ -523,6 +536,7 @@ def main():
                                 email_result = fn_set_email2(row["personal_email"],
                                               row["carth_id"],row["payroll_name"], EARL)
                                 #print("Email = " + str(email_result))
+                                emailcount = emailcount + email_result
                             #else: we can remove the else
                                 #print("No email from ADP")
 
@@ -530,6 +544,7 @@ def main():
                             if row["mobile_phone"] != "":
                                 cell = fn_set_cell_phone(row["mobile_phone"],
                                          row["carth_id"], row["payroll_name"], EARL)
+                                phonecount = phonecount + cell
                                 #print("Cell phone result: " + cell)
                             #else: we can remove the else
                                 #print("No Cell")
@@ -539,31 +554,36 @@ def main():
                             # Do updates to profile_rec (profilerec.py)
                             ##########################################################
                             print("In Profile Rec")
-                            prof_rec = fn_process_profile_rec(row["carth_id"],
+                            prof_rslt = fn_process_profile_rec(row["carth_id"],
                                         row["ethnicity"], row["gender"], row["race"],
                                         row["birth_date"],
                                         datetime.now().strftime("%m/%d/%Y"),EARL)
-                            #
-                            # print(prof_rec)
 
-                            ##########################################################
+
+                            profilecount = profilecount + prof_rslt
+
+                            #
+                            # print(prof_rslt)
+                             ##########################################################
                             # STEP 2d--
                             # Do updates to cvid_rec (cvidrec.py)
                             ##########################################################
                             print("In CVID_REC")
-                            fn_process_cvid(row["carth_id"], row["file_number"],
+                            cvid_rslt = fn_process_cvid(row["carth_id"], row["file_number"],
                                           row["ssn"], row["employee_assoc_id"], EARL)
+
+                            cvidcount = cvidcount + cvid_rslt
 
                             ##########################################################
                             # STEP 2e--
                             # Do updates to job_rec (jobrec.py)
                             ##########################################################
                             print("In Job Rec")
-                            fn_process_job(row["carth_id"], row["worker_cat_code"],
+                            job_rslt = fn_process_job(row["carth_id"], row["worker_cat_code"],
                                     row["worker_cat_descr"], row["business_unit_code"],
                                     row["business_unit_descr"], row["home_dept_code"],
                                     row["home_dept_descr"], row["job_title_code"],
-                                    row["job_title_descr"], row["pos_start_date"],
+                                    row["job_title_descr"], row["pos_effective_date"],
                                     row["pos_effective_end_date"],
                                     row["payroll_comp_code"], row["job_function_code"],
                                     row["job_function_description"],
@@ -571,7 +591,8 @@ def main():
                                     row["primary_position"], row["supervisor_id"],
                                     row["last_name"], row["first_name"],
                                     row["middle_name"],EARL)
-
+                            print("Process Job Returned " + str(job_rslt))
+                            jobcount = jobcount + job_rslt
                             ##########################################################
                             # STEP 2f--
                             # Do updates to second job_rec (jobrec.py)
@@ -588,7 +609,7 @@ def main():
                                          row["job_function_code"],
                                          row["supervisor_id"], 2,
                                          row["payroll_name"], EARL)
-
+                                # secondjobcount = secondjobcount + 1
                             elif row["home_cost_number3"] != '':
                                          fn_process_second_job(
                                          row["carth_id"],
@@ -600,6 +621,7 @@ def main():
                                          row["job_function_code"],
                                          row["supervisor_id"], 3,
                                          row["payroll_name"], EARL)
+                               # secondjobcount = secondjobcount + 1
 
                             elif row["home_cost_number4"] != '':
                                          fn_process_second_job(
@@ -612,6 +634,7 @@ def main():
                                          row["job_function_code"],
                                          row["supervisor_id"], 4,
                                          row["payroll_name"], EARL)
+                                # secondjobcount = secondjobcount + 1
 
                             ##########################################################
                             # STEP 2g--
@@ -656,6 +679,9 @@ def main():
 
                 fn_clear_logger()
 
+                adpcount = adpcount + 1
+
+
             # set destination directory for which the sql file will be archived to
             archived_destination = ('{0}apdtocx_output-{1}.sql'.format(
                 settings.ADP_CSV_ARCHIVED, datetimestr
@@ -679,11 +705,24 @@ def main():
             ##################################################################
             # The last step - move last to archive, rename new file to _last
             ##################################################################
-            #adptocx_archive = ('{0}adptocxlast_{1}.csv'.format(settings.ADP_CSV_ARCHIVED,datetimestr))
-            #shutil.move(last_adp_file, adptocx_archive)
+            if not test:
 
-            #adptocx_rename = ('{0}ADPtoCXLast.csv'.format(settings.ADP_CSV_OUTPUT))
-            #shutil.move(new_adp_file,adptocx_rename)
+                adptocx_archive = ('{0}adptocxlast_{1}.csv'.format(settings.ADP_CSV_ARCHIVED,datetimestr))
+                shutil.move(last_adp_file, adptocx_archive)
+
+                adptocx_rename = ('{0}ADPtoCXLast.csv'.format(settings.ADP_CSV_OUTPUT))
+                shutil.move(new_adp_file,adptocx_rename)
+
+
+            print("ADP Count = " + str(adpcount))
+            print("CCADP Count = " + str(ccadpcount))
+            print("ID Count = " + str(idcount))
+            print("CVID Count = " + str(cvidcount))
+            print("Email Count = " + str(emailcount))
+            print("CELL Count = " + str(phonecount))
+            print("Job Count = " + str(jobcount))
+            print("Profile Count = " + str(profilecount))
+            print("Job2 Count = " + str(secondjobcount))
 
     except Exception as e:
         fn_write_error(e)
