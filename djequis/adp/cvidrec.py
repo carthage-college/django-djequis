@@ -129,7 +129,10 @@ def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id, EARL):
             scr.write(q_update_cvid_rec + '\n');
             engine.execute(q_update_cvid_rec, args)
 
+        return 1
+
     except Exception as e:
         print(e)
+        return 0
     # finally:
     #     logging.shutdown()
