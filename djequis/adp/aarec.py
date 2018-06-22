@@ -65,36 +65,6 @@ DEBUG = settings.INFORMIX_DEBUG
 desc = """
     Upload ADP data to CX
 """
-# parser = argparse.ArgumentParser(description=desc)
-#
-# parser.add_argument(
-#     "--test",
-#     action='store_true',
-#     help="Dry run?",
-#     dest="test"
-# )
-# parser.add_argument(
-#     "-d", "--database",
-#     help="database name.",
-#     dest="database"
-# )
-#
-# # set global variable
-# global EARL
-# # determines which database is being called from the command line
-# # if database == 'cars':
-# #    EARL = INFORMIX_EARL_PROD
-# # elif database == 'train':
-# # EARL = INFORMIX_EARL_TEST
-# # elif database == 'sandbox':
-# EARL = INFORMIX_EARL_SANDBOX
-# # else:
-#     # this will raise an error when we call get_engine()
-#     # below but the argument parser should have taken
-#     # care of this scenario and we will never arrive here.
-# #    EARL = None
-# # establish database connection
-# engine = get_engine(EARL)
 
 # write out the .sql file
 scr = open("apdtocx_output.sql", "a")
@@ -188,7 +158,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry, EAR
         # but nothing exists in aa_rec, so we will only insert as 'PREV'
         if found_aa_num == 0: # No address in aa rec?
               print("No existing record - Insert only")
-              fn_insert_aa(id, fullname, 'PERM', addr1, addr2, addr3, cty, st, zp, ctry,
+              fn_insert_aa(id, fullname, 'PREV', addr1, addr2, addr3, cty, st, zp, ctry,
                            datetime.now().strftime("%m/%d/%Y"),EARL)
 
         # Scenario 2
@@ -247,7 +217,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry, EAR
             print(v_enddate)
 
             if v_enddate is not None:
-                fn_insert_aa(id, fullname, 'PERM', addr1, addr2, addr3, cty, st,
+                fn_insert_aa(id, fullname, 'PREV', addr1, addr2, addr3, cty, st,
                         zp, ctry, beg_date, EARL)
             else:
                 print("Failure on insert.  Could not verify enddate of previous")
@@ -396,9 +366,11 @@ def fn_set_cell_phone(phone, id, fullname, EARL):
             #print("New cell will be = " + phone)
             return ("Updated cell")
 
+        return 1
 
     except Exception as e:
         print(e)
+        return 0
 
 #########################################################
 # Specific function to deal with email in aa_rec
@@ -466,8 +438,11 @@ def fn_set_email2(email, id, fullname,EARL):
                 fn_insert_aa(id, fullname, 'EML2', email, "", "", "", "", "",
                              "", begindate)
 
+        return 1
+
     except Exception as e:
         print(e)
+        return 0
 
 def fn_set_schl_rec(id, fullname, phone, ext, loc, room, EARL):
     engine = get_engine(EARL)
