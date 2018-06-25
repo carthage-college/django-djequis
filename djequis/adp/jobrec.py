@@ -14,8 +14,8 @@ import argparse
 from sqlalchemy import text
 import shutil
 #import re
-import logging
-from logging.handlers import SMTPHandler
+# import logging
+# from logging.handlers import SMTPHandler
 
 
 # python path
@@ -108,6 +108,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         pcnaggr = payrollcompcode + "-" + businessunitcode + "-" \
                       + homedeptcode[:3] + "-" + jobtitlecode
 
+        print(pcnaggr)
+
         func_code = fn_validate_field(homedeptcode[:3],"func","func",
                     "func_table", "char", EARL)
         if func_code != '':
@@ -176,6 +178,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             # jobclass = 'GA'
             # jobclassdescr = 'Graduate Assistant'
             print("Job Class Code")
+
             if jobclass != "":
                 print(jobclass)
                 print(jobclassdescr)
@@ -217,6 +220,66 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                 # Else do nothing
             else:
                 print("No Job Class")
+
+
+        ##############################################################
+        # validate the position, division, department
+        ##############################################################
+
+        print("Business Unit Code = " + businessunitcode[:4])
+        hrdivision = fn_validate_field(businessunitcode[:4],"hrdiv","hrdiv",
+                            "hrdiv_table", "char", EARL)
+
+        if hrdivision == None or hrdivision == "":
+            q_ins_div = '''
+              INSERT INTO hrdiv_table(hrdiv, descr, beg_date, end_date) 
+              VALUES(?, ?, ?, null)'''
+            q_ins_div_args = (businessunitcode[:4], businessunitdescr,
+                                datetime.now().strftime("%m/%d/%Y"))
+            # print("New HR Division = " + businessunitcode  + '\n')
+            # print(q_ins_div + str(q_ins_div_args))
+            engine.execute(q_ins_div, q_ins_div_args)
+            scr.write(q_ins_div + '\n');
+        else:
+            # This query works 5/25/18
+            q_upd_div = '''
+                UPDATE hrdiv_table SET descr = ?, 
+                          beg_date = ?
+                WHERE hrdiv = ?'''
+            q_upd_div_args = (businessunitdescr,
+                          datetime.now().strftime("%m/%d/%Y"),
+                          businessunitcode[:4])
+            print("Existing HR Division = " + hrdivision + '\n')
+            print(q_upd_div + str(q_upd_div_args))
+            engine.execute(q_upd_div, q_upd_div_args)
+            scr.write(q_upd_div + '\n');
+
+        print("Home Department Code = " +  homedeptcode)
+
+        hrdepartment = fn_validate_field(homedeptcode[:3],"hrdept","hrdept",
+                        "hrdept_table", "char", EARL)
+        if hrdepartment==None or hrdepartment=="" or len(hrdepartment)==0:
+            # This query works 5/25/18
+            q_ins_dept = '''
+              INSERT INTO hrdept_table(hrdept, hrdiv, descr, 
+                                beg_date, end_date) 
+              VALUES(?, ?, ?, ?, ?)'''
+            q_ins_dept_args = (homedeptcode[:3], businessunitcode,
+                               homedeptdescr,
+                               datetime.now().strftime("%m/%d/%Y"),None)
+            engine.execute(q_ins_dept, q_ins_dept_args)
+            scr.write(q_ins_dept + '\n');
+        else:
+            q_upd_dept = '''
+              UPDATE hrdept_table SET hrdiv = ?, descr = ?, 
+                  beg_date = ? 
+              WHERE hrdept = ?'''
+            q_upd_dept_args = (businessunitcode, homedeptdescr,
+                               datetime.now().strftime("%m/%d/%Y"), func_code)
+            engine.execute(q_upd_dept, q_upd_dept_args)
+            scr.write(q_upd_dept + '\n');
+
+
         ###############################################################
         # Use PCN Agg to find TPos FROM position rec
         ###############################################################
@@ -263,7 +326,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                 supervisor_no = ?, tenure_track = ?, fte = ?, max_jobs = ?, 
                 hrpay = ?, active_date = ?, inactive_date = ? 
               WHERE tpos_no = ?'''
-            q_upd_pos_args = (pcnaggr, jobfunctioncode, businessunitcode,
+            q_upd_pos_args = (pcnaggr, payrollcompcode, businessunitcode,
                               func_code, jobtitlecode, jobtitledescr,
                               'OFC', func_code, supervisorid[3:9],
                               'TENURE', 0, 0, payrollcompcode,
@@ -274,57 +337,6 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             engine.execute(q_upd_pos, q_upd_pos_args)
             scr.write(q_upd_pos + '\n');
 
-        ##############################################################
-        # validate the position, division, department
-        ##############################################################
-        hrdivision = fn_validate_field(businessunitcode,"hrdiv","hrdiv",
-                            "hrdiv_table", "char", EARL)
-        if hrdivision == None or hrdivision == "":
-            q_ins_div = '''
-              INSERT INTO hrdiv_table(hrdiv, descr, beg_date, end_date) 
-              VALUES(?, ?, ?, null)'''
-            q_ins_div_args = (businessunitcode, businessunitdescr,
-                                datetime.now().strftime("%m/%d/%Y"))
-            # print("New HR Division = " + businessunitcode  + '\n')
-            # print(q_ins_div + str(q_ins_div_args))
-            engine.execute(q_ins_div, q_ins_div_args)
-            scr.write(q_ins_div + '\n');
-        else:
-            # This query works 5/25/18
-            q_upd_div = '''
-                UPDATE hrdiv_table SET descr = ?, 
-                          beg_date = ?
-                WHERE hrdiv = ?'''
-            q_upd_div_args = (businessunitdescr,
-                          datetime.now().strftime("%m/%d/%Y"),
-                          businessunitcode)
-            print("Existing HR Division = " + hrdivision + '\n')
-            # print(q_upd_div + str(q_upd_div_args))
-            engine.execute(q_upd_div, q_upd_div_args)
-            scr.write(q_upd_div + '\n');
-
-        hrdepartment = fn_validate_field(homedeptcode[:3],"hrdept","hrdept",
-                        "hrdept_table", "char", EARL)
-        if hrdepartment==None or hrdepartment=="" or len(hrdepartment)==0:
-            # This query works 5/25/18
-            q_ins_dept = '''
-              INSERT INTO hrdept_table(hrdept, hrdiv, descr, 
-                                beg_date, end_date) 
-              VALUES(?, ?, ?, ?, ?)'''
-            q_ins_dept_args = (homedeptcode[:3], businessunitcode,
-                               homedeptdescr,
-                               datetime.now().strftime("%m/%d/%Y"),None)
-            engine.execute(q_ins_dept, q_ins_dept_args)
-            scr.write(q_ins_dept + '\n');
-        else:
-            q_upd_dept = '''
-              UPDATE hrdept_table SET hrdiv = ?, descr = ?, 
-                  beg_date = ? 
-              WHERE hrdept = ?'''
-            q_upd_dept_args = (businessunitcode, homedeptdescr,
-                               datetime.now().strftime("%m/%d/%Y"), func_code)
-            engine.execute(q_upd_dept, q_upd_dept_args)
-            scr.write(q_upd_dept + '\n');
         ##############################################################
         # validate hrstat,
         # Per Meeting 6/22/18, Job Function Code redundant and unreliable
