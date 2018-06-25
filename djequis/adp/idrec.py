@@ -14,8 +14,8 @@ import argparse
 from sqlalchemy import text
 import shutil
 #import re
-import logging
-from logging.handlers import SMTPHandler
+# import logging
+# from logging.handlers import SMTPHandler
 
 
 # python path
@@ -154,7 +154,7 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                 # find max start date to determine what date to insert
                 # insert or update as needed
                 fn_archive_address(carth_id, fullname, addr_line1, addr_line2,
-                             addr_line3, city, st, zip, cntry)
+                             addr_line3, city, st, zip, cntry, EARL)
             else:
                 print("No Change " + row[1])
         elif cntry is None:
