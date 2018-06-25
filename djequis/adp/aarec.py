@@ -14,8 +14,8 @@ import argparse
 from sqlalchemy import text
 import shutil
 #import re
-import logging
-from logging.handlers import SMTPHandler
+# import logging
+# from logging.handlers import SMTPHandler
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -57,7 +57,7 @@ from djzbar.settings import INFORMIX_EARL_SANDBOX
 from djtools.fields import TODAY
 
 # Imports for additional modules and functions written as part of this project
-from djequis.adp.utilities import fn_convert_date, fn_write_log
+from djequis.adp.utilities import fn_convert_date, fn_write_log, fn_write_error
 
 DEBUG = settings.INFORMIX_DEBUG
 
@@ -477,7 +477,7 @@ def fn_set_schl_rec(id, fullname, phone, ext, loc, room, EARL):
                 q_upd_schl_args = (fullname, location, phone, ext, schl_result[1])
                 # logger.info("update address info in aa_rec table");
                 engine.execute(q_update_schl, q_upd_schl_args)
-                logger.info("Update to schl in aa_rec for " + fullname);
+                fn_write_log("Update to schl in aa_rec for " + fullname)
                 scr.write(q_update_schl + '\n');
                 #print(q_update_schl)
                 #print(q_upd_schl_args)
@@ -498,11 +498,11 @@ def fn_set_schl_rec(id, fullname, phone, ext, loc, room, EARL):
                 "HR", "", "")
 
             engine.execute(q_insert_schl, q_ins_schl_args)
-            logger.info("Insert SCHL into aa_rec table for " + fullname);
+            fn_write_log("Insert SCHL into aa_rec table for " + fullname)
             scr.write(q_insert_schl + '\n');
             #print("insert SCHL completed")
 
     except Exception as e:
         print(e)
-    finally:
-        logging.shutdown()
+    # finally:
+    #     logging.shutdown()
