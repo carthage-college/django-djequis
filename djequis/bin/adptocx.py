@@ -65,6 +65,7 @@ from djequis.adp.utilities import fn_validate_field, fn_convert_date, \
     fn_format_phone, fn_write_log, fn_write_error, fn_clear_logger
 from djequis.adp.profilerec import fn_process_profile_rec
 from djequis.adp.adp_ftp import file_download
+from djequis.adp.secondjob import fn_process_second_job
 
 # normally set as 'debug" in SETTINGS
 DEBUG = settings.INFORMIX_DEBUG
