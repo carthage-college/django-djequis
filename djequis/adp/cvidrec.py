@@ -14,8 +14,8 @@ import argparse
 from sqlalchemy import text
 import shutil
 #import re
-import logging
-from logging.handlers import SMTPHandler
+# import logging
+# from logging.handlers import SMTPHandler
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
