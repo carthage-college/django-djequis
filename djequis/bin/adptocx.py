@@ -254,7 +254,8 @@ def main():
                      "home_dept_code", "home_dept_descr", "supervisor_id",
                      "supervisor_fname", "supervisor_lname","business_unit_code",
                      "business_unit_descr","reports_to_name","reports_to_pos_id",
-                     "reports_to_assoc_id", "employee_assoc_id"])
+                     "reports_to_assoc_id", "employee_assoc_id",
+                     "management_position", "supervisor_flag", "long_title"])
 
                 for line_no, line in enumerate(bigb):
                     x = line.split(',')
@@ -354,14 +355,15 @@ def main():
                     supervisor_id, supervisor_firstname, supervisor_lastname, \
                     business_unit_code, business_unit_descr, reports_to_name, \
                     reports_to_position_id, reports_to_associate_id, \
-                    employee_associate_id, date_stamp) \
+                    employee_associate_id, management_position, supervisor_flag, \
+                    long_title, date_stamp) \
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
                      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
                      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
                      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
                      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  ?, \
                      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
-                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
                     cc_adp_args = (row["file_number"], row["carth_id"], row["last_name"],
                     row["first_name"], row["middle_name"], row["salutation"],
                     row["payroll_name"], row["preferred_name"],
@@ -422,7 +424,9 @@ def main():
                     row["supervisor_lname"], row["business_unit_code"],
                     row["business_unit_descr"], row["reports_to_name"],
                     row["reports_to_pos_id"], row["reports_to_assoc_id"],
-                    row["employee_assoc_id"],datetime.now())
+                    row["employee_assoc_id"], row["management_position"],
+                    row["supervisor_flag"], row["long_title"],
+                    datetime.now())
                     # print(q_cc_adp_rec)
                     # print(cc_adp_args)
                     engine.execute(q_cc_adp_rec, cc_adp_args)
