@@ -548,32 +548,41 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
 # Functions
 ##########################################################
 def fn_validate_supervisor(id, EARL):
-    q_val_super = '''SELECT hrstat FROM job_rec WHERE id = {0}
-                                           '''.format(id)
-    #print(q_val_super)
-    sql_val_super = do_sql(q_val_super, key=DEBUG, earl=EARL)
-    row = sql_val_super.fetchone()
-
-    if row == None:
-        # Not found
-        return(0)
-    else:
-        # Not Eligible
-        if row[0].strip() == 'VEND':
-            return(0)
-        elif row[0].strip() == 'OTH':
-            return(0)
-        elif row[0].strip() == 'LV':
-            return(0)
-        elif row[0].strip() == 'SA':
-            return(0)
-        elif row[0].strip() == 'STU':
-            return(0)
-        elif row[0].strip() == 'PDG':
-            return(0)
-        elif row[0].strip() == 'STD':
-            return(0)
-        # Valid as Supervisor
+    try:
+        if id < 1 or id is None or id == "":
+            return 0
         else:
-            return(id)
+            q_val_super = '''SELECT supervisor_flag FROM cc_adp_rec WHERE carthage_id = {0}
+                                                   '''.format(id)
+            print(q_val_super)
+            print("ID = " + id)
+            sql_val_super = do_sql(q_val_super, key=DEBUG, earl=EARL)
+            row = sql_val_super.fetchone()
+
+            if row == None:
+                # Not found
+                return(0)
+            else:
+                # Not Eligible
+                if row[0].strip() == 'No':
+                    return(0)
+                # elif row[0].strip() == 'OTH':
+                #     return(0)
+                # elif row[0].strip() == 'LV':
+                #     return(0)
+                # elif row[0].strip() == 'SA':
+                #     return(0)
+                # elif row[0].strip() == 'STU':
+                #     return(0)
+                # elif row[0].strip() == 'PDG':
+                #     return(0)
+                # elif row[0].strip() == 'STD':
+                #     return(0)
+                # Valid as Supervisor
+                else:
+                    return(id)
+
+    except Exception as e:
+        print(e)
+        return(0)
 
