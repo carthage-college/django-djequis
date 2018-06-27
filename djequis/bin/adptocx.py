@@ -432,7 +432,7 @@ def main():
                     ccadpcount = ccadpcount + 1
                 except Exception as e:
                     fn_write_error(e)
-                    print(e)
+                    # print(e)
 
                 # fn_convert_date(row["termination_date"]),
                 ###############################################################
@@ -446,7 +446,7 @@ def main():
                 # email HR if CarthID is missing
                 print("In ID Rec sub")
                 if row["carth_id"] == "":
-                    print('No Carthage ID - abort this record and email HR')
+                    # print('No Carthage ID - abort this record and email HR')
                     SUBJECT = 'No Carthage ID - abort this record and email HR'
                     BODY = 'No Carthage ID, process aborted. Name = {0}, \
                         ADP File = {1}'.format(row["payroll_name"], \
@@ -463,7 +463,7 @@ def main():
                     # Do this first, or everything else is moot
                     results = fn_validate_field(row["carth_id"], "id", "id",
                                                 "id_rec", "integer", EARL)
-                    print("ID Validate result = " + str(results))
+                    # print("ID Validate result = " + str(results))
 
                     if results is None:
                         SUBJECT = 'No matcining ID in id_rec - abort and ' \
@@ -528,7 +528,7 @@ def main():
                                      row["position_status"],
                                      fn_convert_date(row["pos_effective_date"]),EARL)
 
-                            print("ID Result = " + str(id_rslt))
+                            # print("ID Result = " + str(id_rslt))
                             idcount = idcount + 1
                             # print("sql addr " + addr_result[1].strip() + " loop
                             # address = " + row["primary_address1"].strip())
@@ -537,7 +537,8 @@ def main():
                                 email_result = fn_set_email2(row["personal_email"],
                                               row["carth_id"],row["payroll_name"], EARL)
                                 #print("Email = " + str(email_result))
-                                emailcount = emailcount + email_result
+                                if email_result != "":
+                                    emailcount = emailcount + 1
                             #else: we can remove the else
                                 #print("No email from ADP")
 
@@ -545,7 +546,8 @@ def main():
                             if row["mobile_phone"] != "":
                                 cell = fn_set_cell_phone(row["mobile_phone"],
                                          row["carth_id"], row["payroll_name"], EARL)
-                                phonecount = phonecount + cell
+                                if cell != "":
+                                    phonecount = phonecount + 1
                                 #print("Cell phone result: " + cell)
                             #else: we can remove the else
                                 #print("No Cell")
@@ -592,7 +594,7 @@ def main():
                                     row["primary_position"], row["supervisor_id"],
                                     row["last_name"], row["first_name"],
                                     row["middle_name"],EARL)
-                            print("Process Job Returned " + str(job_rslt))
+                            # print("Process Job Returned " + str(job_rslt))
                             jobcount = jobcount + job_rslt
                             ##########################################################
                             # STEP 2f--
@@ -601,41 +603,42 @@ def main():
                             print("In secondary Job Rec")
 
                             if row["home_cost_number2"] != '':
-                                         fn_process_second_job(row["carth_id"],
-                                         row["worker_cat_code"],
-                                         row["home_cost_number2"],
-                                         row["job_title_descr"],
-                                         row["position_eff_date2"],
-                                         row["position_end_date2"],
-                                         row["job_function_code"],
-                                         row["supervisor_id"], 2,
-                                         row["payroll_name"], EARL)
-                                # secondjobcount = secondjobcount + 1
+                                fn_process_second_job(row["carth_id"],
+                                    row["worker_cat_code"],
+                                    row["home_cost_number2"],
+                                    row["job_title_descr"],
+                                    row["position_eff_date2"],
+                                    row["position_end_date2"],
+                                    row["job_function_code"],
+                                    row["supervisor_id"], 2,
+                                    row["payroll_name"], EARL)
+                                secondjobcount = secondjobcount + 1
+                                print("Second Job for " + row["carth_id"] + " Job = " + row["home_cost_number2"])
                             elif row["home_cost_number3"] != '':
-                                         fn_process_second_job(
-                                         row["carth_id"],
-                                         row["worker_cat_code"],
-                                         row["home_cost_number3"],
-                                         row["job_title_descr"],
-                                         row["position_eff_date3"],
-                                         row["position_end_date3"],
-                                         row["job_function_code"],
-                                         row["supervisor_id"], 3,
-                                         row["payroll_name"], EARL)
-                               # secondjobcount = secondjobcount + 1
+                                fn_process_second_job(
+                                    row["carth_id"],
+                                    row["worker_cat_code"],
+                                    row["home_cost_number3"],
+                                    row["job_title_descr"],
+                                    row["position_eff_date3"],
+                                    row["position_end_date3"],
+                                    row["job_function_code"],
+                                    row["supervisor_id"], 3,
+                                    row["payroll_name"], EARL)
+                                secondjobcount = secondjobcount + 1
 
                             elif row["home_cost_number4"] != '':
-                                         fn_process_second_job(
-                                         row["carth_id"],
-                                         row["worker_cat_code"],
-                                         row["home_cost_number4"],
-                                         row["job_title_descr"],
-                                         row["position_eff_date4"],
-                                         row["position_end_date4"],
-                                         row["job_function_code"],
-                                         row["supervisor_id"], 4,
-                                         row["payroll_name"], EARL)
-                                # secondjobcount = secondjobcount + 1
+                                fn_process_second_job(
+                                    row["carth_id"],
+                                    row["worker_cat_code"],
+                                    row["home_cost_number4"],
+                                    row["job_title_descr"],
+                                    row["position_eff_date4"],
+                                    row["position_end_date4"],
+                                    row["job_function_code"],
+                                    row["supervisor_id"], 4,
+                                    row["payroll_name"], EARL)
+                                secondjobcount = secondjobcount + 1
 
                             ##########################################################
                             # STEP 2g--
