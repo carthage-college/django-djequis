@@ -244,7 +244,7 @@ def fn_insert_aa(id, fullname, aa, addr1, addr2, addr3, cty, st, zp, ctry, beg_d
 
     engine.execute(q_insert_aa,q_ins_aa_args)
     scr.write(q_insert_aa + '\n');
-    fn_write_log("Added archive address to aa_rec for " + fullname + ", ID = " + str(id))
+    fn_write_log("Added " + addr1 + " to aa_rec for " + fullname + ", ID = " + str(id))
     # logger.info("Added archive address for " + fullname);
     # print(q_insert_aa)
     # print(q_ins_aa_args)
@@ -267,7 +267,7 @@ def fn_update_aa(id, aa, aanum, fllname, add1, add2, add3, cty, st, zip, ctry, b
     q_upd_aa_args=(add1, add2, add3, cty, st, zip,
                    ctry, aanum)
     # logger.info("Updated address info in aa_rec table for " + fullname);
-    fn_write_log("Updated archive address to aa_rec for " + fullname + ", ID = " + str(id))
+    fn_write_log("Updated " + add1 + " to aa_rec for " + fullname + ", ID = " + str(id))
     scr.write(q_update_aa + '\n');
     engine.execute(q_update_aa, q_upd_aa_args)
     #print(q_update_aa)
@@ -288,7 +288,7 @@ def fn_end_date_aa(id, aa_num, fullname, enddate, aa, EARL):
         engine.execute(q_enddate_aa, q_enddate_aa_args)
         #print("Log end date aa for " + fullname)
         fn_write_log("Added end date to address to aa_rec for " + fullname +
-                      ", ID = " + str(id))
+                      ", ID = " + str(id) + " aa_num = " + str(aa))
         # logger.info("Log end date aa_rec for " + fullname);
         scr.write(q_enddate_aa + '\n');
         #print(q_enddate_aa)
@@ -499,5 +499,6 @@ def fn_set_schl_rec(id, fullname, phone, ext, loc, room, EARL):
 
     except Exception as e:
         print(e)
+        fn_write_error("Error in aarec.py, Error = " + e.message)
     # finally:
     #     logging.shutdown()
