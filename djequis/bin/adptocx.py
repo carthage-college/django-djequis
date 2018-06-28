@@ -432,7 +432,8 @@ def main():
                     engine.execute(q_cc_adp_rec, cc_adp_args)
                     # ccadpcount =+ 1
                     scr.write(q_cc_adp_rec+'\n');
-                    fn_write_log("Inserted into adp_rec table");
+                    fn_write_log("Inserted data into cc_adp_rec table for " + row["payroll_name"] + " ID = " + row["carth_id"]);
+
                     ccadpcount = ccadpcount + 1
                 except Exception as e:
                     fn_write_error(e)
@@ -733,7 +734,7 @@ def main():
             print("Job2 Count = " + str(secondjobcount))
 
     except Exception as e:
-        fn_write_error(e)
+        fn_write_error("Error in adptocx.py, Error = "  + e.message)
         print(e)
     # finally:
     #     logging.shutdown()
