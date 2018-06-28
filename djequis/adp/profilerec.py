@@ -111,7 +111,7 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
             # print(q_ins_prof_args)
             engine.execute(q_insert_prof_rec, q_ins_prof_args)
             # scr.write(q_insert_prof_rec + '\n');
-            fn_write_log("Inserted into profile_rec table");
+            fn_write_log("Inserted into profile_rec table values " + id + "," + race + ", " + is_hispanic);
             scr.write(q_insert_prof_rec + '\n');
         else:
             q_update_prof_rec = '''
@@ -125,15 +125,15 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
             # print(q_update_prof_rec)
             # print(q_upd_prof_args)
             engine.execute(q_update_prof_rec, q_upd_prof_args)
+            fn_write_log("Updated profile_rec table values " + id + "," + race + ", " + is_hispanic);
             # scr.write(q_update_prof_rec + '\n');
-            fn_write_log("Update profile_rec table");
 
 
         return 1
 
     except Exception as e:
         print(e)
-        fn_write_error(e)
+        fn_write_error("Error in profilerec.py, Error = " + e.message)
         return 0
     # finally:
     #     logging.shutdown()
