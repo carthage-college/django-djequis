@@ -92,13 +92,13 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                        carth_id)
         # print(q_update_id_rec)
         # print(q_update_id_args)
-        fn_write_log("Update id_rec table for " + fullname + ", ID = " + carth_id)
+        fn_write_log("Update basic info in id_rec table for " + fullname + ", ID = " + str(carth_id))
         # logger.info("Update id_rec table");
         engine.execute(q_update_id_rec, q_update_id_args)
     except Exception as err:
         print(err.message)
         return (err.message)
-        fn_write_error(err)
+        fn_write_error("Error in id_rec.py.  Error = " + err.message)
         # logger.error(err, exc_info=True)
 
 
@@ -109,7 +109,7 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
         if ctry_cod != '':
             cntry = fn_validate_field(ctry_cod, 'ctry', 'ctry', 'ctry_table', 'char', EARL)
             #print("Valid Country Code = " + cntry)
-            #print(" In Check Address")
+            # print(" In Check Address")
             q_check_addr = '''
                         SELECT id, addr_line1, addr_line2, addr_line3, city,
                             st, zip, ctry
@@ -121,19 +121,19 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
             row = addr_result.fetchone()
             # x = str(row[1]).rstrip()
             # print("Address result row = " + x)
-            if str(row[0]) == '0' or str(row[0]) == '':  # No person in id rec? Should never happen
-                fn_write_log("Employee not in id rec for id number " + carth_id)
-
+            if str(row[0]) == '0' or str(row[0]) == '' or row is None:  # No person in id rec? Should never happen
+                fn_write_log("Employee not in id rec for id number " + str(carth_id))
+                print("Employee not in id rec")
             # Update ID Rec and archive aa rec
-            elif (row[1].strip() != addr_line1
-                or row[2].strip() != addr_line2
-                or row[3].strip() != addr_line3
-                or row[4].strip() != city
-                or row[5].strip() != st
-                or row[6].strip() != zip
-                or row[7].strip() != ctry_cod):
+            elif (row[1] != addr_line1
+                or row[2] != addr_line2
+                or row[3] != addr_line3
+                or row[4] != city
+                or row[5] != st
+                or row[6] != zip
+                or row[7] != ctry_cod):
 
-                print("Update: no match in ID_REC on " + row[1])  #
+                print("Update: no address match in ID_REC " + str(carth_id))  #
 
                 q_update_id_rec_addr = ('''UPDATE id_rec SET addr_line1 = ?,
                      addr_line2 = ?, addr_line3 = ?, city = ?, st = ?, zip = ?,
@@ -143,8 +143,7 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
 
                 #print(q_update_id_rec_addr)
                 #print(q_update_id_addr_args)
-                fn_write_log(
-                    "Update id_rec table for " + fullname + ", ID = " + carth_id)
+                fn_write_log("Update address info in id_rec table for " + fullname + ", ID = " + str(carth_id) + " address = " + addr_line1)
                 engine.execute(q_update_id_rec_addr, q_update_id_addr_args)
                 scr.write(q_update_id_rec_addr + '\n');
                 #########################################################
@@ -162,7 +161,7 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
 
     except Exception as err:
         print(err.message)
-        fn_write_error(err)
+        fn_write_error("Error in idrec.py.  Error = " + err.message)
 
 # logger.error(err, exc_info=True)
 #     finally:
