@@ -68,24 +68,12 @@ desc = """
 scr = open("apdtocx_output.sql", "a")
 # set start_time in order to see how long script takes to execute
 start_time = time.time()
+
 # create logger
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-# create console handler and set level to info
-handler = logging.FileHandler('{0}apdtocx.log'.format(settings.LOG_FILEPATH))
-handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
-                              datefmt='%m/%d/%Y %I:%M:%S %p')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-# create error file handler and set level to error
-handler = logging.FileHandler(
-    '{0}apdtocx_error.log'.format(settings.LOG_FILEPATH))
-handler.setLevel(logging.ERROR)
-formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
-                              datefmt='%m/%d/%Y %I:%M:%S %p')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+# logger.setLevel(logging.DEBUG)
+
+
 #########################################################
 # Common function to validate that a record exists
 #########################################################
@@ -235,13 +223,50 @@ def fn_calculate_age(bdate):
 #########################################################
 
 def fn_write_error(msg):
+    # create error file handler and set level to error
+    handler = logging.FileHandler(
+        '{0}apdtocx_error.log'.format(settings.LOG_FILEPATH))
+    handler.setLevel(logging.ERROR)
+    formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
+                                  datefmt='%m/%d/%Y %I:%M:%S %p')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
     logger.error(msg)
+    handler.close()
+    logger.removeHandler(handler)
+    fn_clear_logger()
     return("Error logged")
 
 def fn_write_log(msg):
+    # create console handler and set level to info
+    handler = logging.FileHandler(
+        '{0}apdtocx.log'.format(settings.LOG_FILEPATH))
+    handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
+                                  datefmt='%m/%d/%Y %I:%M:%S %p')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
     logger.info(msg)
+    handler.close()
+    logger.removeHandler(handler)
+    fn_clear_logger()
     return("Message logged")
 
 def fn_clear_logger():
     logging.shutdown()
+    return("Clear Logger")
 
+
+# def sample_function(secret_parameter):
+#     logger = logging.getLogger(__name__)  # __name__=projectA.moduleB
+#     logger.debug("Going to perform magic with '%s'",  secret_parameter)
+#
+#     try:
+#         result = print(secret_parameter)
+#     except IndexError:
+#         logger.exception("OMG it happened again, someone please tell Laszlo")
+#     except:
+#         logger.info("Unexpected exception", exc_info=True)
+#         raise
+#     else:
+#         logger.info("Magic with '%s' resulted in '%s'", secret_parameter, result, stack_info=True)
