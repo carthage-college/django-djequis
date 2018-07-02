@@ -378,8 +378,8 @@ def main():
                     row["primary_country"], row["primary_country_code"],
                     (row["primary_legal_address"][:1]),
                     fn_format_phone(row["home_phone"]),
-                    fn_format_phone(row["mobile_phone"]), row["work_phone"],
-                    row["wc_work_phone"], row["wc_work_email"],
+                    fn_format_phone(row["mobile_phone"]), fn_format_phone(row["work_phone"]),
+                    fn_format_phone(row["wc_work_phone"]), row["wc_work_email"],
                     (row["use_work_for_notification"][:1]),
                     row["legal_address1"],
                     row["legal_address2"], row["legal_address3"],
@@ -436,7 +436,7 @@ def main():
 
                     ccadpcount = ccadpcount + 1
                 except Exception as e:
-                    fn_write_error(e)
+                    fn_write_error("Error in adptcx.py while inserting into cc_adp_rec.  Error = " + e.message)
                     # print(e)
 
                 # fn_convert_date(row["termination_date"]),
@@ -468,7 +468,7 @@ def main():
                     # Do this first, or everything else is moot
                     results = fn_validate_field(row["carth_id"], "id", "id",
                                                 "id_rec", "integer", EARL)
-                    # print("ID Validate result = " + str(results))
+                    print("ID Validate result = " + str(results))
 
                     if results is None:
                         SUBJECT = 'No matcining ID in id_rec - abort and ' \
@@ -516,7 +516,8 @@ def main():
                             ########################################
                             # This will take care of addresses and demographics
                             ########################################
-                            # print("Deal with Address")
+                            print("Deal with Address")
+                            # print("Home Phone = " + fn_format_phone(row["home_phone"]))
                             id_rslt = fn_process_idrec(row["carth_id"], row["file_number"],
                                      row["payroll_name"],
                                      row["last_name"], row["first_name"],
@@ -529,27 +530,29 @@ def main():
                                      row["primary_zip"],
                                      row["primary_country"],
                                      row["primary_country_code"],
-                                     row["ssn"], row["home_phone"],
+                                     row["ssn"], "1234567890",
+                                                       # ("" if None else fn_format_phone(row["home_phone"])),
                                      row["position_status"],
                                      fn_convert_date(row["pos_effective_date"]),EARL)
-
+                            # print(id_rslt)
                             # print("ID Result = " + str(id_rslt))
-                            idcount = idcount + 1
+                            # idcount = idcount + 1
                             # print("sql addr " + addr_result[1].strip() + " loop
                             # address = " + row["primary_address1"].strip())
 
                             if row["personal_email"] != '':
                                 email_result = fn_set_email2(row["personal_email"],
                                               row["carth_id"],row["payroll_name"], EARL)
-                                #print("Email = " + str(email_result))
+                                print("Email = " + str(email_result))
                                 if email_result != "":
                                     emailcount = emailcount + 1
-                            #else: we can remove the else
-                                #print("No email from ADP")
+                            else:
+                                # we can remove the else
+                                print("No email from ADP")
 
                             # Check to update phone in aa_rec
                             if row["mobile_phone"] != "":
-                                cell = fn_set_cell_phone(row["mobile_phone"],
+                                cell = fn_set_cell_phone(fn_format_phone(row["home_phone"]),
                                          row["carth_id"], row["payroll_name"], EARL)
                                 if cell != "":
                                     phonecount = phonecount + 1
