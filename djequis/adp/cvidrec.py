@@ -110,7 +110,9 @@ def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id, EARL):
             # print(q_insert_cvid_rec)
             engine.execute(q_insert_cvid_rec, args)
             scr.write(q_insert_cvid_rec + '\n');
-            fn_write_log("Inserted into cvid_rec table values " + str(v_cx_id) + ", " + str(adpid) + ", " + adp_assoc_id)
+            fn_write_log("Inserted into cvid_rec table, all cx ID fields = " +
+                         str(v_cx_id) + ", ADP ID = " + str(adpid) +
+                         ", Associate ID + " + adp_assoc_id)
 
         elif str(v_cx_id) != v_assoc_match and v_assoc_match != 0:
             print('Duplicate Associate ID found')
@@ -124,7 +126,9 @@ def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id, EARL):
               WHERE cx_id = ?'''
             args = (carthid, carthid, adpid, ssn, adp_assoc_id, carthid)
             # print(q_update_cvid_rec)
-            fn_write_log("Updated cvid_rec table, values " + str(v_cx_id) + ", " + str(adpid) + ", " + adp_assoc_id)
+            fn_write_log("Updated cvid_rec table, all cx id fields = " +
+                         str(v_cx_id) + ", ADP ID = " + str(adpid) +
+                         ", Associate ID = " + adp_assoc_id)
             # logger.info("Update cvid_rec table");
             scr.write(q_update_cvid_rec + '\n');
             engine.execute(q_update_cvid_rec, args)
