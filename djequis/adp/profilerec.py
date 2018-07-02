@@ -128,7 +128,6 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
             fn_write_log("Updated profile_rec table values " + id + "," + race + ", " + is_hispanic);
             # scr.write(q_update_prof_rec + '\n');
 
-
         return 1
 
     except Exception as e:
