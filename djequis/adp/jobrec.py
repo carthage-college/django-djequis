@@ -119,8 +119,10 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         else:
             print('Invalid Function Code ' + homedeptcode[:3] + '\n')
 
-            fn_write_error("Invalid Function  Code " + homedeptcode[:3] + '\n')
-            scr.write('Invalid Function Code ' + homedeptcode[:3] + '\n');
+            fn_write_error("Error in jobrec.py - Invalid Function Code " +
+                           homedeptcode[:3] + '\n')
+            scr.write('Error in jobrec.py - Invalid Function Code ' +
+                      homedeptcode[:3] + '\n');
             # raise ValueError(
             #     "Invalid Function  Code (HRPay) " + homedeptcode[:3] + '\n')
 
@@ -139,8 +141,10 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             scr.write('Valid HRPay Code ' + str(hrpay_rslt) + '\n');
         else:
             #print('Invalid Payroll Company Code ' + str(payrollcompcode) + '\n')
-            scr.write('Invalid Payroll Company Code '+ str(payrollcompcode) +'\n');
-            fn_write_error("Invalid Payroll Company Code " + str(payrollcompcode) + '\n')
+            scr.write('Error in jobrec.py - Invalid Payroll Company Code '+
+                      str(payrollcompcode) +'\n');
+            fn_write_error("Error in jobrec.py - Invalid Payroll Company Code " +
+                           str(payrollcompcode) + '\n')
 
         ##############################################################
         # New table in Informix - Worker Category
@@ -318,7 +322,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             q_ins_pos_args = (pcnaggr,payrollcompcode,businessunitcode,
                                 func_code,jobtitlecode, jobtitledescr,
                                 'OFC', func_code, None,
-                                'TENURE', 0, 0, payrollcompcode,
+                                '', 0, 0, payrollcompcode,
                                 datetime.now().strftime("%m/%d/%Y"),'')
             engine.execute(q_ins_pos, q_ins_pos_args)
             fn_write_log("Inserted into pos_table, code = " + pcnaggr)
@@ -446,8 +450,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             #print(q_ins_job + str(q_ins_job_args))
             # print("New Job Record for " + last + ', id = ' + str(carthid))
             engine.execute(q_ins_job, q_ins_job_args)
-            fn_write_log("Inserted into job_rec, tpos = " + tpos_no
-                         + " Description = " + jobtitledescr + " ID = " + id)
+            fn_write_log("Inserted into job_rec, tpos = " + str(v_tpos)
+                         + " Description = " + jobtitledescr + " ID = " + str(id))
             scr.write(q_ins_job + '\n');
             # scr.write(
             #     'New Job Record for " + last + ', id = ' + str(carthid)' + '\n');
@@ -472,8 +476,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             #print(q_upd_job_args)
             # print("Update Job Record for " + last + ', id = ' + str(carthid))
             engine.execute(q_upd_job, q_upd_job_args)
-            fn_write_log("Updated job_rec, tpos = " + tpos_no
-                         + " Description = " + jobtitledescr + " ID = " + id)
+            fn_write_log("Updated job_rec, tpos = " + str(v_tpos)
+                         + " Description = " + jobtitledescr + " ID = " + str(id))
             scr.write(q_upd_job + '\n');
             scr.write('Update Job Record for ' + last + ', id = ' + str(carthid) + '\n');
 
@@ -491,7 +495,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         ##############################################################
         # TENURE - This will go into HREMP_REC...
         ##############################################################
-        print("Tenure")
+        # print("Tenure")
         if workercatcode == "T":  #tenure
             is_tenured = "Y"
             is_tenure_track = "N"
@@ -528,10 +532,10 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             #print(q_emp_ins_args)
             #print("Insert into hremp_rec")
             engine.execute(q_emp_insert, q_emp_ins_args)
-            fn_write_log("Inserted into hremp_rec, home_tpos_no = " + v_tpos + " ID = " + id)
+            fn_write_log("Inserted into hremp_rec, home_tpos_no = " + str(v_tpos) + " ID = " + str(id))
             scr.write(q_emp_insert + '\n');
         else:
-            #print('Found Emp Rec')
+            print('Found Emp Rec')
             scr.write('Found Employee a record in hremp_rec.' + '\n');
             emp_rslt = row
             # print(emp_rslt)
@@ -545,9 +549,9 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                  is_tenured,is_tenure_track, carthid)
             #print(q_emp_upd)
             #print(q_emp_upd_args)
-            #print("Update HREMP_REC")
+            print("Update HREMP_REC")
             engine.execute(q_emp_upd, q_emp_upd_args)
-            fn_write_log("Updated hremp_rec, home_tpos_no = " + v_tpos + " ID = " + id)
+            fn_write_log("Updated hremp_rec, home_tpos_no = " + str(v_tpos) + " ID = " + str(id))
             scr.write(q_emp_upd + '\n');
 
         ##############################################################
@@ -571,7 +575,7 @@ def fn_validate_supervisor(id, EARL):
             q_val_super = '''SELECT supervisor_flag FROM cc_adp_rec WHERE carthage_id = {0}
                                                    '''.format(id)
             print(q_val_super)
-            print("ID = " + id)
+            print("ID = " + str(id))
             sql_val_super = do_sql(q_val_super, key=DEBUG, earl=EARL)
             row = sql_val_super.fetchone()
 
