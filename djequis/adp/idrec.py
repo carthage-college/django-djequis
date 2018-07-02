@@ -60,7 +60,8 @@ from djtools.fields import TODAY
 
 # Imports for additional modules and functions written as part of this project
 from djequis.adp.aarec import fn_archive_address
-from djequis.adp.utilities import fn_validate_field, fn_write_log, fn_write_error
+from djequis.adp.utilities import fn_validate_field, fn_write_log, fn_write_error, \
+    fn_format_phone
 
 DEBUG = settings.INFORMIX_DEBUG
 
@@ -92,13 +93,14 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                        carth_id)
         # print(q_update_id_rec)
         # print(q_update_id_args)
-        fn_write_log("Update basic info in id_rec table for " + fullname + ", ID = " + str(carth_id))
+        fn_write_log("Update basic info in id_rec table for " + fullname +
+                     ", ID = " + str(carth_id))
         # logger.info("Update id_rec table");
         engine.execute(q_update_id_rec, q_update_id_args)
     except Exception as err:
         print(err.message)
         return (err.message)
-        fn_write_error("Error in id_rec.py.  Error = " + err.message)
+        fn_write_error("Error in id_rec.py updating basic info.  Error = " + err.message)
         # logger.error(err, exc_info=True)
 
 
@@ -119,10 +121,15 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
             addr_result = do_sql(q_check_addr, key=DEBUG, earl=EARL)
             scr.write(q_check_addr + '\n');
             row = addr_result.fetchone()
-            # x = str(row[1]).rstrip()
-            # print("Address result row = " + x)
-            if str(row[0]) == '0' or str(row[0]) == '' or row is None:  # No person in id rec? Should never happen
-                fn_write_log("Employee not in id rec for id number " + str(carth_id))
+            if row is None:
+                fn_write_log("Data missing in idrec.py address function. \
+                                              Employee not in id rec for id "
+                             "number " + str(
+                    carth_id))
+                print("Employee not in id rec")
+            elif str(row[0]) == '0' or str(row[0]) == '':  # No person in id rec? Should never happen
+                fn_write_log("Data missing in idrec.py address function. \
+                              Employee not in id rec for id number " + str(carth_id))
                 print("Employee not in id rec")
             # Update ID Rec and archive aa rec
             elif (row[1] != addr_line1
@@ -137,13 +144,15 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
 
                 q_update_id_rec_addr = ('''UPDATE id_rec SET addr_line1 = ?,
                      addr_line2 = ?, addr_line3 = ?, city = ?, st = ?, zip = ?,
-                     ctry = ? WHERE id = ?''')
+                     ctry = ?, phone = ? WHERE id = ?''')
                 q_update_id_addr_args = (addr_line1, addr_line2, addr_line3, city, st,
-                                        zip, cntry, carth_id)
+                                        zip, cntry, phone, carth_id)
 
                 #print(q_update_id_rec_addr)
                 #print(q_update_id_addr_args)
-                fn_write_log("Update address info in id_rec table for " + fullname + ", ID = " + str(carth_id) + " address = " + addr_line1)
+                fn_write_log("Update address info in id_rec table for " +
+                             fullname + ", ID = " + str(carth_id) +
+                             " address = " + addr_line1)
                 engine.execute(q_update_id_rec_addr, q_update_id_addr_args)
                 scr.write(q_update_id_rec_addr + '\n');
                 #########################################################
@@ -153,7 +162,7 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                 # find max start date to determine what date to insert
                 # insert or update as needed
                 fn_archive_address(carth_id, fullname, addr_line1, addr_line2,
-                             addr_line3, city, st, zip, cntry, EARL)
+                             addr_line3, city, st, zip, cntry, phone, EARL)
             else:
                 print("No Change " + row[1])
         elif cntry is None:
