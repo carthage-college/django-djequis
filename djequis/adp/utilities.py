@@ -104,7 +104,8 @@ def fn_validate_field(searchval, keyfield, retfield, table, keytype, EARL):
                 return 0
 
     except Exception as e:
-        fn_write_error(e)
+        fn_write_error("Error in Utilities.py - fn_validate_field.  Error = "
+                       + e.message)
         if keytype == "char":
             return ""
         else:
@@ -147,7 +148,8 @@ def fn_needs_upate(searchval, descr_val, keyfield, descr_field,
                 return 0
 
     except Exception as e:
-        fn_write_error(e)
+        fn_write_error("Error in Utilities.py - fn_needs_update.  Error = "
+                       + e.message)
         print(e)
 
 
@@ -178,7 +180,8 @@ def fn_check_duplicates(searchval, keyfield, retfield, table, testval, keytype, 
             return 0
 
     except Exception as e:
-        fn_write_error(e)
+        fn_write_error("Error in Utilities.py - fn_check_duplicates.  Error = "
+                       + e.message)
         print(e)
 
 #########################################################
@@ -198,11 +201,29 @@ def fn_convert_date(date):
 # Common function to format phone for CX
 #########################################################
 def fn_format_phone(phone):
-    if phone != "":
-        v =  phone[1:4]+phone[6:9]+phone[10:14]
-        return v
-    else:
-        return ""
+    try:
+        if phone is None:
+            return ""
+        elif phone != "":
+            ph = str(phone).replace("(","")
+            ph = ph.replace(")","")
+            ph = ph.replace(" ","")
+            ph = ph.replace("-","")
+            areacode =  ph[0:3]
+            prefix = ph[3:6]
+            number = ph[6:10]
+                 # +phone[6:9]+phone[10:14]
+            # print("Area Code = " + areacode)
+            # print("Prefix = " + prefix)
+            # print("Number = " + number)
+            v = areacode + '-' + prefix + '-' + number
+            # print(v)
+            return v
+        else:
+            return ""
+    except Exception as e:
+        fn_write_error("Error in Utilities.py - fn_format_phone.  Error = "
+                       + e.message)
 
 #########################################################
 # Common function to calculate age from ADP birthdate
