@@ -194,17 +194,19 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
             scr.write('Validated HRPay Code = ' + str(hrpay_rslt) + '\n');
         else:
             print('Invalid Payroll Company Code ' + str(paycode) + '\n')
-            fn_write_log('Invalid Payroll Company Code for secondary job ' + str(paycode) + '\n');
+            fn_write_log('Data Error in secondjob.py - Invalid Payroll Company \
+                Code for secondary job ' + str(paycode) + '\n');
             # logger.info("Invalid Payroll Company Code " + paycode + '\n')
             # raise ValueError("Invalid Payroll Company Code (HRPay) " + paycode + '\n')
 
         func_code = fn_validate_field(dept,"func","func", "func_table", "char",EARL)
         if func_code != '':
-            print('Validated func_code = ' + dept + '\n')
-            scr.write('Validated Function Code = ' + dept + '\n');
+            print('Validated second job func_code = ' + dept + '\n')
+            scr.write('Validated second job Function Code = ' + dept + '\n');
         else:
             print('Invalid Function Code ' + dept + '\n')
-            fn_write_log('Invalid Function Code = ' + dept + '\n');
+            fn_write_log('Data Error in second job.py - Invalid Function \
+                Code = ' + dept + '\n');
 
         #print('\n' + '----------------------')
         #print('\n' + pcnaggr)
@@ -220,7 +222,8 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
         titlerow = sql_title.fetchone()
         if titlerow is None:
             print("Job Title Not found for tpos " + v_tpos)
-            fn_write_log('Job Title Not found for secondary job for tpos ' + v_tpos+ '\n');
+            fn_write_log('Job Title Not found for secondary job for tpos ' +
+                         v_tpos+ '\n');
         else:
             jr_jobtitle = titlerow[0]
 
@@ -241,7 +244,8 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
         #print(hrdepartment)
         if hrdepartment==None or hrdepartment=="":
             print("HR Dept not valid - " + dept)
-            fn_write_log('HR Dept not valid ' + dept + '\n');
+            fn_write_log('Data Error in second job.py - HR Dept not valid ' +
+                         dept + '\n');
 
         # ##############################################################
         # If job rec exists for employee in job_rec -update, else insert
@@ -275,7 +279,8 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
                               workercatcode)
             print(q_ins_job + str(q_ins_job_args))
             print("New Second Job Record for " + fullname + ', id = ' + str(carthid))
-            fn_write_log('New secondary Job Record for ' + fullname + ', id = ' + str(carthid) + '\n');
+            fn_write_log('New secondary Job Record for ' + fullname +
+                         ', id = ' + str(carthid) + '\n');
             engine.execute(q_ins_job, q_ins_job_args)
             scr.write(q_ins_job + '\n');
         else:
