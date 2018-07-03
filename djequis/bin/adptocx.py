@@ -65,6 +65,7 @@ from djequis.adp.utilities import fn_validate_field, fn_convert_date, \
     fn_format_phone, fn_write_log, fn_write_error, fn_clear_logger
 from djequis.adp.profilerec import fn_process_profile_rec
 from djequis.adp.adp_ftp import file_download
+from djequis.adp.secondjob import fn_process_second_job
 
 # normally set as 'debug" in SETTINGS
 DEBUG = settings.INFORMIX_DEBUG
@@ -188,8 +189,8 @@ def main():
         # Pull the file from the ADP FTP site
         # execute sftp code that needs to be executed in production only
         #################################################################
-        if not test:
-            file_download()
+        # if not test:
+            # file_download()
 
         #################################################################
         # STEP 1--
@@ -253,7 +254,8 @@ def main():
                      "home_dept_code", "home_dept_descr", "supervisor_id",
                      "supervisor_fname", "supervisor_lname","business_unit_code",
                      "business_unit_descr","reports_to_name","reports_to_pos_id",
-                     "reports_to_assoc_id", "employee_assoc_id"])
+                     "reports_to_assoc_id", "employee_assoc_id",
+                     "management_position", "supervisor_flag", "long_title"])
 
                 for line_no, line in enumerate(bigb):
                     x = line.split(',')
@@ -275,6 +277,17 @@ def main():
         #################################################################
         with open(adp_diff_file, 'r') as f:
             d_reader = csv.DictReader(f, delimiter=',')
+
+            adpcount = 0
+            ccadpcount = 0
+            idcount = 0
+            cvidcount = 0
+            emailcount = 0
+            phonecount = 0
+            jobcount = 0
+            profilecount = 0
+            secondjobcount = 0
+
             for row in d_reader:
                 print('--------------------------------------------------')
                 print('carthid = {0}, Fullname = {1}'.format(row["carth_id"],row["payroll_name"]))
@@ -342,14 +355,15 @@ def main():
                     supervisor_id, supervisor_firstname, supervisor_lastname, \
                     business_unit_code, business_unit_descr, reports_to_name, \
                     reports_to_position_id, reports_to_associate_id, \
-                    employee_associate_id, date_stamp) \
+                    employee_associate_id, management_position, supervisor_flag, \
+                    long_title, date_stamp) \
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
                      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
                      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
                      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
                      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  ?, \
                      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
-                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
                     cc_adp_args = (row["file_number"], row["carth_id"], row["last_name"],
                     row["first_name"], row["middle_name"], row["salutation"],
                     row["payroll_name"], row["preferred_name"],
@@ -364,8 +378,8 @@ def main():
                     row["primary_country"], row["primary_country_code"],
                     (row["primary_legal_address"][:1]),
                     fn_format_phone(row["home_phone"]),
-                    fn_format_phone(row["mobile_phone"]), row["work_phone"],
-                    row["wc_work_phone"], row["wc_work_email"],
+                    fn_format_phone(row["mobile_phone"]), fn_format_phone(row["work_phone"]),
+                    fn_format_phone(row["wc_work_phone"]), row["wc_work_email"],
                     (row["use_work_for_notification"][:1]),
                     row["legal_address1"],
                     row["legal_address2"], row["legal_address3"],
@@ -410,16 +424,20 @@ def main():
                     row["supervisor_lname"], row["business_unit_code"],
                     row["business_unit_descr"], row["reports_to_name"],
                     row["reports_to_pos_id"], row["reports_to_assoc_id"],
-                    row["employee_assoc_id"],datetime.now())
+                    row["employee_assoc_id"], row["management_position"],
+                    row["supervisor_flag"], row["long_title"],
+                    datetime.now())
                     # print(q_cc_adp_rec)
                     # print(cc_adp_args)
                     engine.execute(q_cc_adp_rec, cc_adp_args)
+                    # ccadpcount =+ 1
                     scr.write(q_cc_adp_rec+'\n');
-                    fn_write_log("Inserted into adp_rec table");
+                    fn_write_log("Inserted data into cc_adp_rec table for " + row["payroll_name"] + " ID = " + row["carth_id"]);
 
+                    ccadpcount = ccadpcount + 1
                 except Exception as e:
-                    fn_write_error(e)
-                    print(e)
+                    fn_write_error("Error in adptcx.py while inserting into cc_adp_rec.  Error = " + e.message)
+                    # print(e)
 
                 # fn_convert_date(row["termination_date"]),
                 ###############################################################
@@ -433,7 +451,7 @@ def main():
                 # email HR if CarthID is missing
                 print("In ID Rec sub")
                 if row["carth_id"] == "":
-                    print('No Carthage ID - abort this record and email HR')
+                    # print('No Carthage ID - abort this record and email HR')
                     SUBJECT = 'No Carthage ID - abort this record and email HR'
                     BODY = 'No Carthage ID, process aborted. Name = {0}, \
                         ADP File = {1}'.format(row["payroll_name"], \
@@ -498,7 +516,8 @@ def main():
                             ########################################
                             # This will take care of addresses and demographics
                             ########################################
-                            # print("Deal with Address")
+                            print("Deal with Address")
+                            # print("Home Phone = " + fn_format_phone(row["home_phone"]))
                             id_rslt = fn_process_idrec(row["carth_id"], row["file_number"],
                                      row["payroll_name"],
                                      row["last_name"], row["first_name"],
@@ -511,25 +530,32 @@ def main():
                                      row["primary_zip"],
                                      row["primary_country"],
                                      row["primary_country_code"],
-                                     row["ssn"], row["home_phone"],
+                                     row["ssn"], "1234567890",
+                                                       # ("" if None else fn_format_phone(row["home_phone"])),
                                      row["position_status"],
                                      fn_convert_date(row["pos_effective_date"]),EARL)
-
-                            print("ID Result = " + str(id_rslt))
+                            # print(id_rslt)
+                            # print("ID Result = " + str(id_rslt))
+                            # idcount = idcount + 1
                             # print("sql addr " + addr_result[1].strip() + " loop
                             # address = " + row["primary_address1"].strip())
 
                             if row["personal_email"] != '':
                                 email_result = fn_set_email2(row["personal_email"],
                                               row["carth_id"],row["payroll_name"], EARL)
-                                #print("Email = " + str(email_result))
-                            #else: we can remove the else
-                                #print("No email from ADP")
+                                print("Email = " + str(email_result))
+                                if email_result != "":
+                                    emailcount = emailcount + 1
+                            else:
+                                # we can remove the else
+                                print("No email from ADP")
 
                             # Check to update phone in aa_rec
                             if row["mobile_phone"] != "":
-                                cell = fn_set_cell_phone(row["mobile_phone"],
+                                cell = fn_set_cell_phone(fn_format_phone(row["home_phone"]),
                                          row["carth_id"], row["payroll_name"], EARL)
+                                if cell != "":
+                                    phonecount = phonecount + 1
                                 #print("Cell phone result: " + cell)
                             #else: we can remove the else
                                 #print("No Cell")
@@ -539,31 +565,36 @@ def main():
                             # Do updates to profile_rec (profilerec.py)
                             ##########################################################
                             print("In Profile Rec")
-                            prof_rec = fn_process_profile_rec(row["carth_id"],
+                            prof_rslt = fn_process_profile_rec(row["carth_id"],
                                         row["ethnicity"], row["gender"], row["race"],
                                         row["birth_date"],
                                         datetime.now().strftime("%m/%d/%Y"),EARL)
-                            #
-                            # print(prof_rec)
 
-                            ##########################################################
+
+                            profilecount = profilecount + prof_rslt
+
+                            #
+                            # print(prof_rslt)
+                             ##########################################################
                             # STEP 2d--
                             # Do updates to cvid_rec (cvidrec.py)
                             ##########################################################
                             print("In CVID_REC")
-                            fn_process_cvid(row["carth_id"], row["file_number"],
+                            cvid_rslt = fn_process_cvid(row["carth_id"], row["file_number"],
                                           row["ssn"], row["employee_assoc_id"], EARL)
+
+                            cvidcount = cvidcount + cvid_rslt
 
                             ##########################################################
                             # STEP 2e--
                             # Do updates to job_rec (jobrec.py)
                             ##########################################################
                             print("In Job Rec")
-                            fn_process_job(row["carth_id"], row["worker_cat_code"],
+                            job_rslt = fn_process_job(row["carth_id"], row["worker_cat_code"],
                                     row["worker_cat_descr"], row["business_unit_code"],
                                     row["business_unit_descr"], row["home_dept_code"],
                                     row["home_dept_descr"], row["job_title_code"],
-                                    row["job_title_descr"], row["pos_start_date"],
+                                    row["job_title_descr"], row["pos_effective_date"],
                                     row["pos_effective_end_date"],
                                     row["payroll_comp_code"], row["job_function_code"],
                                     row["job_function_description"],
@@ -571,7 +602,8 @@ def main():
                                     row["primary_position"], row["supervisor_id"],
                                     row["last_name"], row["first_name"],
                                     row["middle_name"],EARL)
-
+                            # print("Process Job Returned " + str(job_rslt))
+                            jobcount = jobcount + job_rslt
                             ##########################################################
                             # STEP 2f--
                             # Do updates to second job_rec (jobrec.py)
@@ -579,39 +611,42 @@ def main():
                             print("In secondary Job Rec")
 
                             if row["home_cost_number2"] != '':
-                                         fn_process_second_job(row["carth_id"],
-                                         row["worker_cat_code"],
-                                         row["home_cost_number2"],
-                                         row["job_title_descr"],
-                                         row["position_eff_date2"],
-                                         row["position_end_date2"],
-                                         row["job_function_code"],
-                                         row["supervisor_id"], 2,
-                                         row["payroll_name"], EARL)
-
+                                fn_process_second_job(row["carth_id"],
+                                    row["worker_cat_code"],
+                                    row["home_cost_number2"],
+                                    row["job_title_descr"],
+                                    row["position_eff_date2"],
+                                    row["position_end_date2"],
+                                    row["job_function_code"],
+                                    row["supervisor_id"], 2,
+                                    row["payroll_name"], EARL)
+                                secondjobcount = secondjobcount + 1
+                                print("Second Job for " + row["carth_id"] + " Job = " + row["home_cost_number2"])
                             elif row["home_cost_number3"] != '':
-                                         fn_process_second_job(
-                                         row["carth_id"],
-                                         row["worker_cat_code"],
-                                         row["home_cost_number3"],
-                                         row["job_title_descr"],
-                                         row["position_eff_date3"],
-                                         row["position_end_date3"],
-                                         row["job_function_code"],
-                                         row["supervisor_id"], 3,
-                                         row["payroll_name"], EARL)
+                                fn_process_second_job(
+                                    row["carth_id"],
+                                    row["worker_cat_code"],
+                                    row["home_cost_number3"],
+                                    row["job_title_descr"],
+                                    row["position_eff_date3"],
+                                    row["position_end_date3"],
+                                    row["job_function_code"],
+                                    row["supervisor_id"], 3,
+                                    row["payroll_name"], EARL)
+                                secondjobcount = secondjobcount + 1
 
                             elif row["home_cost_number4"] != '':
-                                         fn_process_second_job(
-                                         row["carth_id"],
-                                         row["worker_cat_code"],
-                                         row["home_cost_number4"],
-                                         row["job_title_descr"],
-                                         row["position_eff_date4"],
-                                         row["position_end_date4"],
-                                         row["job_function_code"],
-                                         row["supervisor_id"], 4,
-                                         row["payroll_name"], EARL)
+                                fn_process_second_job(
+                                    row["carth_id"],
+                                    row["worker_cat_code"],
+                                    row["home_cost_number4"],
+                                    row["job_title_descr"],
+                                    row["position_eff_date4"],
+                                    row["position_end_date4"],
+                                    row["job_function_code"],
+                                    row["supervisor_id"], 4,
+                                    row["payroll_name"], EARL)
+                                secondjobcount = secondjobcount + 1
 
                             ##########################################################
                             # STEP 2g--
@@ -656,6 +691,9 @@ def main():
 
                 fn_clear_logger()
 
+                adpcount = adpcount + 1
+
+
             # set destination directory for which the sql file will be archived to
             archived_destination = ('{0}apdtocx_output-{1}.sql'.format(
                 settings.ADP_CSV_ARCHIVED, datetimestr
@@ -679,14 +717,27 @@ def main():
             ##################################################################
             # The last step - move last to archive, rename new file to _last
             ##################################################################
-            #adptocx_archive = ('{0}adptocxlast_{1}.csv'.format(settings.ADP_CSV_ARCHIVED,datetimestr))
-            #shutil.move(last_adp_file, adptocx_archive)
+            if not test:
 
-            #adptocx_rename = ('{0}ADPtoCXLast.csv'.format(settings.ADP_CSV_OUTPUT))
-            #shutil.move(new_adp_file,adptocx_rename)
+                adptocx_archive = ('{0}adptocxlast_{1}.csv'.format(settings.ADP_CSV_ARCHIVED,datetimestr))
+                shutil.move(last_adp_file, adptocx_archive)
+
+                adptocx_rename = ('{0}ADPtoCXLast.csv'.format(settings.ADP_CSV_OUTPUT))
+                shutil.move(new_adp_file,adptocx_rename)
+
+
+            print("ADP Count = " + str(adpcount))
+            print("CCADP Count = " + str(ccadpcount))
+            print("ID Count = " + str(idcount))
+            print("CVID Count = " + str(cvidcount))
+            print("Email Count = " + str(emailcount))
+            print("CELL Count = " + str(phonecount))
+            print("Job Count = " + str(jobcount))
+            print("Profile Count = " + str(profilecount))
+            print("Job2 Count = " + str(secondjobcount))
 
     except Exception as e:
-        fn_write_error(e)
+        fn_write_error("Error in adptocx.py, Error = "  + e.message)
         print(e)
     # finally:
     #     logging.shutdown()

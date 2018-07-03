@@ -14,8 +14,8 @@ import argparse
 from sqlalchemy import text
 import shutil
 #import re
-import logging
-from logging.handlers import SMTPHandler
+# import logging
+# from logging.handlers import SMTPHandler
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -58,7 +58,7 @@ from djtools.fields import TODAY
 
 # Imports for additional modules and functions written as part of this project
 from djequis.adp.utilities import fn_validate_field, fn_check_duplicates, \
-    fn_write_log
+    fn_write_log, fn_write_error
 
 DEBUG = settings.INFORMIX_DEBUG
 
@@ -110,8 +110,10 @@ def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id, EARL):
             # print(q_insert_cvid_rec)
             engine.execute(q_insert_cvid_rec, args)
             scr.write(q_insert_cvid_rec + '\n');
-            fn_write_log("Inserted into cvid_rec table")
-            # logger.info("Inserted into cvid_rec table");
+            fn_write_log("Inserted into cvid_rec table, all cx ID fields = " +
+                         str(v_cx_id) + ", ADP ID = " + str(adpid) +
+                         ", Associate ID + " + adp_assoc_id)
+
         elif str(v_cx_id) != v_assoc_match and v_assoc_match != 0:
             print('Duplicate Associate ID found')
         elif str(v_cx_id) != str(v_adp_match) and v_adp_match != 0:
@@ -124,12 +126,18 @@ def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id, EARL):
               WHERE cx_id = ?'''
             args = (carthid, carthid, adpid, ssn, adp_assoc_id, carthid)
             # print(q_update_cvid_rec)
-            # fn_write_log("Update cvid_rec table")
+            fn_write_log("Updated cvid_rec table, all cx id fields = " +
+                         str(v_cx_id) + ", ADP ID = " + str(adpid) +
+                         ", Associate ID = " + adp_assoc_id)
             # logger.info("Update cvid_rec table");
             scr.write(q_update_cvid_rec + '\n');
             engine.execute(q_update_cvid_rec, args)
 
+        return 1
+
     except Exception as e:
         print(e)
+        fn_write_error("Error in cvidrec.py.  Error = " + e.message)
+        return 0
     # finally:
     #     logging.shutdown()

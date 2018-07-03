@@ -14,8 +14,8 @@ import argparse
 from sqlalchemy import text
 import shutil
 #import re
-import logging
-from logging.handlers import SMTPHandler
+# import logging
+# from logging.handlers import SMTPHandler
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -122,14 +122,16 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
         ###############################################################
         v_tpos = fn_validate_field(pcnaggr,"pcn_aggr","tpos_no",
                         "pos_table","char",EARL)
-        # print("v-tpos = " + str(v_tpos))
+        print("v-tpos = " + str(v_tpos))
 
-        if v_tpos == 0:
+
+        # if v_tpos == 0 or v_tpos == "" or len(str(v_tpos)) == 0:
+        if v_tpos == "":
         # if v_tpos == None or len(str(v_tpos)) == 0:
-            #print("Position not valid")
+            print("Position not valid")
             scr.write('Position not valid.\n');
         else:
-            #print("Validated t_pos = " + str(v_tpos))
+            print("Validated t_pos = " + str(v_tpos))
             scr.write('Validated t_pos ' + str(v_tpos) + '\n');
 
         #     # This insert query works . 5/25/18
@@ -188,21 +190,23 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
         hrpay_rslt = fn_validate_field(paycode,"hrpay","hrpay", "hrpay_table",
                                        "char", EARL)
         if hrpay_rslt != '':
-            #print('Validated HRPay Code = ' + str(hrpay_rslt) + '\n')
+            print('Validated HRPay Code = ' + str(hrpay_rslt) + '\n')
             scr.write('Validated HRPay Code = ' + str(hrpay_rslt) + '\n');
         else:
             print('Invalid Payroll Company Code ' + str(paycode) + '\n')
-            fn_write_log('Invalid Payroll Company Code ' + str(paycode) + '\n');
+            fn_write_log('Data Error in secondjob.py - Invalid Payroll Company \
+                Code for secondary job ' + str(paycode) + '\n');
             # logger.info("Invalid Payroll Company Code " + paycode + '\n')
             # raise ValueError("Invalid Payroll Company Code (HRPay) " + paycode + '\n')
 
         func_code = fn_validate_field(dept,"func","func", "func_table", "char",EARL)
         if func_code != '':
-            #print('Validated func_code = ' + dept + '\n')
-            scr.write('Validated Function Code = ' + dept + '\n');
+            print('Validated second job func_code = ' + dept + '\n')
+            scr.write('Validated second job Function Code = ' + dept + '\n');
         else:
-            #print('Invalid Function Code ' + dept + '\n')
-            fn_write_log('Invalid Function Code = ' + dept + '\n');
+            print('Invalid Function Code ' + dept + '\n')
+            fn_write_log('Data Error in second job.py - Invalid Function \
+                Code = ' + dept + '\n');
 
         #print('\n' + '----------------------')
         #print('\n' + pcnaggr)
@@ -217,8 +221,9 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
         sql_title = do_sql(q_get_title, key=DEBUG, earl=EARL)
         titlerow = sql_title.fetchone()
         if titlerow is None:
-            # print("Job Title Not found for tpos " + v_tpos)
-            fn_write_log('Job Title Not found for tpos ' + v_tpos+ '\n');
+            print("Job Title Not found for tpos " + v_tpos)
+            fn_write_log('Job Title Not found for secondary job for tpos ' +
+                         v_tpos+ '\n');
         else:
             jr_jobtitle = titlerow[0]
 
@@ -230,7 +235,7 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
                                        "char",EARL)
 
         if hrdivision == None or hrdivision == "":
-            #print("HR Div not valid - " + div)
+            print("HR Div not valid - " + div)
             scr.write('HR Div not valid ' + div + '\n');
 
         # print("....Deal with department...")
@@ -238,8 +243,9 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
                                          "char",EARL)
         #print(hrdepartment)
         if hrdepartment==None or hrdepartment=="":
-            #print("HR Dept not valid - " + dept)
-            fn_write_log('HR Dept not valid ' + dept + '\n');
+            print("HR Dept not valid - " + dept)
+            fn_write_log('Data Error in second job.py - HR Dept not valid ' +
+                         dept + '\n');
 
         # ##############################################################
         # If job rec exists for employee in job_rec -update, else insert
@@ -251,7 +257,7 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
           AND id = {1}
           AND end_date IS null
           '''.format(v_tpos,carthid,positionstart)
-        #print(q_get_job)
+        print(q_get_job)
         sql_job = do_sql(q_get_job, key=DEBUG, earl=EARL)
         jobrow = sql_job.fetchone()
         if jobrow is None:
@@ -266,14 +272,15 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
               job_title, title_rank, worker_ctgry)
               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                ?, ?)'''
-            q_ins_job_args = (v_tpos, jr_jobtitle, 0, carthid, paycode, spvrID,
+            q_ins_job_args = (v_tpos, jr_jobtitle, 0, carthid, paycode, 0,
                               jobfunctioncode, 'R', div, func_code, None, None,
                               datetime.now().strftime("%m/%d/%Y"), None, 'N',
                               'N/A', 'N', 'N', jobtitledescr, rank,
                               workercatcode)
             print(q_ins_job + str(q_ins_job_args))
-            #print("New Job Record for " + fullname + ', id = ' + str(carthid))
-            fn_write_log('New Job Record for ' + fullname + ', id = ' + str(carthid) + '\n');
+            print("New Second Job Record for " + fullname + ', id = ' + str(carthid))
+            fn_write_log('New secondary Job Record for ' + fullname +
+                         ', id = ' + str(carthid) + '\n');
             engine.execute(q_ins_job, q_ins_job_args)
             scr.write(q_ins_job + '\n');
         else:
@@ -288,19 +295,19 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
                 job_title = ?,
                 title_rank = ?, worker_ctgry = ?
                 WHERE job_no = ?'''
-            q_upd_job_args = (jr_jobtitle, carthid, paycode, spvrID,
+            q_upd_job_args = (jr_jobtitle, carthid, paycode, 0,
                               jobfunctioncode, div, func_code,
                               datetime.now().strftime("%m/%d/%Y"),
                               None if poseffectend == '' else poseffectend,
                               jobtitledescr, rank, workercatcode, jobrow[0])
-            #print(q_upd_job)
+            print(q_upd_job)
             #print(q_upd_job_args)
-            #print("Update Job Record for " + fullname + ', id = ' + str(carthid))
+            print("Update Second Job Record for " + fullname + ', id = ' + str(carthid))
             engine.execute(q_upd_job, q_upd_job_args)
             scr.write(q_upd_job + '\n');
             fn_write_log('Update Job Record for ' + fullname + ', id = ' + str(
                 carthid) + '\n');
-
+        return 1
         ##############################################################
         # Faculty Qualifications - This will go into facqual_rec...
         # and qual_table - No longer part of Job Title
@@ -308,6 +315,7 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
         ##############################################################
 
     except Exception as e:
-        fn_write_error(e)
-        # print(e)
+        # print("Error in second job " + e.message)
+        fn_write_error("Error in second job " + e.message)
+        return 0
 

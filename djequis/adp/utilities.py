@@ -68,24 +68,12 @@ desc = """
 scr = open("apdtocx_output.sql", "a")
 # set start_time in order to see how long script takes to execute
 start_time = time.time()
+
 # create logger
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-# create console handler and set level to info
-handler = logging.FileHandler('{0}apdtocx.log'.format(settings.LOG_FILEPATH))
-handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
-                              datefmt='%m/%d/%Y %I:%M:%S %p')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-# create error file handler and set level to error
-handler = logging.FileHandler(
-    '{0}apdtocx_error.log'.format(settings.LOG_FILEPATH))
-handler.setLevel(logging.ERROR)
-formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
-                              datefmt='%m/%d/%Y %I:%M:%S %p')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+# logger.setLevel(logging.DEBUG)
+
+
 #########################################################
 # Common function to validate that a record exists
 #########################################################
@@ -116,8 +104,56 @@ def fn_validate_field(searchval, keyfield, retfield, table, keytype, EARL):
                 return 0
 
     except Exception as e:
-        fn_write_error(e)
+        fn_write_error("Error in Utilities.py - fn_validate_field.  Error = "
+                       + e.message)
+        if keytype == "char":
+            return ""
+        else:
+            return 0
+
         print(e)
+
+
+#########################################################
+# Common function to validate that a record and description exists
+# and decide based on description whether to update
+#########################################################
+def fn_needs_upate(searchval, descr_val, keyfield, descr_field,
+                      table, keytype, EARL):
+    if keytype == "char":
+        qval_sql = "SELECT DISTINCT " + keyfield + "," + descr_field + " FROM " + table \
+                   + " WHERE " + keyfield + " = '" + str(searchval) + "'" \
+                   + " AND " + descr_field + " = '" + descr_val + "'"
+    elif keytype == "integer":
+        qval_sql = "SELECT DISTINCT " + keyfield + "," + descr_field + " FROM " + table \
+                   + " WHERE " + keyfield + " = " + str(searchval) \
+                   + " AND " + descr_field + " = '" + descr_val + "'"
+    #print("Validate Field SQL = " + qval_sql)
+    try:
+        sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
+        # print("sql_val = " + str(sql_val))
+        if sql_val is not None:
+            row = sql_val.fetchone()
+            if row is not None:
+                return row
+            else:
+                if keytype == "char":
+                    return ""
+                else:
+                    return 0
+        else:
+            if keytype == "char":
+                return ""
+            else:
+                return 0
+
+    except Exception as e:
+        fn_write_error("Error in Utilities.py - fn_needs_update.  Error = "
+                       + e.message)
+        print(e)
+
+
+
 
 #########################################################
 # Common function to prevent duplicate entries
@@ -144,7 +180,8 @@ def fn_check_duplicates(searchval, keyfield, retfield, table, testval, keytype, 
             return 0
 
     except Exception as e:
-        fn_write_error(e)
+        fn_write_error("Error in Utilities.py - fn_check_duplicates.  Error = "
+                       + e.message)
         print(e)
 
 #########################################################
@@ -164,11 +201,29 @@ def fn_convert_date(date):
 # Common function to format phone for CX
 #########################################################
 def fn_format_phone(phone):
-    if phone != "":
-        v =  phone[1:4]+phone[6:9]+phone[10:14]
-        return v
-    else:
-        return ""
+    try:
+        if phone is None:
+            return ""
+        elif phone != "":
+            ph = str(phone).replace("(","")
+            ph = ph.replace(")","")
+            ph = ph.replace(" ","")
+            ph = ph.replace("-","")
+            areacode =  ph[0:3]
+            prefix = ph[3:6]
+            number = ph[6:10]
+                 # +phone[6:9]+phone[10:14]
+            # print("Area Code = " + areacode)
+            # print("Prefix = " + prefix)
+            # print("Number = " + number)
+            v = areacode + '-' + prefix + '-' + number
+            # print(v)
+            return v
+        else:
+            return ""
+    except Exception as e:
+        fn_write_error("Error in Utilities.py - fn_format_phone.  Error = "
+                       + e.message)
 
 #########################################################
 # Common function to calculate age from ADP birthdate
@@ -189,13 +244,50 @@ def fn_calculate_age(bdate):
 #########################################################
 
 def fn_write_error(msg):
+    # create error file handler and set level to error
+    handler = logging.FileHandler(
+        '{0}apdtocx_error.log'.format(settings.LOG_FILEPATH))
+    handler.setLevel(logging.ERROR)
+    formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
+                                  datefmt='%m/%d/%Y %I:%M:%S %p')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
     logger.error(msg)
+    handler.close()
+    logger.removeHandler(handler)
+    fn_clear_logger()
     return("Error logged")
 
 def fn_write_log(msg):
+    # create console handler and set level to info
+    handler = logging.FileHandler(
+        '{0}apdtocx.log'.format(settings.LOG_FILEPATH))
+    handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
+                                  datefmt='%m/%d/%Y %I:%M:%S %p')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
     logger.info(msg)
+    handler.close()
+    logger.removeHandler(handler)
+    fn_clear_logger()
     return("Message logged")
 
 def fn_clear_logger():
     logging.shutdown()
+    return("Clear Logger")
 
+
+# def sample_function(secret_parameter):
+#     logger = logging.getLogger(__name__)  # __name__=projectA.moduleB
+#     logger.debug("Going to perform magic with '%s'",  secret_parameter)
+#
+#     try:
+#         result = print(secret_parameter)
+#     except IndexError:
+#         logger.exception("OMG it happened again, someone please tell Laszlo")
+#     except:
+#         logger.info("Unexpected exception", exc_info=True)
+#         raise
+#     else:
+#         logger.info("Magic with '%s' resulted in '%s'", secret_parameter, result, stack_info=True)
