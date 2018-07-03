@@ -82,36 +82,50 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
                                       "profile_rec", "integer", EARL)
         #print("Prof Result = " + str(prof_rslt))
         # create race dictionary
-        racecode = {
-            '1': 'WH',
-            '2': 'BL',
-            '4': 'AS',
-            '6': 'AP',
-            '9': 'MU'
-        }
-        race = racecode.get(race)
+        if race is None:
+            # fn_write_error("Race is None")
+            v_race = '7'
+        elif race.strip() == '':
+            # fn_write_error("Race is empty")
+            v_race = '7'
+        else:
+            racecode = {
+                '1': 'WH',
+                '2': 'BL',
+                '4': 'AS',
+                '6': 'AP',
+                '9': 'MU'
+            }
+            v_race = racecode.get(race)
+
         # create ethnicity dictionary
-        ethnic_code = {
-            'Not Hispanic or Latino': 'N',
-            'HISPANIC OR LATINO': 'Y'
-        }
-        is_hispanic = ethnic_code.get(ethnicity)
-        #print(is_hispanic)
+
+        if ethnicity is not None:
+            ethnic_code = {
+                'Not Hispanic or Latino': 'N',
+                'HISPANIC OR LATINO': 'Y'
+            }
+            is_hispanic = ethnic_code.get(ethnicity)
+        else:
+            is_hispanic = 'N'
+        # print(is_hispanic)
+
         age = fn_calculate_age(birth_date)
-        #print("Age = " + str(age))
+        print("Age = " + str(age))
         if prof_rslt is None or prof_rslt == 0:
             # Insert or update as needed
             q_insert_prof_rec = '''
               INSERT INTO profile_rec (id, sex, race, hispanic, birth_date, 
                 age, prof_last_upd_date)
               VALUES (?, ?, ?, ?, ?, ?, ?) '''
-            q_ins_prof_args=(id, sex, race, is_hispanic, birth_date, age,
+            q_ins_prof_args=(id, sex, v_race, is_hispanic, birth_date, age,
                              prof_last_upd_date)
-            # print(q_insert_prof_rec)
+            print(q_insert_prof_rec)
             # print(q_ins_prof_args)
             engine.execute(q_insert_prof_rec, q_ins_prof_args)
             # scr.write(q_insert_prof_rec + '\n');
-            fn_write_log("Inserted into profile_rec table values " + id + "," + race + ", " + is_hispanic);
+            fn_write_log("Inserted into profile_rec table values " + str(id) + "," + v_race + ", " + is_hispanic);
+            print("Inserted into profile_rec table values " + str(id) + "," + v_race + ", " + is_hispanic)
             scr.write(q_insert_prof_rec + '\n');
         else:
             q_update_prof_rec = '''
@@ -120,19 +134,19 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
                            birth_date = ?, age = ?,
                            prof_last_upd_date = ?
                            WHERE id = ?'''
-            q_upd_prof_args = (sex, is_hispanic, race,
+            q_upd_prof_args = (sex, is_hispanic, v_race,
                 birth_date, age, prof_last_upd_date, id)
-            # print(q_update_prof_rec)
+            print(q_update_prof_rec)
             # print(q_upd_prof_args)
             engine.execute(q_update_prof_rec, q_upd_prof_args)
-            fn_write_log("Updated profile_rec table values " + id + "," + race + ", " + is_hispanic);
+            fn_write_log("Updated profile_rec table values " + str(id) + "," + v_race + ", " + is_hispanic);
             # scr.write(q_update_prof_rec + '\n');
 
         return 1
 
     except Exception as e:
         print(e)
-        fn_write_error("Error in profilerec.py, Error = " + e.message)
+        fn_write_error("Error in profilerec.py for ID " + str(id) + ", Error = " + e.message)
         return 0
     # finally:
     #     logging.shutdown()
