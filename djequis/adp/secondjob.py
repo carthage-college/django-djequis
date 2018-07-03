@@ -36,6 +36,7 @@ django.setup()
 # django settings for script
 from django.conf import settings
 from django.db import connections
+from djequis.core.utils import sendmail
 
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
@@ -73,6 +74,8 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
                           positionstart, poseffectend, jobfunctioncode,
                           supervisorid, rank, fullname, EARL):
     engine = get_engine(EARL)
+
+    print("In Second Job")
 
     try:
         ##############################################################
@@ -122,66 +125,18 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
         ###############################################################
         v_tpos = fn_validate_field(pcnaggr,"pcn_aggr","tpos_no",
                         "pos_table","char",EARL)
-        print("v-tpos = " + str(v_tpos))
-
 
         # if v_tpos == 0 or v_tpos == "" or len(str(v_tpos)) == 0:
         if v_tpos == "":
         # if v_tpos == None or len(str(v_tpos)) == 0:
             print("Position not valid")
             scr.write('Position not valid.\n');
+            raise ValueError()
         else:
             print("Validated t_pos = " + str(v_tpos))
             scr.write('Validated t_pos ' + str(v_tpos) + '\n');
 
-        #     # This insert query works . 5/25/18
-        #     q_ins_pos = '''INSERT INTO pos_table(pcn_aggr, pcn_01, pcn_02, pcn_03,
-        #               pcn_04, descr, ofc, func_area, supervisor_no,
-        #               tenure_track, fte, max_jobs, hrpay, active_date, prev_pos)
-        #               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
-        #     q_ins_pos_args = (pcnaggr,paycode,div,
-        #                         func_code,jobnum, jobtitledescr,
-        #                         'ofc', func_code, supervisorid[3:9],
-        #                         'tenure', 0, 0, paycode,
-        #                         datetime.now().strftime("%m/%d/%Y"),'')
-        #
-        #     # print(q_ins_pos)
-        #     # print(q_ins_pos_args)
-        #
-        #     engine.execute(q_ins_pos, q_ins_pos_args)
-        #     # Need to return the tpos_no as it is created in the INSERT
-        #     # test_pcn = "EXT-PROV-ENG-CHR"   #use this if not doing live insert
-        #     # for test
-        #
-        #
-        #     print("New t_pos needed for = " + pcnaggr)
-        #     # This select query works . 5/25/18
-        #     q_get_tpos = '''SELECT tpos_no FROM pos_table
-        #                WHERE pcn_aggr = '{0}'
-        #                '''.format(pcnaggr)
-        #     #    if tpos exists return the tpos number to find the job record
-        #     sql_tpos = do_sql(q_get_tpos, key=DEBUG, earl=EARL)
-        #     row = sql_tpos.fetchone()
-        #     tpos_result = row[0]
-        #     v_tpos = tpos_result
-        #     print("New tpos = " + str(v_tpos))
-        #     # print(q_ins_pos)
-        # else:
-        #     print("Validated t_pos = " + str(v_tpos))
-        #     # This  query works . 5/25/18
-        #     q_upd_pos = '''UPDATE pos_table SET pcn_aggr = ?, pcn_01 = ?,
-        #             pcn_02 = ?, pcn_03 = ?, pcn_04 = ?, descr = ?, ofc = ?,
-        #             func_area = ?, supervisor_no = ?, tenure_track = ?,
-        #             fte = ?, max_jobs = ?, hrpay = ?, active_date = ?,
-        #             inactive_date = '' WHERE tpos_no = ?'''
-        #     q_upd_pos_args = (pcnaggr, jobfunctioncode, div,
-        #                       func_code, jobnum, jobtitledescr,
-        #                       'ofc', func_code, supervisorid[3:9],
-        #                       'tenure', 0, 0, paycode,
-        #                       datetime.now().strftime("%m/%d/%Y"),
-        #                       v_tpos)
-        #     # print(q_upd_pos)
-            # print(q_upd_pos_args)
+
 
         ##############################################################
         # validate hrpay, values in this table should not change without
@@ -223,7 +178,7 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
         if titlerow is None:
             print("Job Title Not found for tpos " + v_tpos)
             fn_write_log('Job Title Not found for secondary job for tpos ' +
-                         v_tpos+ '\n');
+                         str(v_tpos) + '\n');
         else:
             jr_jobtitle = titlerow[0]
 
@@ -313,9 +268,19 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
         # and qual_table - No longer part of Job Title
         # Probably not in scope as these titles do not affect pay
         ##############################################################
+    except ValueError:
+        print("Position not valid for PCN_AGGR " + pcnaggr)
+        SUBJECT = '[APD To CX Application] Data Error'
+        BODY = "The Home Cost Number Code is not valid for secondary job.  Code = " + pcnaggr
+        sendmail(
+            settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
+            BODY, SUBJECT
+        )
+        fn_write_log("The Home Cost Number Code is not valid for secondary job.  Code = " + pcnaggr)
 
     except Exception as e:
         # print("Error in second job " + e.message)
-        fn_write_error("Error in second job " + e.message)
+        fn_write_error("Error in second job for " + fullname + " ID = " + carthid + " Error = "  + e.message)
+
         return 0
 
