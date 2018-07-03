@@ -98,6 +98,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         # if there is a secondary job record, do the same..
         ##############################################################
 
+        # There is a supervisor flag in ADP.   But it may not be valid to use
+        # for validation at this point.  Just note.
         spvrID = fn_validate_supervisor(supervisorid[3:10], EARL)
 
         # Construct the pcn code from existing items?
@@ -128,7 +130,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
 
         #print('\n' + '----------------------')
         #print('\n' + pcnaggr)
-        #print("Supervisor = " + str(spvrID) +'\n')
+        print("Supervisor = " + str(spvrID) +'\n')
 
         ##############################################################
         # validate hrpay, values in this table should not change without
@@ -451,7 +453,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             # print("New Job Record for " + last + ', id = ' + str(carthid))
             engine.execute(q_ins_job, q_ins_job_args)
             fn_write_log("Inserted into job_rec, tpos = " + str(v_tpos)
-                         + " Description = " + jobtitledescr + " ID = " + str(id))
+                         + " Description = " + jobtitledescr + " ID = " + str(carthid))
             scr.write(q_ins_job + '\n');
             # scr.write(
             #     'New Job Record for " + last + ', id = ' + str(carthid)' + '\n');
@@ -477,7 +479,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             # print("Update Job Record for " + last + ', id = ' + str(carthid))
             engine.execute(q_upd_job, q_upd_job_args)
             fn_write_log("Updated job_rec, tpos = " + str(v_tpos)
-                         + " Description = " + jobtitledescr + " ID = " + str(id))
+                         + " Description = " + jobtitledescr + " ID = " + str(carthid))
             scr.write(q_upd_job + '\n');
             scr.write('Update Job Record for ' + last + ', id = ' + str(carthid) + '\n');
 
@@ -532,7 +534,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             #print(q_emp_ins_args)
             #print("Insert into hremp_rec")
             engine.execute(q_emp_insert, q_emp_ins_args)
-            fn_write_log("Inserted into hremp_rec, home_tpos_no = " + str(v_tpos) + " ID = " + str(id))
+            fn_write_log("Inserted into hremp_rec, home_tpos_no = " + str(v_tpos) + " ID = " + str(carthid))
             scr.write(q_emp_insert + '\n');
         else:
             print('Found Emp Rec')
@@ -551,7 +553,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             #print(q_emp_upd_args)
             print("Update HREMP_REC")
             engine.execute(q_emp_upd, q_emp_upd_args)
-            fn_write_log("Updated hremp_rec, home_tpos_no = " + str(v_tpos) + " ID = " + str(id))
+            fn_write_log("Updated hremp_rec, home_tpos_no = " + str(v_tpos) + " ID = " + str(carthid))
             scr.write(q_emp_upd + '\n');
 
         ##############################################################
@@ -572,10 +574,12 @@ def fn_validate_supervisor(id, EARL):
         if id < 1 or id is None or id == "":
             return 0
         else:
-            q_val_super = '''SELECT supervisor_flag FROM cc_adp_rec WHERE carthage_id = {0}
+            # Since hrstat is not going to be valid, all I can do
+            # is make sure the supervisor exists
+            q_val_super = '''SELECT id FROM id_rec WHERE id = {0}
                                                    '''.format(id)
-            print(q_val_super)
-            print("ID = " + str(id))
+            # print(q_val_super)
+            # print("ID = " + str(id))
             sql_val_super = do_sql(q_val_super, key=DEBUG, earl=EARL)
             row = sql_val_super.fetchone()
 
