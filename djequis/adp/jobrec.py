@@ -98,6 +98,19 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         # if there is a secondary job record, do the same..
         ##############################################################
 
+        # There are records with no job number.   Nothing to validate against.
+        # If Jobtitle_code is empty, end the process with an invalid data message
+        print("Job Title Code = " + jobtitlecode + "------------------")
+        if jobtitlecode is None:
+            print("Missing Job Title Code for " + last + "," + first + " ID = "  + carthi)
+            raise ValueError("Missing Job Title Code for " + last + "," + first + " ID = "  + carthid)
+        elif jobtitlecode == '':
+            print("Missing Job Title Code for " + last + "," + first + " ID = "  + carthi)
+            raise ValueError("Missing Job Title Code for " + last + "," + first + " ID = "  + carthid)
+
+
+
+
         # There is a supervisor flag in ADP.   But it may not be valid to use
         # for validation at this point.  Just note.
         spvrID = fn_validate_supervisor(supervisorid[3:10], EARL)
@@ -244,7 +257,19 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
 
         hrdivision = fn_needs_upate(businessunitcode[:4], businessunitdescr,
                      "hrdiv", "descr", "hrdiv_table", "char", EARL)
-        if hrdivision == None or hrdivision == "":
+        if hrdivision is None:
+            q_ins_div = '''
+               INSERT INTO hrdiv_table(hrdiv, descr, beg_date, end_date) 
+               VALUES(?, ?, ?, null)'''
+            q_ins_div_args = (businessunitcode[:4], businessunitdescr,
+                              datetime.now().strftime("%m/%d/%Y"))
+            # print("New HR Division = " + businessunitcode  + '\n')
+            # print(q_ins_div + str(q_ins_div_args))
+            fn_write_log(
+                "Inserted into hrdiv_table, code = " + businessunitcode[:4])
+            engine.execute(q_ins_div, q_ins_div_args)
+            scr.write(q_ins_div + '\n');
+        elif hrdivision == "":
             q_ins_div = '''
               INSERT INTO hrdiv_table(hrdiv, descr, beg_date, end_date) 
               VALUES(?, ?, ?, null)'''
@@ -265,7 +290,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                 q_upd_div_args = (businessunitdescr,
                               datetime.now().strftime("%m/%d/%Y"),
                               businessunitcode[:4])
-                print("Existing HR Division = " + hrdivision + '\n')
+                print("Existing HR Division = " + hrdivision[0] + '\n')
                 print(q_upd_div + str(q_upd_div_args))
                 fn_write_log("Updated hrdiv_table, code = " + businessunitcode[:4])
                 engine.execute(q_upd_div, q_upd_div_args)
@@ -428,7 +453,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         sql_job = do_sql(q_get_job, key=DEBUG, earl=EARL)
         jobrow = sql_job.fetchone()
         if jobrow is None:
-            #print("Job Number not found in job rec")
+            print("Job Number not found in job rec")
             scr.write('Job Number not found in job rec' + '\n');
 
             #  if no record, no duplicate
@@ -605,6 +630,8 @@ def fn_validate_supervisor(id, EARL):
                 # Valid as Supervisor
                 else:
                     return(id)
+    except ValueError as e:
+        fn_write_log("Value error in jobrec.py.  Err = " + e.message)
 
     except Exception as e:
         print(e)
