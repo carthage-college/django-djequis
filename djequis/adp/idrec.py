@@ -140,16 +140,16 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                 or row[6] != zip
                 or row[7] != ctry_cod):
 
-                print("Update: no address match in ID_REC " + str(carth_id))  #
+                # print("Update: no address match in ID_REC " + str(carth_id))  #
 
                 q_update_id_rec_addr = ('''UPDATE id_rec SET addr_line1 = ?,
                      addr_line2 = ?, addr_line3 = ?, city = ?, st = ?, zip = ?,
-                     ctry = ?, phone = ? WHERE id = ?''')
+                     ctry = ?, aa = 'PERM', phone = ? WHERE id = ?''')
                 q_update_id_addr_args = (addr_line1, addr_line2, addr_line3, city, st,
                                         zip, cntry, phone, carth_id)
 
-                #print(q_update_id_rec_addr)
-                #print(q_update_id_addr_args)
+                # print(q_update_id_rec_addr)
+                # print(q_update_id_addr_args)
                 fn_write_log("Update address info in id_rec table for " +
                              fullname + ", ID = " + str(carth_id) +
                              " address = " + addr_line1)
