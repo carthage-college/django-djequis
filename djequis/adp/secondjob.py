@@ -212,7 +212,7 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
           AND id = {1}
           AND end_date IS null
           '''.format(v_tpos,carthid,positionstart)
-        print(q_get_job)
+        # print(q_get_job)
         sql_job = do_sql(q_get_job, key=DEBUG, earl=EARL)
         jobrow = sql_job.fetchone()
         if jobrow is None:
@@ -232,7 +232,7 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
                               datetime.now().strftime("%m/%d/%Y"), None, 'N',
                               'N/A', 'N', 'N', jobtitledescr, rank,
                               workercatcode)
-            print(q_ins_job + str(q_ins_job_args))
+            # print(q_ins_job + str(q_ins_job_args))
             print("New Second Job Record for " + fullname + ', id = ' + str(carthid))
             fn_write_log('New secondary Job Record for ' + fullname +
                          ', id = ' + str(carthid) + '\n');
@@ -255,7 +255,7 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
                               datetime.now().strftime("%m/%d/%Y"),
                               None if poseffectend == '' else poseffectend,
                               jobtitledescr, rank, workercatcode, jobrow[0])
-            print(q_upd_job)
+            # print(q_upd_job)
             #print(q_upd_job_args)
             print("Update Second Job Record for " + fullname + ', id = ' + str(carthid))
             engine.execute(q_upd_job, q_upd_job_args)
