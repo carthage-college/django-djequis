@@ -122,19 +122,20 @@ def fn_needs_upate(searchval, descr_val, keyfield, descr_field,
                       table, keytype, EARL):
     if keytype == "char":
         qval_sql = "SELECT DISTINCT " + keyfield + "," + descr_field + " FROM " + table \
-                   + " WHERE " + keyfield + " = '" + str(searchval) + "'" \
-                   + " AND " + descr_field + " = '" + descr_val + "'"
+                   + " WHERE " + keyfield + " = '" + str(searchval) + "'"
+                   # + " AND " + descr_field + " = '" + descr_val + "'"
     elif keytype == "integer":
         qval_sql = "SELECT DISTINCT " + keyfield + "," + descr_field + " FROM " + table \
                    + " WHERE " + keyfield + " = " + str(searchval) \
-                   + " AND " + descr_field + " = '" + descr_val + "'"
-    #print("Validate Field SQL = " + qval_sql)
+                   # + " AND " + descr_field + " = '" + descr_val + "'"
+    # print("fn_needs_upate Field SQL = " + qval_sql)
     try:
         sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
         # print("sql_val = " + str(sql_val))
         if sql_val is not None:
             row = sql_val.fetchone()
             if row is not None:
+                print("sql Val = " + str(row))
                 return row
             else:
                 if keytype == "char":
