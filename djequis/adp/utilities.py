@@ -135,7 +135,7 @@ def fn_needs_upate(searchval, descr_val, keyfield, descr_field,
         if sql_val is not None:
             row = sql_val.fetchone()
             if row is not None:
-                print("sql Val = " + str(row))
+                # print("sql Val = " + str(row))
                 return row
             else:
                 if keytype == "char":
@@ -173,7 +173,7 @@ def fn_check_duplicates(searchval, keyfield, retfield, table, testval, keytype, 
         sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
         if sql_val is not None:
             row = sql_val.fetchone()
-            if row == None:
+            if row is None:
                 return 0
             else:
                 return row[0]
@@ -271,6 +271,8 @@ def fn_write_log(msg):
     logger.info(msg)
     handler.close()
     logger.removeHandler(handler)
+    # info_logger = logging.getLogger('info_logger')
+    # info_logger.info(msg)
     fn_clear_logger()
     return("Message logged")
 
