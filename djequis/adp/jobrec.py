@@ -77,7 +77,7 @@ scr = open("apdtocx_output.sql", "a")
 #############################################
 def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                 businessunitdescr, homedeptcode, homedeptdescr, jobtitlecode,
-                jobtitledescr, positioneffective, poseffectend, payrollcompcode,
+                jobtitledescr, positioneffective, terminationdate, payrollcompcode,
                 jobfunctioncode, jobfuncdtiondescription, jobclass,
                 jobclassdescr, primaryposition, supervisorid, last, first,
                 middle,EARL):
@@ -100,16 +100,15 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
 
         # There are records with no job number.   Nothing to validate against.
         # If Jobtitle_code is empty, end the process with an invalid data message
-        print("Job Title Code = " + jobtitlecode + "------------------")
+
+        print("Job Title Code = " + jobtitlecode + ", " + jobtitledescr
+              + ", " + terminationdate + "------------------")
         if jobtitlecode is None:
             print("Missing Job Title Code for " + last + "," + first + " ID = "  + carthi)
             raise ValueError("Missing Job Title Code for " + last + "," + first + " ID = "  + carthid)
         elif jobtitlecode == '':
             print("Missing Job Title Code for " + last + "," + first + " ID = "  + carthi)
             raise ValueError("Missing Job Title Code for " + last + "," + first + " ID = "  + carthid)
-
-
-
 
         # There is a supervisor flag in ADP.   But it may not be valid to use
         # for validation at this point.  Just note.
@@ -124,7 +123,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         pcnaggr = payrollcompcode + "-" + businessunitcode + "-" \
                       + homedeptcode[:3] + "-" + jobtitlecode
 
-        # print(pcnaggr)
+        print(pcnaggr)
 
         func_code = fn_validate_field(homedeptcode[:3],"func","func",
                     "func_table", "char", EARL)
@@ -338,6 +337,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                       WHERE pcn_aggr = '{0}'
                       '''.format(pcnaggr)
         sql_vtpos = do_sql(v_pos, key=DEBUG, earl=EARL)
+        print(sql_vtpos)
         row = sql_vtpos.fetchone()
 
         if row == None:
@@ -351,6 +351,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                                 'OFC', func_code, None,
                                 '', 0, 0, payrollcompcode,
                                 datetime.now().strftime("%m/%d/%Y"),'')
+            print(q_ins_pos)
+            print(q_ins_pos_args)
             engine.execute(q_ins_pos, q_ins_pos_args)
             fn_write_log("Inserted into pos_table, code = " + pcnaggr)
             scr.write(q_ins_pos + '\n');
@@ -370,16 +372,16 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             tpos_result = row[0]
             v_tpos = tpos_result
             print("New tpos = " + str(v_tpos))
-            # print(q_ins_pos)
+            print(q_ins_pos)
         else:
             v_tpos = row[0]
-            # print("v-tpos = " + str(v_tpos))
+            print("v-tpos = " + str(v_tpos))
             # print("Position query =  " + str(row))
-            # print("Existing values =" + row[1] + ", " + row[2] + ", " + row[3])
-            # print(jobtitledescr.strip() == row[1].strip())
+            print("Existing values =" + row[1] + ", " + row[2] + ", " + row[3])
+            print(jobtitledescr.strip() == row[1].strip())
 
             if row[1] != jobtitledescr or row[2] != func_code or row[3] != payrollcompcode:
-                #print("Validated t_pos = " + str(v_tpos))
+                print("Validated t_pos = " + str(v_tpos))
                 q_upd_pos = '''
                   UPDATE pos_table SET pcn_aggr = ?, pcn_01 = ?, pcn_02 = ?, 
                     pcn_03 = ?, pcn_04 = ?, descr = ?, ofc = ?, func_area = ?, 
@@ -392,8 +394,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                                   'TENURE', 0, 0, payrollcompcode,
                                   datetime.now().strftime("%m/%d/%Y"), None,
                                   v_tpos)
-                # print(q_upd_pos)
-                # print(q_upd_pos_args)
+                print(q_upd_pos)
+                print(q_upd_pos_args)
                 fn_write_log("Updated pos_table, code = " + pcnaggr)
                 engine.execute(q_upd_pos, q_upd_pos_args)
                 scr.write(q_upd_pos + '\n')
@@ -428,11 +430,11 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         # Determine job rank for job_rec
         ##############################################################
         rank = ''
-        if primaryposition == 'Yes' and poseffectend == '':
+        if primaryposition == 'Yes' and terminationdate == '':
             rank = 1
-        elif primaryposition == 'No' and poseffectend == '':
+        elif primaryposition == 'No' and terminationdate == '':
             rank = 2
-        elif poseffectend != '':
+        elif terminationdate != '':
             rank = ''
         # print("Rank = " + str(rank) +'\n')
 
@@ -449,7 +451,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         '''.format(v_tpos,carthid,positioneffective)
         # Something in the formatting of the date is failing...
         # and beg_date = '{2}'
-        # print(q_get_job)
+        print(q_get_job)
         sql_job = do_sql(q_get_job, key=DEBUG, earl=EARL)
         jobrow = sql_job.fetchone()
         if jobrow is None:
@@ -475,7 +477,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                               positioneffective, None, 'N', 'N/A', 'N', 'N',
                               jobtitledescr, rank, workercatcode, jobclass)
             #print(q_ins_job + str(q_ins_job_args))
-            # print("New Job Record for " + last + ', id = ' + str(carthid))
+            print("New Job Record for " + last + ', id = ' + str(carthid))
             engine.execute(q_ins_job, q_ins_job_args)
             fn_write_log("Inserted into job_rec, tpos = " + str(v_tpos)
                          + " Description = " + jobtitledescr + " ID = " + str(carthid))
@@ -485,9 +487,10 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
 
         else:
             # jobrow = sql_job.fetchone()
-            #print('valid job found = ' + str(jobrow[0]))
+            print('valid job found = ' + str(jobrow[0]))
             scr.write('Valid Job Found '  +  str(jobrow[0]) + '\n');
             #print('v_tpos = ' + str(v_tpos) )
+
 
             q_upd_job = ''' 
                 UPDATE job_rec SET descr = ?, id = ?, hrpay = ?, 
@@ -497,11 +500,11 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                 WHERE job_no = ?'''
             q_upd_job_args = (jobtitledescr, carthid, payrollcompcode, spvrID,
                     '', businessunitcode, func_code, positioneffective,
-                    None if poseffectend == '' else poseffectend,
+                    None if terminationdate == '' else terminationdate,
                     jobtitledescr, rank, workercatcode, jobclass, jobrow[0])
-            #print(q_upd_job)
-            #print(q_upd_job_args)
-            # print("Update Job Record for " + last + ', id = ' + str(carthid))
+            # print(q_upd_job)
+            # print(q_upd_job_args)
+            print("Update Job Record for " + last + ', id = ' + str(carthid))
             engine.execute(q_upd_job, q_upd_job_args)
             fn_write_log("Updated job_rec, tpos = " + str(v_tpos)
                          + " Description = " + jobtitledescr + " ID = " + str(carthid))
