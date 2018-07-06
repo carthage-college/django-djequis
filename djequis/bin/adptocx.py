@@ -58,7 +58,7 @@ from djtools.fields import TODAY
 # Imports for additional modules and functions written as part of this project
 from djequis.adp.idrec import fn_process_idrec
 from djequis.adp.aarec import fn_archive_address, fn_insert_aa, \
-    fn_update_aa, fn_end_date_aa, fn_set_email2, fn_set_cell_phone, fn_set_schl_rec
+    fn_update_aa, fn_end_date_aa, fn_set_email, fn_set_cell_phone, fn_set_schl_rec
 from djequis.adp.cvidrec import fn_process_cvid
 from djequis.adp.jobrec import fn_process_job
 from djequis.adp.utilities import fn_validate_field, fn_convert_date, \
@@ -540,19 +540,37 @@ def main():
                             # print("sql addr " + addr_result[1].strip() + " loop
                             # address = " + row["primary_address1"].strip())
 
-                            if row["personal_email"] != '':
-                                email_result = fn_set_email2(row["personal_email"],
-                                              row["carth_id"],row["payroll_name"], EARL)
+                            print(row["personal_email"])
+                            print(row["wc_work_email"])
+                            if row["personal_email"] != '' and row["wc_work_email"] is not None:
+                                email_result = fn_set_email(row["personal_email"],
+                                              row["carth_id"],row["payroll_name"], "EML2", EARL)
                                 print("Email = " + str(email_result))
-                                if email_result != "":
-                                    emailcount = emailcount + 1
+
+                                # if email_result.strip == "":
+                                #
+                                # elif email_result is None:
+                                # else
+                                #     emailcount = emailcount + 1
                             else:
                                 # we can remove the else
-                                print("No email from ADP")
+                                print("No personal email from ADP")
+
+
+                            if row["wc_work_email"] != '' and row["wc_work_email"] is not None:
+                                email_result = fn_set_email(row["wc_work_email"],
+                                              row["carth_id"],row["payroll_name"], "EML3", EARL)
+                                print("Email = " + str(email_result))
+                                # if email_result != "":
+                                #     emailcount = emailcount + 1
+                            else:
+                                # we can remove the else
+                                print("No work email from ADP")
+
 
                             # Check to update phone in aa_rec
                             if row["mobile_phone"] != "":
-                                cell = fn_set_cell_phone(fn_format_phone(row["home_phone"]),
+                                cell = fn_set_cell_phone(fn_format_phone(row["mobile_phone"]),
                                          row["carth_id"], row["payroll_name"], EARL)
                                 if cell != "":
                                     phonecount = phonecount + 1
@@ -595,7 +613,7 @@ def main():
                                     row["business_unit_descr"], row["home_dept_code"],
                                     row["home_dept_descr"], row["job_title_code"],
                                     row["job_title_descr"], row["pos_effective_date"],
-                                    row["pos_effective_end_date"],
+                                    row["termination_date"],
                                     row["payroll_comp_code"], row["job_function_code"],
                                     row["job_function_description"],
                                     row["job_class_code"], row["job_class_descr"],
