@@ -332,9 +332,9 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         #                 "pos_table","char", EARL)
 
         v_pos = '''
-                      SELECT tpos_no, descr, func_area, hrpay 
-                      FROM pos_table
-                      WHERE pcn_aggr = '{0}'
+                  SELECT tpos_no, descr, func_area, hrpay 
+                  FROM pos_table
+                  WHERE pcn_aggr = '{0}'
                       '''.format(pcnaggr)
         sql_vtpos = do_sql(v_pos, key=DEBUG, earl=EARL)
         print(sql_vtpos)
@@ -442,6 +442,43 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         # If job rec exists in job_rec -update, else insert
         # ##############################################################
         print("Do Job Rec")
+
+
+        # Need to add a check here for same job, different department.
+        # If department changes, then the  previous job (PCN AGGR) needs an
+        # end date - it is in essence a new job
+        # select job_no from job_rec where id = id and end_date is null
+        # and hrdept <> homedeptcode[:3]
+        # If found, end date
+
+        q_check_exst_job = '''
+        select job_rec.tpos_no, pos_table.pcn_aggr, job_no
+        from job_rec, pos_table
+        where job_rec.tpos_no = pos_table.tpos_no
+        and job_rec.title_rank =  1
+        and job_rec.id = {0}
+        and job_rec.end_date is null
+        '''.format(carthid)
+        # print(q_check_exst_job)
+        sql_exst_job = do_sql(q_check_exst_job, key=DEBUG, earl=EARL)
+        exst_row = sql_exst_job.fetchone()
+        if exst_row is None:
+            print("No Existing primary jobs")
+        else:
+            if exst_row[1] != pcnaggr:
+                # print(pcnaggr)
+                # print(exst_row[1])
+                q_end_job = '''update job_rec set end_date = ?
+                  where id = ? and job_no = ?
+                  '''
+                q_end_job_args = (datetime.now().strftime("%m/%d/%Y"), carthid, exst_row[2])
+                # print(q_end_job)
+                # print(q_end_job_args)
+                engine.execute(q_end_job, q_end_job_args)
+
+
+
+
         q_get_job = '''
           SELECT job_no
           FROM job_rec
@@ -451,7 +488,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         '''.format(v_tpos,carthid,positioneffective)
         # Something in the formatting of the date is failing...
         # and beg_date = '{2}'
-        print(q_get_job)
+        # print(q_get_job)
         sql_job = do_sql(q_get_job, key=DEBUG, earl=EARL)
         jobrow = sql_job.fetchone()
         if jobrow is None:
