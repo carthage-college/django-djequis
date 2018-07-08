@@ -76,6 +76,7 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
     engine = get_engine(EARL)
 
     print("In Second Job")
+    print(pcnaggr)
 
     try:
         ##############################################################
@@ -177,11 +178,12 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
         titlerow = sql_title.fetchone()
         if titlerow is None:
             print("Job Title Not found for tpos " + v_tpos)
+            jr_jobtitle = ""
             fn_write_log('Job Title Not found for secondary job for tpos ' +
                          str(v_tpos) + '\n');
         else:
             jr_jobtitle = titlerow[0]
-
+            print("Job Title = " + jr_jobtitle)
         ##############################################################
         # validate the position, division, department
         ##############################################################
@@ -205,6 +207,36 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
         # ##############################################################
         # If job rec exists for employee in job_rec -update, else insert
         # ##############################################################
+
+
+
+        q_check_exst_job = '''
+        select job_rec.tpos_no, pos_table.pcn_aggr, job_no
+        from job_rec, pos_table
+        where job_rec.tpos_no = pos_table.tpos_no
+        and job_rec.title_rank =  {0}
+        and job_rec.id = {1}
+        and job_rec.end_date is null
+        '''.format(rank, carthid)
+        print(q_check_exst_job)
+        sql_exst_job = do_sql(q_check_exst_job, key=DEBUG, earl=EARL)
+        exst_row = sql_exst_job.fetchone()
+        if exst_row is None:
+            print("No Existing secondary jobs")
+        else:
+            if exst_row[1] != pcnaggr:
+                print(pcnaggr)
+                print(exst_row[1])
+                q_end_job = '''update job_rec set end_date = ?
+                  where id = ? and job_no = ?
+                  '''
+                q_end_job_args = (datetime.now().strftime("%m/%d/%Y"), carthid, exst_row[2])
+                print(q_end_job)
+                print(q_end_job_args)
+                engine.execute(q_end_job, q_end_job_args)
+
+
+
         q_get_job = '''
           SELECT job_no
           FROM job_rec
@@ -279,7 +311,7 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
         fn_write_log("The Home Cost Number Code is not valid for secondary job.  Code = " + pcnaggr)
 
     except Exception as e:
-        # print("Error in second job " + e.message)
+        print("Error in second job " + e.message)
         fn_write_error("Error in second job for " + fullname + " ID = " + carthid + " Error = "  + e.message)
 
         return 0
