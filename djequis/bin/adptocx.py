@@ -487,8 +487,8 @@ def main():
                             fullname, file_number))
 
                         # We should theoretically never insert an ID record
-                        #  unless at some point they don't need the cx_id in
-                        #  ADP and can let CX create new ID numbers
+                        # unless at some point they don't need the cx_id in
+                        # ADP and can let CX create new ID numbers
                         # programatically
                         #
                         # fn_process_idrec(row["carth_id"], row["file_number"],
@@ -531,7 +531,7 @@ def main():
                                      row["primary_country"],
                                      row["primary_country_code"],
                                      row["ssn"], "1234567890",
-                                                       # ("" if None else fn_format_phone(row["home_phone"])),
+                                     # ("" if None else fn_format_phone(row["home_phone"])),
                                      row["position_status"],
                                      fn_convert_date(row["pos_effective_date"]),EARL)
                             # print(id_rslt)
@@ -540,8 +540,8 @@ def main():
                             # print("sql addr " + addr_result[1].strip() + " loop
                             # address = " + row["primary_address1"].strip())
 
-                            print(row["personal_email"])
-                            print(row["wc_work_email"])
+                            print("Email 2 = " + row["personal_email"])
+                            print("Email 3 = " + row["wc_work_email"])
                             if row["personal_email"] != '' and row["wc_work_email"] is not None:
                                 email_result = fn_set_email(row["personal_email"],
                                               row["carth_id"],row["payroll_name"], "EML2", EARL)
@@ -560,7 +560,7 @@ def main():
                             if row["wc_work_email"] != '' and row["wc_work_email"] is not None:
                                 email_result = fn_set_email(row["wc_work_email"],
                                               row["carth_id"],row["payroll_name"], "EML3", EARL)
-                                print("Email = " + str(email_result))
+                                print("Email3 = " + str(email_result))
                                 # if email_result != "":
                                 #     emailcount = emailcount + 1
                             else:
