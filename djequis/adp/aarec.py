@@ -159,9 +159,11 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
         # but nothing exists in aa_rec, so we will only insert as 'PREV'
         if found_aa_num == 0: # No address in aa rec?
               print("No existing record - Insert only")
+              print(datetime.now().strftime("%m/%d/%Y"))
               fn_insert_aa(id, fullname, 'PREV', addr1, addr2, addr3,
-                           cty, st, zp, ctry, fn_format_phone(phone),
-                           datetime.now().strftime("%m/%d/%Y"),EARL)
+                           cty, st, zp, ctry,
+                           datetime.now().strftime("%m/%d/%Y"),
+                           fn_format_phone(phone),EARL)
 
         # Scenario 2
         # if record found in aa_rec, then we will need more options
@@ -222,7 +224,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
 
             if v_enddate is not None:
                 fn_insert_aa(id, fullname, 'PREV', addr1, addr2, addr3, cty, st,
-                        zp, ctry,fn_format_phone(phone), beg_date, EARL)
+                        zp, ctry, beg_date, fn_format_phone(phone), EARL)
             else:
                 print("Failure on insert.  Could not verify enddate of previous")
 
@@ -238,8 +240,9 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
 ###################################################
 # Query works 06/05/18
 def fn_insert_aa(id, fullname, aa, addr1, addr2, addr3, cty, st, zp, ctry,
-                 phone, beg_date, EARL):
+                 beg_date, phone,  EARL):
     engine = get_engine(EARL)
+    print(beg_date)
 
     q_insert_aa = '''
         INSERT INTO aa_rec(id, aa, beg_date, peren, end_date, 
@@ -247,19 +250,19 @@ def fn_insert_aa(id, fullname, aa, addr1, addr2, addr3, cty, st, zp, ctry,
         ofc_add_by, cell_carrier, opt_out)
                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
     q_ins_aa_args=(id, aa, beg_date, "N", "", addr1, addr2, addr3, cty, st,
-                                    zp, ctry, fn_format_phone(phone), "", "HR", "", "")
+                                    zp, ctry, phone, "", "HR", "", "")
 
     engine.execute(q_insert_aa,q_ins_aa_args)
     scr.write(q_insert_aa + '\n');
     fn_write_log("Added " + addr1 + " to aa_rec for " + fullname + ", ID = " + str(id))
     # logger.info("Added archive address for " + fullname);
-    # print(q_insert_aa)
+        # print(q_insert_aa)
     # print(q_ins_aa_args)
     print("insert aa completed")
 
 # Query works 06/05/18
 def fn_update_aa(id, aa, aanum, fllname, add1, add2, add3, cty, st, zip, ctry,
-                 begdate, phone, EARL):
+                 begdate, EARL):
     engine = get_engine(EARL)
 
     q_update_aa = '''
@@ -328,8 +331,8 @@ def fn_set_cell_phone(phone, id, fullname, EARL):
             enddate = datetime.now().strftime("%m/%d/%Y")
             x = datetime.strptime(enddate, "%m/%d/%Y") + timedelta(days=1)
             begindate = x.strftime("%m/%d/%Y")
-            print(begindate)
-            print(enddate)
+            # print(begindate)
+            # print(enddate)
         elif datetime.strftime(end_rslt[0],
                                "%m/%d/%Y") >= datetime.strftime(
             datetime.now(), "%m/%d/%Y"):
@@ -337,19 +340,19 @@ def fn_set_cell_phone(phone, id, fullname, EARL):
             y = end_rslt[0] + timedelta(days=2)
             enddate = x.strftime("%m/%d/%Y")
             begindate = y.strftime("%m/%d/%Y")
-            print(enddate)
-            print(begindate)
+            # print(enddate)
+            # print(begindate)
 
         q_check_cell = '''
-            SELECT aa_rec.aa, aa_rec.id, aa_rec.line1, aa_rec.aa_no, 
+            SELECT aa_rec.aa, aa_rec.id, aa_rec.phone, aa_rec.aa_no, 
             aa_rec.beg_date, aa_rec.end_date
             FROM aa_rec 
             WHERE aa_rec.id = {0} AND aa_rec.aa = 'CELL'  
             AND end_date is null
                 '''.format(id)
-        print(q_check_cell)
+        # print(q_check_cell)
 
-        print("Phone input var = " + phone)
+        # print("Phone input var = " + phone)
 
         sql_cell = do_sql(q_check_cell, key=DEBUG, earl=EARL)
         cell_result = sql_cell.fetchone()
@@ -357,12 +360,12 @@ def fn_set_cell_phone(phone, id, fullname, EARL):
             print("No Cell")
 
             fn_insert_aa(id, fullname, 'CELL',
-                         fn_format_phone(phone), "", "", "", "", "", "", "",
-                         begindate, EARL)
+                         "", "", "", "", "", "", "",
+                         begindate, fn_format_phone(phone), EARL)
             return("New Cell Phone")
 
         elif cell_result[2] == phone:
-            print("Found phone = " + cell_result[2])
+            # print("Found phone = " + cell_result[2])
             return("No Cell Phone Change")
 
         else:
@@ -373,8 +376,8 @@ def fn_set_cell_phone(phone, id, fullname, EARL):
                 # print(datetime.strftime(end_rslt[0], "%m/%d/%Y"))
                 # print(datetime.strftime(datetime.now(), "%m/%d/%Y"))
                 fn_end_date_aa(id, cell_result[3], fullname, enddate, "CELL", EARL)
-                fn_insert_aa(id, fullname, 'CELL', phone, "", "", "", "", "", "", "",
-                              begindate, EARL)
+                fn_insert_aa(id, fullname, 'CELL', "", "", "", "", "", "", "",
+                              begindate, fn_format_phone(phone), EARL)
                 #print("New cell will be = " + phone)
                 return ("Updated cell")
             else:
@@ -401,7 +404,7 @@ def fn_set_email(email, id, fullname, eml, EARL):
         sql_end = do_sql(q_check_end, key=DEBUG, earl=EARL)
         end_rslt = sql_end.fetchone()
         if end_rslt[0] is None:
-            print('END IS NONE')
+            # print('END IS NONE')
             enddate = datetime.now().strftime("%m/%d/%Y")
             x = datetime.strptime(enddate, "%m/%d/%Y") + timedelta(days=1)
             begindate = x.strftime("%m/%d/%Y")
@@ -434,8 +437,8 @@ def fn_set_email(email, id, fullname, eml, EARL):
             if email_result == None:
                 # print("New Email will be = " + email)
                 fn_insert_aa(id, fullname, eml,
-                               email, "", "", "", "", "", "", "",
-                               begindate, EARL)
+                               email, "", "", "", "", "", "",
+                               begindate, "", EARL)
 
                 return("New email")
             elif email_result[2] == email:
@@ -447,11 +450,8 @@ def fn_set_email(email, id, fullname, eml, EARL):
                 # print("EMAIL = " + eml + ", " + email)
                 fn_end_date_aa(id, email_result[3], fullname, enddate, eml, EARL)
                 fn_insert_aa(id, fullname, eml, email, "", "", "", "", "",
-                             "", begindate, EARL)
+                             "", begindate, "", EARL)
 
-                    # fn_end_date_aa(id, email_result[3], fullname, enddate, eml, EARL)
-                    # fn_insert_aa(id, fullname, eml, email, "", "", "", "", "", "",
-                    #              "", begindate, EARL)
 
             return("Email updated")
 
