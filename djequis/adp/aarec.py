@@ -241,24 +241,28 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
 # Query works 06/05/18
 def fn_insert_aa(id, fullname, aa, addr1, addr2, addr3, cty, st, zp, ctry,
                  beg_date, phone,  EARL):
-    engine = get_engine(EARL)
-    print(beg_date)
+    try:
+        engine = get_engine(EARL)
+        print(beg_date)
 
-    q_insert_aa = '''
-        INSERT INTO aa_rec(id, aa, beg_date, peren, end_date, 
-        line1, line2, line3, city, st, zip, ctry, phone, phone_ext, 
-        ofc_add_by, cell_carrier, opt_out)
-                      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
-    q_ins_aa_args=(id, aa, beg_date, "N", "", addr1, addr2, addr3, cty, st,
-                                    zp, ctry, phone, "", "HR", "", "")
+        q_insert_aa = '''
+            INSERT INTO aa_rec(id, aa, beg_date, peren, end_date, 
+            line1, line2, line3, city, st, zip, ctry, phone, phone_ext, 
+            ofc_add_by, cell_carrier, opt_out)
+                          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
+        q_ins_aa_args=(id, aa, beg_date, "N", "", addr1, addr2, addr3, cty, st,
+                                        zp, ctry, phone, "", "HR", "", "")
 
-    engine.execute(q_insert_aa,q_ins_aa_args)
-    scr.write(q_insert_aa + '\n');
-    fn_write_log("Added " + addr1 + " to aa_rec for " + fullname + ", ID = " + str(id))
-    # logger.info("Added archive address for " + fullname);
-        # print(q_insert_aa)
-    # print(q_ins_aa_args)
-    print("insert aa completed")
+        engine.execute(q_insert_aa,q_ins_aa_args)
+        scr.write(q_insert_aa + '\n');
+        fn_write_log("Added " + addr1 + " to aa_rec for " + fullname + ", ID = " + str(id))
+        # logger.info("Added archive address for " + fullname);
+        print(q_insert_aa)
+        print(q_ins_aa_args)
+        print("insert aa completed")
+
+    except Exception as e:
+        print("Error in aarec.py, fn_insert_aa.  Error = " + e.message)
 
 # Query works 06/05/18
 def fn_update_aa(id, aa, aanum, fllname, add1, add2, add3, cty, st, zip, ctry,
@@ -298,16 +302,16 @@ def fn_end_date_aa(id, aa_num, fullname, enddate, aa, EARL):
           AND aa_no = ?'''
         q_enddate_aa_args=(enddate, aa, id, aa_num)
         engine.execute(q_enddate_aa, q_enddate_aa_args)
-        #print("Log end date aa for " + fullname)
+        # print("Log end date aa for " + fullname)
         fn_write_log("Added end date to address to aa_rec for " + fullname +
                       ", ID = " + str(id) + " aa_num = " + str(aa))
         # logger.info("Log end date aa_rec for " + fullname);
         scr.write(q_enddate_aa + '\n');
-        #print(q_enddate_aa)
-        #print(q_enddate_aa_args)
+        print(q_enddate_aa)
+        print(q_enddate_aa_args)
         print("end Date aa completed")
         return(1)
-    except(e):
+    except("Exception in aarec.py fn_end_date_aa, error = " + e.message):
         return(0)
 #########################################################
 # Specific function to deal with cell phone in aa_rec
@@ -316,32 +320,30 @@ def fn_end_date_aa(id, aa_num, fullname, enddate, aa, EARL):
 def fn_set_cell_phone(phone, id, fullname, EARL):
     try:
         # Always get max date, in case insert has to be on same day
-        q_check_end = '''
-             SELECT MAX(aa_rec.end_date)
+        q_check_begin = '''
+             SELECT MAX(aa_rec.beg_date)
               FROM aa_rec 
               WHERE aa_rec.id = {0} AND aa_rec.aa = 'CELL' 
                   '''.format(id)
-        print(q_check_end)
+        print(q_check_begin)
 
-        sql_end = do_sql(q_check_end, key=DEBUG, earl=EARL)
-        end_rslt = sql_end.fetchone()
+        sql_end = do_sql(q_check_begin, key=DEBUG, earl=EARL)
+        beg_rslt = sql_end.fetchone()
 
-        if end_rslt[0] is None:
-            print('END IS NONE')
+        if beg_rslt[0] is None:
+            print('No existing begin date')
             enddate = datetime.now().strftime("%m/%d/%Y")
-            x = datetime.strptime(enddate, "%m/%d/%Y") + timedelta(days=1)
-            begindate = x.strftime("%m/%d/%Y")
-            # print(begindate)
-            # print(enddate)
-        elif datetime.strftime(end_rslt[0],
-                               "%m/%d/%Y") >= datetime.strftime(
-            datetime.now(), "%m/%d/%Y"):
-            x = end_rslt[0] + timedelta(days=1)
-            y = end_rslt[0] + timedelta(days=2)
+            # x = datetime.strptime(enddate, "%m/%d/%Y") + timedelta(days=1)
+            begindate = datetime.now().strftime("%m/%d/%Y")
+            print("Begin Date = " + str(begindate))
+            print("End Date = " + str(enddate))
+        elif datetime.strftime(beg_rslt[0], "%m/%d/%Y") >= datetime.strftime(datetime.now(), "%m/%d/%Y"):
+            x = beg_rslt[0]
+            y = beg_rslt[0] + timedelta(days=1)
             enddate = x.strftime("%m/%d/%Y")
             begindate = y.strftime("%m/%d/%Y")
-            # print(enddate)
-            # print(begindate)
+            print("Begin Date = " + str(begindate))
+            print("End Date = " + str(enddate))
 
         q_check_cell = '''
             SELECT aa_rec.aa, aa_rec.id, aa_rec.phone, aa_rec.aa_no, 
@@ -350,9 +352,9 @@ def fn_set_cell_phone(phone, id, fullname, EARL):
             WHERE aa_rec.id = {0} AND aa_rec.aa = 'CELL'  
             AND end_date is null
                 '''.format(id)
-        # print(q_check_cell)
+        print(q_check_cell)
 
-        # print("Phone input var = " + phone)
+        print("Phone input var = " + phone)
 
         sql_cell = do_sql(q_check_cell, key=DEBUG, earl=EARL)
         cell_result = sql_cell.fetchone()
@@ -365,7 +367,7 @@ def fn_set_cell_phone(phone, id, fullname, EARL):
             return("New Cell Phone")
 
         elif cell_result[2] == phone:
-            # print("Found phone = " + cell_result[2])
+            print("Found phone = " + cell_result[2])
             return("No Cell Phone Change")
 
         else:
@@ -395,30 +397,30 @@ def fn_set_email(email, id, fullname, eml, EARL):
     try:
         # Have to get dates regardless, because begin date part of key,
         # cannot insert if date used
-        q_check_end = '''
-          SELECT max(aa_rec.end_date)
+        q_check_begin = '''
+          SELECT max(aa_rec.beg_date)
           FROM aa_rec 
           WHERE aa_rec.id = {0} AND aa_rec.aa = "{1}" 
           '''.format(id, eml)
-        # print(q_check_end)
-        sql_end = do_sql(q_check_end, key=DEBUG, earl=EARL)
-        end_rslt = sql_end.fetchone()
-        if end_rslt[0] is None:
+        # print(q_check_begin)
+        sql_begin = do_sql(q_check_begin, key=DEBUG, earl=EARL)
+        beg_rslt = sql_begin.fetchone()
+        if beg_rslt[0] is None:
             # print('END IS NONE')
             enddate = datetime.now().strftime("%m/%d/%Y")
-            x = datetime.strptime(enddate, "%m/%d/%Y") + timedelta(days=1)
-            begindate = x.strftime("%m/%d/%Y")
-            # print(begindate)
-            # print(enddate)
-        elif datetime.strftime(end_rslt[0],
+            # x = datetime.strptime(enddate, "%m/%d/%Y") + timedelta(days=1)
+            begindate = datetime.now().strftime("%m/%d/%Y")
+            print(begindate)
+            print(enddate)
+        elif datetime.strftime(beg_rslt[0],
                                "%m/%d/%Y") >= datetime.strftime(
             datetime.now(), "%m/%d/%Y"):
-            x = end_rslt[0] + timedelta(days=1)
-            y = end_rslt[0] + timedelta(days=2)
+            x = beg_rslt[0]
+            y = beg_rslt[0] + timedelta(days=1)
             enddate = x.strftime("%m/%d/%Y")
             begindate = y.strftime("%m/%d/%Y")
-            # print(enddate)
-            # print(begindate)
+            print(enddate)
+            print(begindate)
 
         q_check_email = '''
                       SELECT aa_rec.aa, aa_rec.id, aa_rec.line1, 
@@ -474,7 +476,7 @@ def fn_set_schl_rec(id, fullname, phone, ext, loc, room, EARL):
         schl_result = sql_schl.fetchone()
         #print(schl_result)
 
-        location = loc + " " + room
+        location = loc + " " + str(room)
 
         if schl_result is not None:
             if schl_result[4] == fullname and schl_result[5] == location \
