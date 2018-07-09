@@ -636,7 +636,7 @@ def main():
                                     row["position_eff_date2"],
                                     row["position_end_date2"],
                                     row["job_function_code"],
-                                    row["supervisor_id"], 2,
+                                    row["supervisor_id"], 3,
                                     row["payroll_name"], EARL)
                                 secondjobcount = secondjobcount + 1
                                 print("Second Job for " + row["carth_id"] + " Job = " + row["home_cost_number2"])
@@ -649,7 +649,7 @@ def main():
                                     row["position_eff_date3"],
                                     row["position_end_date3"],
                                     row["job_function_code"],
-                                    row["supervisor_id"], 3,
+                                    row["supervisor_id"], 4,
                                     row["payroll_name"], EARL)
                                 secondjobcount = secondjobcount + 1
 
@@ -662,7 +662,7 @@ def main():
                                     row["position_eff_date4"],
                                     row["position_end_date4"],
                                     row["job_function_code"],
-                                    row["supervisor_id"], 4,
+                                    row["supervisor_id"], 5,
                                     row["payroll_name"], EARL)
                                 secondjobcount = secondjobcount + 1
 
