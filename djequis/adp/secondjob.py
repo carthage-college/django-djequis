@@ -218,15 +218,15 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
         and job_rec.id = {1}
         and job_rec.end_date is null
         '''.format(rank, carthid)
-        print(q_check_exst_job)
+        # print(q_check_exst_job)
         sql_exst_job = do_sql(q_check_exst_job, key=DEBUG, earl=EARL)
         exst_row = sql_exst_job.fetchone()
         if exst_row is None:
             print("No Existing secondary jobs")
         else:
             if exst_row[1] != pcnaggr:
-                print(pcnaggr)
-                print(exst_row[1])
+                print("Search job = " + pcnaggr)
+                print("Existing job = " + exst_row[1])
                 q_end_job = '''update job_rec set end_date = ?
                   where id = ? and job_no = ?
                   '''
