@@ -89,6 +89,8 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
     if v_id == 0:
             fn_write_log("ID not found in CX database.  ID = " + carth_id
                          + " Name = " + fullname)
+            BODY = "ID not found in CX database"
+            SUBJECT = "CX ID not found"
             sendmail(
                 settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
                 BODY, SUBJECT
