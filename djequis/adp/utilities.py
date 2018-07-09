@@ -271,8 +271,8 @@ def fn_write_log(msg):
     logger.info(msg)
     handler.close()
     logger.removeHandler(handler)
-    # info_logger = logging.getLogger('info_logger')
-    # info_logger.info(msg)
+    info_logger = logging.getLogger('info_logger')
+    info_logger.info(msg)
     fn_clear_logger()
     return("Message logged")
 
