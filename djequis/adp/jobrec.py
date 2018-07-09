@@ -104,10 +104,10 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         print("Job Title Code = " + jobtitlecode + ", " + jobtitledescr
               + ", " + terminationdate + "------------------")
         if jobtitlecode is None:
-            print("Missing Job Title Code for " + last + "," + first + " ID = "  + carthi)
+            print("Missing Job Title Code for " + last + "," + first + " ID = "  + carthid)
             raise ValueError("Missing Job Title Code for " + last + "," + first + " ID = "  + carthid)
         elif jobtitlecode == '':
-            print("Missing Job Title Code for " + last + "," + first + " ID = "  + carthi)
+            print("Missing Job Title Code for " + last + "," + first + " ID = "  + carthid)
             raise ValueError("Missing Job Title Code for " + last + "," + first + " ID = "  + carthid)
 
         # There is a supervisor flag in ADP.   But it may not be valid to use
@@ -120,7 +120,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         # pcn_04 = job title code
         # hrdiv = business unit code
         # pcn_aggr = jobfunctioncode-businessunitcode-homedeptcode-jobtitlecode
-        pcnaggr = payrollcompcode + "-" + businessunitcode + "-" \
+        pcnaggr = payrollcompcode + "-" + businessunitcode[:4] + "-" \
                       + homedeptcode[:3] + "-" + jobtitlecode
 
         print(pcnaggr)
@@ -228,7 +228,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                     fn_write_log("Inserted into hrclass_table, code = " + jobclass)
                     scr.write(q_hrclass_ins + '\n');
                 else:
-                    print(row[1])
+                    # print(row[1])
                     if row[1] != jobclassdescr:
                         q_hrclass_upd = '''
                           UPDATE hrclass_table
@@ -262,7 +262,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                VALUES(?, ?, ?, null)'''
             q_ins_div_args = (businessunitcode[:4], businessunitdescr,
                               datetime.now().strftime("%m/%d/%Y"))
-            # print("New HR Division = " + businessunitcode  + '\n')
+            # print("New HR Division = " + businessunitcode[:4]  + '\n')
             # print(q_ins_div + str(q_ins_div_args))
             fn_write_log(
                 "Inserted into hrdiv_table, code = " + businessunitcode[:4])
@@ -274,7 +274,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
               VALUES(?, ?, ?, null)'''
             q_ins_div_args = (businessunitcode[:4], businessunitdescr,
                                 datetime.now().strftime("%m/%d/%Y"))
-            # print("New HR Division = " + businessunitcode  + '\n')
+            # print("New HR Division = " + businessunitcode[:4]  + '\n')
             # print(q_ins_div + str(q_ins_div_args))
             fn_write_log("Inserted into hrdiv_table, code = " + businessunitcode[:4])
             engine.execute(q_ins_div, q_ins_div_args)
@@ -290,7 +290,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                               datetime.now().strftime("%m/%d/%Y"),
                               businessunitcode[:4])
                 print("Existing HR Division = " + hrdivision[0] + '\n')
-                print(q_upd_div + str(q_upd_div_args))
+                # print(q_upd_div + str(q_upd_div_args))
                 fn_write_log("Updated hrdiv_table, code = " + businessunitcode[:4])
                 engine.execute(q_upd_div, q_upd_div_args)
                 scr.write(q_upd_div + '\n');
@@ -305,7 +305,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
               INSERT INTO hrdept_table(hrdept, hrdiv, descr, 
                                 beg_date, end_date) 
               VALUES(?, ?, ?, ?, ?)'''
-            q_ins_dept_args = (homedeptcode[:3], businessunitcode,
+            q_ins_dept_args = (homedeptcode[:3], businessunitcode[:4],
                                homedeptdescr,
                                datetime.now().strftime("%m/%d/%Y"),None)
             engine.execute(q_ins_dept, q_ins_dept_args)
@@ -317,7 +317,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                   UPDATE hrdept_table SET hrdiv = ?, descr = ?, 
                       beg_date = ? 
                   WHERE hrdept = ?'''
-                q_upd_dept_args = (businessunitcode, homedeptdescr,
+                q_upd_dept_args = (businessunitcode[:4], homedeptdescr,
                                    datetime.now().strftime("%m/%d/%Y"), func_code)
                 engine.execute(q_upd_dept, q_upd_dept_args)
                 fn_write_log("Updated hrdept_table, code = " + homedeptcode[:3])
@@ -337,7 +337,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                   WHERE pcn_aggr = '{0}'
                       '''.format(pcnaggr)
         sql_vtpos = do_sql(v_pos, key=DEBUG, earl=EARL)
-        print(sql_vtpos)
+        # print(sql_vtpos)
         row = sql_vtpos.fetchone()
 
         if row == None:
@@ -346,13 +346,13 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                 descr, ofc, func_area, supervisor_no, tenure_track, fte, 
                 max_jobs, hrpay, active_date, prev_pos) 
               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
-            q_ins_pos_args = (pcnaggr,payrollcompcode,businessunitcode,
+            q_ins_pos_args = (pcnaggr,payrollcompcode,businessunitcode[:4],
                                 func_code,jobtitlecode, jobtitledescr,
                                 'OFC', func_code, None,
                                 '', 0, 0, payrollcompcode,
                                 datetime.now().strftime("%m/%d/%Y"),'')
-            print(q_ins_pos)
-            print(q_ins_pos_args)
+            # print(q_ins_pos)
+            # print(q_ins_pos_args)
             engine.execute(q_ins_pos, q_ins_pos_args)
             fn_write_log("Inserted into pos_table, code = " + pcnaggr)
             scr.write(q_ins_pos + '\n');
@@ -372,13 +372,13 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             tpos_result = row[0]
             v_tpos = tpos_result
             print("New tpos = " + str(v_tpos))
-            print(q_ins_pos)
+            # print(q_ins_pos)
         else:
             v_tpos = row[0]
             print("v-tpos = " + str(v_tpos))
             # print("Position query =  " + str(row))
             print("Existing values =" + row[1] + ", " + row[2] + ", " + row[3])
-            print(jobtitledescr.strip() == row[1].strip())
+            # print(jobtitledescr.strip() == row[1])
 
             if row[1] != jobtitledescr or row[2] != func_code or row[3] != payrollcompcode:
                 print("Validated t_pos = " + str(v_tpos))
@@ -388,14 +388,14 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                     supervisor_no = ?, tenure_track = ?, fte = ?, max_jobs = ?, 
                     hrpay = ?, active_date = ?, inactive_date = ? 
                   WHERE tpos_no = ?'''
-                q_upd_pos_args = (pcnaggr, payrollcompcode, businessunitcode,
+                q_upd_pos_args = (pcnaggr, payrollcompcode, businessunitcode[:4],
                                   func_code, jobtitlecode, jobtitledescr,
                                   'OFC', func_code, None,
                                   'TENURE', 0, 0, payrollcompcode,
                                   datetime.now().strftime("%m/%d/%Y"), None,
                                   v_tpos)
-                print(q_upd_pos)
-                print(q_upd_pos_args)
+                # print(q_upd_pos)
+                # print(q_upd_pos_args)
                 fn_write_log("Updated pos_table, code = " + pcnaggr)
                 engine.execute(q_upd_pos, q_upd_pos_args)
                 scr.write(q_upd_pos + '\n')
@@ -430,12 +430,13 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         # Determine job rank for job_rec
         ##############################################################
         rank = ''
-        if primaryposition == 'Yes' and terminationdate == '':
+        print("Primary Position = " + primaryposition + " " + terminationdate)
+        if primaryposition == 'Yes':
             rank = 1
-        elif primaryposition == 'No' and terminationdate == '':
+        elif primaryposition == 'No':
             rank = 2
-        elif terminationdate != '':
-            rank = ''
+        # elif terminationdate.strip != '':
+        #     rank = ''
         # print("Rank = " + str(rank) +'\n')
 
         # ##############################################################
@@ -500,6 +501,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             # NOTE:  NEED TO ADD JOB CLASS CODE into HRCLASS field
             # Insert into job rec
             # Query works as of 5/29/18
+            print("Rank = " + str(rank))
             q_ins_job = '''
               INSERT INTO job_rec
               (tpos_no, descr, bjob_no, id, hrpay, supervisor_no, hrstat, 
@@ -510,10 +512,10 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                ?, ?, ?)'''
             q_ins_job_args = (v_tpos, jobtitledescr, 0, carthid,
                               payrollcompcode, spvrID, '',
-                              'R', businessunitcode, func_code, None, None,
+                              'R', businessunitcode[:4], func_code, None, None,
                               positioneffective, None, 'N', 'N/A', 'N', 'N',
                               jobtitledescr, rank, workercatcode, jobclass)
-            #print(q_ins_job + str(q_ins_job_args))
+            # print(q_ins_job + str(q_ins_job_args))
             print("New Job Record for " + last + ', id = ' + str(carthid))
             engine.execute(q_ins_job, q_ins_job_args)
             fn_write_log("Inserted into job_rec, tpos = " + str(v_tpos)
@@ -532,13 +534,12 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             q_upd_job = ''' 
                 UPDATE job_rec SET descr = ?, id = ?, hrpay = ?, 
                 supervisor_no = ?, hrstat = ?, hrdiv = ?, hrdept = ?, 
-                beg_date = ?, end_date = ?, job_title = ?, title_rank = ?, 
-                worker_ctgry = ?, hrclass = ?
+                beg_date = ?, end_date = ?, job_title = ?, worker_ctgry = ?, hrclass = ?
                 WHERE job_no = ?'''
             q_upd_job_args = (jobtitledescr, carthid, payrollcompcode, spvrID,
-                    '', businessunitcode, func_code, positioneffective,
+                    '', businessunitcode[:4], func_code, positioneffective,
                     None if terminationdate == '' else terminationdate,
-                    jobtitledescr, rank, workercatcode, jobclass, jobrow[0])
+                    jobtitledescr, workercatcode, jobclass, jobrow[0])
             # print(q_upd_job)
             # print(q_upd_job_args)
             print("Update Job Record for " + last + ', id = ' + str(carthid))
@@ -652,9 +653,10 @@ def fn_validate_supervisor(id, EARL):
                 # Not found
                 return(0)
             else:
+                return (id)
                 # Not Eligible
-                if row[0].strip() == 'No':
-                    return(0)
+                # if row[0] == 'No':
+                #     return(0)
                 # elif row[0].strip() == 'OTH':
                 #     return(0)
                 # elif row[0].strip() == 'LV':
@@ -668,8 +670,8 @@ def fn_validate_supervisor(id, EARL):
                 # elif row[0].strip() == 'STD':
                 #     return(0)
                 # Valid as Supervisor
-                else:
-                    return(id)
+                # else:
+
     except ValueError as e:
         fn_write_log("Value error in jobrec.py.  Err = " + e.message)
 
