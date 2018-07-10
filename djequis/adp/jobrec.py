@@ -642,8 +642,10 @@ def fn_validate_supervisor(id, EARL):
         else:
             # Since hrstat is not going to be valid, all I can do
             # is make sure the supervisor exists
-            q_val_super = '''SELECT id FROM id_rec WHERE id = {0}
-                                                   '''.format(id)
+            # But I have to use the ADP ID, not the CX ID
+            q_val_super = '''select adp_id from cvid_rec
+                where adp_id = {0} 
+                '''.format(id)
             # print(q_val_super)
             # print("ID = " + str(id))
             sql_val_super = do_sql(q_val_super, key=DEBUG, earl=EARL)
