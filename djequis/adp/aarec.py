@@ -97,7 +97,7 @@ start_time = time.time()
 def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
             phone, EARL):
     try:
-        print(addr1, addr2, addr3)
+        # print(addr1, addr2, addr3)
         #################################
         #  See if there is already an Archive record
         #################################
@@ -159,7 +159,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
         # but nothing exists in aa_rec, so we will only insert as 'PREV'
         if found_aa_num == 0: # No address in aa rec?
               print("No existing record - Insert only")
-              print(datetime.now().strftime("%m/%d/%Y"))
+              # print(datetime.now().strftime("%m/%d/%Y"))
               fn_insert_aa(id, fullname, 'PREV', addr1, addr2, addr3,
                            cty, st, zp, ctry,
                            datetime.now().strftime("%m/%d/%Y"),
@@ -215,12 +215,12 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
               WHERE aa_no = {0}
               AND aa = 'PREV'
               '''.format(found_aa_num)
-            print(q_check_enddate)
+            # print(q_check_enddate)
             q_confirm_enddate = do_sql(q_check_enddate, key=DEBUG, earl=EARL)
 
             v_enddate = q_confirm_enddate.fetchone()
 
-            print(v_enddate)
+            # print(v_enddate)
 
             if v_enddate is not None:
                 fn_insert_aa(id, fullname, 'PREV', addr1, addr2, addr3, cty, st,
@@ -233,7 +233,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
         return "Success"
 
     except Exception as e:
-        print(e)
+        print("Error in aarec.py, fn_archive_address, error = " + e.message)
 
 ###################################################
 # SQL Functions
@@ -243,7 +243,7 @@ def fn_insert_aa(id, fullname, aa, addr1, addr2, addr3, cty, st, zp, ctry,
                  beg_date, phone,  EARL):
     try:
         engine = get_engine(EARL)
-        print(beg_date)
+        # print(beg_date)
 
         q_insert_aa = '''
             INSERT INTO aa_rec(id, aa, beg_date, peren, end_date, 
@@ -257,8 +257,8 @@ def fn_insert_aa(id, fullname, aa, addr1, addr2, addr3, cty, st, zp, ctry,
         scr.write(q_insert_aa + '\n');
         fn_write_log("Added " + addr1 + " to aa_rec for " + fullname + ", ID = " + str(id))
         # logger.info("Added archive address for " + fullname);
-        print(q_insert_aa)
-        print(q_ins_aa_args)
+        # print(q_insert_aa)
+        # print(q_ins_aa_args)
         print("insert aa completed")
 
     except Exception as e:
@@ -307,8 +307,8 @@ def fn_end_date_aa(id, aa_num, fullname, enddate, aa, EARL):
                       ", ID = " + str(id) + " aa_num = " + str(aa))
         # logger.info("Log end date aa_rec for " + fullname);
         scr.write(q_enddate_aa + '\n');
-        print(q_enddate_aa)
-        print(q_enddate_aa_args)
+        # print(q_enddate_aa)
+        # print(q_enddate_aa_args)
         print("end Date aa completed")
         return(1)
     except("Exception in aarec.py fn_end_date_aa, error = " + e.message):
@@ -325,7 +325,7 @@ def fn_set_cell_phone(phone, id, fullname, EARL):
               FROM aa_rec 
               WHERE aa_rec.id = {0} AND aa_rec.aa = 'CELL' 
                   '''.format(id)
-        print(q_check_begin)
+        # print(q_check_begin)
 
         sql_end = do_sql(q_check_begin, key=DEBUG, earl=EARL)
         beg_rslt = sql_end.fetchone()
@@ -335,15 +335,15 @@ def fn_set_cell_phone(phone, id, fullname, EARL):
             enddate = datetime.now().strftime("%m/%d/%Y")
             # x = datetime.strptime(enddate, "%m/%d/%Y") + timedelta(days=1)
             begindate = datetime.now().strftime("%m/%d/%Y")
-            print("Begin Date = " + str(begindate))
-            print("End Date = " + str(enddate))
+            # print("Begin Date = " + str(begindate))
+            # print("End Date = " + str(enddate))
         elif datetime.strftime(beg_rslt[0], "%m/%d/%Y") >= datetime.strftime(datetime.now(), "%m/%d/%Y"):
             x = beg_rslt[0]
             y = beg_rslt[0] + timedelta(days=1)
             enddate = x.strftime("%m/%d/%Y")
             begindate = y.strftime("%m/%d/%Y")
-            print("Begin Date = " + str(begindate))
-            print("End Date = " + str(enddate))
+            # print("Begin Date = " + str(begindate))
+            # print("End Date = " + str(enddate))
 
         q_check_cell = '''
             SELECT aa_rec.aa, aa_rec.id, aa_rec.phone, aa_rec.aa_no, 
@@ -352,7 +352,7 @@ def fn_set_cell_phone(phone, id, fullname, EARL):
             WHERE aa_rec.id = {0} AND aa_rec.aa = 'CELL'  
             AND end_date is null
                 '''.format(id)
-        print(q_check_cell)
+        # print(q_check_cell)
 
         print("Phone input var = " + phone)
 
@@ -387,7 +387,7 @@ def fn_set_cell_phone(phone, id, fullname, EARL):
 
 
     except Exception as e:
-        print(e)
+        print("Error in aarec.py, fn_set_cell_phone, Error = " + e.message)
         return ""
 
 #########################################################
@@ -410,8 +410,8 @@ def fn_set_email(email, id, fullname, eml, EARL):
             enddate = datetime.now().strftime("%m/%d/%Y")
             # x = datetime.strptime(enddate, "%m/%d/%Y") + timedelta(days=1)
             begindate = datetime.now().strftime("%m/%d/%Y")
-            print(begindate)
-            print(enddate)
+            # print(begindate)
+            # print(enddate)
         elif datetime.strftime(beg_rslt[0],
                                "%m/%d/%Y") >= datetime.strftime(
             datetime.now(), "%m/%d/%Y"):
@@ -419,8 +419,8 @@ def fn_set_email(email, id, fullname, eml, EARL):
             y = beg_rslt[0] + timedelta(days=1)
             enddate = x.strftime("%m/%d/%Y")
             begindate = y.strftime("%m/%d/%Y")
-            print(enddate)
-            print(begindate)
+            # print(enddate)
+            # print(begindate)
 
         q_check_email = '''
                       SELECT aa_rec.aa, aa_rec.id, aa_rec.line1, 
@@ -458,7 +458,7 @@ def fn_set_email(email, id, fullname, eml, EARL):
             return("Email updated")
 
     except Exception as e:
-        print(e)
+        print("Error in aarec.py, fn_set_email, Error = " + e.message)
         return ""
 
 def fn_set_schl_rec(id, fullname, phone, ext, loc, room, EARL):
@@ -520,7 +520,7 @@ def fn_set_schl_rec(id, fullname, phone, ext, loc, room, EARL):
             #print("insert SCHL completed")
 
     except Exception as e:
-        print(e)
+        print("Error in aarec.py, fn_set_schl_rec, Error = " + e.message)
         fn_write_error("Error in aarec.py, Error = " + e.message)
     # finally:
     #     logging.shutdown()
