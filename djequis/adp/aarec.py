@@ -113,7 +113,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
         addr_result = sql_id_address.fetchone()
 
         # print(q_check_aa_adr)
-        print("Addr Result = " + str(addr_result))
+        print("AA_rec Addr Result = " + str(addr_result))
         if addr_result is None:
             found_aa_num = 0
         else:
@@ -233,7 +233,8 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
         return "Success"
 
     except Exception as e:
-        print("Error in aarec.py, fn_archive_address, error = " + e.message)
+        print("Error in aarec.py, fn_archive_address, for ID " + id + ", Name "
+              + fullname + " error = " + e.message)
 
 ###################################################
 # SQL Functions
@@ -241,6 +242,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
 # Query works 06/05/18
 def fn_insert_aa(id, fullname, aa, addr1, addr2, addr3, cty, st, zp, ctry,
                  beg_date, phone,  EARL):
+    print("AA = " + aa + " ID = " + str(id)) + ", Name = " + fullname
     try:
         engine = get_engine(EARL)
         # print(beg_date)
@@ -262,7 +264,8 @@ def fn_insert_aa(id, fullname, aa, addr1, addr2, addr3, cty, st, zp, ctry,
         print("insert aa completed")
 
     except Exception as e:
-        print("Error in aarec.py, fn_insert_aa.  Error = " + e.message)
+        print("Error in aarec.py, fn_insert_aa.  for ID " + id + ", Name "
+              + fullname + " Error = " + e.message)
 
 # Query works 06/05/18
 def fn_update_aa(id, aa, aanum, fllname, add1, add2, add3, cty, st, zip, ctry,
@@ -387,7 +390,8 @@ def fn_set_cell_phone(phone, id, fullname, EARL):
 
 
     except Exception as e:
-        print("Error in aarec.py, fn_set_cell_phone, Error = " + e.message)
+        print("Error in aarec.py, fn_set_cell_phone, for ID " + id + ", Name "
+              + fullname + " Error = " + e.message)
         return ""
 
 #########################################################
@@ -458,7 +462,8 @@ def fn_set_email(email, id, fullname, eml, EARL):
             return("Email updated")
 
     except Exception as e:
-        print("Error in aarec.py, fn_set_email, Error = " + e.message)
+        print("Error in aarec.py, fn_set_email, for for ID " + id + ", Name "
+              + fullname + " Error = " + e.message)
         return ""
 
 def fn_set_schl_rec(id, fullname, phone, ext, loc, room, EARL):
@@ -521,6 +526,7 @@ def fn_set_schl_rec(id, fullname, phone, ext, loc, room, EARL):
 
     except Exception as e:
         print("Error in aarec.py, fn_set_schl_rec, Error = " + e.message)
-        fn_write_error("Error in aarec.py, Error = " + e.message)
+        fn_write_error("Error in aarec.py, fn_set_schl_rec, for " + fullname
+                       + ", ID = " + id + "Error = " + e.message)
     # finally:
     #     logging.shutdown()
