@@ -437,6 +437,7 @@ def main():
                     ccadpcount = ccadpcount + 1
                 except Exception as e:
                     fn_write_error("Error in adptcx.py while inserting into cc_adp_rec.  Error = " + e.message)
+                    continue
                     # print(e)
 
                 # fn_convert_date(row["termination_date"]),
