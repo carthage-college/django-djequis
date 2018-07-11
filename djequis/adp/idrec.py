@@ -89,7 +89,8 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
     if v_id == 0:
             fn_write_log("ID not found in CX database.  ID = " + carth_id
                          + " Name = " + fullname)
-            BODY = "ID not found in CX database"
+            BODY = "ID not found in CX database for ID " + carth_id \
+                   + " Name, " + fullname
             SUBJECT = "CX ID not found"
             sendmail(
                 settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
@@ -155,7 +156,7 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                     or row[6] != zip
                     or row[7] != ctry_cod):
 
-                    # print("Update: no address match in ID_REC " + str(carth_id))  #
+                    print("Update: no address match in ID_REC " + str(carth_id))  #
 
                     q_update_id_rec_addr = ('''UPDATE id_rec SET addr_line1 = ?,
                          addr_line2 = ?, addr_line3 = ?, city = ?, st = ?, zip = ?,
@@ -176,9 +177,20 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                     # now check to see if address is a duplicate in aa_rec
                     # find max start date to determine what date to insert
                     # insert or update as needed
-                    fn_archive_address(carth_id, fullname, row[1], row[2],
-                                 row[3], row[4], row[5], row[6], row[7], phone,
-                                       EARL)
+                    if row[1] is None:
+                        # This should only happen on initial run, just need to
+                        #  ignore the archive process if no address to archive
+                        fn_write_log("Empty Address 1 in ID Rec - Nothing to "
+                                     "archive")
+                    elif row is not None:
+                        print("row[1] = " + row[1])
+                        fn_archive_address(carth_id, fullname, row[1], row[2],
+                                     row[3], row[4], row[5], row[6], row[7], phone,
+                                           EARL)
+                    else:
+                        fn_write_log("Empty Address 1 in ID Rec - Nothing to "
+                                     "archive")
+
                 else:
                     print("No Change " + row[1])
             elif cntry is None:
