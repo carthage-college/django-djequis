@@ -133,10 +133,10 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         else:
             print('Invalid Function Code ' + homedeptcode[:3] + '\n')
 
-            fn_write_error("Error in jobrec.py - Invalid Function Code " +
-                           homedeptcode[:3] + '\n')
-            scr.write('Error in jobrec.py - Invalid Function Code ' +
-                      homedeptcode[:3] + '\n');
+            fn_write_error("Error in jobrec.py - Invalid Function Code for ' "
+                    + id + ' Code = ' + homedeptcode[:3] + '\n');
+            scr.write('Error in jobrec.py - Invalid Function Code for ' + id
+                      + ' Code = ' + homedeptcode[:3] + '\n');
             # raise ValueError(
             #     "Invalid Function  Code (HRPay) " + homedeptcode[:3] + '\n')
 
@@ -675,10 +675,10 @@ def fn_validate_supervisor(id, EARL):
                 # else:
 
     except ValueError as e:
-        fn_write_log("Value error in jobrec.py.  Err = " + e.message)
+        fn_write_log("Value error in jobrec.py.  ID = " + id + " Err = " + e.message)
 
     except Exception as e:
         print(e)
-        fn_write_error("Error in jobrec.py. Err = " + e.message)
+        fn_write_error("Error in jobrec.py. ID = " + id + " Err = " + e.message)
         return(0)
 
