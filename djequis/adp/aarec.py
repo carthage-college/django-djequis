@@ -120,7 +120,6 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
             found_aa_num = addr_result[2]
             fn_write_log("Existing archive address record found in aa_rec for "
                          + fullname + ", ID = " + str(id))
-            # logger.info("Existing archive record found.");
         #print(found_aa_num)
 
         #################################
@@ -183,9 +182,6 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
             #################################
             fn_update_aa(id, aa, aanum, fllname, add1, add2, add3, cty, st,
                              zp, ctry, begdate, fn_format_phone(phone), EARL)
-            # fn_update_aa(addr_result[0],addr_result[1],addr_result[2], fullname,
-            #       addr_result[4],addr_result[5],addr_result[6],addr_result[7],
-            #       addr_result[8], addr_result[9],addr_result[10],addr_result[3],EARL)
 
         # to avoid overlapping dates
         # Scenario 3 - AA Rec exists but does not match new address.
@@ -235,7 +231,8 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
     except Exception as e:
         print("Error in aarec.py, fn_archive_address, for ID " + id + ", Name "
               + fullname + " error = " + e.message)
-
+        fn_write_error("Error in aarec.py, fn_archive_address, for ID " + id
+                       + ", Name " + fullname + " error = " + e.message)
 ###################################################
 # SQL Functions
 ###################################################
@@ -266,6 +263,9 @@ def fn_insert_aa(id, fullname, aa, addr1, addr2, addr3, cty, st, zp, ctry,
     except Exception as e:
         print("Error in aarec.py, fn_insert_aa.  for ID " + id + ", Name "
               + fullname + " Error = " + e.message)
+        fn_write_error("Error in aarec.py, fn_insert_aa.  for ID " + id + ", Name "
+              + fullname + " Error = " + e.message)
+
 
 # Query works 06/05/18
 def fn_update_aa(id, aa, aanum, fllname, add1, add2, add3, cty, st, zip, ctry,
@@ -314,8 +314,11 @@ def fn_end_date_aa(id, aa_num, fullname, enddate, aa, EARL):
         # print(q_enddate_aa_args)
         print("end Date aa completed")
         return(1)
-    except("Exception in aarec.py fn_end_date_aa, error = " + e.message):
-        return(0)
+    except Exception as e:
+        fn_write_error("Exception in aarec.py fn_end_date_aa, error = " + e.message)
+        return (0)
+
+
 #########################################################
 # Specific function to deal with cell phone in aa_rec
 #########################################################
@@ -392,6 +395,8 @@ def fn_set_cell_phone(phone, id, fullname, EARL):
     except Exception as e:
         print("Error in aarec.py, fn_set_cell_phone, for ID " + id + ", Name "
               + fullname + " Error = " + e.message)
+        fn_write_error("Error in aarec.py, fn_set_cell_phone, for ID " + id + ", Name "
+              + fullname + " Error = " + e.message)
         return ""
 
 #########################################################
@@ -463,6 +468,8 @@ def fn_set_email(email, id, fullname, eml, EARL):
 
     except Exception as e:
         print("Error in aarec.py, fn_set_email, for for ID " + id + ", Name "
+              + fullname + " Error = " + e.message)
+        fn_write_error("Error in aarec.py, fn_set_email, for for ID " + id + ", Name "
               + fullname + " Error = " + e.message)
         return ""
 
