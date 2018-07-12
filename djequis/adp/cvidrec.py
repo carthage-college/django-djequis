@@ -116,7 +116,9 @@ def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id, EARL):
 
         elif str(v_cx_id) != v_assoc_match and v_assoc_match != 0:
             print('Duplicate Associate ID found')
+            fn_write_log('Duplicate Associate ID found' + carthid)
         elif str(v_cx_id) != str(v_adp_match) and v_adp_match != 0:
+            fn_write_log('Duplicate Associate ID found' + carthid)
             print('Duplicate ADP ID found')
         else:
             q_update_cvid_rec = '''
@@ -137,7 +139,8 @@ def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id, EARL):
 
     except Exception as e:
         print(e)
-        fn_write_error("Error in cvidrec.py.  Error = " + e.message)
+        fn_write_error("Error in cvidrec.py for " + carthid + " Error = "
+                       + e.message)
         return 0
     # finally:
     #     logging.shutdown()
