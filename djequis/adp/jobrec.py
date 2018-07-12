@@ -104,11 +104,15 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         print("Job Title Code = " + jobtitlecode + ", " + jobtitledescr
               + ", " + terminationdate + "------------------")
         if jobtitlecode is None:
-            print("Missing Job Title Code for " + last + "," + first + " ID = "  + carthid)
-            raise ValueError("Missing Job Title Code for " + last + "," + first + " ID = "  + carthid)
+            print("Missing Job Title Code for " + last + "," + first
+                  + " ID = "  + carthid)
+            raise ValueError("Missing Job Title Code for " + last + ","
+                             + first + " ID = "  + carthid)
         elif jobtitlecode == '':
-            print("Missing Job Title Code for " + last + "," + first + " ID = "  + carthid)
-            raise ValueError("Missing Job Title Code for " + last + "," + first + " ID = "  + carthid)
+            print("Missing Job Title Code for " + last + "," + first
+                  + " ID = "  + carthid)
+            raise ValueError("Missing Job Title Code for " + last + ","
+                             + first + " ID = "  + carthid)
 
         # There is a supervisor flag in ADP.   But it may not be valid to use
         # for validation at this point.  Just note.
@@ -128,20 +132,18 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         func_code = fn_validate_field(homedeptcode[:3],"func","func",
                     "func_table", "char", EARL)
         if func_code != '':
-            scr.write("Valid func_code")
+            fn_write_log("Valid func_code")
             # print('Validated func_code = ' + homedeptcode[:3] + '\n')
         else:
             print('Invalid Function Code ' + homedeptcode[:3] + '\n')
-
+            fn_write_log('Invalid Function Code ' + homedeptcode[:3] + '\n')
             fn_write_error("Error in jobrec.py - Invalid Function Code for ' "
                     + id + ' Code = ' + homedeptcode[:3] + '\n');
-            scr.write('Error in jobrec.py - Invalid Function Code for ' + id
-                      + ' Code = ' + homedeptcode[:3] + '\n');
-            # raise ValueError(
-            #     "Invalid Function  Code (HRPay) " + homedeptcode[:3] + '\n')
+            # scr.write('Error in jobrec.py - Invalid Function Code for ' + id
+            #           + ' Code = ' + homedeptcode[:3] + '\n');
 
-        #print('\n' + '----------------------')
-        #print('\n' + pcnaggr)
+
+
         print("Supervisor = " + str(spvrID) +'\n')
 
         ##############################################################
@@ -152,10 +154,10 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                             "hrpay_table", "char", EARL)
         if hrpay_rslt != '':
             #print('Validated HRPay Code = ' + str(hrpay_rslt) + '\n')
-            scr.write('Valid HRPay Code ' + str(hrpay_rslt) + '\n');
+            fn_write_log('Valid HRPay Code ' + str(hrpay_rslt) + '\n');
         else:
             #print('Invalid Payroll Company Code ' + str(payrollcompcode) + '\n')
-            scr.write('Error in jobrec.py - Invalid Payroll Company Code '+
+            fn_write_error('Error in jobrec.py - Invalid Payroll Company Code '+
                       str(payrollcompcode) +'\n');
             fn_write_error("Error in jobrec.py - Invalid Payroll Company Code " +
                            str(payrollcompcode) + '\n')
@@ -196,13 +198,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                 scr.write(q_upd_wc + '\n');
 
             ##############################################################
-            # To do....
             # Job Class Code, HRClass field in Job Rec
-            # Need to add definitions as needed in hrclass_table
             ##############################################################
-            # jobclass = 'GA'
-            # jobclassdescr = 'Graduate Assistant'
-            # print("Job Class Code")
 
             if jobclass.strip() != "" and jobclass is not None:
                 # print(jobclass)
@@ -237,13 +234,14 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                         q_hrclass_upd_args = (jobclassdescr, jobclass)
 
                         engine.execute(q_hrclass_upd, q_hrclass_upd_args)
+                        scr.write(q_upd_dept + '\n');
+                        scr.write(q_hrclass_upd_args + '\n');
                         fn_write_log("Updated hrclass_table, code = " + jobclass)
-                        scr.write(q_hrclass_upd + '\n');
                     else:
                         #print("No change in HRClass Description")
-                        scr.write('There were no change in HRClass description.\n');
-                # If not, insert
-                # Else do nothing
+                        fn_write_log('There were no changes in HRClass '
+                                     'description.\n');
+
             else:
                 print("No Job Class")
 
@@ -322,6 +320,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                 engine.execute(q_upd_dept, q_upd_dept_args)
                 fn_write_log("Updated hrdept_table, code = " + homedeptcode[:3])
                 scr.write(q_upd_dept + '\n');
+                # scr.write(q_upd_dept_args + '\n');
 
 
         ###############################################################
@@ -357,10 +356,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             fn_write_log("Inserted into pos_table, code = " + pcnaggr)
             scr.write(q_ins_pos + '\n');
             # Need to return the tpos_no as it is created in the INSERT
-            # test_pcn = "EXT-PROV-ENG-CHR"   #use this if not doing live insert
-            # for test
+
             #print("New t_pos needed for = " + pcnaggr)
-            # This select query works . 5/25/18
             q_get_tpos = '''
               SELECT tpos_no 
               FROM pos_table
@@ -372,13 +369,12 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             tpos_result = row[0]
             v_tpos = tpos_result
             print("New tpos = " + str(v_tpos))
+            fn_write_log("New tpos = " + str(v_tpos))
             # print(q_ins_pos)
         else:
             v_tpos = row[0]
             print("v-tpos = " + str(v_tpos))
-            # print("Position query =  " + str(row))
             print("Existing values =" + row[1] + ", " + row[2] + ", " + row[3])
-            # print(jobtitledescr.strip() == row[1])
 
             if row[1] != jobtitledescr or row[2] != func_code or row[3] != payrollcompcode:
                 print("Validated t_pos = " + str(v_tpos))
@@ -494,6 +490,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         jobrow = sql_job.fetchone()
         if jobrow is None:
             print("Job Number not found in job rec")
+            fn_write_log("Job Number not found in job rec")
             scr.write('Job Number not found in job rec' + '\n');
 
             #  if no record, no duplicate
@@ -521,12 +518,11 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             fn_write_log("Inserted into job_rec, tpos = " + str(v_tpos)
                          + " Description = " + jobtitledescr + " ID = " + str(carthid))
             scr.write(q_ins_job + '\n');
-            # scr.write(
-            #     'New Job Record for " + last + ', id = ' + str(carthid)' + '\n');
 
         else:
             # jobrow = sql_job.fetchone()
             print('valid job found = ' + str(jobrow[0]))
+            fn_write_log('valid job found = ' + str(jobrow[0]))
             scr.write('Valid Job Found '  +  str(jobrow[0]) + '\n');
             #print('v_tpos = ' + str(v_tpos) )
 
@@ -547,7 +543,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             fn_write_log("Updated job_rec, tpos = " + str(v_tpos)
                          + " Description = " + jobtitledescr + " ID = " + str(carthid))
             scr.write(q_upd_job + '\n');
-            scr.write('Update Job Record for ' + last + ', id = ' + str(carthid) + '\n');
+            # scr.write('Update Job Record for ' + last + ', id = ' + str(carthid) + '\n');
 
 
         ##############################################################
@@ -619,7 +615,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             #print(q_emp_upd_args)
             print("Update HREMP_REC")
             engine.execute(q_emp_upd, q_emp_upd_args)
-            fn_write_log("Updated hremp_rec, home_tpos_no = " + str(v_tpos) + " ID = " + str(carthid))
+            fn_write_log("Updated hremp_rec, home_tpos_no = " + str(v_tpos)
+                         + " ID = " + str(carthid))
             scr.write(q_emp_upd + '\n');
 
         ##############################################################
@@ -631,6 +628,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         return(1)
     except Exception as e:
         print(e)
+        fn_write_error("Error in jobrec.py for " + Last + ", " + first
+                       + ", ID = " + carthid + " Error = " + e.message)
         return(0)
 ##########################################################
 # Functions
@@ -675,10 +674,13 @@ def fn_validate_supervisor(id, EARL):
                 # else:
 
     except ValueError as e:
-        fn_write_log("Value error in jobrec.py.  ID = " + id + " Err = " + e.message)
+        fn_write_log("Value error in jobrec.py fn_validate_supervisor.  ID = "
+                     + id + ", " + last + ", " + first + " Err = " + e.message)
 
     except Exception as e:
         print(e)
-        fn_write_error("Error in jobrec.py. ID = " + id + " Err = " + e.message)
+        fn_write_error("Error in jobrec.py fn_validate_supervisor. ID = "
+                       + id + ", " + last + ", "
+                       + first + " Err = " + e.message)
         return(0)
 
