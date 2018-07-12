@@ -114,9 +114,10 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
             # logger.info("Update id_rec table");
             engine.execute(q_update_id_rec, q_update_id_args)
         except Exception as err:
-            print(err.message)
+            # print(err.message)
             return (err.message)
-            fn_write_error("Error in id_rec.py updating basic info.  Error = " + err.message)
+            fn_write_error("Error in id_rec.py updating basic info.  Error = "
+                           + err.message)
             # logger.error(err, exc_info=True)
 
 
@@ -147,6 +148,14 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                     fn_write_log("Data missing in idrec.py address function. \
                                   Employee not in id rec for id number " + str(carth_id))
                     print("Employee not in id rec")
+                    BODY = "ID not found in CX database id_rec.py address " \
+                           "routine for ID " + carth_id  + " Name, " + fullname
+                    SUBJECT = "CX ID not found"
+                    sendmail(
+                        settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
+                        BODY, SUBJECT
+                    )
+
                 # Update ID Rec and archive aa rec
                 elif (row[1] != addr_line1
                     or row[2] != addr_line2
@@ -195,10 +204,12 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                     print("No Change " + row[1])
             elif cntry is None:
                 print("invalid country code" + ctry_cod)
+                fn_write_log("invalid country code" + ctry_cod)
 
         except Exception as err:
             print(err.message)
-            fn_write_error("Error in idrec.py.  Error = " + err.message)
+            fn_write_error("Error in idrec.py for id " + carth_id
+                           + ".  Error = " + err.message)
 
 
 
