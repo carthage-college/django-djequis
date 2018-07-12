@@ -121,12 +121,14 @@ def fn_validate_field(searchval, keyfield, retfield, table, keytype, EARL):
 def fn_needs_upate(searchval, descr_val, keyfield, descr_field,
                       table, keytype, EARL):
     if keytype == "char":
-        qval_sql = "SELECT DISTINCT " + keyfield + "," + descr_field + " FROM " + table \
-                   + " WHERE " + keyfield + " = '" + str(searchval) + "'"
+        qval_sql = "SELECT DISTINCT " + keyfield + "," + descr_field \
+                   + " FROM " + table + " WHERE " + keyfield + " = '" \
+                   + str(searchval) + "'"
                    # + " AND " + descr_field + " = '" + descr_val + "'"
     elif keytype == "integer":
-        qval_sql = "SELECT DISTINCT " + keyfield + "," + descr_field + " FROM " + table \
-                   + " WHERE " + keyfield + " = " + str(searchval) \
+        qval_sql = "SELECT DISTINCT " + keyfield + "," + descr_field \
+                   + " FROM " + table + " WHERE " + keyfield + " = " \
+                   + str(searchval) \
                    # + " AND " + descr_field + " = '" + descr_val + "'"
     # print("fn_needs_upate Field SQL = " + qval_sql)
     try:
@@ -159,7 +161,8 @@ def fn_needs_upate(searchval, descr_val, keyfield, descr_field,
 #########################################################
 # Common function to prevent duplicate entries
 #########################################################
-def fn_check_duplicates(searchval, keyfield, retfield, table, testval, keytype, EARL):
+def fn_check_duplicates(searchval, keyfield, retfield, table, testval,
+                keytype, EARL):
     if keytype == "char":
         qval_sql = "SELECT " + retfield + " FROM " + table + " WHERE " \
                    + keyfield + " = '" + str(searchval) + "' AND " + retfield \
@@ -235,7 +238,8 @@ def fn_calculate_age(bdate):
     # print(d_born)
     today = date.today()
     # print(today)
-    age = today.year - d_born.year - ((today.month, today.day) < (d_born.month, d_born.day))
+    age = today.year - d_born.year - ((today.month, today.day) < (d_born.month,
+                                d_born.day))
     # print(age)
     return(age)
 
@@ -261,19 +265,20 @@ def fn_write_error(msg):
 
 def fn_write_log(msg):
     # create console handler and set level to info
-    handler = logging.FileHandler(
-        '{0}apdtocx.log'.format(settings.LOG_FILEPATH))
-    handler.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
-                                  datefmt='%m/%d/%Y %I:%M:%S %p')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    logger.info(msg)
-    handler.close()
-    logger.removeHandler(handler)
-    info_logger = logging.getLogger('info_logger')
-    info_logger.info(msg)
-    fn_clear_logger()
+    # handler = logging.FileHandler(
+    #     '{0}apdtocx.log'.format(settings.LOG_FILEPATH))
+    # handler.setLevel(logging.INFO)
+    # formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(
+    # message)s',
+    #                               datefmt='%m/%d/%Y %I:%M:%S %p')
+    # handler.setFormatter(formatter)
+    # logger.addHandler(handler)
+    # logger.info(msg)
+    # handler.close()
+    # logger.removeHandler(handler)
+    # info_logger = logging.getLogger('info_logger')
+    # info_logger.info(msg)
+    # fn_clear_logger()
     return("Message logged")
 
 def fn_clear_logger():
