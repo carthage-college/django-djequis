@@ -114,11 +114,6 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
         dept = pcnaggr[pos2 + 1:pos3]
         jobnum = pcnaggr[pos3 + 1:len]
 
-        # print("Job Type = " + str(paycode))
-        # print("Div = " + str(div))
-        # print("Dept = " + str(dept))
-        # print("Job number =" + str(jobnum))
-
         spvrID = supervisorid[3:10]
 
         ###############################################################
@@ -137,8 +132,6 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
             print("Validated t_pos = " + str(v_tpos))
             scr.write('Validated t_pos ' + str(v_tpos) + '\n');
 
-
-
         ##############################################################
         # validate hrpay, values in this table should not change without
         # a project request as they affect a number of things
@@ -152,10 +145,9 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
             print('Invalid Payroll Company Code ' + str(paycode) + '\n')
             fn_write_log('Data Error in secondjob.py - Invalid Payroll Company \
                 Code for secondary job ' + str(paycode) + '\n');
-            # logger.info("Invalid Payroll Company Code " + paycode + '\n')
-            # raise ValueError("Invalid Payroll Company Code (HRPay) " + paycode + '\n')
 
-        func_code = fn_validate_field(dept,"func","func", "func_table", "char",EARL)
+        func_code = fn_validate_field(dept,"func","func", "func_table",
+                                    "char",EARL)
         if func_code != '':
             print('Validated second job func_code = ' + dept + '\n')
             scr.write('Validated second job Function Code = ' + dept + '\n');
@@ -164,8 +156,6 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
             fn_write_log('Data Error in second job.py - Invalid Function \
                 Code = ' + dept + '\n');
 
-        #print('\n' + '----------------------')
-        #print('\n' + pcnaggr)
         ##############################################################
         # Need some additional info from existing cx records
         # ADP does not have field for second job title
@@ -184,6 +174,7 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
         else:
             jr_jobtitle = titlerow[0]
             print("Job Title = " + jr_jobtitle)
+
         ##############################################################
         # validate the position, division, department
         ##############################################################
@@ -196,8 +187,8 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
             scr.write('HR Div not valid ' + div + '\n');
 
         # print("....Deal with department...")
-        hrdepartment = fn_validate_field(dept,"hrdept","hrdept", "hrdept_table",
-                                         "char",EARL)
+        hrdepartment = fn_validate_field(dept,"hrdept","hrdept",
+                    "hrdept_table", "char",EARL)
         #print(hrdepartment)
         if hrdepartment==None or hrdepartment=="":
             print("HR Dept not valid - " + dept)
@@ -207,8 +198,6 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
         # ##############################################################
         # If job rec exists for employee in job_rec -update, else insert
         # ##############################################################
-
-
 
         q_check_exst_job = '''
         select job_rec.tpos_no, pos_table.pcn_aggr, job_no
@@ -230,12 +219,11 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
                 q_end_job = '''update job_rec set end_date = ?
                   where id = ? and job_no = ?
                   '''
-                q_end_job_args = (datetime.now().strftime("%m/%d/%Y"), carthid, exst_row[2])
+                q_end_job_args = (datetime.now().strftime("%m/%d/%Y"),
+                                  carthid, exst_row[2])
                 print(q_end_job)
                 print(q_end_job_args)
                 engine.execute(q_end_job, q_end_job_args)
-
-
 
         q_get_job = '''
           SELECT job_no
@@ -265,7 +253,8 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
                               'N/A', 'N', 'N', jobtitledescr, rank,
                               workercatcode)
             # print(q_ins_job + str(q_ins_job_args))
-            print("New Second Job Record for " + fullname + ', id = ' + str(carthid))
+            print("New Second Job Record for " + fullname + ', id = '
+                  + str(carthid))
             fn_write_log('New secondary Job Record for ' + fullname +
                          ', id = ' + str(carthid) + '\n');
             engine.execute(q_ins_job, q_ins_job_args)
@@ -289,10 +278,12 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
                               jobtitledescr, rank, workercatcode, jobrow[0])
             # print(q_upd_job)
             #print(q_upd_job_args)
-            print("Update Second Job Record for " + fullname + ', id = ' + str(carthid))
             engine.execute(q_upd_job, q_upd_job_args)
             scr.write(q_upd_job + '\n');
-            fn_write_log('Update Job Record for ' + fullname + ', id = ' + str(
+            print("Update Second Job Record for " + fullname + ', id = '
+                  + str(carthid))
+            fn_write_log('Update Job Record for ' + fullname + ', id = '
+                         + str(
                 carthid) + '\n');
         return 1
         ##############################################################
@@ -303,16 +294,20 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
     except ValueError:
         print("Position not valid for PCN_AGGR " + pcnaggr)
         SUBJECT = '[APD To CX Application] Data Error'
-        BODY = "The Home Cost Number Code is not valid for secondary job.  Code = " + pcnaggr
+        BODY = "The Home Cost Number Code is not valid for secondary job.  " \
+               "Code = " + pcnaggr
         sendmail(
             settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
             BODY, SUBJECT
         )
-        fn_write_log("The Home Cost Number Code is not valid for secondary job.  Code = " + pcnaggr)
+        fn_write_log("The Home Cost Number Code is not valid for secondary "
+                     "job.  Code = " + pcnaggr)
 
     except Exception as e:
-        print("Error in second job " + e.message)
-        fn_write_error("Error in second job for " + fullname + " ID = " + carthid + " Error = "  + e.message)
+        print("Error in second job for " + fullname + " ID = "
+                       + carthid + " Error = "  + e.message)
+        fn_write_error("Error in second job for " + fullname + " ID = "
+                       + carthid + " Error = "  + e.message)
 
         return 0
 
