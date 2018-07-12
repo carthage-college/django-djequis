@@ -99,8 +99,6 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
             v_race = racecode.get(race)
 
         # create ethnicity dictionary
-        print("Ethnicity = " + str(ethnicity) + ":::")
-
         if ethnicity is None:
             is_hispanic = 'N'
         elif ethnicity.strip() == '':
@@ -146,14 +144,16 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
             # print(q_update_prof_rec)
             # print(q_upd_prof_args)
             engine.execute(q_update_prof_rec, q_upd_prof_args)
-            fn_write_log("Updated profile_rec table values " + str(id) + "," + v_race + ", " + str(is_hispanic));
+            fn_write_log("Updated profile_rec table values " + str(id) + ","
+                         + v_race + ", " + str(is_hispanic));
             # scr.write(q_update_prof_rec + '\n');
 
         return 1
 
     except Exception as e:
         print(e)
-        fn_write_error("Error in profilerec.py for ID " + str(id) + ", Error = " + e.message)
+        fn_write_error("Error in profilerec.py for ID " + str(id)
+                       + ", Error = " + e.message)
         return 0
     # finally:
     #     logging.shutdown()
