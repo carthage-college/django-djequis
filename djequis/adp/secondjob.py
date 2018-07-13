@@ -126,11 +126,9 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
         if v_tpos == "":
         # if v_tpos == None or len(str(v_tpos)) == 0:
             print("Position not valid")
-            scr.write('Position not valid.\n');
             raise ValueError()
         else:
             print("Validated t_pos = " + str(v_tpos))
-            scr.write('Validated t_pos ' + str(v_tpos) + '\n');
 
         ##############################################################
         # validate hrpay, values in this table should not change without
@@ -140,7 +138,6 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
                                        "char", EARL)
         if hrpay_rslt != '':
             print('Validated HRPay Code = ' + str(hrpay_rslt) + '\n')
-            scr.write('Validated HRPay Code = ' + str(hrpay_rslt) + '\n');
         else:
             print('Invalid Payroll Company Code ' + str(paycode) + '\n')
             fn_write_log('Data Error in secondjob.py - Invalid Payroll Company \
@@ -150,7 +147,6 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
                                     "char",EARL)
         if func_code != '':
             print('Validated second job func_code = ' + dept + '\n')
-            scr.write('Validated second job Function Code = ' + dept + '\n');
         else:
             print('Invalid Function Code ' + dept + '\n')
             fn_write_log('Data Error in second job.py - Invalid Function \
@@ -184,7 +180,6 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
 
         if hrdivision == None or hrdivision == "":
             print("HR Div not valid - " + div)
-            scr.write('HR Div not valid ' + div + '\n');
 
         # print("....Deal with department...")
         hrdepartment = fn_validate_field(dept,"hrdept","hrdept",
@@ -258,7 +253,7 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
             fn_write_log('New secondary Job Record for ' + fullname +
                          ', id = ' + str(carthid) + '\n');
             engine.execute(q_ins_job, q_ins_job_args)
-            scr.write(q_ins_job + '\n');
+            scr.write(q_ins_job + '\n' + str(q_ins_job_args) + '\n');
         else:
             # jobrow = sql_job.fetchone()
             #print('valid job found = ' + str(jobrow[0]))
@@ -279,7 +274,7 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
             # print(q_upd_job)
             #print(q_upd_job_args)
             engine.execute(q_upd_job, q_upd_job_args)
-            scr.write(q_upd_job + '\n');
+            scr.write(q_upd_job + '\n' + str(q_upd_job_args) + '\n');
             print("Update Second Job Record for " + fullname + ', id = '
                   + str(carthid))
             fn_write_log('Update Job Record for ' + fullname + ', id = '
