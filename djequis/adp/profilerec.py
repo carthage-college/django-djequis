@@ -126,12 +126,11 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
             # print(q_insert_prof_rec)
             # print(q_ins_prof_args)
             engine.execute(q_insert_prof_rec, q_ins_prof_args)
-            # scr.write(q_insert_prof_rec + '\n');
             fn_write_log("Inserted into profile_rec table values " + str(id)
                          + ", " + v_race + ", " + str(is_hispanic));
             # print("Inserted into profile_rec table values " + str(id) + ","
             # + v_race + ", " + str(is_hispanic))
-            scr.write(q_insert_prof_rec + '\n');
+            scr.write(q_insert_prof_rec + '\n' + str(q_ins_prof_args) + '\n')
         else:
             q_update_prof_rec = '''
                        UPDATE profile_rec SET sex = ?,
@@ -146,7 +145,7 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
             engine.execute(q_update_prof_rec, q_upd_prof_args)
             fn_write_log("Updated profile_rec table values " + str(id) + ","
                          + v_race + ", " + str(is_hispanic));
-            # scr.write(q_update_prof_rec + '\n');
+            scr.write(q_update_prof_rec + '\n' + str(q_upd_prof_args) + '\n')
 
         return 1
 
