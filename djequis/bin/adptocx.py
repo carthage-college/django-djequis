@@ -126,6 +126,7 @@ def file_download():
             # sftp.remove(filename)
     sftp.close()
 
+
 # write out the .sql file
 scr = open("apdtocx_output.sql", "a")
 
@@ -431,7 +432,7 @@ def main():
                     # print(cc_adp_args)
                     engine.execute(q_cc_adp_rec, cc_adp_args)
                     # ccadpcount =+ 1
-                    scr.write(q_cc_adp_rec+'\n');
+                    scr.write(q_cc_adp_rec + '\n' + str(cc_adp_args) + '\n');
                     fn_write_log("Inserted data into cc_adp_rec table for " + row["payroll_name"] + " ID = " + row["carth_id"]);
 
                     ccadpcount = ccadpcount + 1
