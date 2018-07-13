@@ -106,10 +106,10 @@ def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id, EARL):
               INSERT INTO cvid_rec (old_id, old_id_num, adp_id, ssn, cx_id, 
               cx_id_char, adp_associate_id) 
               VALUES (?,?,?,?,?,?,?)'''
-            args = (carthid, carthid, adpid, ssn, carthid, carthid, adp_assoc_id)
+            q_insert_cvid_args = (carthid, carthid, adpid, ssn, carthid, carthid, adp_assoc_id)
             # print(q_insert_cvid_rec)
-            engine.execute(q_insert_cvid_rec, args)
-            scr.write(q_insert_cvid_rec + '\n');
+            engine.execute(q_insert_cvid_rec, q_insert_cvid_args)
+            scr.write(q_insert_cvid_rec + '\n' + str(q_insert_cvid_args) + '\n')
             fn_write_log("Inserted into cvid_rec table, all cx ID fields = " +
                          str(v_cx_id) + ", ADP ID = " + str(adpid) +
                          ", Associate ID + " + adp_assoc_id)
@@ -126,14 +126,14 @@ def fn_process_cvid(carthid, adpid, ssn, adp_assoc_id, EARL):
               SET old_id = ?, old_id_num = ?, adp_id = ?, ssn = ?, 
               adp_associate_id = ? 
               WHERE cx_id = ?'''
-            args = (carthid, carthid, adpid, ssn, adp_assoc_id, carthid)
+            q_update_cvid_args = (carthid, carthid, adpid, ssn, adp_assoc_id, carthid)
             # print(q_update_cvid_rec)
             fn_write_log("Updated cvid_rec table, all cx id fields = " +
                          str(v_cx_id) + ", ADP ID = " + str(adpid) +
                          ", Associate ID = " + adp_assoc_id)
             # logger.info("Update cvid_rec table");
-            scr.write(q_update_cvid_rec + '\n');
-            engine.execute(q_update_cvid_rec, args)
+            scr.write(q_update_cvid_rec + '\n' + str(q_update_cvid_args) + '\n')
+            engine.execute(q_update_cvid_rec, q_update_cvid_args)
 
         return 1
 
