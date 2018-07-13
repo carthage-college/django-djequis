@@ -136,7 +136,7 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                             WHERE id = {0}
                                 '''.format(carth_id)
                 addr_result = do_sql(q_check_addr, key=DEBUG, earl=EARL)
-                scr.write(q_check_addr + '\n');
+                # scr.write(q_check_addr + '\n');
                 row = addr_result.fetchone()
                 if row is None:
                     fn_write_log("Data missing in idrec.py address function. \
@@ -179,7 +179,7 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                                  fullname + ", ID = " + str(carth_id) +
                                  " address = " + addr_line1)
                     engine.execute(q_update_id_rec_addr, q_update_id_addr_args)
-                    scr.write(q_update_id_rec_addr + '\n');
+                    scr.write(q_update_id_rec_addr + '\n' + str(q_update_id_addr_args) + '\n')
                     #########################################################
                     # Routine to deal with aa_rec
                     #########################################################
