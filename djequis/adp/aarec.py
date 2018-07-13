@@ -253,7 +253,7 @@ def fn_insert_aa(id, fullname, aa, addr1, addr2, addr3, cty, st, zp, ctry,
                                         zp, ctry, phone, "", "HR", "", "")
 
         engine.execute(q_insert_aa,q_ins_aa_args)
-        scr.write(q_insert_aa + '\n');
+        scr.write(q_insert_aa + '\n' + str(q_ins_aa_args));
         fn_write_log("Added " + addr1 + " to aa_rec for " + fullname + ", ID = " + str(id))
         # logger.info("Added archive address for " + fullname);
         # print(q_insert_aa)
@@ -287,7 +287,7 @@ def fn_update_aa(id, aa, aanum, fllname, add1, add2, add3, cty, st, zip, ctry,
                    ctry, fn_format_phone(phone), aanum)
     # logger.info("Updated address info in aa_rec table for " + fullname);
     fn_write_log("Updated " + add1 + " to aa_rec for " + fullname + ", ID = " + str(id))
-    scr.write(q_update_aa + '\n');
+    scr.write(q_update_aa + '\n' + str(q_upd_aa_args) + '\n');
     engine.execute(q_update_aa, q_upd_aa_args)
     #print(q_update_aa)
     #print(q_upd_aa_args)
@@ -309,7 +309,7 @@ def fn_end_date_aa(id, aa_num, fullname, enddate, aa, EARL):
         fn_write_log("Added end date to address to aa_rec for " + fullname +
                       ", ID = " + str(id) + " aa_num = " + str(aa))
         # logger.info("Log end date aa_rec for " + fullname);
-        scr.write(q_enddate_aa + '\n');
+        scr.write(q_enddate_aa + '\n' + str(q_enddate_aa_args) + '\n')
         # print(q_enddate_aa)
         # print(q_enddate_aa_args)
         print("end Date aa completed")
@@ -507,7 +507,7 @@ def fn_set_schl_rec(id, fullname, phone, ext, loc, room, EARL):
                 # logger.info("update address info in aa_rec table");
                 engine.execute(q_update_schl, q_upd_schl_args)
                 fn_write_log("Update to SCHL record in aa_rec for " + fullname)
-                scr.write(q_update_schl + '\n');
+                scr.write(q_update_schl + '\n' + str(q_upd_schl_args) + '\n')
                 #print(q_update_schl)
                 #print(q_upd_schl_args)
                 #print("update SCHL completed")
@@ -528,7 +528,7 @@ def fn_set_schl_rec(id, fullname, phone, ext, loc, room, EARL):
 
             engine.execute(q_insert_schl, q_ins_schl_args)
             fn_write_log("Insert SCHL into aa_rec table for " + fullname)
-            scr.write(q_insert_schl + '\n');
+            scr.write(q_insert_schl + '\n' + str(q_ins_schl_args) + '\n');
             #print("insert SCHL completed")
 
     except Exception as e:
