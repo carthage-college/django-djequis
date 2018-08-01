@@ -160,9 +160,8 @@ CROSSLIST = '''
     WHERE secmtg_rec.mtg_no = mtg_rec.mtg_no
     AND crs_rec.crs_no = secmtg_rec.crs_no
     AND crs_rec.cat = secmtg_rec.cat
-    AND (mtg_rec.yr = CASE WHEN TODAY < TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d') THEN YEAR(TODAY) ELSE YEAR(TODAY)-1 END
-    OR (mtg_rec.beg_date <= ADD_MONTHS(TODAY,6)
-    AND mtg_rec.beg_date >= ADD_MONTHS(TODAY,-1)))
+    AND (mtg_rec.beg_date <= ADD_MONTHS(today,6)
+    AND mtg_rec.end_date >= ADD_MONTHS(today,-3))
     GROUP BY secmtg_rec.mtg_no
     HAVING COUNT (secmtg_rec.mtg_no) > 1
     ORDER BY mtg_no
