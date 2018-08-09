@@ -178,7 +178,7 @@ def main():
             )
         csvfile.close()
         # renaming old filename to newfilename and move to archive location
-        shutil.move(filename, archive_destination)
+        shutil.copy(filename, archive_destination)
     if not test:
         file_download()
 
