@@ -4,42 +4,47 @@
 # Based on the dates for the terms courses and sections are made active
 # or inactive automatically.
 COURSES = '''
-    SELECT
-        TRIM(jenzccd_rec.title) Coursename,
-        TRIM(jenzdpt_rec.descr) Department,
-        TRIM(jenzcrs_rec.course_code) CourseCode,
-        jenzcrs_rec.hrs Credits,
-        TRIM(jenzccd_rec.title)||'-'||TRIM(jenzcrs_rec.sec)||' '|| CASE
-            WHEN TRIM(x) = TRIM(y) THEN x
+    SELECT 
+        TRIM(jenzccd_rec.title) Coursename, TRIM(jenzdpt_rec.descr) Department,
+        TRIM(jenzcrs_rec.course_code) CourseCode, jenzcrs_rec.hrs Credits, 
+        TRIM(jenzccd_rec.title)||'-'||TRIM(jenzcrs_rec.sec)||' '||TRIM(st.txt)||' '||secmtg_rec.yr||' '|| CASE
+            WHEN TRIM(x) = trim(y) THEN x
             ELSE  x||' / '||y
-        END descr,
-        TRIM(jenzcrs_rec.sec)||'-'||TRIM(InstrName)||' '|| CASE
-            WHEN TRIM(x) = TRIM(y) THEN x
+        END  descr,
+        TRIM(jenzcrs_rec.sec)||'-'||TRIM(InstrName)||' '||TRIM(st.txt)||' '||secmtg_rec.yr||' '|| CASE
+            WHEN trim(x) = trim(y) THEN x
             ELSE  x||' / '||y
-         END SectionName,
-        TRIM(jenzcrs_rec.coursekey) SecSchoolCode,
+         END SectionName, TRIM(jenzcrs_rec.coursekey) SecSchoolCode,
         LEFT(jenzcrs_rec.course_code,8)||'-'||TRIM(jenzcrs_rec.sec)||' '||TRIM(jenzcrs_rec.term_code) SectionCode,
             CASE
             WHEN trim(x) = trim(y) THEN x
             ELSE  x||' / '||y END AS SecDescr,
-        nvl(TRIM(bldg)||' '||TRIM(ROOM),'TBA') location,
+        NVL(TRIM(bldg)||' '||TRIM(ROOM),'TBA') location,
         'Carthage College' School,
         TRIM(jenzcrs_rec.term_code)||' '||Instructor.subsess GradingPeriod
-    FROM jenzcrs_rec
-    JOIN crs_rec ON TRIM(jenzcrs_rec.course_code) = TRIM(crs_rec.crs_no)||' ('||trim(crs_rec.cat)||')'
-    JOIN Jenzccd_rec ON Jenzccd_rec.course_code = jenzcrs_rec.course_code
-    JOIN jenztrm_rec ON jenztrm_rec.term_code = jenzcrs_rec.term_code
-    LEFT JOIN jenzdpt_rec ON jenzdpt_rec.dept_code = jenzccd_rec.dept_code
-    LEFT JOIN jenzsch_rec ON jenzsch_rec.term_code = jenzcrs_rec.term_code
+    FROM
+        jenzcrs_rec
+    JOIN
+        crs_rec ON TRIM(jenzcrs_rec.course_code) = TRIM(crs_rec.crs_no)||' ('||TRIM(crs_rec.cat)||')'
+    JOIN
+        Jenzccd_rec ON Jenzccd_rec.course_code = jenzcrs_rec.course_code
+    JOIN
+        jenztrm_rec ON jenztrm_rec.term_code = jenzcrs_rec.term_code
+    LEFT JOIN
+        jenzdpt_rec ON jenzdpt_rec.dept_code = jenzccd_rec.dept_code
+    LEFT JOIN
+        jenzsch_rec ON jenzsch_rec.term_code = jenzcrs_rec.term_code
         AND jenzsch_rec.sec = jenzcrs_rec.sec
         AND jenzsch_rec.course_code = jenzcrs_rec.course_code
-    JOIN secmtg_rec on secmtg_rec.crs_no = crs_rec.crs_no
+    JOIN
+        secmtg_rec ON secmtg_rec.crs_no = crs_rec.crs_no
         AND secmtg_rec.sec_no = jenzcrs_rec.sec
-        AND trim(secmtg_rec.sess) = left(jenzcrs_rec.term_code,2)
+        AND trim(secmtg_rec.sess) = LEFT(jenzcrs_rec.term_code,2)
         AND secmtg_rec.yr =  SUBSTRING(jenzcrs_rec.term_code FROM 4 FOR 4)
         AND secmtg_rec.cat = crs_rec.cat
     JOIN
-        (SELECT a.crs_no, a.sec_no, a.cat, a.yr, a.sess, a.subsess, c.lastname as InstrName, c.firstname, c.fullname, a.fac_id
+        (SELECT a.crs_no, a.sec_no, a.cat, a.yr, a.sess, a.subsess,
+        c.lastname AS InstrName, c.firstname, c.fullname, a.fac_id
         FROM sec_rec a, id_rec c
         WHERE c.id = a.fac_id) Instructor
         ON Instructor.sec_no = secmtg_rec.sec_no
@@ -47,17 +52,19 @@ COURSES = '''
         AND Instructor.cat = secmtg_rec.cat
         AND Instructor.yr = secmtg_rec.yr
         AND Instructor.sess = secmtg_rec.sess
+     JOIN sess_table st ON
+        st.sess = secmtg_rec.sess 
     LEFT JOIN
-        (SELECT b.crs_no, b.yr, b.sec_no, b.cat, b.sess, c.txt as BLDG, a.room AS ROOM,
-            a.mtg_no as MaxMtgNo,
-            MAX(trim(b.crs_no)||'-'||b.sec_no||'-'||nvl(TRIM(days)||' '||CAST(beg_tm AS int)||'-'||CAST(end_tm AS int),'------- 0-0')) AS x,
-            MIN(trim(b.crs_no)||'-'||b.sec_no||'-'||nvl(TRIM(days)||' '||CAST(beg_tm AS int)||'-'||CAST(end_tm AS int),'------- 0-0')) AS y
-            FROM secmtg_rec b
-            JOIN mtg_rec a on a.mtg_no = b.mtg_no
-            AND a.yr = b.yr
-            AND a.sess = b.sess
-            LEFT JOIN bldg_table c
-            ON c.bldg = a.bldg
+        (SELECT  b.crs_no, b.yr, b.sec_no, b.cat, b.sess, c.txt AS BLDG,
+        a.room AS ROOM, a.mtg_no as MaxMtgNo,
+        MAX(TRIM(b.crs_no)||'-'||b.sec_no||'-'||NVL(TRIM(DAYS)||' '||CAST(beg_tm AS INT)||'-'||CAST(end_tm AS INT),'------- 0-0')) AS x,
+        MIN(TRIM(b.crs_no)||'-'||b.sec_no||'-'||NVL(TRIM(DAYS)||' '||CAST(beg_tm AS INT)||'-'||CAST(end_tm AS INT),'------- 0-0')) AS y
+        FROM  secmtg_rec b
+        JOIN mtg_rec a ON a.mtg_no = b.mtg_no
+        AND a.yr = b.yr
+        AND a.sess = b.sess
+        LEFT JOIN bldg_table c
+        ON c.bldg = a.bldg
         GROUP BY b.crs_no, b.yr, b.sec_no, b.cat, b.sess, c.txt, a.room, a.mtg_no ) MeetPattern
         ON MeetPattern.crs_no = crs_rec.crs_no
         AND MeetPattern.yr = LEFT(jenzcrs_rec.coursekey,4)
@@ -66,9 +73,9 @@ COURSES = '''
         jenztrm_rec.start_date <= ADD_MONTHS(TODAY,6)
         AND 
         jenztrm_rec.start_date >= ADD_MONTHS(TODAY,-1)
-        AND right(trim(jenzcrs_rec.term_code),4) NOT IN ('PRDV','PARA','KUSD')
+        AND RIGHT(TRIM(jenzcrs_rec.term_code),4) NOT IN ('PRDV','PARA','KUSD')
         AND jenzccd_rec.title IS NOT NULL
-    ORDER BY jenzcrs_rec.course_code
+    ORDER BY jenzcrs_rec.course_code;
 '''
 # fetch users
 # Users are collected in a single query to get both Students and Faculty/Staff.
@@ -153,16 +160,57 @@ ENROLLMENT = '''
 # and place but may have a different course number for a program with a start date
 # less than six months from the current date.
 CROSSLIST = '''
-    SELECT secmtg_rec.mtg_no,
-        MIN(mtg_rec.yr||';'||TRIM(mtg_rec.sess)||';'||TRIM(secmtg_rec.crs_no)||';'||TRIM(secmtg_rec.sec_no)||';'||TRIM(secmtg_rec.cat)||';'||crs_rec.prog) AS crls_code,
-        MAX(mtg_rec.yr||';'||TRIM(mtg_rec.sess)||';'||TRIM(secmtg_rec.crs_no)||';'||TRIM(secmtg_rec.sec_no)||';'||TRIM(secmtg_rec.cat)||';'||crs_rec.prog) AS targ_code
-    FROM secmtg_rec, mtg_rec, crs_rec
-    WHERE secmtg_rec.mtg_no = mtg_rec.mtg_no
-    AND crs_rec.crs_no = secmtg_rec.crs_no
-    AND crs_rec.cat = secmtg_rec.cat
-    AND (mtg_rec.beg_date <= ADD_MONTHS(today,6)
-    AND mtg_rec.end_date >= ADD_MONTHS(today,-3))
-    GROUP BY secmtg_rec.mtg_no
-    HAVING COUNT (secmtg_rec.mtg_no) > 1
-    ORDER BY mtg_no
+    SELECT
+    q1.mtg_no,  q2.crls_code, q1.targ_code
+     --Important, the targ_code is the section that will be the master for the cross-listed sections.
+     --MUST NOT CHANGE the order or the load into schoology will undo previous loads.
+    FROM
+    (
+        --First part of query finds sections that share a meeting pattern
+        SELECT sr2.mtg_no,
+        MAX(mr2.yr||';'||TRIM(mr2.sess)||';'||TRIM(sr2.crs_no)||';'||TRIM(sr2.sec_no)||';'||TRIM(cr2.cat)||';'||cr2.prog) AS targ_code
+        FROM secmtg_rec sr2
+        INNER JOIN
+            (
+            SELECT mtg_no, sess, yr
+            FROM mtg_rec
+            WHERE (mtg_rec.beg_date <= ADD_MONTHS(today,6)
+            AND mtg_rec.end_date >= ADD_MONTHS(today,-3)) --Different date range FROM course and enrollments.
+            --Will not unlink courses til 3 months after end date
+            --after that, course should definitely be archived and removing the cross listing will have no effect on course materials
+            ) mr2
+            ON sr2.mtg_no = mr2.mtg_no
+        INNER JOIN
+            (SELECT prog, crs_no, cat
+            FROM crs_rec
+            ) cr2
+            ON cr2.crs_no = sr2.crs_no
+            AND cr2.cat = sr2.cat
+        GROUP BY sr2.mtg_no
+        HAVING COUNT(sr2.mtg_no) > 1
+    )
+     q1
+    INNER JOIN
+    --This portion finds any additional sections with the same meeting number as those found above
+    (
+        SELECT s.mtg_no, s.crs_no, mr.yr, mr.sess, cr.cat, cr.prog, s.sec_no,
+        mr.yr||';'||TRIM(mr.sess)||';'||TRIM(s.crs_no)||';'||TRIM(s.sec_no)||';'||TRIM(cr.cat)||';'||cr.prog as crls_code
+        FROM secmtg_rec s
+        INNER JOIN 
+            (
+            SELECT mtg_no, sess, yr
+            FROM mtg_rec
+            ) mr 
+            ON s.mtg_no = mr.mtg_no
+        INNER JOIN
+            (SELECT prog, crs_no, cat
+            FROM crs_rec
+            ) cr 
+            ON cr.crs_no = s.crs_no
+            AND cr.cat = s.cat 
+    )
+    q2
+    ON q1.mtg_no =  q2.mtg_no
+    AND q2.crls_code != q1.targ_code
+    ORDER BY q1.mtg_no
 '''
