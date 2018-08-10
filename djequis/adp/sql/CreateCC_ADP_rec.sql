@@ -101,7 +101,7 @@ CREATE TABLE cc_adp_rec (
     reports_to_position_id varchar(12),
     reports_to_associate_id varchar(12),
     employee_associate_id varchar(12),
-    date_stamp date
+    date_stamp datetime
 );
 CREATE INDEX cc_adp_carthage_id_index ON cc_adp_rec (carthage_id);
 CREATE INDEX cc_adp_fullname_index ON cc_adp_rec (fullname);
