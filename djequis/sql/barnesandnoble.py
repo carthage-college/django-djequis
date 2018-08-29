@@ -79,7 +79,7 @@ STU_ACAD_REC_100 = '''
                                                         ELSE 'Summer'
                         END AS ePullGrp,
                         CASE 
-                            WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('09/01/'|| TO_CHAR(acad_cal_rec.yr))
+                            WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('08/27/'|| TO_CHAR(acad_cal_rec.yr))
                             WHEN sess IN ("AG","AK","AM","GB","GC","RB","RC") THEN TRIM('01/01/' || TO_CHAR(acad_cal_rec.yr))
                             WHEN sess IN ("AS","AT","GE","RE") THEN TRIM('05/26/' || TO_CHAR(acad_cal_rec.yr))
                                                                ELSE TRIM('08/01/' || TO_CHAR(acad_cal_rec.yr))
@@ -155,7 +155,7 @@ STU_ACAD_REC_200 = '''
                                                         ELSE 'Summer'
                         END AS ePullGrp,
                         CASE 
-                            WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('09/01/'|| TO_CHAR(acad_cal_rec.yr))
+                            WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('08/27/'|| TO_CHAR(acad_cal_rec.yr))
                             WHEN sess IN ("AG","AK","AM","GB","GC","RB","RC") THEN TRIM('01/01/' || TO_CHAR(acad_cal_rec.yr))
                             WHEN sess IN ("AS","AT","GE","RE") THEN TRIM('05/26/' || TO_CHAR(acad_cal_rec.yr))
                                                                ELSE TRIM('08/01/' || TO_CHAR(acad_cal_rec.yr))
