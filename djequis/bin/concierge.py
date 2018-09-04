@@ -153,8 +153,8 @@ def main():
         if rows is not None:
             if key == 'STUDENTS':  # write header row for STUDENTS
                 output.writerow([
-                    "Student ID", "First Name", "Last Name", "Email",
-                    "Address", "City", "State", "Zip"
+                    "Unit Code", "First Name", "Last Name", "Email Address",
+                    "Cell Phone"
                 ])
             # creating the data rows for the .csv files
             for row in rows:
@@ -162,9 +162,8 @@ def main():
                     print(row)
                 if key == 'STUDENTS':  # write data row for STUDENTS
                     output.writerow([
-                        row["studentid"], row["firstname"], row["lastname"],
-                        row["emailaddress"], row["address"], row["city"],
-                        row["state"], row["zip"]
+                        row["unitcode"], row["firstname"], row["lastname"],
+                        row["emailaddress"], row["cellphone"]
                     ])
         else:
             SUBJECT = 'CONCIERGE UPLOAD failed'
