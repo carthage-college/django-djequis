@@ -1,7 +1,7 @@
 # django settings for script
 from django.conf import settings
 
-# from djequis.core.utils import sendmail
+from djequis.core.utils import sendmail
 from djzbar.utils.informix import get_engine
 
 # Imports for additional modules and functions written as part of this project
