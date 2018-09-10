@@ -7,7 +7,7 @@ from time import strftime
 # django settings for script
 from django.conf import settings
 
-# from djequis.core.utils import sendmail
+from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 
@@ -61,12 +61,12 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             print("Missing Job Title Code for " + last + "," + first
                   + " ID = "  + carthid)
             raise ValueError("Missing Job Title Code for " + last + ","
-                             + first + " ID = "  + carthid)
+                             + first + " ID = " + carthid)
         elif jobtitlecode == '':
             print("Missing Job Title Code for " + last + "," + first
                   + " ID = "  + carthid)
             raise ValueError("Missing Job Title Code for " + last + ","
-                             + first + " ID = "  + carthid)
+                             + first + " ID = " + carthid)
 
         # There is a supervisor flag in ADP.   But it may not be valid to use
         # for validation at this point.  Just note.
@@ -248,7 +248,9 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
 
         hrdepartment = fn_needs_upate(homedeptcode[:3], homedeptdescr,
                       "hrdept", "descr", "hrdept_table", "char", EARL)
+        #print("HR Dept Needs update = " + hrdepartment)
         if hrdepartment==None or hrdepartment=="" or len(hrdepartment)==0:
+            print("Insert Dept")
             # This query works 5/25/18
             q_ins_dept = '''
               INSERT INTO hrdept_table(hrdept, hrdiv, descr, 
@@ -257,21 +259,48 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             q_ins_dept_args = (homedeptcode[:3], businessunitcode[:4],
                                homedeptdescr,
                                datetime.now().strftime("%m/%d/%Y"),None)
+            print(q_ins_dept)
+            print(q_ins_dept_args)
             engine.execute(q_ins_dept, q_ins_dept_args)
             fn_write_log("Inserted into hrdept_table, code = " + homedeptcode[:3])
             scr.write(q_ins_dept + '\n' + str(q_ins_dept_args) + '\n');
         else:
-            if hrdepartment[1] !=  homedeptdescr:
+            print("Update Dept")
+            if hrdepartment[1] != homedeptdescr:
                 q_upd_dept = '''
                   UPDATE hrdept_table SET hrdiv = ?, descr = ?, 
                       beg_date = ? 
                   WHERE hrdept = ?'''
                 q_upd_dept_args = (businessunitcode[:4], homedeptdescr,
                                    datetime.now().strftime("%m/%d/%Y"), func_code)
+                print(q_upd_dept)
+                print(q_upd_dept_args)
                 engine.execute(q_upd_dept, q_upd_dept_args)
                 fn_write_log("Updated hrdept_table, code = " + homedeptcode[:3])
                 scr.write(q_upd_dept + '\n' + str(q_upd_dept_args) + '\n');
-
+            else:
+                # Need to make sure the department is linked to the division
+                q_check_dept_div = '''
+                 select hrdiv from hrdept_table where hrdept = {0}
+                 '''.format(homedeptcode[:3])
+                div_val = do_sql(q_check_dept_div, key=DEBUG, earl=EARL)
+                if div_val !=  businessunitcode[:4]:
+                    print("update dept/div relationship")
+                    q_upd_dept_div = '''
+                      UPDATE hrdept_table SET hrdiv = ?, descr = ?, 
+                          beg_date = ? 
+                      WHERE hrdept = ?'''
+                    q_upd_dept_div_args = (businessunitcode[:4], homedeptdescr,
+                                       datetime.now().strftime("%m/%d/%Y"),
+                                       func_code)
+                    print(q_upd_dept_div)
+                    print(q_upd_dept_div_args)
+                    engine.execute(q_upd_dept_div, q_upd_dept_div_args)
+                    fn_write_log(
+                        "Updated hrdept_table, code = " + homedeptcode[:3])
+                    scr.write(q_upd_dept_div + '\n' + str(q_upd_dept_div_args) + '\n');
+                else:
+                   print("Home Dept not updated " + homedeptdescr)
 
         ###############################################################
         # Use PCN Agg to find TPos FROM position rec
@@ -575,7 +604,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
 
     except Exception as e:
         print(e)
-        fn_write_error("Error in jobrec.py for " + Last + ", " + first
+        fn_write_error("Error in jobrec.py for " + last + ", " + first
                        + ", ID = " + carthid + " Error = " + e.message)
         return(0)
 ##########################################################
