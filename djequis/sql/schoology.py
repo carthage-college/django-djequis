@@ -89,7 +89,7 @@ COURSES = '''
 USERS = '''
     SELECT DISTINCT
         id_rec.firstname, addree_rec.alt_name preferred_first_name, id_rec.middlename, id_rec.lastname,
-        id_rec.title name_prefix, TRIM(jenzprs_rec.host_username) username,
+        '' name_prefix, TRIM(jenzprs_rec.host_username) username,
         TRIM(jenzprs_rec.e_mail) EMAIL, to_number(jenzprs_rec.host_id) UniqueID,
         CASE
             WHEN nvl(title1.hrpay, '') IN ('','DPW')
