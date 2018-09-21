@@ -3,6 +3,8 @@ from django.conf import settings
 
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import get_engine
+from djzbar.utils.informix import do_sql
+
 
 # Imports for additional modules and functions written as part of this project
 from djequis.adp.aarec import fn_archive_address
