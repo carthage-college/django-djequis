@@ -439,13 +439,16 @@ def fn_set_schl_rec(id, fullname, phone, ext, loc, room, EARL):
     try:
         sql_schl = do_sql(q_check_schl, earl=EARL)
         schl_result = sql_schl.fetchone()
-        #print(schl_result)
+        #print("result = " + str(schl_result))
+        #print("Location = " + str(loc))
+        #print("Room = " + str(room))
 
-        location = loc + " " + str(room)
+
+        location = str(loc) + " " + str(room)
 
         if schl_result is not None:
             if schl_result[4] == fullname and schl_result[5] == location \
-                    and schl_result[6] ==  phone and schl_result[7] == ext:
+                    and schl_result[6] == phone and schl_result[7] == ext:
                 return("No Change in SCHL in aa_rec")
             else:
                 q_update_schl = '''
@@ -478,6 +481,8 @@ def fn_set_schl_rec(id, fullname, phone, ext, loc, room, EARL):
             q_ins_schl_args = (id, "SCHL",  datetime.now().strftime("%m/%d/%Y"),
                 "N", "", fullname, "", location, "", "", "", "", phone, ext,
                 "HR", "", "")
+            #print(q_insert_schl)
+            #print(q_ins_schl_args)
 
             engine.execute(q_insert_schl, q_ins_schl_args)
             fn_write_log("Insert SCHL into aa_rec table for " + fullname)

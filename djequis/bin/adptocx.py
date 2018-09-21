@@ -51,6 +51,7 @@ from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_SANDBOX
 from djzbar.settings import INFORMIX_EARL_TEST
+
 from djzbar.settings import INFORMIX_EARL_PROD
 
 from djtools.fields import TODAY
@@ -675,7 +676,7 @@ def main():
                             # Check to see if one exists
                             # If not write new
                             # May include carthage work phone, ext,
-                            # builing code and room (LH 444)
+                            # building code and room (LH 444)
                             print("Begin Schl record process")
                             loc_code = {
                                 '1': 'LH',
@@ -689,9 +690,9 @@ def main():
                                 '15': 'SC',
                                 '16': 'TA'
                             }
-                            # print(str(loc_code))
+                            #print(str(loc_code))
                             loc = loc_code.get(row["location_code"])
-                            #print("loc = " + loc)
+                            #print("loc = " + str(loc))
 
                             fn_set_schl_rec(row["carth_id"], row["payroll_name"],
                                 "", "", loc, row["room_number"], EARL)
