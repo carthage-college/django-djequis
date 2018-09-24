@@ -38,6 +38,7 @@ from djequis.sql.schoology import COURSES
 from djequis.sql.schoology import USERS
 from djequis.sql.schoology import ENROLLMENT
 from djequis.sql.schoology import CROSSLIST
+from djequis.sql.schoology import CANCELLED_COURSES
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 from djzbar.settings import INFORMIX_EARL_TEST
@@ -127,6 +128,30 @@ def main():
         EARL = None
     # formatting date and time string 
     datetimestr = time.strftime("%Y%m%d%H%M%S")
+
+    # check to see if there are any cancelled courses 
+    sqlresult = do_sql(CANCELLED_COURSES, key=DEBUG, earl=EARL)
+    resultrow = sqlresult.fetchone()
+
+    # if the resultrow qry returns a row then we will create the courses cancelled list
+    if resultrow is not None:
+        allsqlresult = do_sql(CANCELLED_COURSES, key=DEBUG, earl=EARL)
+        # now get all rows for the cancelled courses
+        resulalltrows = allsqlresult.fetchall()
+        items = []
+        for row in resulalltrows:
+            items.append('COURSE: {0} - {1} {2} {3} {4}\n'
+                         .format(row[0], row[1], row[2], row[3], row[4]))
+        courses_table = ''.join(items)
+        # send email
+        SUBJECT = 'SCHOOLOGY - Cancelled Courses'
+        BODY = 'The following courses have been cancelled.\n\n{0}'.format(courses_table)
+        sendmail(
+            settings.SCHOOLOGY_MSG_EMAIL,settings.SCHOOLOGY_FROM_EMAIL,
+            BODY, SUBJECT
+        )
+    else:
+        print ('Do nothing!')
     # set dictionary
     sql_dict = {
         'COURSES': COURSES,
