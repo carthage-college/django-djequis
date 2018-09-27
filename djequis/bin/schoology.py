@@ -5,6 +5,7 @@ import csv
 import time
 import argparse
 import shutil
+import datetime
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -128,30 +129,36 @@ def main():
         EARL = None
     # formatting date and time string 
     datetimestr = time.strftime("%Y%m%d%H%M%S")
-
-    # check to see if there are any cancelled courses 
-    sqlresult = do_sql(CANCELLED_COURSES, key=DEBUG, earl=EARL)
-    resultrow = sqlresult.fetchone()
-
-    # if the resultrow qry returns a row then we will create the courses cancelled list
-    if resultrow is not None:
-        allsqlresult = do_sql(CANCELLED_COURSES, key=DEBUG, earl=EARL)
-        # now get all rows for the cancelled courses
-        resulalltrows = allsqlresult.fetchall()
-        items = []
-        for row in resulalltrows:
-            items.append('COURSE: {0} - {1} {2} {3} {4}\n'
-                         .format(row[0], row[1], row[2], row[3], row[4]))
-        courses_table = ''.join(items)
-        # send email
-        SUBJECT = 'SCHOOLOGY - Cancelled Courses'
-        BODY = 'The following courses have been cancelled.\n\n{0}'.format(courses_table)
-        sendmail(
-            settings.SCHOOLOGY_MSG_EMAIL,settings.SCHOOLOGY_FROM_EMAIL,
-            BODY, SUBJECT
-        )
+    # getting date and time string
+    dt = datetime.datetime.now()
+    # if it's after 12 PM then we will email if there any cancelled courses
+    if dt.hour > 12:
+        # check to see if there are any cancelled courses 
+        sqlresult = do_sql(CANCELLED_COURSES, key=DEBUG, earl=EARL)
+        resultrow = sqlresult.fetchone()
+    
+        # if the resultrow qry returns a row then we will create the courses cancelled list
+        if resultrow is not None:
+            allsqlresult = do_sql(CANCELLED_COURSES, key=DEBUG, earl=EARL)
+            # now get all rows for the cancelled courses
+            resulalltrows = allsqlresult.fetchall()
+            items = []
+            for row in resulalltrows:
+                items.append('COURSE: {0} - {1} {2} {3} {4}\n'
+                             .format(row[0], row[1], row[2], row[3], row[4]))
+            courses_table = ''.join(items)
+            # send email
+            SUBJECT = 'SCHOOLOGY - Cancelled Courses'
+            BODY = 'The following courses have been cancelled.\n\n{0}'.format(courses_table)
+            sendmail(
+                settings.SCHOOLOGY_MSG_EMAIL,settings.SCHOOLOGY_FROM_EMAIL,
+                BODY, SUBJECT
+            )
+        else:
+            print('Do nothing!')
     else:
-        print ('Do nothing!')
+        print('Do nothing!')
+
     # set dictionary
     sql_dict = {
         'COURSES': COURSES,
