@@ -6,13 +6,13 @@ def csv_gen(sqlresults, writer, test=False):
     headerdate = time.strftime('%Y%m%d')
     # if on command line --test is used then header will be printed
     if test:
-        header = ["File Name", "School OPEID", "File Date"]
+        #header = ["File Name", "School OPEID", "File Date"]
         # writes file header
-        writer.writerow(header)
+        #writer.writerow(header)
         # displays file header elements
-        header_detail = ("CCM", "00383900", headerdate)
+        #header_detail = ("CCM", "00383900", headerdate)
         # writes file header elements
-        writer.writerow(header_detail)
+        #writer.writerow(header_detail)
         # if on command line --test is used then loan header will be printed
         loan_header = [
             "School OPEID", "Academic Year", "Student SSN",
@@ -65,6 +65,10 @@ def csv_gen(sqlresults, writer, test=False):
         ]
         # writes loan header elements
         writer.writerow(loan_header)
+    # displays file header elements
+    header_detail = ("CCM", "00383900", headerdate)
+    # writes file header elements
+    writer.writerow(header_detail)
     #######################################################################
     # loops through maxaidcount to dynamically add file detail header for
     # loans. It will add as many extra loans as found in the max aid count
