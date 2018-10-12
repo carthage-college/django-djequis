@@ -19,24 +19,6 @@
     This page is for building CSV	 files for ascii-posting
     of credit card transactions into CX
 </h3>
-<!--
-<if not isDefined("FORM.method")>
-
-</if>
-<cfelseif FORM.method EQ "view_details">
-
-</if>
-
-<cfelseif FORM.method EQ "create_csv">
-</if>
-
- <cfelseif FORM.method EQ "download_csv">
- </if>
-
- <cfelseif FORM.method EQ "update_table">
- </if>
-
--->
 
 <!-- "objects" is a python list from "views.py" assigned from the queries to tcpayflow and djforms     -->
 <!-- How does it know which object to process?
@@ -44,39 +26,44 @@ In views.py, objects is associated to the queries PCE_TRANSACTIONS, and PSM_TRAN
 which then populate tcpayflow_results, djforms_results
 Those are, I think, put together by the "chain" command, which is essentially a union
 So for the second step, I would have to add a new variable for objects referencing another query
-How I pass a variable to it is another qeustion....
+How I pass a variable to it is another question....
 -->
+
 {% if objects|length > 0 %}
+
+<table cellpadding="1" cellspacing="0" border="0">
+    <col width="300">
+    <col width="150">
+    <col width="100">
+
+         <tr class="zebra0">
+           <th>Activity</th>
+           <th>ID</th>
+           <th>Count</th>
+           <th>Action</th>
+         </tr>
+
+         {% for obj in objects %}
+              <tr class="{% cycle 'zebra1' 'zebra0' %}">
+                   <td>{{obj.0}}</td>
+                   <td>{{obj.1}}</td>
+                   <td>{{obj.2}}</td>
+                  <td>
+                      <a href="{% url 'trustcommerce_details' activity=obj.1 %}">Details</a>
+                      {% csrf_token %}
+                   </td>
+              </tr>
+           {% endfor %}
+            <!--obj.aggregate(Sum({{obj.2}}))['column__sum']-->
+    </table>
     <p>
-        We have {{objects|length}} new credit card
-        transaction{{objects|length|pluralize}}.
+        We have {{objects|length}} group{{objects|length|pluralize}} with credit card activity.
     </p>
 
-    <table cellpadding="1" cellspacing="0" border="0">
-      <tr class="zebra0">
-        <th>Activity</th>
-        <th>Count</th>
-        <th></th>
-      </tr>
-      {% for o in objects %}
-        <tr class="{% cycle 'zebra1' 'zebra0' %}">
-            <td>{{o.0}}</td>
-            <td align="right">{{ forloop.counter }}</td>
-            <td>{{o.9}}</td>
-            <td>
-              <form name="get_activity_details" method="POST" action=".">
-                <input name="activity" value="{{o.0}}" type="hidden">
-                <input name="datasource" value="{{o.10}}" type="hidden">
-                <input name="method" value="view_details" type="hidden">
-                <input name="selWTCode" value="{{o.9}}" type="hidden">
-                <input name="submit" type="submit" value="View Details">
-              </form>
-            </td>
-        </tr>
-      {% endfor %}
-    </table>
 {% else %}
    <p>There are no app fee transactions to import.</p>
 {% endif %}
+
 </body>
+
 </html>
