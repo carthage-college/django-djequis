@@ -1,3 +1,6 @@
+from djequis.core.trustcommerce.views import *
+
+
 PCE_TRANSACTIONS = '''
     SELECT
         activities.name as activity,
@@ -19,9 +22,10 @@ PCE_TRANSACTIONS = '''
         transactions.result=0
     AND
         transactions.dateexported is null
-    ORDER BY
-        transactions.activityID
+    AND
+        transactions.activityID = {0}
 '''
+
 PCE_TRANSACTIONS_ACTIVITY = '''
     SELECT
         activities.name as activity,
@@ -46,11 +50,9 @@ PCE_TRANSACTIONS_ACTIVITY = '''
         transactions.result=0
     AND
         transactions.dateexported is null
-    AND
-        activities.name='{activity}'
-    ORDER BY
-        transactions.activityID
+
 '''
+
 PCE_TRANSACTIONS_CHECKED = '''
     SELECT
         activities.name as activity,
@@ -75,6 +77,8 @@ PCE_TRANSACTIONS_CHECKED = '''
     AND
         transactions.id in ({CheckedVal})
 '''
+
+
 PSM_TRANSACTIONS = '''
     SELECT
         processors_order.operator as activity,
@@ -98,9 +102,12 @@ PSM_TRANSACTIONS = '''
         export_date is null
     AND
         operator in ("DJSoccerCamp", "DJTinueEnrichmentReg")
-    ORDER BY
-        activityID
-'''
+    AND        
+        processors_activity.ID = {0}
+    '''
+
+
+
 PSM_TRANSACTIONS_ACTIVITIES = '''
     SELECT
         processors_order.operator as activity,
@@ -124,9 +131,9 @@ PSM_TRANSACTIONS_ACTIVITIES = '''
         processors_order.status="approved"
     AND
         processors_order.export_date is null
-    AND
-        processors_order.operator='{activity}'
 '''
+
+
 PSM_TRANSACTIONS_CHECKED = '''
     SELECT
         processors_order.operator as activity,
@@ -158,3 +165,36 @@ NEW_TRANSACTIONS = '''
     SELECT * FROM psm_transactions
     ORDER BY activity, datecreated
 '''
+
+PCE_SUMMARY = '''
+    SELECT activities.name as activity, transactions.activityID as id, 
+        count(activities.name) as activity_count
+    FROM `transactions`, `activities`
+    WHERE
+        transactions.activityID = activities.id
+    AND
+        transactions.result=0
+    AND
+        transactions.dateexported is null
+    GROUP BY activities.name, transactions.activityID
+'''
+
+PSM_SUMMARY = '''
+    SELECT
+        processors_order.operator as activity,
+        processors_activity.ID as activityID, count(processors_order.operator) as activity_count
+    FROM
+        `processors_order`, `processors_activity`
+    WHERE
+       processors_activity.name = processors_order.operator
+    AND
+        status="approved"
+    AND
+        export_date is null
+    AND
+        operator in ("DJSoccerCamp", "DJTinueEnrichmentReg")
+    GROUP BY
+        processors_order.operator, processors_activity.ID 
+'''
+
+
