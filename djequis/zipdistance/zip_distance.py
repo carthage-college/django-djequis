@@ -82,9 +82,11 @@ def main():
         # determines which database is being called from the command line
         # if database == 'cars':
         #     EARL = INFORMIX_EARL_PROD
-        # elif database == 'train':
-        #     EARL = INFORMIX_EARL_TEST
-        if database == 'sandbox':
+        if database == 'train':
+            #python zip_distance.py - -database = train - -test
+            EARL = INFORMIX_EARL_TEST
+        elif database == 'sandbox':
+            #python zip_distance.py - -database = sandbox - -test
             EARL = INFORMIX_EARL_SANDBOX
         else:
             # this will raise an error when we call get_engine()
@@ -99,8 +101,8 @@ def main():
         # approximate radius of earth in miles
         radius_earth = 3958.756
         # CarthZip = "53140"    # Not needed if not using API
-        carth_lat = 42.62233
-        carth_lng = -87.828699
+        carth_lat = 42.62208
+        carth_lng = -87.82498
 
         # def main():
 
@@ -113,20 +115,21 @@ def main():
         #      settings.ZIP_CSV_OUTPUT
         #  ))
         # with open('zip_code_database_abrv.csv', 'w', encoding = 'utf-8') as f:
-
-        with open('zip_code_database_abrv.csv', 'r') as f:
+        with open('Fed County to FIPS by County and State Abrv.csv', 'r') as f:
             d_reader = csv.DictReader(f, delimiter=',')
 
             for row in d_reader:
                 # print("zip = " + row["ZIP"])
-                # print("City = " + row["primary_city"])
+                # print("FIPS = " + row["CountyFIPS"])
                 # print("Lat = " + row["latitude"])
                 # print("Lon = " + row["longitude"])
-                zp = row["zip"]
+                zp = row["ZIP"]
 
-                if float(row["latitude"]) > 0 or float(row["longitude"]) > 0:
+                if (row["latitude"]) != '' and (row["longitude"]) != '' and \
+                        (float(row["latitude"]) != 0) and (float(row["longitude"]) != 0):
                     lat = row["latitude"]
                     lng = row["longitude"]
+                    fips = row["CountyFIPS"]
 
                     # Calculate distance using latitude and longitude
                     # Note radians must be converted to a positive number
@@ -148,8 +151,8 @@ def main():
                     # Do update..
                     # for each zip code in USPS csv file...
                     q_upd_zip = '''
-                        Update zip_table set latitude = ?, longitude = ?, 
-                        distance_to_carthage = ? 
+                        Update zip_table set latitude = ?, 
+                        longitude = ?, distance_to_carthage = ? 
                         where zip = ? 
                         '''
                     # and latitude is null and longitude is null
@@ -162,10 +165,29 @@ def main():
 
 
     except Exception as e:
-        # fn_write_error("Error in adptocx.py, Error = " + e.message)
-        print(e)
+        # fn_write_error("Error in zip_distance.py for zip, Error = " + e.message)
+        print(e.message)
         # finally:
         #     logging.shutdown()
+
+def fn_write_error(msg):
+    # create error file handler and set level to error
+    with open('zip_code_error.csv', 'w') as f:
+        f.write(msg)
+
+    # handler = logging.FileHandler(
+    #     '{0}zip_distance_error.log'.format(settings.LOG_FILEPATH))
+    # handler.setLevel(logging.ERROR)
+    # formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
+    #                               datefmt='%m/%d/%Y %I:%M:%S %p')
+    # handler.setFormatter(formatter)
+    # logger.addHandler(handler)
+    # logger.error(msg)
+    # handler.close()
+    # logger.removeHandler(handler)
+    # fn_clear_logger()
+    # return("Error logged")
+
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -187,24 +209,5 @@ if __name__ == "__main__":
 
     sys.exit(main())
 
-            #-------------------------------------------------------
-            #API Code --- Not using...
-            #-------------------------------------------------------
-            # format = "info.json"
-            # units = "degrees"
-            # distunits = "mile"
-            # distformat = "distance.json"
-            # APIKey = "VlJpwGdJucRtqBpnqNk6LYYj7ZrrLOmiEVRA3PgdWEfzxHA6orRR9UpWthrB71jM"
-            # APIKeyDist = "VlJpwGdJucRtqBpnqNk6LYYj7ZrrLOmiEVRA3PgdWEfzxHA6orRR9UpWthrB71jM"
-            # Get Request for  latitude and longitude
-            # http://www.zipcodeapi.com/rest/<api_key>/info.<format>/<zip_code>/<units>
-            # response = requests.get("http://www.zipcodeapi.com/rest/" + APIKey + "/" + #  format + "/" + zipcode + "/" + units )
-            # x = json.loads(response.content)
-            # print("Latitude = " + str(x['lat']))
-            # print("Longitude = " + str(x['lng']))
-            # # Get request for distance between two zips
-            # # http://www.zipcodeapi.com/rest/<api_key>/distance.<format>/<zip_code1<zip_code2>/<units>
-            # # response2 = requests.get"http://www.zipcodeapi.com/rest
-            # response2 = requests.get("http://www.zipcodeapi.com/rest/" + APIKey + "/" + distformat + "/" + CarthZip + "/" + zipcode + "/" + distunits)
-            # y = json.loads(response2.content)
-            # print("Distance from Carthage = " + str(y['distance']))
+
+
