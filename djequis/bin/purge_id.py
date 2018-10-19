@@ -4,8 +4,8 @@ import json
 import string
 import sys
 import csv
-import datetime
-import codecs
+# import datetime
+# import codecs
 import argparse
 from sqlalchemy import text
 import shutil
@@ -15,11 +15,11 @@ from math import sin, cos, sqrt, atan2, radians
 # from logging.handlers import SMTPHandler
 # from djtools.utils.logging import seperator
 
+
 from django.conf import settings
 from django.core.urlresolvers import reverse
 # import requests
 # import json
-from math import sin, cos, sqrt, atan2, radians
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -105,69 +105,81 @@ def main():
         q_get_pool = '''select cc_stage_merge_no, prim_id, sec_id, id1, id2, 
             fullname1, fullname2 from cc_stage_merge
             where analysis_status not like '%PURGE%'
-            and adm_review = 'PURGE'  '''
+            and adm_review = 'PURGE'
+            and sec_id = 1485439
+             order by fullname1'''
         sql_val = do_sql(q_get_pool, key=DEBUG, earl=EARL)
 
         if sql_val is not None:
             rows = sql_val.fetchall()
 
-            # Need to add some logic here to verify that the sec_id is
-            # really the duplicate marked for merge
-
             for row in rows:
-                # print(row[0])
+
                 purge_id = row[2]
                 stage_merge_number = row[0]
 
-                # ----------------------------------------------------
-                # Next go find the ID record
-                # ----------------------------------------------------
-                if purge_id is not None:
-                    q_get_id_rec = "select fullname, middlename, valid from id_rec " \
-                                 "where id = " + str(purge_id)
-                    # print(q_get_id_rec)
-                    sql_val2 = do_sql(q_get_id_rec, key=DEBUG, earl=EARL)
-
-                    if sql_val2 is not None:
-
-                        # ----------------------------------------------------
-                        # Next update the ID record
-                        # ----------------------------------------------------
-
+                # Verify that the sec_id is really the duplicate marked for
+                # purge
+                if (row[2] == row[4]) and (str(row[6])[:3] != 'DUP'):
+                    print("Sec ID " + str(row[4]) + ", " + str(row[6]) + " not marked as DUP")
+                elif (row[2] == row[3]) and (str(row[5])[:3] != 'DUP'):
+                    print("Sec ID " + str(row[3]) + ", " + str(row[5]) + " not marked as DUP")
+                else:
+                    # print(purge_id)
+                    # ----------------------------------------------------
+                    # Next go find the ID record
+                    # ----------------------------------------------------
+                    if purge_id is not None:
+                        q_get_id_rec = "select fullname, middlename, valid from id_rec " \
+                                     "where id = " + str(purge_id)
+                        # print(q_get_id_rec)
+                        sql_val2 = do_sql(q_get_id_rec, key=DEBUG, earl=EARL)
                         row2 = sql_val2.fetchone()
-                        # for row2 in rows2:
-                        print("Name = " + row2[0] + ", Valid = " + row2[2] )
 
-                        q_upd_id_rec = '''update id_rec set valid = ?,
-                            fullname = fullname[1, 24] | | '(PURGED)'
-                            where id = ?
-                                                '''
+                        if row2 is not None:
+                            # ----------------------------------------------------
+                            # Next update the ID record
+                            # ----------------------------------------------------
+                            # for row2 in rows2:
+                            print("Name = " + row2[0] + ", Valid = " + row2[2] )
+                            if str(row2[0]).find("PURGED") == -1:
+                                q_upd_id_rec = '''update id_rec set valid = ?,
+                                    fullname = fullname[1, 24]||'(PURGED)'
+                                    where id = ?
+                                                        '''
+                                q_upd_id_rec_args = ('N', purge_id)
+                                print(q_upd_id_rec)
+                                print(str(q_upd_id_rec_args))
+                                engine.execute(q_upd_id_rec, q_upd_id_rec_args)
 
-                        q_upd_id_rec_args = ('N', purge_id)
-                        # print(q_upd_id_rec)
-                        # print(str(q_upd_id_rec_args))
-                        # engine.execute(q_upd_id_rec, q_upd_id_rec_args)
+                                # ----------------------------------------------------
+                                # Next update the stage merge record
+                                # ----------------------------------------------------
 
-                        # ----------------------------------------------------
-                        # Next update the stage merge record
-                        # ----------------------------------------------------
+                                q_upd_stage = '''UPDATE cc_stage_merge
+                                    SET analysis_status = ?,
+                                    final_actn_date = TODAY
+                                    WHERE
+                                    cc_stage_merge_no = ?
+                                    and sec_id = ?
+                                                       '''
+                                q_upd_stage_args = ('PURGECOMPLETE', stage_merge_number,
+                                                     purge_id)
+                                print(q_upd_stage)
+                                print(str(q_upd_stage_args))
+                                engine.execute(q_upd_stage, q_upd_stage_args)
 
-                        q_upd_stage = '''UPDATE cc_stage_merge 
-                            SET analysis_status = ?,
-                            final_actn_date = TODAY
-                            WHERE
-                            cc_stage_merge_no = ?
-                            and sec_id = ?
-                                                '''
+                                print("ID " + str(purge_id) + ", " + row2[0] +
+                                      " Purged.")
+                            else:
+                                print("Second ID " + str(purge_id) + ", " +
+                                      row2[0] + " already purged")
+                        else:
+                            print("Second ID " + str(purge_id) + ", " +
+                                  row2[0] + " not in id_rec table")
 
-                        q_upd_stage_args = ('PURGECOMPLETE', stage_merge_number,
-                                             purge_id)
-                        print(q_upd_stage)
-                        print(str(q_upd_stage_args))
-                        # engine.execute(q_upd_stage, q_upd_stage_args)
-
-
-
+                    else:
+                        print("Null value for secondary ID - no primary chosen")
 
     except Exception as e:
         # fn_write_error("Error in zip_distance.py for zip, Error = " + e.message)
