@@ -130,23 +130,13 @@ def main():
         #         v_state = row[6]
         #         v_zip = row[7]
 
+        # Write the query results to a csv file that can be uploaded as batch
+        # The first item is unique id, so we need to use the Carthage ID
+        # so that we will have it on the return...
 
-                #---------------------------------------------------
-                # Write the data to a csv file
-                #---------------------------------------------------
-                # print(v_street + ", " + v_city + ", " + v_state + " " + v_zip)
 
-                # ----------------------------------------------------
-                # The url references the csv file and the return type
-                # ----------------------------------------------------
-                # https: // geocoding.geo.census.gov / geocoder / returntype / addressbatch
-                # url = https: // geocoding.geo.census.gov / geocoder / geographies / addressbatch?form
-                # https://geocoding.geo.census.gov/geocoder/geographies/addressbatch --output geocoderesult.csv
-                # Not sure how to specify the input file
-                # docs reference "curl --form addressFile=@localfile.csv --form benchmark=9"
 
-                # curl - -form addressFile = @localfile.csv --form benchmark = 9
-                # https: // geocoding.geo.census.gov / geocoder / locations / addressbatch - -output geocoderesult.csv
+
 
 
         # This seems to be the correct method, but it just returns a massive xml page
@@ -158,77 +148,70 @@ def main():
         # just a 404 error
         print r.status_code
         results = str(r.text)
-        # results = results.sub('"', '', results)
+        results = results.replace('"', '')
         results = results.split('\n')
         print(results)
         with open('geocodeOutput.csv', 'w') as geocodeOutput:
             w = csv.writer(geocodeOutput, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             w.writerows([c.strip() for c in r.split(',')] for r in results)
 
-
-
-        # geocode each spreadsheet
-        # def censusGeocode(file, output):
-        #     payload = {'benchmark': 'Public_AR_Current',
-        #                'vintage': 'Current_Current', }
-        #     files = {'addressFile': open(file)}
-        #     r = requests.post(url, files=files, data=payload)
-        #     results = str(r.text)
-        #     results = re.sub('"', '', results)
-        #     results = results.split('\n')
-        #     with open(output, 'w', newline='') as geocodeOutput:
-        #         w = csv.writer(geocodeOutput, delimiter=',')
-        #         w.writerows([c.strip() for c in r.split(',')] for r in results)
-        #
-        # censusGeocode('censusInput1.csv', 'censusOutput1.csv')
-        # censusGeocode('censusInput2.csv', 'censusOutput2.csv')
-
-
-
-        # curl --form addressFile=@tiger_50addresses_to_geocode.csv --form
-        # benchmark=Public_AR_Census2010 --form vintage=Census2010_Census2010
-        # http://geocoding.geo.census.gov/geocoder/geographies/addressbatch
-
+        with open('geocodeOutput.csv', 'r') as data:
+            read_csv = csv.reader(data, delimiter=',')
+            for row in read_csv:
+                print("ID = " + row[0])
+                print("Street = " + row[1])
+                print("City = " + row[2])
+                print("State = " + row[3])
+                print("Zip = " + row[4])
+                print("Match = " + row[5])
+                print("Match Type = " + row[6])
+                print("Corrected Street = " + row[7])
+                print("Corrected City = " + row[8])
+                print("Corrected State = " + row[9])
+                print("Zip = " + row[10])
+                print("Longitude = " + row[11])
+                print("Latitude = " + row[12])
+                print("Side = " + row[13])
+                print("FIPS State = " + row[14])
+                print("FIPS County = " + row[15])
 
                 # Return file is also a csv, so no JSON
                 # Loop through csv, update tables as needed
 
+                y_coordinate = row[12]
+                x_coordinate = row[11]
 
-                # print("Address = " + address)
-                # # print("State = " + str(state_abrv))
-                #
-                # state = ?
-                # print("State = " + str(state))
-                #
-                # county_code = ?
-                # print("County Code = " + str(county_code))
-                # county_name = ?
-                # print("County = " + str(county_name))
-                #
-                # y_coordinate = ?
-                # x_coordinate = ?
                 # print("Coordinates = " + str(x_coordinate) + ", " + str(y_coordinate))
 
                 # Calculate distance using latitude and longitude
                 # Note radians must be converted to a positive number
                 # Carthage latitude and longitude
-                # radius_earth = 3958.756
-                # lat1 = radians(42.62233)
-                # lng1 = radians(abs(-87.828699))
-                # lat2 = radians(float(y_coordinate))
-                # lng2 = radians(abs(float(x_coordinate)))
-                #
-                # dlon = lng2 - lng1
-                # dlat = lat2 - lat1
-                #
-                # a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
-                # c = 2 * atan2(sqrt(a), sqrt(1 - a))
-                #
-                # distance = radius_earth * c
-                # # print("Result rounded = " + "{:.0f}".format(distance))
-                # dist = float("{:.2f}".format(distance))
-                #
-                # print("Distance from Carthage = " + str(dist))
+                radius_earth = 3958.756
+                lat1 = radians(42.62233)
+                lng1 = radians(abs(-87.828699))
+                lat2 = radians(float(y_coordinate))
+                lng2 = radians(abs(float(x_coordinate)))
+
+                dlon = lng2 - lng1
+                dlat = lat2 - lat1
+
+                a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+                c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+                distance = radius_earth * c
+                # print("Result rounded = " + "{:.0f}".format(distance))
+                dist = float("{:.2f}".format(distance))
+
+                print("Distance from Carthage = " + str(dist))
+
+
+                # Finally, update the particular CX tables
+                # Update profile rec set ...
+                # This creates a new problem in that the return file is no
+                # longer associated to a person's ID number
+                # How then do we make the match?
+
+
 
 
     except Exception as e:
