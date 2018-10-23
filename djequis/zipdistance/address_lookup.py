@@ -133,12 +133,11 @@ def main():
                 else:
                     # print("State from address components...")
                     address = x['result']['addressMatches'][0]['matchedAddress']
+                    city = x['result']['addressMatches'][0]['addressComponents']['city']
                     state_abrv = x['result']['addressMatches'][0]['addressComponents']['state']
                     zip = x['result']['addressMatches'][0]['addressComponents']['zip']
 
-                    # print("Address = " + address)
-                    # print("State = " + str(state_abrv))
-                    # print("Zip = " + str(zip))
+                    print( address + ", " + city + ", " +  state_abrv + ", " + str(zip))
 
                     # # Cannot drill down to lower levels with all addresses
                     # # Some JSON components are empty in some cases
@@ -175,7 +174,7 @@ def main():
                     dist = float("{:.2f}".format(distance))
 
                     print("Distance from Carthage = " + str(dist))
-                
+
     except Exception as e:
         # fn_write_error("Error in zip_distance.py for zip, Error = " + e.message)
         print("Error in address_lookup.py - Error = " + str(e.message))
