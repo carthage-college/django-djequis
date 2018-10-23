@@ -77,6 +77,9 @@ parser.add_argument(
     dest="database"
 )
 
+# This code accesses the US Census Geocoding API to return geographical data
+# for an address
+# It returns Latitude, longitude, FIPS state and county codes
 
 def main():
     try:
@@ -124,51 +127,58 @@ def main():
 
                 response = requests.get(url)
                 x = json.loads(response.content)
+                # rtn = x['result'][0]
+                if not x['result']['addressMatches']:
+                    print("No Data")
+                else:
+                    # print("State from address components...")
+                    address = x['result']['addressMatches'][0]['matchedAddress']
+                    state_abrv = x['result']['addressMatches'][0]['addressComponents']['state']
+                    zip = x['result']['addressMatches'][0]['addressComponents']['zip']
 
-                # print("State from address components...")
-                state_abrv = x['result']['addressMatches'][0]['addressComponents']['state']
-                address = x['result']['addressMatches'][0]['matchedAddress']
+                    # print("Address = " + address)
+                    # print("State = " + str(state_abrv))
+                    # print("Zip = " + str(zip))
 
-                print("Address = " + address)
-                # print("State = " + str(state_abrv))
+                    # # Cannot drill down to lower levels with all addresses
+                    # # Some JSON components are empty in some cases
+                    # state = x['result']['addressMatches'][1]['geographies']['States'][0]['NAME']
+                    # print("State = " + str(state))
+                    # county_code = x['result']['addressMatches'][1]['geographies']['Counties'][0]['COUNTY']
+                    # print("County Code = " + str(county_code))
+                    # county_name = x['result']['addressMatches'][1]['geographies']['Counties'][0]['NAME']
+                    # print("County = " + str(county_name))
+                    # state_code = x['result']['addressMatches'][1]['geographies']['Counties'][0]['STATE']
+                    # print("State FIPS = " + str(state_code))
 
-                state = x['result']['addressMatches'][1]['geographies']['States'][0]['NAME']
-                print("State = " + str(state))
+                    y_coordinate = x['result']['addressMatches'][1]['coordinates']['y']
+                    x_coordinate = x['result']['addressMatches'][1]['coordinates']['x']
+                    # print("Coordinates = " + str(x_coordinate) + ", " + str(y_coordinate))
 
-                county_code = x['result']['addressMatches'][1]['geographies']['Counties'][0]['COUNTY']
-                print("County Code = " + str(county_code))
-                county_name = x['result']['addressMatches'][1]['geographies']['Counties'][0]['NAME']
-                print("County = " + str(county_name))
+                    # Calculate distance using latitude and longitude
+                    # Note radians must be converted to a positive number
+                    # Carthage latitude and longitude
+                    radius_earth = 3958.756
+                    lat1 = radians(42.62233)
+                    lng1 = radians(abs(-87.828699))
+                    lat2 = radians(float(y_coordinate))
+                    lng2 = radians(abs(float(x_coordinate)))
 
-                y_coordinate = x['result']['addressMatches'][1]['coordinates']['y']
-                x_coordinate = x['result']['addressMatches'][1]['coordinates']['x']
-                print("Coordinates = " + str(x_coordinate) + ", " + str(y_coordinate))
+                    dlon = lng2 - lng1
+                    dlat = lat2 - lat1
 
-                # Calculate distance using latitude and longitude
-                # Note radians must be converted to a positive number
-                # Carthage latitude and longitude
-                radius_earth = 3958.756
-                lat1 = radians(42.62233)
-                lng1 = radians(abs(-87.828699))
-                lat2 = radians(float(y_coordinate))
-                lng2 = radians(abs(float(x_coordinate)))
+                    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+                    c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
-                dlon = lng2 - lng1
-                dlat = lat2 - lat1
+                    distance = radius_earth * c
+                    # print("Result rounded = " + "{:.0f}".format(distance))
+                    dist = float("{:.2f}".format(distance))
 
-                a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
-                c = 2 * atan2(sqrt(a), sqrt(1 - a))
-
-                distance = radius_earth * c
-                # print("Result rounded = " + "{:.0f}".format(distance))
-                dist = float("{:.2f}".format(distance))
-
-                print("Distance from Carthage = " + str(dist))
-
-
+                    print("Distance from Carthage = " + str(dist))
+                
     except Exception as e:
         # fn_write_error("Error in zip_distance.py for zip, Error = " + e.message)
-        print(e.message)
+        print("Error in address_lookup.py - Error = " + str(e.message))
         # finally:
         #     logging.shutdown()
 
