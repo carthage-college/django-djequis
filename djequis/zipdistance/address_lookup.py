@@ -102,11 +102,12 @@ def main():
         # establish database connection
         engine = get_engine(EARL)
 
-        searchval = "Winthrop Harbor"
+        searchval = 1381269
 
         qval_sql = "select id, fullname, addr_line1, addr_line2, addr_line3, " \
-                   "city, st, zip from id_rec where city = '" \
-                   + str(searchval) + "'"
+                   "city, st, zip from id_rec where id = " \
+                   + str(searchval)
+        # print qval_sql
 
         sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
 
@@ -114,44 +115,66 @@ def main():
             rows = sql_val.fetchall()
 
             for row in rows:
-                # response2 = requests.get("http://www.zipcodeapi.com/rest/" + APIKey + "/"
-                # + distformat + "/" + CarthZip + "/" + zipcode + "/" + distunits)
                 v_street = row[2]
                 v_city = row[5]
                 v_state = row[6]
                 v_zip = row[7]
 
+
                 url = "https://geocoding.geo.census.gov/geocoder/geographies/address?street=" \
                       + v_street + "&city=" + v_city + "&state=" + v_state + "&ZIP=" + v_zip + \
-                      "&benchmark=Public_AR_Current&vintage=Current_Current&layers=14&format=json"
+                      "&benchmark=Public_AR_Current&vintage=Current_Current&format=json"
+
+                # Versopm with "layers=14" is bad!!!!  Does not return consitent format
+                # url = "https://geocoding.geo.census.gov/geocoder/geographies/address?street=" \
+                #       + v_street + "&city=" + v_city + "&state=" + v_state + "&ZIP=" + v_zip + \
+                #       "&benchmark=Public_AR_Current&vintage=Current_Current&layers=14&format=json"
 
                 response = requests.get(url)
                 x = json.loads(response.content)
                 # rtn = x['result'][0]
+
                 if not x['result']['addressMatches']:
-                    print("No Data")
+                    print("No match")
                 else:
                     # print("State from address components...")
                     address = x['result']['addressMatches'][0]['matchedAddress']
                     city = x['result']['addressMatches'][0]['addressComponents']['city']
                     state_abrv = x['result']['addressMatches'][0]['addressComponents']['state']
                     zip = x['result']['addressMatches'][0]['addressComponents']['zip']
+                    streetName = x['result']['addressMatches'][0]['addressComponents']['streetName']
+                    preQualifier = x['result']['addressMatches'][0]['addressComponents']['preQualifier']
+                    preDirection = x['result']['addressMatches'][0]['addressComponents']['preDirection']
+                    preType = x['result']['addressMatches'][0]['addressComponents']['preType']
+                    suffixType = x['result']['addressMatches'][0]['addressComponents']['suffixType']
+                    suffixDirection = x['result']['addressMatches'][0]['addressComponents']['suffixDirection']
+                    suffixQualifier = x['result']['addressMatches'][0]['addressComponents']['suffixQualifier']
 
-                    print( address + ", " + city + ", " +  state_abrv + ", " + str(zip))
+                    print(address)
 
-                    # # Cannot drill down to lower levels with all addresses
-                    # # Some JSON components are empty in some cases
-                    # state = x['result']['addressMatches'][1]['geographies']['States'][0]['NAME']
-                    # print("State = " + str(state))
-                    # county_code = x['result']['addressMatches'][1]['geographies']['Counties'][0]['COUNTY']
-                    # print("County Code = " + str(county_code))
-                    # county_name = x['result']['addressMatches'][1]['geographies']['Counties'][0]['NAME']
-                    # print("County = " + str(county_name))
-                    # state_code = x['result']['addressMatches'][1]['geographies']['Counties'][0]['STATE']
-                    # print("State FIPS = " + str(state_code))
+                    y_coordinate = x['result']['addressMatches'][0]['coordinates']['y']
+                    x_coordinate = x['result']['addressMatches'][0]['coordinates']['x']
 
-                    y_coordinate = x['result']['addressMatches'][1]['coordinates']['y']
-                    x_coordinate = x['result']['addressMatches'][1]['coordinates']['x']
+                    # if not x['result']['addressMatches'][0]['geographies']['Unified School Districts']:
+                    if not x['result']['addressMatches'][0]['geographies']['Counties']:
+                        print('No county detail data')
+                    else:
+                        print('Found County Info')
+                        county_code = x['result']['addressMatches'][0]['geographies']['Counties'][0]['COUNTY']
+                        print("County Code = " + str(county_code))
+                        county_name = x['result']['addressMatches'][0]['geographies']['Counties'][0]['NAME']
+                        print("County = " + str(county_name))
+                        state_code = x['result']['addressMatches'][0]['geographies']['Counties'][0]['STATE']
+                        print("State FIPS = " + str(state_code))
+
+                    if not x['result']['addressMatches'][0]['geographies']['States']:
+                        print('No state detail data')
+                    else:
+                        print('Found State Info')
+                        state = x['result']['addressMatches'][0]['geographies']['States'][0]['NAME']
+                        print("State = " + str(state))
+
+
                     # print("Coordinates = " + str(x_coordinate) + ", " + str(y_coordinate))
 
                     # Calculate distance using latitude and longitude
