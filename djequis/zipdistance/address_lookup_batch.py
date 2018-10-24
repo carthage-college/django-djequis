@@ -76,15 +76,9 @@ parser.add_argument(
     dest="database"
 )
 
-# There are two possible methods for dealing with updating the county codes
-# One is a record at a time
-# The other is by batch, 1000 records maximum, using a csv file
-# The latter would need to loop through the records, write to the csv file
-# in the format "Unique ID, Street address, City, State, ZIP"
-# It would also need to count and if the number of records exceeds 1000,
-# create a second csv file
-# The latter, batch method, may not return all the fields we need.
-# It does include Latitude, longitude, FIPS state and county codes
+# This code accesses the US Census Bureau API to get geographic data by address
+# It takes a csv file as a batch upload and returns a csv file with the data
+# Return includes Latitude, longitude, FIPS state and county codes
 
 def main():
     try:
@@ -109,7 +103,8 @@ def main():
 
 
         #-------------------------------------------------------
-        # Read in records first.
+        # Read in records first.  Assumes ID rec has a corresponding record
+        # in Profile Rec
         #-------------------------------------------------------
 
         if os.path.exists("Addresses1.csv"):
@@ -117,7 +112,7 @@ def main():
         else:
             print("The file does not exist")
 
-        searchval = '190500'
+        searchval = '1333382'
 
         qval_sql = "select id, fullname, addr_line1, addr_line2, addr_line3, " \
                    "city, st, zip from id_rec where id = '" \
@@ -128,6 +123,13 @@ def main():
         endline = ''
         if sql_val is not None:
             rows = sql_val.fetchall()
+
+            # -------------------------------------------------------
+            # Write the query results to a csv file that can be uploaded as
+            # batch
+            # The first item is unique id, so we need to use the Carthage ID
+            # so that we will have it on the return...
+            # -------------------------------------------------------
 
             for row_no, row in enumerate(rows):
                 x = len(row)
@@ -142,11 +144,6 @@ def main():
                 # print("ID = " + str(v_id) + "|")
                 # print("Row Number = " + str(row_no + 1))
 
-                # -------------------------------------------------------
-                # Write the query results to a csv file that can be uploaded as batch
-                # The first item is unique id, so we need to use the Carthage ID
-                # so that we will have it on the return...
-                # -------------------------------------------------------
                 if str(v_id) == "":
                     print("Blank line")
                 else:
@@ -163,7 +160,7 @@ def main():
         url = 'https://geocoding.geo.census.gov/geocoder/geographies/addressbatch?form'
         payload = {'benchmark': 'Public_AR_Current',
                    'vintage': 'Current_Current'}
-        files = {'addressFile': ('Addresses1.csv', open('Addresses1.csv', 'rb'), 'text/csv')}
+        files = {'addressFile': ('Addresses.csv', open('Addresses.csv', 'rb'), 'text/csv')}
         r = requests.post(url, files=files, data=payload)
 
         results = str(r.text)
@@ -171,21 +168,35 @@ def main():
         results = results.split('\n')
         # print(results)
         with open('geocodeOutput.csv', 'w') as geocodeOutput:
-            w = csv.writer(geocodeOutput, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            w = csv.writer(geocodeOutput, delimiter=',', quotechar='"',
+                           quoting=csv.QUOTE_MINIMAL)
             w.writerows([c.strip() for c in r.split(',')] for r in results)
+
+        # -------------------------------------------------------
+        # Read the return Census CSV for update of our data
+        # -------------------------------------------------------
+
 
         with open('geocodeOutput.csv', 'r') as data:
             read_csv = csv.reader(data, delimiter=',')
             for row_count, row in enumerate(read_csv):
-                # print("Row count = " + str(row_count + 1))
+                print("\n" + "Row count = " + str(row_count + 1))
+                print("ID = " + row[0])
                 if row[0] == '':
-                    print("NO Record")
+                    # could essentially do nothing
+                    print("NO Record at row " + str(row_count + 1))
                 elif row[5] == 'No_Match':
-                    print("No Match")
-                else:
-                    print("ID = " + row[0])
                     print("Match = " + row[5])
-                    print("Match Type = " + row[6])
+                    original_address = row[1] + ", " + row[2] + ", " + row[3] + ", " + row[4]
+                    print("Original Address = " + original_address)
+                elif row[6] == "Non_Exact":
+                    print("Match = " + row[5] + " " + row[6])
+                    original_address = row[1] + ", " + row[2] + ", " + row[3] + ", " + row[4]
+                    print("Original Address = " + original_address)
+                    correct_address = row[7] + ", " + row[8] + ", " + row[9] + ", " + row[10]
+                    print("Partial Match = " + correct_address)
+                else:
+                    print("Match = " + row[5] + " " + row[6])
                     original_address = row[1] + ", " + row[2] + ", " + row[3] + ", " + row[4]
                     print(original_address)
                     correct_address = row[7] + ", " + row[8] + ", " + row[9] + ", " + row[10]
@@ -200,8 +211,6 @@ def main():
 
                     y_coordinate = row[12]
                     x_coordinate = row[11]
-
-                    # print("Coordinates = " + str(x_coordinate) + ", " + str(y_coordinate))
 
                     # Calculate distance using latitude and longitude
                     # Note radians must be converted to a positive number
@@ -229,10 +238,12 @@ def main():
                     # -------------------------------------------------------
                     profile_sql = "UPDATE profile_rec SET res_st = ?, res_cty = ? WHERE id = ?"
                     profile_args = (str(row[15]), str(row[16]), row[0])
-                    print(profile_sql, profile_args)
+                    # print(profile_sql, profile_args)
                     engine.execute(profile_sql, profile_args)
 
-
+                    # Question remains as to what else we will update
+                    # Will we correct address in ID rec?
+                    # Do we care about addresses in AA rec for this purpose?
 
 
     except Exception as e:
