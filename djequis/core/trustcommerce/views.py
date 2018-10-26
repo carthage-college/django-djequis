@@ -25,12 +25,35 @@ from operator import attrgetter, itemgetter
 #                   datetime.now().strftime("%m/%d/%Y"))
 # engine.execute(q_ins_div, q_ins_div_args)
 
+def download(request):
+    tcpayflow = connections['tcpayflow'].cursor()
+    djforms = connections['djforms'].cursor()
+
+    tcpayflow.execute(PCE_SUMMARY)
+    tcpayflow_summary = tcpayflow.fetchall()
+    djforms.execute(PSM_SUMMARY)
+    djforms_summary = djforms.fetchall()
+
+    objects = sorted(
+        chain(tcpayflow_summary, djforms_summary),
+        key=lambda instance: instance[2]
+        # key=attrgetter('datecreated')
+    )
+    return render(
+        request, 'core/trustcommerce/download.html',
+        {'objects': objects, }
+    )
+
+
+
+
+
 def details(request, activity):
     tcpayflow = connections['tcpayflow'].cursor()
     djforms = connections['djforms'].cursor()
-    tcpayflow.execute(PCE_TRANSACTIONS.format(activity))
+    tcpayflow.execute(PCE_TRANSACTIONS_ACTIVITY.format(activity))
     tcpayflow_results = tcpayflow.fetchall()
-    djforms.execute(PSM_TRANSACTIONS.format(activity))
+    djforms.execute(PSM_TRANSACTIONS_ACTIVITY.format(activity))
     djforms_results = djforms.fetchall()
     objects = sorted(
         chain(tcpayflow_results, djforms_results),
