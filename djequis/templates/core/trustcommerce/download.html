@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+
+<head>
+   <title>TrustCommerce import tool</title>
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+   <meta http-equiv="Content-Language" content="en-us" />
+   <meta name="MSSmartTagsPreventParsing" content="true" />
+    <style type="text/css">
+       p.note {color:#555;}
+        td {vertical-align:top; padding:10px 5px;}
+       td, th {vertical-align:top; padding:10px 5px;}
+       th {text-align:left;}
+        .zebra1 {}
+        .zebra0 {background:#eeeeee;}
+    </style>
+</head>
+<body>
+<h3>
+ This is now the Download page
+</h3>
+
+<!-- "objects" is a python list from "views.py" assigned from the queries to tcpayflow and djforms
+In views.py, objects is associated to the queries PCE_TRANSACTIONS, and PSM_TRANSACTIONS
+which then populate tcpayflow_results, djforms_results
+Those are, I think, put together by the "chain" command, which is essentially a union
+So for the second step, I would have to add a new variable for objects referencing another query
+How I pass a variable to it is another question....
+-->
+<table cellpadding="1" cellspacing="0" border="0">
+
+        <td>Record = {{value}}</td>
+        <td>Activity = {{activity}}</td>
+
+</table>
+
+<!--{% if objects|length > 0 %}-->
+
+    <!--<table cellpadding="1" cellspacing="0" border="0">-->
+    <!--&lt;!&ndash;<col width="300">&ndash;&gt;-->
+    <!--&lt;!&ndash;<col width="150">&ndash;&gt;-->
+    <!--&lt;!&ndash;<col width="100">&ndash;&gt;-->
+
+        <!--{% for obj in objects %}-->
+        <!--<tr>-->
+            <!--<td>Activity {{obj.0}}</td>-->
+            <!--<td>ID {{obj.1}}</td>-->
+            <!--<td>Record {{obj.2}}</td>-->
+            <!--<td>Account {{obj.3}}</td>-->
+            <!--<td>Amt {{obj.4}}</td>-->
+            <!--<td>Cmt 1 {{obj.5}}</td>-->
+            <!--<td>StuID {{obj.6}}</td>-->
+            <!--<td>Date {{obj.7}}</td>-->
+            <!--<td>Name {{obj.8}}</td>-->
+            <!--<td>Result {{obj.9}}</td>-->
+            <!--<td>Pnref {{obj.10}}</td>-->
+            <!--<td>WTCode {{obj.11}}</td>-->
+            <!--<td>Subsidiary {{obj.12}}</td>-->
+            <!--<td>SelWTCode {{obj.13}}</td>-->
+            <!--<td>CCNum {{obj.14}}</td>-->
+            <!--<td>Datasource {{obj.15}}</td>-->
+        <!--</tr>-->
+    <!--</table>-->
+    <table>
+                <!--If enrichment -->
+                {% if activity == '1' %}
+                <tr><td>Enrichment: Date Created, Activity, Account, Amount, Student ID, Subsidiary, Webtranscode, Term</td> </tr>
+                <tr><td>{{obj.7}}, {{obj.1}}, {{obj.3}}, {{obj.4}}, {{obj.6}}, {{obj.12}}, {{obj.13}}, Term</td> </tr>
+                <!--If parking permit -->
+                {% elif activity == '2' %}
+                <tr><td>Parking School Year: Date Created, Activity, Account, Amount, Student ID, Prefall, Webtanscode, Term, Subsidiary</td> </tr>
+                <tr><td>{{obj.7}}, {{obj.1}}, {{obj.3}}, {{obj.4}}, {{obj.6}}, PREFALL, {{obj.13}}, Term, {{obj.12}}</td> </tr>
+                <tr><td>Parking Pre Fall: Date Created, Activity, Account, Amount, Student ID, Prefall  >, Subsidiary</td> </tr>
+                <tr><td>{{obj.7}}, {{obj.1}}, {{obj.3}}, {{obj.4}}, {{obj.6}}, PREFALL, {{obj.13}}, Term</td> </tr>
+                <tr><td>Prefall goes to different account</td> </tr>
+                <!--If Admissions -->
+                {% elif activity == '15' %}
+                <tr><td>Adult Admissions: Date Created, Activity, Account, Amount</td> </tr>
+                <!--If Adult Applications -->
+                {% elif activity == '15' %}
+                <tr><td>Adult Applicationss: Date Created, Activity, Account, Amount</td> </tr>
+                <!--If Undergrad Deposits -->
+                {% elif activity == '19' %}
+                <tr><td>Undergrad Deposits: Date Created, Activity, Account, Amount, Student ID>, Subsidiary</td> </tr>
+                <!--If soccer camp -->
+                {% elif activity == '21' %}
+                <tr><td>Soccer PreCamp: Date Created, Activity, Account, Amount</td> </tr>
+                <tr><td>Soccer Camp: Date Created, Activity, Account, SHAccount, Amount</td> </tr>
+                <!--BDI -->
+                {% elif activity == '22' %}
+                <tr><td>BDI: Date Created, Activity, Account, Amount</td> </tr>
+    </table>
+
+            {% endif %}
+        {% endfor %}
+    <tr><td><input name="submit" type="submit" value="Submit"></td></tr>
+
+
+
+         <!--{% for obj in objects %}-->
+              <!--<tr class="{% cycle 'zebra1' 'zebra0' %}">-->
+                   <!--<td>{{obj.0}}</td>-->
+                   <!--<td>{{obj.1}}</td>-->
+                   <!--<td>{{obj.2}}</td>-->
+                  <!--<td>-->
+                      <!--TESTING-->
+                      <!--{% csrf_token %}-->
+                   <!--</td>-->
+              <!--</tr>-->
+           <!--{% endfor %}-->
+            <!--&lt;!&ndash;obj.aggregate(Sum({{obj.2}}))['column__sum']&ndash;&gt;-->
+
+    <!--<p>-->
+        <!--We have {{objects|length}} group{{objects|length|pluralize}} with credit card activity.-->
+    <!--</p>-->
+
+<!--{% else %}-->
+   <!--<p>There are no app fee transactions to import.</p>-->
+<!--{% endif %}-->
+
+</body>
+
+</html>
