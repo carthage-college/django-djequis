@@ -43,12 +43,13 @@ How I pass a variable to it is another question....
          </tr>
 
          {% for obj in objects %}
+
+
               <tr class="{% cycle 'zebra1' 'zebra0' %}">
                    <td>{{obj.0}}</td>
                    <td>{{obj.1}}</td>
                    <td>{{obj.2}}</td>
-                  <td>
-                      <a href="{% url 'trustcommerce_details' activity=obj.1 %}">Details</a>
+                    <td><a href="{% url 'trustcommerce_details' obj.1 %}">Details</a>
                       {% csrf_token %}
                    </td>
               </tr>
