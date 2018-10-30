@@ -17,37 +17,6 @@ from operator import attrgetter, itemgetter
     session_var='DJEQUIS_AUTH', redirect_url=reverse_lazy('access_denied')
 )
 
-
-# q_ins_div = '''
-#             INSERT INTO hrdiv_table(hrdiv, descr, beg_date, end_date)
-#             VALUES(?, ?, ?, null)'''
-# q_ins_div_args = (businessunitcode[:4], businessunitdescr,
-#                   datetime.now().strftime("%m/%d/%Y"))
-# engine.execute(q_ins_div, q_ins_div_args)
-
-def download(request):
-    tcpayflow = connections['tcpayflow'].cursor()
-    djforms = connections['djforms'].cursor()
-
-    tcpayflow.execute(PCE_SUMMARY)
-    tcpayflow_summary = tcpayflow.fetchall()
-    djforms.execute(PSM_SUMMARY)
-    djforms_summary = djforms.fetchall()
-
-    objects = sorted(
-        chain(tcpayflow_summary, djforms_summary),
-        key=lambda instance: instance[2]
-        # key=attrgetter('datecreated')
-    )
-    return render(
-        request, 'core/trustcommerce/download.html',
-        {'objects': objects, }
-    )
-
-
-
-
-
 def details(request, activity):
     tcpayflow = connections['tcpayflow'].cursor()
     djforms = connections['djforms'].cursor()
@@ -66,6 +35,23 @@ def details(request, activity):
         {'objects': objects, 'activity': activity}
     )
 
+def download(request, value, activity):
+    tcpayflow = connections['tcpayflow'].cursor()
+    djforms = connections['djforms'].cursor()
+    tcpayflow.execute(PCE_TRANSACTIONS_CHECKED.format(value, activity))
+    tcpayflow_results = tcpayflow.fetchall()
+    djforms.execute(PSM_TRANSACTIONS_CHECKED.format(value, activity))
+    djforms_results = djforms.fetchall()
+    objects = sorted(
+        chain(tcpayflow_results, djforms_results),
+        key=lambda instance: instance[5]
+        #key=attrgetter('datecreated')
+    )
+
+    return render(
+        request, 'core/trustcommerce/download.html',
+        {'objects': objects, 'value': value, 'activity': activity}
+    )
 
 def home(request):
     tcpayflow = connections['tcpayflow'].cursor()
