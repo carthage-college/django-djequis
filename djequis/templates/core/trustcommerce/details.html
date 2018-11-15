@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+
+<head>
+   <title>TrustCommerce import tool</title>
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+   <meta http-equiv="Content-Language" content="en-us" />
+   <meta name="MSSmartTagsPreventParsing" content="true" />
+    <style type="text/css">
+       p.note {color:#555;}
+        td {vertical-align:top; padding:10px 5px;}
+       td, th {vertical-align:top; padding:10px 5px;}
+       th {text-align:left;}
+        .zebra1 {}
+        .zebra0 {background:#eeeeee;}
+    </style>
+</head>
+<body>
+<h3>
+    This page is for building CSV	 files for ascii-posting
+    of credit card transactions into CX
+</h3>
+
+<!-- "objects" is a python list from "views.py" assigned from the queries to tcpayflow and djforms
+In views.py, objects is associated to the queries PCE_TRANSACTIONS, and PSM_TRANSACTIONS
+which then populate tcpayflow_results, djforms_results
+Those are, I think, put together by the "chain" command, which is essentially a union
+So for the second step, I would have to add a new variable for objects referencing another query
+How I pass a variable to it is another question....
+-->
+
+
+
+{% if objects|length > 0 %}
+    <p>
+        We have {{objects|length}} new credit card
+        transaction{{objects|length|pluralize}}.
+      Activity code  {{activity}}
+    </p>
+
+    <form name="get_activity_details" method="POST" action=".">
+         <table cellpadding="1" border="1">
+             {% for obj in objects %}
+                  <tr class="{% cycle 'zebra1' 'zebra0' %}">
+                           <td><input id="checkBox" name=CheckedVal[] type="checkbox" value={{obj.2}} checked="checked"></td>
+                           <!--<td align="right">{{ forloop.counter }}</td>-->
+                           <td>{{obj.2}}</td>  <!--record ID-->
+                           <td>{{obj.6}}</td>  <!--date-->
+                           <td>{{obj.1}} </td> <!-- activity ID-->
+                           <td>{{obj.0}}</td>  <!--activity descr-->
+                           <td>{{obj.9}}</td>   <!--pn ref-->
+                           <td>{{obj.3}}</td>  <!--amt-->
+                           <td>{{obj.7}}</td>   <!--name-->
+                           <td>{{obj.4}}</td>  <!--Comment 1-->
+                           <td>{{obj.5}}</td>  <!--comment 2-->
+                           <td>{{obj.10}}</td>   <!--Webtrans code-->
+                           <td>{{obj.11}}</td>   <!--Data Source-->
+                           <!--<td>{{obj.8}}</td>   result-->
+                           <!--<td>{{obj.4}}</td>-->
+                           <!--<td>{{obj.9}}</td>-->
+                           <!--<td>{{obj.1}}</td>-->
+                           <!--<td>{{obj.7}}</td>-->
+                           <input name="record" value="{{obj.2}}" type="hidden">
+                           <input name="activity" value="{{obj.1}}" type="hidden">
+                           <input name="datasource" value="{{obj.11}}" type="hidden">
+                           <input name="method" value="view_details" type="hidden">
+                           <input name="selWTCode" value="{{obj.10}}" type="hidden">
+                           <td> <a href="{% url 'trustcommerce_download' obj.2 activity %}">Download</a> </td>
+                           </td>
+                  </tr>
+             {% endfor %}
+         </table>
+             CheckedValue = {{obj2}}
+
+    </form>
+
+    <br>
+    <table style="width:100%" border=0 width 200>
+        <!--If enrichment -->
+        {% if activity == '1' %}
+        <tr><td>
+            Camp Status:
+            <input type="radio" name="precamp" id="yes" value="precamp" checked="checked"> Pre-Camp
+            <input type="radio" name="precamp" id="no" value="incamp" > After start of camp
+        </td></tr>
+        <!--If parking permit -->
+        {% elif activity == '2' %}
+        <tr><td>Enrichment: Enter Term:
+            <input type="text" name="term" required="yes" title="Term" >  </td></tr>
+        <!--If soccer camp -->
+        {% elif activity == '21' %}
+        <tr><td>Parking: Enter Term:
+            <input type="text" name="term" required="yes" title="Term" >  </td></tr>
+        {% endif %}
+        <tr><td><input name="submit" type="submit" value="Submit"></td></tr>
+
+        <!--should be url +  name of url construct, parameter; display text-->
+
+    </table>
+
+{% else %}
+   <p>There are no app fee transactions to import.</p>
+{% endif %}
