@@ -1,5 +1,9 @@
 # builds academic calendar for active terms with pre & post grace periods per term
 # modified query per Ron L. 1-17-2018 (changed RB from 10 to 30)
+#
+# the date logic for ePullGrp was changed to use they dayofyear calculations in the following three queries. Dates provided by Pam Robers: Apr 25, Aug 5 and Dec 3.
+#
+#
 TMP_ACTV_SESS = '''
     SELECT
         acyr, sess, yr, eTermGrp, ePullGrp, eBegDate, TO_CHAR(beg_date, '%m/%d/%Y') AS beg_date,
@@ -15,9 +19,10 @@ TMP_ACTV_SESS = '''
                                                        ELSE 'Neutral'
                 END AS eTermGrp,
                 CASE 
-                    WHEN MONTH(TODAY + 21) >= 9 THEN 'Fall'
-                    WHEN MONTH(TODAY + 21) <= 5 THEN 'Spring'
-                                                ELSE 'Summer'
+                    WHEN today - mdy(1,1,year(today))+1 < mdy(4,26,year(today)) - mdy(1,1,year(today))+1 THEN 'Spring'
+                    WHEN today - mdy(1,1,year(today))+1 < mdy(8,5,year(today))  - mdy(1,1,year(today))+1 THEN 'Summer'
+                    WHEN today - mdy(1,1,year(today))+1 < mdy(12,3,year(today)) - mdy(1,1,year(today))+1 THEN 'Fall'
+                    ELSE 'Spring'
                 END AS ePullGrp,
                 CASE 
                     WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('09/01/'|| TO_CHAR(acad_cal_rec.yr))
@@ -74,9 +79,10 @@ STU_ACAD_REC_100 = '''
                                                                ELSE 'Neutral'
                         END AS eTermGrp,
                         CASE 
-                            WHEN MONTH(TODAY + 21) >= 9 THEN 'Fall'
-                            WHEN MONTH(TODAY + 21) <= 5 THEN 'Spring'
-                                                        ELSE 'Summer'
+                            WHEN today - mdy(1,1,year(today))+1 < mdy(4,26,year(today)) - mdy(1,1,year(today))+1 THEN 'Spring'
+                            WHEN today - mdy(1,1,year(today))+1 < mdy(8,5,year(today))  - mdy(1,1,year(today))+1 THEN 'Summer'
+                            WHEN today - mdy(1,1,year(today))+1 < mdy(12,3,year(today)) - mdy(1,1,year(today))+1 THEN 'Fall'
+                            ELSE 'Spring'
                         END AS ePullGrp,
                         CASE 
                             WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('08/27/'|| TO_CHAR(acad_cal_rec.yr))
@@ -150,9 +156,10 @@ STU_ACAD_REC_200 = '''
                                                                ELSE 'Neutral'
                         END AS eTermGrp,
                         CASE 
-                            WHEN MONTH(TODAY + 21) >= 9 THEN 'Fall'
-                            WHEN MONTH(TODAY + 21) <= 5 THEN 'Spring'
-                                                        ELSE 'Summer'
+                            WHEN today - mdy(1,1,year(today))+1 < mdy(4,26,year(today)) - mdy(1,1,year(today))+1 THEN 'Spring'
+                            WHEN today - mdy(1,1,year(today))+1 < mdy(8,5,year(today))  - mdy(1,1,year(today))+1 THEN 'Summer'
+                            WHEN today - mdy(1,1,year(today))+1 < mdy(12,3,year(today)) - mdy(1,1,year(today))+1 THEN 'Fall'
+                            ELSE 'Spring'
                         END AS ePullGrp,
                         CASE 
                             WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('08/27/'|| TO_CHAR(acad_cal_rec.yr))
