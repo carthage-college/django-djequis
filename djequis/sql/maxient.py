@@ -200,7 +200,7 @@ FROM
                                     involve_rec.id, greek_name
                               ) GRK ON DIR.id = GRK.id
     WHERE
-        DIR.grouping = 'Student'
+        DIR.grouping IN ('Student', 'Incoming')
     AND
         DIR.class_year <> 'GR'
     ORDER BY
