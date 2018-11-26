@@ -32,12 +32,14 @@ STUDENT_UPLOAD = '''
             WHEN    UPPER(stu_serv_rec.bldg) = 'OFF'        THEN    'Commuter'
             WHEN    UPPER(stu_serv_rec.bldg) = 'SWE'        THEN    'Swenson'
             WHEN    UPPER(stu_serv_rec.bldg) = 'TAR'        THEN    'Tarble'
+            WHEN    UPPER(stu_serv_rec.bldg) = 'TOWR'       THEN    'Tower'
             WHEN    UPPER(stu_serv_rec.bldg) = 'UN'         THEN    ''
             WHEN    UPPER(stu_serv_rec.bldg) = 'UNDE'       THEN    ''
             WHEN    UPPER(stu_serv_rec.bldg) = ''           THEN    ''
                                                             ELSE    'Bad match: ' || stu_serv_rec.bldg
         END AS CustomValue2,
-        'Parking Lot' as CustomField3, TRIM(REPLACE(lot_table.txt, 'Apts', '')) AS CustomValue3
+        'Parking Lot' as CustomField3, --TRIM(REPLACE(lot_table.txt, 'Apts', '')) AS CustomValue3
+        CASE WHEN TRIM(NVL(PLT.lot_code,'')) = 'CMTR' THEN 'CMTR' WHEN TRIM(NVL(PLT.lot_code,'')) <> '' THEN PLT.lot_code[1,3] || ' ' || PLT.lot_code[4,4] ELSE '' END AS CustomValue3
         ,'END' as END
     FROM
         prog_enr_rec    INNER JOIN  id_rec              ON  prog_enr_rec.id =   id_rec.id
@@ -54,13 +56,18 @@ STUDENT_UPLOAD = '''
                             GROUP BY stu_serv_rec.id
                         )           building            ON  id_rec.id           =   building.id
                         LEFT JOIN   stu_serv_rec        ON  building.stusv_no   =   stu_serv_rec.stusv_no
-                        LEFT JOIN   prkgpermt_rec   prk ON  id_rec.id           =   prk.permt_id
-                                                        AND prk.acadyr          =   YEAR(TODAY)
-                        LEFT JOIN   lot_table           ON  prk.lotcode         =   lot_table.lotcode
+                        LEFT JOIN	cc_prkg_vehicle_rec	PRK	ON	id_rec.id	=	PRK.carthage_id
+                                                            AND	TODAY	BETWEEN	PRK.reg_date AND NVL(PRK.inactive_date,TODAY)
+                        LEFT JOIN	cc_prkg_assign_rec	PAR	ON	PRK.veh_no	=	PAR.veh_no
+                                                            AND	TODAY	BETWEEN	PAR.assign_begin AND NVL(PAR.assign_end, TODAY)
+                        LEFT JOIN	cc_prkg_lot_table	PLT	ON	PAR.lot_no	=	PLT.lot_no
+                        --LEFT JOIN   prkgpermt_rec   prk ON  id_rec.id           =   prk.permt_id
+                        --                                AND prk.acadyr          =   YEAR(TODAY)
+                        --LEFT JOIN   lot_table           ON  prk.lotcode         =   lot_table.lotcode
     WHERE prog_enr_rec.subprog NOT IN
         ("YOP","UWPK","RSBD","SLS","PARA","MSW","KUSD","ENRM","CONF","CHWK")
     AND prog_enr_rec.lv_date IS NULL
-    AND prog_enr_rec.cl IN ("FF","FR","SO","JR","SR","GR")
+    AND prog_enr_rec.cl IN ("FF","FN","FR","SO","JR","SR","GR","UT")
     AND prog_enr_rec.acst = "GOOD"
     AND stu_acad_rec.yr = YEAR(TODAY)
     AND stu_acad_rec.sess IN ("RA","RC","AM","GC","PC","TC")
