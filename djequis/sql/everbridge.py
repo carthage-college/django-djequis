@@ -12,11 +12,13 @@ STUDENT_UPLOAD = '''
         END as SMS1, 'United States' as SMS1Country, 'Standing' as CustomField1,
         CASE prog_enr_rec.cl
             WHEN    'FF'    THEN    'Freshman'
+            WHEN    'FN'    THEN    'Freshman'
             WHEN    'FR'    THEN    'Freshman'
             WHEN    'SO'    THEN    'Sophomore'
             WHEN    'JR'    THEN    'Junior'
             WHEN    'SR'    THEN    'Senior'
             WHEN    'GR'    THEN    'Graduate Student'
+            WHEN    'UT'    THEN    'Transfer'
                             ELSE    'Bad match: ' || prog_enr_rec.cl
         END as CustomValue1, 'Dormitory' as CustomField2,
         CASE
