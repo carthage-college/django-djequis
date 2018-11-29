@@ -94,7 +94,7 @@ def main():
                 "Custom Field 2","Custom Value 2","Custom Field 3",
                 "Custom Value 3","END"
             ])
-        #badmatches = []
+        # Something Mike and I talked about is parsing out all of the data then excluding Bad match data.
         for row in sqlresult:
             output.writerow(row)
             # checking for Bad match in either Student or FacStaff query
