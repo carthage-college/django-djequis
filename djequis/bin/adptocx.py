@@ -172,9 +172,9 @@ def main():
         # set global variable
         global EARL
         # determines which database is being called from the command line
-        if database == 'cars':
-            EARL = INFORMIX_EARL_PROD
-        elif database == 'train':
+        # if database == 'cars':
+        #     EARL = INFORMIX_EARL_PROD
+        if database == 'train':
             EARL = INFORMIX_EARL_TEST
         elif database == 'sandbox':
             EARL = INFORMIX_EARL_SANDBOX
@@ -423,7 +423,7 @@ def main():
                     fn_convert_date(row["position_end_date4"]),
                     row["home_dept_code"], row["home_dept_descr"],
                     row["supervisor_id"], row["supervisor_fname"],
-                    row["supervisor_lname"], row["business_unit_code"],
+                    row["supervisor_lname"], row["business_unit_code"].zfill(3),
                     row["business_unit_descr"], row["reports_to_name"],
                     row["reports_to_pos_id"], row["reports_to_assoc_id"],
                     row["employee_assoc_id"], row["management_position"],
@@ -612,7 +612,7 @@ def main():
                             ##########################################################
                             print("In Job Rec")
                             job_rslt = fn_process_job(row["carth_id"], row["worker_cat_code"],
-                                    row["worker_cat_descr"], row["business_unit_code"],
+                                    row["worker_cat_descr"], row["business_unit_code"].zfill(3),
                                     row["business_unit_descr"], row["home_dept_code"],
                                     row["home_dept_descr"], row["job_title_code"],
                                     row["job_title_descr"], row["pos_effective_date"],
