@@ -66,14 +66,14 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
         addr_result = sql_id_address.fetchone()
 
         # print(q_check_aa_adr)
-        print("AA_rec Addr Result = " + str(addr_result))
+        # print("AA_rec Addr Result = " + str(addr_result))
         if addr_result is None:
             found_aa_num = 0
         else:
             found_aa_num = addr_result[2]
             fn_write_log("Existing archive address record found in aa_rec for "
                          + fullname + ", ID = " + str(id))
-        #print(found_aa_num)
+        print(found_aa_num)
 
         #################################
         #  Find the max start date of all PREV entries with a null end date
@@ -87,7 +87,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
            AND end_date is null
            GROUP BY id, aa, end_date, line1
           '''.format(id)
-        #print(q_check_aa_date)
+        # print(q_check_aa_date)
         sql_date = do_sql(q_check_aa_date, key=DEBUG, earl=EARL)
         date_result = sql_date.fetchone()
         #print(date_result)
@@ -96,14 +96,14 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
         # Define date variables
         #################################
         if found_aa_num == 0 or date_result is None: #No aa rec found
-            a1 = ""
+            # a1 = ""
             max_date = datetime.now().strftime("%m/%d/%Y")
         # Make sure dates don't overlap
         else:
             max_date = date.strftime(date_result[0],"%m/%d/%Y")
-            a1 = date_result[3]
+            # a1 = date_result[3]
 
-        #print("A1 = " + a1 )
+        # print("A1 = " + a1 )
         #print("Max date = " + str(max_date))
 
         # Scenario 1
@@ -129,7 +129,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
             # or addr_result[5] == addr2 \
             # or addr_result[6] == addr3 \
 
-            print("An Address exists and matches new data - Update new")
+            # print("An Address exists and matches new data - Update new")
             #################################
             # Match found then we are UPDATING only....
             #################################
@@ -148,7 +148,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
             x = datetime.strptime(end_date, "%m/%d/%Y") + timedelta(days=1)
             beg_date = x.strftime("%m/%d/%Y")
 
-            print("Check begin date = " + beg_date)
+            # print("Check begin date = " + beg_date)
             # id, aa_num, fullname, enddate, aa
             fn_end_date_aa(id, found_aa_num, fullname,
                            end_date, 'PREV', EARL)
