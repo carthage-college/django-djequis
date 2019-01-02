@@ -97,8 +97,11 @@ STU_ACAD_REC_100 = '''
                         END AS eEndDate,
                         acad_cal_rec.end_date, acad_cal_rec.subsess, acad_cal_rec.prog
                     FROM acad_cal_rec
-                    WHERE acad_cal_rec.acyr = CASE WHEN MONTH(TODAY + 21) >= 9 THEN MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY) + 1, 100)
-                                                                          ELSE MOD(YEAR(TODAY) - 1, 100) || MOD(YEAR(TODAY), 100) END
+                    WHERE acad_cal_rec.acyr = CASE WHEN today - mdy(1,1,year(today))+1 < mdy(4,26,year(today)) - mdy(1,1,year(today))+1 THEN MOD(YEAR(TODAY), 100) - 1 || MOD(YEAR(TODAY), 100)
+                                                   WHEN today - mdy(1,1,year(today))+1 < mdy(8,5,year(today))  - mdy(1,1,year(today))+1 THEN MOD(YEAR(TODAY), 100) - 1 || MOD(YEAR(TODAY), 100)
+                                                   WHEN today - mdy(1,1,year(today))+1 < mdy(12,3,year(today)) - mdy(1,1,year(today))+1 THEN MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY) + 1, 100)
+                                                   ELSE MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY), 100) + 1
+                                              END
                     AND 
                         acad_cal_rec.subsess = ""
                     AND 
@@ -174,8 +177,11 @@ STU_ACAD_REC_200 = '''
                         END AS eEndDate,
                         acad_cal_rec.end_date, acad_cal_rec.subsess, acad_cal_rec.prog
                     FROM acad_cal_rec
-                    WHERE acad_cal_rec.acyr = CASE WHEN MONTH(TODAY + 21) >= 9 THEN MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY) + 1, 100)
-                                                                          ELSE MOD(YEAR(TODAY) - 1, 100) || MOD(YEAR(TODAY), 100) END
+                    WHERE acad_cal_rec.acyr = CASE WHEN today - mdy(1,1,year(today))+1 < mdy(4,26,year(today)) - mdy(1,1,year(today))+1 THEN MOD(YEAR(TODAY), 100) - 1 || MOD(YEAR(TODAY), 100)
+                                                   WHEN today - mdy(1,1,year(today))+1 < mdy(8,5,year(today))  - mdy(1,1,year(today))+1 THEN MOD(YEAR(TODAY), 100) - 1 || MOD(YEAR(TODAY), 100)
+                                                   WHEN today - mdy(1,1,year(today))+1 < mdy(12,3,year(today)) - mdy(1,1,year(today))+1 THEN MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY) + 1, 100)
+                                                   ELSE MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY), 100) + 1
+                                              END
                     AND 
                         acad_cal_rec.subsess = ""
                     AND 
