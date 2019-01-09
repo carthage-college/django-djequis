@@ -63,7 +63,7 @@ def main():
        'private_key':settings.EVERBRIDGE_PKEY,
        'cnopts':cnopts
     }
-
+    badmatches = []
     for key, value in dict.iteritems():
         #print key
         sqlresult = do_sql(value, earl=EARL)
@@ -94,24 +94,31 @@ def main():
                 "Custom Field 2","Custom Value 2","Custom Field 3",
                 "Custom Value 3","END"
             ])
-
+        #badmatches = []
         for row in sqlresult:
             output.writerow(row)
             # checking for Bad match in either Student or FacStaff query
             if row.customvalue1 and "Bad match:" in row.customvalue1:
-                print (row)
-                SUBJECT = '[Everbridge] Bad match: {}, {}'.format(
-                    row.lastname, row.firstname
-                )
-                BODY = '''
-                    A bad match exists in the file we are sending to Everbridge.
-                    \n\r\n\r{}
-                '''.format(str(row))
-                sendmail(
-                    settings.EVERBRIDGE_TO_EMAIL,
-                    settings.EVERBRIDGE_FROM_EMAIL, BODY, SUBJECT
-                )
-
+                badmatches.append('{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, '
+                                '{12}, {13}, {14}, {15}, {16}, {17}, {18}, {19}, {20}\n\n'
+                             .format(row.lastname, row.firstname, row.middleinitial, row.suffix,
+                                     row.externalid, row.country, row.businessname, row.recordtype,
+                                     row.phone1, row.phonecountry1, row.emailaddress1, row.emailaddress2,
+                                     row.sms1, row.sms1country, row.customfield1, row.customvalue1,
+                                     row.customfield2, row.customvalue2, row.customfield3, row.customvalue3,
+                                     row.end))
+            badmatches_table = ''.join(badmatches)
+        if badmatches:
+            print(badmatches_table)
+            SUBJECT = '[Everbridge] Bad match'
+            BODY = '''
+                    A bad match exists in the file we are sending to Everbridge.\n\n{0}
+                    '''.format(badmatches_table)
+            sendmail(
+                settings.EVERBRIDGE_TO_EMAIL, settings.EVERBRIDGE_FROM_EMAIL, BODY, SUBJECT
+            )
+        else:
+            print('Do not send email')
         # SFTP the CSV
         try:
             with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
@@ -126,9 +133,8 @@ def main():
                 settings.EVERBRIDGE_TO_EMAIL,settings.EVERBRIDGE_FROM_EMAIL,
                 SUBJECT, BODY
             )
-
         phile.close()
-        print "success: {}".format(key)
+        print("success: {}".format(key))
 
     print "Done"
 
