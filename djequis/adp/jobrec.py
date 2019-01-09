@@ -13,7 +13,7 @@ from djzbar.utils.informix import get_engine
 
 # Imports for additional modules and functions written as part of this project
 from djequis.adp.utilities import fn_validate_field, fn_write_log, \
-    fn_write_error, fn_needs_upate
+    fn_write_error, fn_needs_update
 
 DEBUG = settings.INFORMIX_DEBUG
 
@@ -120,7 +120,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         # inserts and updates
         #############################################################
         # print("Worker Cat Code")
-        v_work_cat_update = fn_needs_upate(workercatcode, workercatdescr,
+        v_work_cat_update = fn_needs_update(workercatcode, workercatdescr,
                                            "work_cat_code", "work_cat_descr",
                                            "cc_work_cat_table", "char", EARL)
 
@@ -201,9 +201,9 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         # validate the position, division, department
         ##############################################################
 
-        # print("Business Unit Code = " + businessunitcode[:4])
+        print("Business Unit Code = " + businessunitcode[:4])
 
-        hrdivision = fn_needs_upate(businessunitcode[:4], businessunitdescr,
+        hrdivision = fn_needs_udpate(businessunitcode[:4], businessunitdescr,
                      "hrdiv", "descr", "hrdiv_table", "char", EARL)
         if hrdivision is None:
             q_ins_div = '''
@@ -246,7 +246,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
 
         # print("Home Department Code = " +  homedeptcode)
 
-        hrdepartment = fn_needs_upate(homedeptcode[:3], homedeptdescr,
+        hrdepartment = fn_needs_update(homedeptcode[:3], homedeptdescr,
                       "hrdept", "descr", "hrdept_table", "char", EARL)
         #print("HR Dept Needs update = " + hrdepartment)
         if hrdepartment==None or hrdepartment=="" or len(hrdepartment)==0:

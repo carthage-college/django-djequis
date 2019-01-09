@@ -94,11 +94,11 @@ def main():
                 "Custom Field 2","Custom Value 2","Custom Field 3",
                 "Custom Value 3","END"
             ])
-        #badmatches = []
+        # Something Mike and I talked about is parsing out all of the data then excluding Bad match data.
         for row in sqlresult:
             output.writerow(row)
             # checking for Bad match in either Student or FacStaff query
-            if row.customvalue1 and "Bad match:" in row.customvalue1:
+            if row and ((row.customvalue1 and "Bad match:" in row.customvalue1) or (row.customvalue2 and "Bad match:" in row.customvalue2)):
                 badmatches.append('{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, '
                                 '{12}, {13}, {14}, {15}, {16}, {17}, {18}, {19}, {20}\n\n'
                              .format(row.lastname, row.firstname, row.middleinitial, row.suffix,
@@ -110,10 +110,13 @@ def main():
             badmatches_table = ''.join(badmatches)
         if badmatches:
             print(badmatches_table)
+            print(len(badmatches))
             SUBJECT = '[Everbridge] Bad match'
             BODY = '''
                     A bad match exists in the file we are sending to Everbridge.\n\n{0}
-                    '''.format(badmatches_table)
+                    \n\n
+                    Bad match records: {1} 
+                    '''.format(badmatches_table, len(badmatches))
             sendmail(
                 settings.EVERBRIDGE_TO_EMAIL, settings.EVERBRIDGE_FROM_EMAIL, BODY, SUBJECT
             )
@@ -135,7 +138,6 @@ def main():
             )
         phile.close()
         print("success: {}".format(key))
-
     print "Done"
 
 if __name__ == "__main__":
