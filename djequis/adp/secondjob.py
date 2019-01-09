@@ -7,7 +7,7 @@ from djequis.core.utils import sendmail
 
 # Imports for additional modules and functions written as part of this project
 from djequis.adp.utilities import fn_validate_field, fn_write_log, \
-    fn_write_error, fn_needs_upate
+    fn_write_error, fn_needs_update
 
 DEBUG = settings.INFORMIX_DEBUG
 
