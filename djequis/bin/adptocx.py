@@ -1,16 +1,14 @@
 import os
-import string
 import sys
 import pysftp
 import csv
 import datetime
 from datetime import date
-from datetime import datetime, timedelta
+from datetime import datetime
 import codecs
 import time
 from time import strftime
 import argparse
-from sqlalchemy import text
 import shutil
 import logging
 from logging.handlers import SMTPHandler
