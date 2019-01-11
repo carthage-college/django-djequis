@@ -47,11 +47,9 @@ os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 from djequis.core.utils import sendmail
-from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_SANDBOX
 from djzbar.settings import INFORMIX_EARL_TEST
-
 from djzbar.settings import INFORMIX_EARL_PROD
 
 from djtools.fields import TODAY
