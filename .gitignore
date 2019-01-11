@@ -102,3 +102,4 @@ settings.py
 wsgi.py
 commonapp_output.sql
 *_rsa
+*_rsa.pub
