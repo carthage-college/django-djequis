@@ -11,7 +11,8 @@ sys.path.append('/usr/local/lib/python2.7/dist-packages/')
 sys.path.append('/data2/django_1.11/')
 sys.path.append('/data2/django_projects/')
 sys.path.append('/data2/django_third/')
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djzbar.settings")
+#os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djzbar.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 
 from django.conf import settings
 
@@ -106,8 +107,16 @@ def main():
     if test:
         print "philes = {}".format(philes)
 
+    cnopts = pysftp.CnOpts()
+    cnopts.hostkeys = None
+    # External connection information for Common Application server
+    xtrnl_connection = {
+        'host':settings.SCRIP_SAFE_XTRNL_SERVER,
+        'username':settings.SCRIP_SAFE_XTRNL_USER,
+        'private_key':settings.SCRIP_SAFE_XTRNL_KEY, 'cnopts':cnopts
+    }
     # transfer the PDFs to scripsafe
-    with pysftp.Connection(**settings.SCRIP_SAFE_XTRNL_CONNECTION) as sftp:
+    with pysftp.Connection(**xtrnl_connection) as sftp:
         for f in philes:
             sftp.put("{}.pdf".format(f), preserve_mtime=True)
 

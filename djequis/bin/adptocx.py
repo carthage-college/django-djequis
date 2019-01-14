@@ -1,16 +1,14 @@
 import os
-import string
 import sys
 import pysftp
 import csv
 import datetime
 from datetime import date
-from datetime import datetime, timedelta
+from datetime import datetime
 import codecs
 import time
 from time import strftime
 import argparse
-from sqlalchemy import text
 import shutil
 import logging
 from logging.handlers import SMTPHandler
@@ -47,11 +45,9 @@ os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 from djequis.core.utils import sendmail
-from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_SANDBOX
 from djzbar.settings import INFORMIX_EARL_TEST
-
 from djzbar.settings import INFORMIX_EARL_PROD
 
 from djtools.fields import TODAY
