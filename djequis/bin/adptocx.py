@@ -353,8 +353,9 @@ def main():
                     supervisor_id, supervisor_firstname, supervisor_lastname, \
                     business_unit_code, business_unit_descr, reports_to_name, \
                     reports_to_position_id, reports_to_associate_id, \
-                    employee_associate_id, management_position, supervisor_flag, \
-                    long_title, date_stamp) \
+                    employee_associate_id, \
+                    management_position, supervisor_flag, long_title, \
+                    date_stamp) \
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
                      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
                      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
@@ -425,8 +426,8 @@ def main():
                     row["employee_assoc_id"], row["management_position"],
                     row["supervisor_flag"], row["long_title"],
                     datetime.now())
-                    # print(q_cc_adp_rec)
-                    # print(cc_adp_args)
+                    print(q_cc_adp_rec)
+                    print(cc_adp_args)
                     engine.execute(q_cc_adp_rec, cc_adp_args)
                     # ccadpcount =+ 1
                     scr.write(q_cc_adp_rec + '\n' + str(cc_adp_args) + '\n');
