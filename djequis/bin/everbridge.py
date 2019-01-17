@@ -1,3 +1,4 @@
+import io
 import os
 import sys
 import pysftp
@@ -111,8 +112,9 @@ def main():
             settings.EVERBRIDGE_CSV_OUTPUT,key,datetimestr
         ))
 
-        phile=open(filename,"w");
-        output=csv.writer(phile, dialect='excel')
+        #phile=io.open(filename, 'w', newline='')
+        phile=open(filename, 'wb')
+        output=csv.writer(phile, dialect='excel', lineterminator='\n')
 
         if key == 'FacStaff': # write header row for FacStaff
             output.writerow([
@@ -176,14 +178,25 @@ def main():
             if test:
                 print('Do not send email')
 
+        phile.close()
+
         if not test:
             # SFTP the CSV
             try:
+                print('sftp attempt')
+                print(filename)
                 with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
                     sftp.chdir("replace/")
+                    print("current working directory: {}".format(sftp.getcwd()))
                     sftp.put(filename, preserve_mtime=True)
+                    print("file uploaded:")
+                    for i in sftp.listdir():
+                        print(i)
+                        print(str(sftp.lstat(i)))
                     sftp.close()
+                print("sftp put success: {}".format(key))
             except Exception, e:
+                print('sftp put fail [{}]: {}'.format(key, e))
                 SUBJECT = '[Everbridge SFTP] {} failed'.format(key)
                 BODY = 'Unable to PUT upload to Everbridge server.\n\n{}'.format(
                     str(e)
@@ -192,8 +205,6 @@ def main():
                     settings.EVERBRIDGE_TO_EMAIL,settings.EVERBRIDGE_FROM_EMAIL,
                     SUBJECT, BODY
                 )
-            phile.close()
-            print("success: {}".format(key))
 
     print "Done"
 
