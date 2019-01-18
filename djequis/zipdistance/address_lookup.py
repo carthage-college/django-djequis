@@ -102,24 +102,30 @@ def main():
         # establish database connection
         engine = get_engine(EARL)
 
+        # --------------------------------------------------------
+        #This is for testing.  If an automated version is to come,
+        #  it will be passed an address so it will need to exist
+        #  as a function in a utility somewhere
         searchval = 1381269
 
         qval_sql = "select id, fullname, addr_line1, addr_line2, addr_line3, " \
                    "city, st, zip from id_rec where id = " \
                    + str(searchval)
-        # print qval_sql
+        print(qval_sql)
 
         sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
+        # ---------------------------------------------------------
+        #  Should take this code and make it a function where the address is passed in
+
 
         if sql_val is not None:
             rows = sql_val.fetchall()
 
             for row in rows:
-                v_street = row[2]
-                v_city = row[5]
-                v_state = row[6]
+                v_street = trim(row[2]) + ' ' +  trim(row[3]) + ' ' + trim(row[4])
+                v_city = trim(row[5])
+                v_state = trim(row[6])
                 v_zip = row[7]
-
 
                 url = "https://geocoding.geo.census.gov/geocoder/geographies/address?street=" \
                       + v_street + "&city=" + v_city + "&state=" + v_state + "&ZIP=" + v_zip + \
@@ -150,7 +156,11 @@ def main():
                     suffixDirection = x['result']['addressMatches'][0]['addressComponents']['suffixDirection']
                     suffixQualifier = x['result']['addressMatches'][0]['addressComponents']['suffixQualifier']
 
+
                     print(address)
+                    print("HELLO")
+                    test_func_call = "Pass values: " + v_street + ", " + v_city + ", " + v_state + " " + v_zip
+                    print(v_street)
 
                     y_coordinate = x['result']['addressMatches'][0]['coordinates']['y']
                     x_coordinate = x['result']['addressMatches'][0]['coordinates']['x']
@@ -196,7 +206,7 @@ def main():
                     # print("Result rounded = " + "{:.0f}".format(distance))
                     dist = float("{:.2f}".format(distance))
 
-                    print("Distance from Carthage = " + str(dist))
+                    # print("Distance from Carthage = " + str(dist))
 
     except Exception as e:
         # fn_write_error("Error in zip_distance.py for zip, Error = " + e.message)
