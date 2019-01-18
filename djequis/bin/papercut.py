@@ -134,6 +134,7 @@ def main():
                                      BODY, SUBJECT
                                      )
                     # writes the last line for the total cost
+                    total_cost = (total_cost -1)
                     writer.writerow(["", "", (total_cost)])
                 # close orig_papercut_csv
                 orig_papercut_csv.close()
