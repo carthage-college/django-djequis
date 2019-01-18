@@ -1,16 +1,14 @@
 import os
-import string
 import sys
 import pysftp
 import csv
 import datetime
 from datetime import date
-from datetime import datetime, timedelta
+from datetime import datetime
 import codecs
 import time
 from time import strftime
 import argparse
-from sqlalchemy import text
 import shutil
 import logging
 from logging.handlers import SMTPHandler
@@ -47,11 +45,9 @@ os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 from djequis.core.utils import sendmail
-from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_SANDBOX
 from djzbar.settings import INFORMIX_EARL_TEST
-
 from djzbar.settings import INFORMIX_EARL_PROD
 
 from djtools.fields import TODAY
@@ -357,8 +353,9 @@ def main():
                     supervisor_id, supervisor_firstname, supervisor_lastname, \
                     business_unit_code, business_unit_descr, reports_to_name, \
                     reports_to_position_id, reports_to_associate_id, \
-                    employee_associate_id, management_position, supervisor_flag, \
-                    long_title, date_stamp) \
+                    employee_associate_id, \
+                    management_position, supervisor_flag, long_title, \
+                    date_stamp) \
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
                      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
                      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
@@ -429,8 +426,8 @@ def main():
                     row["employee_assoc_id"], row["management_position"],
                     row["supervisor_flag"], row["long_title"],
                     datetime.now())
-                    # print(q_cc_adp_rec)
-                    # print(cc_adp_args)
+                    print(q_cc_adp_rec)
+                    print(cc_adp_args)
                     engine.execute(q_cc_adp_rec, cc_adp_args)
                     # ccadpcount =+ 1
                     scr.write(q_cc_adp_rec + '\n' + str(cc_adp_args) + '\n');

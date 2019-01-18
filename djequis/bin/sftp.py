@@ -19,24 +19,41 @@ def main():
     # go to our storage directory on this server
     #os.chdir('/data2/www/data/terradotta/')
     #filename = 'sis_hr_user_info.txt'
-    os.chdir('/data2/www/data/everbridge/')
-    filename = 'FacStaffUpload-20170111095440.csv'
+    #os.chdir('/data2/www/data/everbridge/')
+    #filename = 'FacStaffUpload-20170111095440.csv'
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
+    # External connection information for Common Application server
     XTRNL_CONNECTION = {
-        'host':settings.EVERBRIDGE_HOST,
-        'username':settings.EVERBRIDGE_USER,
-        'private_key':settings.EVERBRIDGE_PKEY,
-        'cnopts':cnopts
+       'host':settings.COMMONAPP_HOST,
+       'username':settings.COMMONAPP_USER,
+       'password':settings.COMMONAPP_PASS,
+       'cnopts':cnopts
     }
-    # transfer the CSV to scripsafe
-    with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
-        sftp.chdir("replace/")
-        #sftp.put(filename, remotepath="replace/", preserve_mtime=True)
-        sftp.put(filename, preserve_mtime=True)
+    try:
+        with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
+            remotepath = sftp.listdir()
+            print(remotepath)
+            # Loop through remote path directory list
+            for filename in remotepath:
+                remotefile = filename
+                # set local directory for which the common app file will be downloaded to
+                local_dir = ('{0}'.format(
+                    settings.COMMONAPP_CSV_OUTPUT
+                ))
+                localpath = local_dir + remotefile
+                # GET file from sFTP server and download it to localpath
+                sftp.get(remotefile, localpath)
+                #############################################################
+                # Delete original file %m_%d_%y_%h_%i_%s_Applications(%c).txt
+                # from sFTP (Common App) server
+                #############################################################
+                sftp.remove(filename)
+        # closes sftp connection
         sftp.close()
-
-    print "done"
+    except Exception, e:
+        print('Unable to connect to Common App server.\n\n{0}'.format(str(e)))
+        
 
 if __name__ == '__main__':
 
