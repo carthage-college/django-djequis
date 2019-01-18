@@ -94,6 +94,7 @@ def main():
             # the filename renamed to papercut.csv
             shutil.move(localpath, orig_papercut_file)
             # modified papercut output csv file
+            total_cost = 0
             with open(modified_papercut_file, 'wb') as modified_papercut_csv:
                 writer = csv.writer(modified_papercut_csv)
                 # open original papercut input csv file for reading 
@@ -103,9 +104,9 @@ def main():
                     #print(i)
                     reader = csv.DictReader(orig_papercut_csv, delimiter=',')
                     # creates header row in csv file
-                    headrow = ("Description", "PostngAccnt", "Amount")
+                    # headrow = ("Description", "PostngAccnt", "Amount") 
                     # writes file header elements
-                    writer.writerow(headrow)
+                    # writer.writerow(headrow) Not going to write header row per email from Ryan Ade
                     for row in reader:
                         try:
                             # split account name to remove shared account parent name
@@ -118,9 +119,11 @@ def main():
                             accountName = re.sub(r'\s*#.*', '', row['Shared Account Parent Name'].split('/',1)[1])
                             #print(accountName)
                             #print row['Cost']
+                            # sum of the Cost field
+                            total_cost += float(row['Cost'])
                             csv_line = ("{0} print-copy".format(monthYear),
-                                        accountName, row['Cost']
-                                        )
+                                         accountName, row['Cost']
+                                         )
                             writer.writerow(csv_line)
                         except Exception as e:
                             #print "Exception: {0}".format(str(e))
@@ -130,9 +133,11 @@ def main():
                             sendmail(settings.PAPERCUT_TO_EMAIL,settings.PAPERCUT_FROM_EMAIL,
                                      BODY, SUBJECT
                                      )
+                    # writes the last line for the total cost
+                    writer.writerow(["", "", (total_cost)])
                 # close orig_papercut_csv
                 orig_papercut_csv.close()
-                # close modified_papercut_csv
+            # close modified_papercut_csv
             modified_papercut_csv.close()
             # remove original papercut.csv file
             os.remove(orig_papercut_file)
