@@ -99,7 +99,7 @@ def main():
     # subject = "[GL Account Names] attachment"
     # femail = settings.PAPERCUT_FROM_EMAIL
     # template = 'papercut/glrec_email.html'
-    # bcc = 'ssmolik@carthage.edu'
+    # bcc = settings.PAPERCUT_BCC
     # send_mail(
     #     request, recipients, subject, femail, template, bcc, attach=file_attach
     # )

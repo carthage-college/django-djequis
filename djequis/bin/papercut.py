@@ -152,7 +152,7 @@ def main():
             subject = "[Papercut] with attachment"
             femail = settings.PAPERCUT_FROM_EMAIL
             template = 'papercut/email.html'
-            bcc = 'ssmolik@carthage.edu'
+            bcc = settings.PAPERCUT_BCC
             send_mail(request, recipients, subject, femail, template, bcc, attach=file_attach)
             # delete monthly-papercut.csv file
             os.remove(modified_papercut_file)
