@@ -107,9 +107,10 @@ def main():
             print("key = {}, value = {}".format(key, value))
 
         badmatches = []
-        sqlresult = engine.execute(value)
-
-        if sqlresult:
+        result = engine.execute(value)
+        rows = result.fetchall()
+        print("rows {}".format(len(rows)))
+        if len(rows):
             datetimestr = time.strftime("%Y%m%d%H%M%S")
             filename=('{}{}Upload-{}.csv'.format(
                 settings.EVERBRIDGE_CSV_OUTPUT,key,datetimestr
@@ -137,7 +138,7 @@ def main():
                     "Custom Value 1","Custom Field 2","Custom Value 2",
                     "Custom Field 3","Custom Value 3","END"
                 ])
-            for row in sqlresult:
+            for row in rows:
                 output.writerow(row)
                 if test:
                     print("row = \n{}".format(row))
@@ -206,6 +207,9 @@ def main():
                         settings.EVERBRIDGE_TO_EMAIL,settings.EVERBRIDGE_FROM_EMAIL,
                         SUBJECT, BODY
                     )
+
+        else:
+            print("No results returned from the database for {}".format(key))
 
     print "Done"
 

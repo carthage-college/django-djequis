@@ -58,11 +58,11 @@ STUDENT_UPLOAD = '''
                             GROUP BY stu_serv_rec.id
                         )           building            ON  id_rec.id           =   building.id
                         LEFT JOIN   stu_serv_rec        ON  building.stusv_no   =   stu_serv_rec.stusv_no
-                        LEFT JOIN	cc_prkg_vehicle_rec	PRK	ON	id_rec.id	=	PRK.carthage_id
-                                                            AND	TODAY	BETWEEN	PRK.reg_date AND NVL(PRK.inactive_date,TODAY)
-                        LEFT JOIN	cc_prkg_assign_rec	PAR	ON	PRK.veh_no	=	PAR.veh_no
-                                                            AND	TODAY	BETWEEN	PAR.assign_begin AND NVL(PAR.assign_end, TODAY)
-                        LEFT JOIN	cc_prkg_lot_table	PLT	ON	PAR.lot_no	=	PLT.lot_no
+                        LEFT JOIN    cc_prkg_vehicle_rec    PRK    ON    id_rec.id    =    PRK.carthage_id
+                                                            AND    TODAY    BETWEEN    PRK.reg_date AND NVL(PRK.inactive_date,TODAY)
+                        LEFT JOIN    cc_prkg_assign_rec    PAR    ON    PRK.veh_no    =    PAR.veh_no
+                                                            AND    TODAY    BETWEEN    PAR.assign_begin AND NVL(PAR.assign_end, TODAY)
+                        LEFT JOIN    cc_prkg_lot_table    PLT    ON    PAR.lot_no    =    PLT.lot_no
                         --LEFT JOIN   prkgpermt_rec   prk ON  id_rec.id           =   prk.permt_id
                         --                                AND prk.acadyr          =   YEAR(TODAY)
                         --LEFT JOIN   lot_table           ON  prk.lotcode         =   lot_table.lotcode
