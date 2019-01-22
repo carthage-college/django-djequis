@@ -109,7 +109,8 @@ def main():
         badmatches = []
         result = engine.execute(value)
         rows = result.fetchall()
-        print("rows {}".format(len(rows)))
+        if test:
+            print("rows {}".format(len(rows)))
         if len(rows):
             datetimestr = time.strftime("%Y%m%d%H%M%S")
             filename=('{}{}Upload-{}.csv'.format(
@@ -211,7 +212,7 @@ def main():
         else:
             print("No results returned from the database for {}".format(key))
 
-    print "Done"
+    print("Done")
 
 if __name__ == "__main__":
 
