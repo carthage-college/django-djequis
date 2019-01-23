@@ -12,8 +12,7 @@ from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 
 # Imports for additional modules and functions written as part of this project
-from djequis.adp.utilities import fn_validate_field, fn_write_log, \
-    fn_write_error, fn_needs_update
+from djequis.adp.utilities import fn_validate_field, fn_write_log, fn_write_error, fn_needs_update
 
 DEBUG = settings.INFORMIX_DEBUG
 
@@ -124,6 +123,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                                            "work_cat_code", "work_cat_descr",
                                            "cc_work_cat_table", "char", EARL)
 
+        print("Work Cat Update = " + str(v_work_cat_update))
+
         if v_work_cat_update == None or len(str(v_work_cat_update)) == 0:
             q_ins_wc = '''
               INSERT INTO cc_work_cat_table (work_cat_code, work_cat_descr,
@@ -201,10 +202,10 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         # validate the position, division, department
         ##############################################################
 
-        print("Business Unit Code = " + businessunitcode[:4])
 
-        hrdivision = fn_needs_udpate(businessunitcode[:4], businessunitdescr,
+        hrdivision = fn_needs_update(str(businessunitcode[:4]), businessunitdescr,
                      "hrdiv", "descr", "hrdiv_table", "char", EARL)
+
         if hrdivision is None:
             q_ins_div = '''
                INSERT INTO hrdiv_table(hrdiv, descr, beg_date, end_date) 
@@ -244,11 +245,12 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                 engine.execute(q_upd_div, q_upd_div_args)
                 scr.write(q_upd_div + '\n' + str(q_upd_div_args) + '\n');
 
-        # print("Home Department Code = " +  homedeptcode)
-
+        print("Home Dept Code = " + homedeptcode[:3])
+        print("Home Dept descr = " + homedeptdescr)
         hrdepartment = fn_needs_update(homedeptcode[:3], homedeptdescr,
                       "hrdept", "descr", "hrdept_table", "char", EARL)
-        #print("HR Dept Needs update = " + hrdepartment)
+
+        print("HR Dept Needs update = " + str(hrdepartment))
         if hrdepartment==None or hrdepartment=="" or len(hrdepartment)==0:
             print("Insert Dept")
             # This query works 5/25/18
@@ -488,7 +490,9 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             q_ins_job_args = (v_tpos, jobtitledescr, 0, carthid,
                               payrollcompcode, spvrID, '',
                               'R', businessunitcode[:4], func_code, None, None,
-                              positioneffective, None, 'N', 'N/A', 'N', 'N',
+                              positioneffective,
+                              None if terminationdate == '' else terminationdate,
+                              'N', 'N/A', 'N', 'N',
                               jobtitledescr, rank, workercatcode, jobclass)
             # print(q_ins_job + str(q_ins_job_args))
             print("New Job Record for " + last + ', id = ' + str(carthid))
@@ -513,8 +517,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                     '', businessunitcode[:4], func_code, positioneffective,
                     None if terminationdate == '' else terminationdate,
                     jobtitledescr, workercatcode, jobclass, jobrow[0])
-            # print(q_upd_job)
-            # print(q_upd_job_args)
+            print(q_upd_job)
+            print(q_upd_job_args)
             print("Update Job Record for " + last + ', id = ' + str(carthid))
             engine.execute(q_upd_job, q_upd_job_args)
             fn_write_log("Updated job_rec, tpos = " + str(v_tpos)
