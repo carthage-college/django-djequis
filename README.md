@@ -50,3 +50,8 @@ with the Jenzabar databases, and over time will replace maquettes in /jics.
 
     mysql -u username -p rt4 < rt4.sql
     mysql -u username -p rt4 < rt/views.sql
+
+## URLs
+
+### TerraDotta
+    https://studyabroad.carthage.edu/index.cfm?FuseAction=SIS.Admin
