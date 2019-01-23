@@ -426,8 +426,8 @@ def main():
                     row["employee_assoc_id"], row["management_position"],
                     row["supervisor_flag"], row["long_title"],
                     datetime.now())
-                    print(q_cc_adp_rec)
-                    print(cc_adp_args)
+                    # print(q_cc_adp_rec)
+                    # print(cc_adp_args)
                     engine.execute(q_cc_adp_rec, cc_adp_args)
                     # ccadpcount =+ 1
                     scr.write(q_cc_adp_rec + '\n' + str(cc_adp_args) + '\n');
