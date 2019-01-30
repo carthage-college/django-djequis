@@ -2,8 +2,6 @@ import os
 import sys
 import pysftp
 import csv
-import datetime
-from datetime import date
 from datetime import datetime
 import codecs
 import time
