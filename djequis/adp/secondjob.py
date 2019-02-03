@@ -193,7 +193,8 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
                ?, ?)'''
             q_ins_job_args = (v_tpos, jr_jobtitle, 0, carthid, paycode, 0,
                               jobfunctioncode, 'R', div, func_code, None, None,
-                              datetime.now().strftime("%m/%d/%Y"), None, 'N',
+                              datetime.now().strftime("%m/%d/%Y"),
+                              None if poseffectend == '' else poseffectend, 'N',
                               'N/A', 'N', 'N', jobtitledescr, rank,
                               workercatcode)
             # print(q_ins_job + str(q_ins_job_args))

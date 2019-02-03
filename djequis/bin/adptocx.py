@@ -2,8 +2,6 @@ import os
 import sys
 import pysftp
 import csv
-import datetime
-from datetime import date
 from datetime import datetime
 import codecs
 import time
@@ -244,11 +242,7 @@ def main():
                      "job_class_descr", "job_description", "job_function_code",
                      "job_function_description", "room_number", "location_code",
                      "location_description", "leave_start_date",
-                     "leave_return_date", "home_cost_number2", "payroll_code2",
-                     "position_eff_date2", "position_end_date2",
-                     "home_cost_number3", "payroll_code3", "position_eff_date3",
-                     "position_end_date3", "home_cost_number4", "payroll_code4",
-                     "position_eff_date4", "position_end_date4",
+                     "leave_return_date",
                      "home_dept_code", "home_dept_descr", "supervisor_id",
                      "supervisor_fname", "supervisor_lname","business_unit_code",
                      "business_unit_descr","reports_to_name","reports_to_pos_id",
@@ -260,6 +254,12 @@ def main():
                     file_out.write(line)
                     # print('File = ' + x[0] + ', ID = ' + x[
                     #     1] + ', First = ' + x[3] + ', Last = ' + x[6])
+            # These will no longer be needed.
+            # "home_cost_number2", "payroll_code2",
+            # "position_eff_date2", "position_end_date2",
+            # "home_cost_number3", "payroll_code3", "position_eff_date3",
+            # "position_end_date3", "home_cost_number4", "payroll_code4",
+            # "position_eff_date4", "position_end_date4",
 
             # close the files
             t1.close()
@@ -409,15 +409,7 @@ def main():
                     row["location_code"], row["location_description"],
                     fn_convert_date(row["leave_start_date"]),
                     fn_convert_date(row["leave_return_date"]),
-                    row["home_cost_number2"], row["payroll_code2"],
-                    fn_convert_date(row["position_eff_date2"]),
-                    fn_convert_date(row["position_end_date2"]),
-                    row["home_cost_number3"], row["payroll_code3"],
-                    fn_convert_date(row["position_eff_date3"]),
-                    fn_convert_date(row["position_end_date3"]),
-                    row["home_cost_number4"], row["payroll_code4"],
-                    fn_convert_date(row["position_eff_date4"]),
-                    fn_convert_date(row["position_end_date4"]),
+                    "", "", "", "", "", "", "", "", "", "", "", "",
                     row["home_dept_code"], row["home_dept_descr"],
                     row["supervisor_id"], row["supervisor_fname"],
                     row["supervisor_lname"], row["business_unit_code"].zfill(3),
@@ -426,8 +418,8 @@ def main():
                     row["employee_assoc_id"], row["management_position"],
                     row["supervisor_flag"], row["long_title"],
                     datetime.now())
-                    print(q_cc_adp_rec)
-                    print(cc_adp_args)
+                    # print(q_cc_adp_rec)
+                    # print(cc_adp_args)
                     engine.execute(q_cc_adp_rec, cc_adp_args)
                     # ccadpcount =+ 1
                     scr.write(q_cc_adp_rec + '\n' + str(cc_adp_args) + '\n');
@@ -622,49 +614,49 @@ def main():
                                     row["middle_name"],EARL)
                             # print("Process Job Returned " + str(job_rslt))
                             jobcount = jobcount + job_rslt
-                            ##########################################################
-                            # STEP 2f--
-                            # Do updates to second job_rec (jobrec.py)
-                            ##########################################################
-                            print("In secondary Job Rec")
-
-                            if row["home_cost_number2"] != '':
-                                fn_process_second_job(row["carth_id"],
-                                    row["worker_cat_code"],
-                                    row["home_cost_number2"],
-                                    row["job_title_descr"],
-                                    row["position_eff_date2"],
-                                    row["position_end_date2"],
-                                    row["job_function_code"],
-                                    row["supervisor_id"], 3,
-                                    row["payroll_name"], EARL)
-                                secondjobcount = secondjobcount + 1
-                                print("Second Job for " + row["carth_id"] + " Job = " + row["home_cost_number2"])
-                            elif row["home_cost_number3"] != '':
-                                fn_process_second_job(
-                                    row["carth_id"],
-                                    row["worker_cat_code"],
-                                    row["home_cost_number3"],
-                                    row["job_title_descr"],
-                                    row["position_eff_date3"],
-                                    row["position_end_date3"],
-                                    row["job_function_code"],
-                                    row["supervisor_id"], 4,
-                                    row["payroll_name"], EARL)
-                                secondjobcount = secondjobcount + 1
-
-                            elif row["home_cost_number4"] != '':
-                                fn_process_second_job(
-                                    row["carth_id"],
-                                    row["worker_cat_code"],
-                                    row["home_cost_number4"],
-                                    row["job_title_descr"],
-                                    row["position_eff_date4"],
-                                    row["position_end_date4"],
-                                    row["job_function_code"],
-                                    row["supervisor_id"], 5,
-                                    row["payroll_name"], EARL)
-                                secondjobcount = secondjobcount + 1
+                            # ##########################################################
+                            # # STEP 2f--
+                            # # Do updates to second job_rec (jobrec.py)
+                            # ##########################################################
+                            # print("In secondary Job Rec")
+                            #
+                            # if row["home_cost_number2"] != '':
+                            #     fn_process_second_job(row["carth_id"],
+                            #         row["worker_cat_code"],
+                            #         row["home_cost_number2"],
+                            #         row["job_title_descr"],
+                            #         row["position_eff_date2"],
+                            #         row["position_end_date2"],
+                            #         row["job_function_code"],
+                            #         row["supervisor_id"], 3,
+                            #         row["payroll_name"], EARL)
+                            #     secondjobcount = secondjobcount + 1
+                            #     print("Second Job for " + row["carth_id"] + " Job = " + row["home_cost_number2"])
+                            # elif row["home_cost_number3"] != '':
+                            #     fn_process_second_job(
+                            #         row["carth_id"],
+                            #         row["worker_cat_code"],
+                            #         row["home_cost_number3"],
+                            #         row["job_title_descr"],
+                            #         row["position_eff_date3"],
+                            #         row["position_end_date3"],
+                            #         row["job_function_code"],
+                            #         row["supervisor_id"], 4,
+                            #         row["payroll_name"], EARL)
+                            #     secondjobcount = secondjobcount + 1
+                            #
+                            # elif row["home_cost_number4"] != '':
+                            #     fn_process_second_job(
+                            #         row["carth_id"],
+                            #         row["worker_cat_code"],
+                            #         row["home_cost_number4"],
+                            #         row["job_title_descr"],
+                            #         row["position_eff_date4"],
+                            #         row["position_end_date4"],
+                            #         row["job_function_code"],
+                            #         row["supervisor_id"], 5,
+                            #         row["payroll_name"], EARL)
+                            #     secondjobcount = secondjobcount + 1
 
                             ##########################################################
                             # STEP 2g--
