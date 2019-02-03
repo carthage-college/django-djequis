@@ -2,7 +2,6 @@ import os
 import sys
 import csv
 import argparse
-from datetime import datetime
 from datetime import date
 from dateutil.relativedelta import relativedelta
 import time
