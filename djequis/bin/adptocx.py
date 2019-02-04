@@ -341,14 +341,7 @@ def main():
                     job_class_code, job_class_descr, job_descr, job_function_code, \
                     job_function_descr, room, bldg, bldg_name, \
                     leave_of_absence_start_date, \
-                    leave_of_absence_return_date, home_cost_number_2, \
-                    payroll_company_code_2, \
-                    position_effective_date_2, position_end_date_2, \
-                    home_cost_number_3, \
-                    payroll_company_code_3, position_effective_date_3, \
-                    position_end_date_3, \
-                    home_cost_number_4, payroll_company_code_4, \
-                    position_effective_date_4, position_end_date_4, \
+                    leave_of_absence_return_date, \
                     home_depart_num_code, home_depart_num_descr, \
                     supervisor_id, supervisor_firstname, supervisor_lastname, \
                     business_unit_code, business_unit_descr, reports_to_name, \
@@ -359,8 +352,7 @@ def main():
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
                      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
                      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
-                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
-                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  ?, \
+                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  \
                      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \
                      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
                     cc_adp_args = (row["file_number"], row["carth_id"], row["last_name"],
@@ -409,7 +401,6 @@ def main():
                     row["location_code"], row["location_description"],
                     fn_convert_date(row["leave_start_date"]),
                     fn_convert_date(row["leave_return_date"]),
-                    "", "", "", "", "", "", "", "", "", "", "", "",
                     row["home_dept_code"], row["home_dept_descr"],
                     row["supervisor_id"], row["supervisor_fname"],
                     row["supervisor_lname"], row["business_unit_code"].zfill(3),
