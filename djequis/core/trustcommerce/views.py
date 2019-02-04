@@ -12,6 +12,7 @@ from django.views import generic
 from itertools import chain
 from operator import attrgetter, itemgetter
 from .forms import ContactForm
+# from .forms import CountryForm
 
 
 @portal_auth_required(
@@ -80,9 +81,25 @@ def home(request):
 
 
 
+
+
+
 def index(request):
     return HttpResponseRedirect("Hello, hello")
 
+#############################################################
+# def countries_view(request):
+#     if request.method == 'POST':
+#         form = CountryForm(request.POST)
+#         if form.is_valid():
+#             countries = form.cleaned_data.get('countries')
+#             # do something with your results
+#     else:
+#         form = CountryForm
+#
+#     return render_to_response('select.html', {'form':form },
+#         context_instance=RequestContext(request))
+##########################################################
 
 # def contact(request):
 #     # if request.method == "POST":
