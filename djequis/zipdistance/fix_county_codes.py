@@ -5,7 +5,7 @@ import string
 import sys
 import csv
 import datetime
-import codecs
+# import codecs
 import argparse
 from sqlalchemy import text
 import shutil
@@ -110,16 +110,15 @@ def main():
         #  it will be passed an address so it will need to exist
         #  as a function in a utility somewhere
 
-
         qval_sql = '''select id_rec.id, id_rec.fullname, 
 		trim(id_rec.addr_line1)||' '||trim(nvl(id_rec.addr_line2,''))||' '||trim(nvl(id_rec.addr_line3,'')) street, 
 		id_rec.city, id_rec.st, id_rec.zip, profile_rec.res_st, 
 		profile_rec.res_cty, profile_rec.birth_date
         from id_rec 
         join profile_rec on id_rec.id = profile_rec.id
-        where id_rec.st like ('%CO%') and id_rec.id = 1507231'''
+        where id_rec.st like ('%WI%') and id_rec.id = 17231'''
 
-        # print(qval_sql)
+        print(qval_sql)
 
         sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
         # ---------------------------------------------------------
@@ -149,11 +148,7 @@ def fn_single_address(v_id, v_street, v_city, v_state, v_zip, v_bdate):
         url = "https://geocoding.geo.census.gov/geocoder/geographies/address?street=" \
               + v_street + "&city=" + v_city + "&state=" + v_state + "&ZIP=" + v_zip + \
               "&benchmark=Public_AR_Current&vintage=Current_Current&format=json"
-
-        # Version with "layers=14" is bad!!!!  Does not return consitent format
-        # url = "https://geocoding.geo.census.gov/geocoder/geographies/address?street=" \
-        #       + v_street + "&city=" + v_city + "&state=" + v_state + "&ZIP=" + v_zip + \
-        #       "&benchmark=Public_AR_Current&vintage=Current_Current&layers=14&format=json"
+        print('CX Address = ' + v_street + ' ' + v_city + ' ' + v_state + ' ' + v_zip)
 
         response = requests.get(url)
         x = json.loads(response.content)
@@ -175,7 +170,7 @@ def fn_single_address(v_id, v_street, v_city, v_state, v_zip, v_bdate):
             # suffixDirection = x['result']['addressMatches'][0]['addressComponents']['suffixDirection']
             # suffixQualifier = x['result']['addressMatches'][0]['addressComponents']['suffixQualifier']
 
-            print(address)
+            print("Address = " + address)
 
             y_coordinate = x['result']['addressMatches'][0]['coordinates']['y']
             x_coordinate = x['result']['addressMatches'][0]['coordinates']['x']
