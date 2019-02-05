@@ -57,6 +57,8 @@ def main():
     main function
     '''
 
+    print("hello")
+
     cursor = connections[database].cursor()
 
     if test:
@@ -83,4 +85,5 @@ if __name__ == '__main__':
         print(args)
 
     sys.exit(main())
+
 
