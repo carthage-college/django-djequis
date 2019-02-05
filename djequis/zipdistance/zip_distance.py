@@ -101,10 +101,11 @@ def main():
         # approximate radius of earth in miles
         radius_earth = 3958.756
         # CarthZip = "53140"    # Not needed if not using API
-        carth_lat = 42.62208
-        carth_lng = -87.82498
-
-        # def main():
+        # Will use the latitude and longitude for 2001 Alford Park Drive
+        # All other locations will be the lat and lon of the post offices
+        #    for the ZIP codes
+        carth_lat = 42.618435
+        carth_lng = -87.823204
 
         # the USPS csv file has the same number of records as our zip table
         # so this will be a one-to-one comparison
@@ -115,7 +116,7 @@ def main():
         #      settings.ZIP_CSV_OUTPUT
         #  ))
         # with open('zip_code_database_abrv.csv', 'w', encoding = 'utf-8') as f:
-        with open('Fed County to FIPS by County and State Abrv.csv', 'r') as f:
+        with open('Fed County to FIPS by County and State.csv', 'r') as f:
             d_reader = csv.DictReader(f, delimiter=',')
 
             for row in d_reader:

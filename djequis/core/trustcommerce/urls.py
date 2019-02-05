@@ -5,6 +5,7 @@ from djequis.core.trustcommerce.views import home, details, download,\
 
 urlpatterns = [
 
+
     # home
     url(r'^$', views.home, name='trustcommerce_home'),
 
@@ -14,13 +15,14 @@ urlpatterns = [
 
 
     # Download
-    url(r'^(?P<id>\d+)(?P<activity>\d{1,2}) download$', views.download,
+    url(r'^(?P<id>\d+)(?P<activity>\d+) download$', views.download,
         name='trustcommerce_download'),
 
 
     # # Forms Experiment
     # url(r'^$', views.contact, name='contact'),
-
+    # # home
+    # url(r'^$', views.countries_view, name='trustcommerce_countries'),
 
     # Details
     url(r'^(?P<activity>\d+) details$', views.details, name='trustcommerce_details'),

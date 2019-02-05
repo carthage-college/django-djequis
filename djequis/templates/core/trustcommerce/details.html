@@ -20,6 +20,7 @@
 </h3>
 
 
+
 {% if objects|length > 0 %}
     <p>
         We have {{objects|length}} new credit card
@@ -27,7 +28,9 @@
       Activity code  {{activity}}
     </p>
 
-    <form name="get_activity_details" method="POST" action="{% url 'trustcommerce_download2' %}">
+
+
+    <form name="get_activity_details" method="POST" action="{% url 'trustcommerce_download' 10812 activity %}">
          <table cellpadding="0" border="1">
               <tr class="{% cycle 'zebra1' 'zebra0' %}">
                   <th>Accept</th>
@@ -44,7 +47,7 @@
 
               {% for obj in objects %}
                    <tr>
-                        <td><input id="checkBox" name=CheckedVal[] type="checkbox" value={{obj.2}} checked="checked"></td>
+                        <td><input id=checkBox name="CheckedVal[]" type="checkbox" value="{{obj.2}}" checked="checked"></td>
                         <!--<td align="right">{{ forloop.counter }}</td>-->
                         <td>{{obj.2}}</td>  <!--record ID-->
                         <td>{{obj.6}}</td>  <!--date-->
@@ -63,13 +66,10 @@
                         <input name="datasource" value="{{obj.11}}" type="hidden">
                         <input name="method" value="view_details" type="hidden">
                         <input name="selWTCode" value="{{obj.10}}" type="hidden">
-                        <!--<td> <a href="{% url 'trustcommerce_download2' %}">Test</a> </td>-->
-
+                        <td> <a href="{% url 'trustcommerce_download' obj.2 activity %}">Test</a> </td>
                    </tr>
               {% endfor %}
          </table>
-             CheckedValue = {{obj.2}}
-
     <br>
     <table style="width:100%" border=0 width 200>
         <!--If enrichment -->
@@ -95,7 +95,8 @@
 
     </table>
     </form>
-    <a href="{% url 'trustcommerce_download' 34924 activity %}">Test</a>
+Activity code {{activity}}
+<!--<td> <a href="{% url 'trustcommerce_download' 10810 obj1 %}">Test</a> </td>-->
 
 
 

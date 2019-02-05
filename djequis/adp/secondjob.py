@@ -149,7 +149,8 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
         where job_rec.tpos_no = pos_table.tpos_no
         and job_rec.title_rank =  {0}
         and job_rec.id = {1}
-        and job_rec.end_date is null
+        and (job_rec.end_date is null
+        or job_rec.end_date > TODAY)
         '''.format(rank, carthid)
         # print(q_check_exst_job)
         sql_exst_job = do_sql(q_check_exst_job, key=DEBUG, earl=EARL)
@@ -174,7 +175,8 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
           FROM job_rec
           WHERE tpos_no = {0}
           AND id = {1}
-          AND end_date IS null
+          AND (end_date IS null
+          or end_date > TODAY)
           '''.format(v_tpos,carthid,positionstart)
         # print(q_get_job)
         sql_job = do_sql(q_get_job, key=DEBUG, earl=EARL)

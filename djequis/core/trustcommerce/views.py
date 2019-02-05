@@ -11,15 +11,10 @@ from django.views import generic
 # from djequis.core.trustcommerce.summaries import *
 from itertools import chain
 from operator import attrgetter, itemgetter
-from .forms import ContactForm
-# from .forms import CountryForm
-
 
 @portal_auth_required(
     session_var='DJEQUIS_AUTH', redirect_url=reverse_lazy('access_denied')
 )
-
-
 def download2(request):
     return render(request, 'core/trustcommerce/download.html' )
 
@@ -42,6 +37,7 @@ def details(request, activity):
         {'objects': objects, 'activity': activity}
     )
 
+
 def download(request, id, activity):
     tcpayflow = connections['tcpayflow'].cursor()
     djforms = connections['djforms'].cursor()
@@ -59,6 +55,7 @@ def download(request, id, activity):
         request, 'core/trustcommerce/download.html',
         {'objects': objects, 'id': id, 'activity': activity}
     )
+
 
 def home(request):
     tcpayflow = connections['tcpayflow'].cursor()
@@ -78,36 +75,3 @@ def home(request):
         request, 'core/trustcommerce/home.html',
         {'objects': objects, }
     )
-
-
-
-
-
-
-def index(request):
-    return HttpResponseRedirect("Hello, hello")
-
-#############################################################
-# def countries_view(request):
-#     if request.method == 'POST':
-#         form = CountryForm(request.POST)
-#         if form.is_valid():
-#             countries = form.cleaned_data.get('countries')
-#             # do something with your results
-#     else:
-#         form = CountryForm
-#
-#     return render_to_response('select.html', {'form':form },
-#         context_instance=RequestContext(request))
-##########################################################
-
-# def contact(request):
-#     # if request.method == "POST":
-#     form = ContactForm(request.POST)
-#     # if form.is_valid():
-#     # s_name = form.cleaned_data[' name ']
-#     # s_results = SomeTable.objects.filter(name=s_name)
-#     # return render(request, 'testForms.html', {'form': form, 's_results': s_results})
-#     # else:
-#     #     form = SearchForm()
-#     return render(request, 'core/trustcommerce/testForms.html', {'form': form, })

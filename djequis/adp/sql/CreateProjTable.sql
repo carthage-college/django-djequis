@@ -1,6 +1,6 @@
 
-CREATE TABLE cx_sandbox:func_table (
-	func char(3) NOT NULL,
+CREATE TABLE cx_sandbox:proj_table (
+	proj char(7) NOT NULL,
 	txt char(24),
 	def_desc char(12),
 	prim_resp_id integer,
@@ -9,5 +9,5 @@ CREATE TABLE cx_sandbox:func_table (
 	active_date date,
 	inactive_date date
 );
-CREATE UNIQUE INDEX cx_sandbox:tfunc_func ON func_table (func);
+CREATE UNIQUE INDEX cx_sandbox:tproj_proj ON proj_table (proj);
 

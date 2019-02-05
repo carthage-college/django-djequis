@@ -55,7 +55,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         # If Jobtitle_code is empty, end the process with an invalid data message
 
         print("Job Title Code = " + jobtitlecode + ", " + jobtitledescr
-              + ", " + terminationdate + "------------------")
+              + ", " + str(terminationdate) + "------------------")
         if jobtitlecode is None:
             print("Missing Job Title Code for " + last + "," + first
                   + " ID = "  + carthid)
@@ -80,19 +80,22 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         pcnaggr = payrollcompcode + "-" + businessunitcode[:4] + "-" \
                       + homedeptcode[:3] + "-" + jobtitlecode
 
-        print(pcnaggr)
+        print("PCN Aggregate = " + pcnaggr)
 
         func_code = fn_validate_field(homedeptcode[:3],"func","func",
                     "func_table", "char", EARL)
+        print("Function Code = " + str(func_code))
         if func_code != '':
             fn_write_log("Valid func_code")
             # print('Validated func_code = ' + homedeptcode[:3] + '\n')
         else:
-            print('Invalid Function Code ' + homedeptcode[:3] + '\n')
-            fn_write_log('Invalid Function Code ' + homedeptcode[:3] + '\n')
-            fn_write_error("Error in jobrec.py - Invalid Function Code for ' "
-                    + id + ' Code = ' + homedeptcode[:3] + '\n');
+            print('Invalid Function Code ' + str(homedeptcode[:3]) + '\n')
+            fn_write_log('Invalid Function Code ' + str(homedeptcode[:3]) + '\n')
+           # fn_write_error("Error in jobrec.py - Invalid Function Code for ' "
+            #         + id + ' Code = ' + str(homedeptcode[:3]) + '\n');
 
+            print("Error in jobrec.py - Invalid Function Code for " +
+                  str(carthid) + " Code = " + str(homedeptcode[:3]) + "\n");
 
 
         print("Supervisor = " + str(spvrID) +'\n')
@@ -407,7 +410,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         # Determine job rank for job_rec
         ##############################################################
         rank = ''
-        print("Primary Position = " + primaryposition + " " + terminationdate)
+        print("Primary Position = " + primaryposition + " " + str(terminationdate))
         if primaryposition == 'Yes':
             rank = 1
         elif primaryposition == 'No':
@@ -435,7 +438,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         where job_rec.tpos_no = pos_table.tpos_no
         and job_rec.title_rank =  1
         and job_rec.id = {0}
-        and job_rec.end_date is null
+        and (job_rec.end_date is null
+                or job_rec.end_date > TODAY)
         '''.format(carthid)
         # print(q_check_exst_job)
         sql_exst_job = do_sql(q_check_exst_job, key=DEBUG, earl=EARL)
@@ -454,15 +458,13 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                 # print(q_end_job_args)
                 engine.execute(q_end_job, q_end_job_args)
 
-
-
-
         q_get_job = '''
           SELECT job_no
           FROM job_rec
           WHERE tpos_no = {0}
           AND id = {1}
-          AND end_date IS null
+          AND (end_date IS null
+           or end_date > TODAY)
         '''.format(v_tpos,carthid,positioneffective)
         # Something in the formatting of the date is failing...
         # and beg_date = '{2}'

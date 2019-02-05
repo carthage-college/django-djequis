@@ -16,8 +16,7 @@
 </head>
 <body>
 <h3>
-    This page is for building CSV files for Ascii-posting
-    of credit card transactions into CX
+    Retrieve Credit Card Transactions (TAKE 2)
 </h3>
 
 <!-- "objects" is a python list from "views.py" assigned from the queries to tcpayflow and djforms
@@ -29,11 +28,14 @@ How I pass a variable to it is another question....
 -->
 
 {% if objects|length > 0 %}
+    <p>
+        We have {{objects|length}} group{{objects|length|pluralize}} with credit card activity.
+    </p>
 
-<table cellpadding="1" cellspacing="0" border="0">
-    <col width="300">
-    <col width="150">
-    <col width="100">
+    <table cellpadding="1" cellspacing="0" border="0">
+         <col width="300">
+         <col width="150">
+         <col width="100">
 
          <tr class="zebra0">
            <th>Activity</th>
@@ -56,13 +58,14 @@ How I pass a variable to it is another question....
            {% endfor %}
             <!--obj.aggregate(Sum({{obj.2}}))['column__sum']-->
     </table>
-    <p>
-        We have {{objects|length}} group{{objects|length|pluralize}} with credit card activity.
-    </p>
+
+
+
 
 {% else %}
-   <p>There are no app fee transactions to import.</p>
+   <p>There are no transactions to import.</p>
 {% endif %}
+
 
 </body>
 
