@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+
+<head>
+   <title>TrustCommerce import tool</title>
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+   <meta http-equiv="Content-Language" content="en-us" />
+   <meta name="MSSmartTagsPreventParsing" content="true" />
+    <style type="text/css">
+       p.note {color:#555;}
+        td {vertical-align:top; padding:10px 5px;}
+       td, th {vertical-align:top; padding:10px 5px;}
+       th {text-align:left;}
+        .zebra1 {}
+        .zebra0 {background:#eeeeee;}
+    </style>
+</head>
+<body>
+<h3>
+    Retrieve Credit Card Transactions (TAKE 2)
+</h3>
+
+
+<form method='post'>
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type='submit' value='submit'>
+</form>
