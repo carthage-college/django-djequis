@@ -117,7 +117,7 @@ def main():
         join profile_rec on id_rec.id = profile_rec.id
         where id_rec.id = {0}'''.format(searchval_id)
 
-        print(qval_sql)
+        # print(qval_sql)
 
         sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
         # ---------------------------------------------------------
@@ -128,30 +128,32 @@ def main():
             rows = sql_val.fetchall()
             for row in rows:
                 v_id = row[0]
-                v_street = row[2]
+                # v_street = row[2]
+                # v_street = str(row[2].split(', ')[0])
+                # Need something to screen out apt or lot numbers
+                # Not used in geocode
+
+                rslt = fn_fix_unit(row[2])
+                v_street = rslt[0]
+                v_unit = rslt[1]
+
+                print("Street = " + v_street)
+                # if row[2].find(",") > 0:
+                #     v_Unit = str(row[2].split(', ')[1])
+                # else:
+                #     v_Unit = ''
+                print("Unit = " + v_unit)
                 v_city =row[3]
                 v_state = row[4]
                 v_zip = row[5]
                 v_bdate = row[8]
 
-                print(str(row[2]).find(","))
+                print('CX Address = ' + str(row[2]) + ", " + v_city + ', ' + v_state + ' ' + v_zip)
 
-                # Need something to screen out apt or lot numbers
-                # Not used in geocode
-                print("SPLIT = " + str(row[2].split(', ')))
-                st = str(row[2].split(', '))
-                x = str(row[2].split(', ')[0])
-                if row[2].find(",") > 0:
-                     y = str(row[2].split(', ')[1])
-                else:
-                     y = ''
-                print(y)
-
-                print(x)
+                # print(str(row[2]).find(","))
 
 
-
-                fn_single_address(v_id, v_street, v_city, v_state, v_zip, v_bdate)
+                fn_single_address(v_id, v_street, v_unit, v_city, v_state, v_zip, v_bdate)
     except Exception as e:
         # fn_write_error("Error in zip_distance.py for zip, Error = " + e.message)
         print("Error in address_lookup.py - Error = " + str(e.message))
@@ -159,12 +161,12 @@ def main():
         #     logging.shutdown()
 
 
-def fn_single_address(v_id, v_street, v_city, v_state, v_zip, v_bdate):
+def fn_single_address(v_id, v_street, v_unit, v_city,  v_state, v_zip, v_bdate):
     try:
         url = "https://geocoding.geo.census.gov/geocoder/geographies/address?street=" \
               + v_street + "&city=" + v_city + "&state=" + v_state + "&ZIP=" + v_zip + \
               "&benchmark=Public_AR_Current&vintage=Current_Current&format=json"
-        print('CX Address = ' + v_street + ', ' + v_city + ' ' + v_state + ' ' + v_zip)
+        # print(url)
 
         response = requests.get(url)
         x = json.loads(response.content)
@@ -186,8 +188,14 @@ def fn_single_address(v_id, v_street, v_city, v_state, v_zip, v_bdate):
             # suffixDirection = x['result']['addressMatches'][0]['addressComponents']['suffixDirection']
             suffixQualifier = x['result']['addressMatches'][0]['addressComponents']['suffixQualifier']
 
-            print("Formatted Address = " + address)
-            print(suffixQualifier)
+            print("Formatted Full Address = " + address)
+            print("Formatted Street Address = " + address.split(', ')[0])
+            print("Formatted Street Address w Unit = " + address.split(', ')[0] + ' ' + v_unit.upper())
+            print("Formatted City = " + address.split(', ')[1])
+            print("Formatted State = " + address.split(', ')[2])
+            print("Formatted Zip = " + address.split(', ')[3])
+
+            # print("Suffix qualifier = " + suffixQualifier)
 
             y_coordinate = x['result']['addressMatches'][0]['coordinates']['y']
             x_coordinate = x['result']['addressMatches'][0]['coordinates']['x']
@@ -251,6 +259,37 @@ def fn_single_address(v_id, v_street, v_city, v_state, v_zip, v_bdate):
         print("Error in address_lookup.py - Error = " + str(e.message))
         # finally:
         #     logging.shutdown()
+
+
+def fn_fix_unit(addr):
+    exclude = ["SUITE", "BLDG", "LOT", "UNIT", "APT", "STE", "#"]
+
+    # Break up your address into its parts
+    chopped = addr.split(" ")
+
+    # Place holder for final string
+    l_addr = ""
+    unit = ""
+    if addr.find('#') > -1:
+        x = addr.find('#')
+        l_addr = addr[:x]
+        unit = addr[x:]
+    else:
+        # Grab your address components
+        for piece in chopped:
+            # Check if they are in the exclusion list
+            # If not, add to your output.
+            if piece.upper().translate(None, string.punctuation) not in exclude:
+                l_addr = addr
+            # If you hit a unit number, break the loop
+            # Note this works only for suffix lot types
+            else:
+                pos = addr.find(piece)
+                l_addr = addr[:pos]
+                unit = addr[pos:]
+                break
+
+    return l_addr, unit
 
 def fn_write_error(msg):
     # create error file handler and set level to error
