@@ -1,23 +1,11 @@
 import os
 import requests
-import json
-import string
 import sys
 import csv
-import datetime
-import codecs
 import argparse
-from sqlalchemy import text
-import shutil
-from math import sin, cos, sqrt, atan2, radians
-# import logging
-# from logging.handlers import SMTPHandler
-# from djtools.utils.logging import seperator
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
-# import requests
-# import json
 from math import sin, cos, sqrt, atan2, radians
 
 # python path
@@ -34,7 +22,6 @@ django.setup()
 
 # django settings for script
 from django.conf import settings
-from django.db import connections
 
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
@@ -46,7 +33,6 @@ os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
-# from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_SANDBOX
