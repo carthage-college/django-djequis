@@ -139,6 +139,7 @@ COURSES = '''
         sr.stat = 'X'
         AND sr.end_date > TODAY
         AND sr.stat_date > TODAY-4
+      	AND trim(cr.prog) NOT IN ('PRDV','PARA','KUSD')
 '''
 # fetch users
 # Users are collected in a single query to get both Students and Faculty/Staff.
