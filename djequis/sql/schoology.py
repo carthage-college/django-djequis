@@ -257,6 +257,8 @@ ENROLLMENT = '''
         sr.stat = 'X'
         AND sr.end_date > TODAY
         AND sr.stat_date > TODAY-4
+        AND 
+    trim(cr.prog) NOT IN ('PRDV','PARA','KUSD')
 '''
 # fetch crosslist courses
 # this query returns two different sections that have the same meeting time
