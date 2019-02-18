@@ -5,6 +5,8 @@ import datetime
 from datetime import date
 import time
 from time import strftime
+from djequis.adp.utilities import fn_write_log, fn_write_error
+
 
 # python path
 # sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -41,25 +43,32 @@ def file_download():
     ############################################################################
     # sFTP GET downloads the CSV file from ADP server and saves in local directory.
     ############################################################################
-    with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
-        sftp.chdir("adp/")
-        # Remote Path is the ADP server and once logged in we fetch directory listing
-        remotepath = sftp.listdir()
-        # Loop through remote path directory list
-        for filename in remotepath:
-            remotefile = filename
-            # set local directory for which the ADP file will be downloaded to
-            local_dir = ('{0}'.format(
-                settings.ADP_CSV_OUTPUT
-            ))
-            localpath = local_dir + remotefile
-            # GET file from sFTP server and download it to localpath
-            sftp.get(remotefile, localpath)
-            #############################################################
-            # Delete original file %m_%d_%y_%h_%i_%s_Applications(%c).txt
-            # from sFTP (ADP) server
-            #############################################################
-            # sftp.remove(filename)
-    sftp.close()
+    try:
+        with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
+            sftp.chdir("adp/")
+            # Remote Path is the ADP server and once logged in we fetch directory listing
+            remotepath = sftp.listdir()
+            # Loop through remote path directory list
+            for filename in remotepath:
+                remotefile = filename
+                # set local directory for which the ADP file will be downloaded to
+                local_dir = ('{0}'.format(
+                    settings.ADP_CSV_OUTPUT
+                ))
+                localpath = local_dir + remotefile
+                # GET file from sFTP server and download it to localpath
+                sftp.get(remotefile, localpath)
+                #############################################################
+                # Delete original file %m_%d_%y_%h_%i_%s_Applications(%c).txt
+                # from sFTP (ADP) server
+                #############################################################
+                # sftp.remove(filename)
+        sftp.close()
 
-#    file_download()
+    #    file_download()
+
+    except Exception as e:
+        # print(e)
+        fn_write_error("Error in adp_ftp.py - Error  = " + e.message)
+        return(0)
+
