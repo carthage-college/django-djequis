@@ -14,7 +14,6 @@ from time import strftime
 import requests
 import json
 import string
-import csv
 import argparse
 import shutil
 from math import sin, cos, sqrt, atan2, radians
