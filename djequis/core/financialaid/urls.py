@@ -6,7 +6,6 @@ from djequis.core.financialaid import views
 
 urlpatterns = [
     url(
-        r'^wisact284/$',
-        views.wisact284, name='wisact284'
+        r'^wisact284/$', views.wisact284, name='wisact284'
     ),
 ]
