@@ -96,13 +96,17 @@ def main():
         print sql
     sqlresult = do_sql(sql, earl=EARL)
     for s in sqlresult:
+        if s.addr_line2:
+            addr_line2 = s.addr_line2.decode('cp1252').encode('utf-8')
+        else:
+            addr_line2 = ''
         folks.append({
             'lastname':s.lastname.decode('cp1252').encode('utf-8'),
             'firstname':s.firstname.decode('cp1252').encode('utf-8'),
             'middlename':s.middlename.decode('cp1252').encode('utf-8'),
             'id':s.id,
             'addr_line1':s.addr_line1.decode('cp1252').encode('utf-8'),
-            'addr_line2':s.addr_line2.decode('cp1252').encode('utf-8'),
+            'addr_line2':addr_line2,
             'city':s.city.decode('cp1252').encode('utf-8'),
             'st':s.st,
             'ctry':s.ctry.decode('cp1252').encode('utf-8'),
@@ -115,7 +119,6 @@ def main():
         })
     xml = paint_xml(folks)
     if test:
-        print xml
         phile = "{}carthage_personas_draft_{:%Y-%m-%d}.xml".format(
             settings.OCLC_LOCAL_PATH,NOW
         )
@@ -125,10 +128,12 @@ def main():
         # send email that OCLC script has completed
         SUBJECT = '[OCLC SFTP] completed'
         BODY = 'OCLC SFTP process has been completed.\n\n'
+        '''
         sendmail(
-                settings.OCLC_TO_EMAIL,settings.OCLC_FROM_EMAIL,
-                SUBJECT, BODY
-            )
+            settings.OCLC_TO_EMAIL,settings.OCLC_FROM_EMAIL,
+            SUBJECT, BODY
+        )
+        '''
     else:
         temp = StringIO(xml.encode('utf-8'))
         ftp = ftplib.FTP(
