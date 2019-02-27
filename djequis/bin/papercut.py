@@ -45,6 +45,8 @@ parser.add_argument(
     help="Dry run?",
     dest="test"
 )
+
+
 def main():
     # set date and time
     datetimestr = time.strftime("%Y%m%d%H%M%S")
