@@ -160,7 +160,7 @@ def main():
             # break tells whether we have found the .csv file
             break
     if not phile:
-        # no file was found send email
+        # if no file was found, send an email to folks
         SUBJECT = '[Papercut] failed: no file found'
         BODY = 'No .csv file was found'
         send_mail(None, TO, SUBJECT, FROM, TEMPLATE, BODY, bcc=BCC)
