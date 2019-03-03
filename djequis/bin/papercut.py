@@ -32,7 +32,7 @@ TO = settings.PAPERCUT_TO_EMAIL
 FROM = settings.PAPERCUT_FROM_EMAIL
 BCC = settings.PAPERCUT_BCC_EMAIL
 TEMPLATE = 'papercut/email.html'
-
+SODEXO = '1-003-10040'
 # set up command-line options
 desc = """
     Papercut Chargeback
@@ -65,23 +65,19 @@ def main():
         # Local Path == /data2/www/data/papercut/{filename.csv}
         localpath = source_dir + localfile
         if localfile.endswith(".csv"):
-            print("localpath = {}".format(localpath))
             # set archive path and new filename to which it will be renamed
             # when archived in /data2/www/data/papercut_archives/
             archive_destination = ('{0}modified_papercut_bak_{1}.csv'.format(
                 settings.PAPERCUT_CSV_ARCHIVED, datetimestr
             ))
-            print("archive_destination = {}".format(archive_destination))
             # rename file to be processed
             # /data2/www/data/papercut/papercut.csv
             orig_papercut_file = ('{}papercut.csv'.format(source_dir))
-            print("orig_papercut_file = {}".format(orig_papercut_file))
             # file name for new file being created
             # /data2/www/data/papercut/monthly-papercut.csv
             modified_papercut_file = (
                 '{}monthly-papercut.csv'.format(source_dir)
             )
-            print("modified_papercut_file = {}".format(modified_papercut_file))
             # the filename renamed to papercut.csv
             shutil.move(localpath, orig_papercut_file)
             # modified papercut output csv file
@@ -101,32 +97,34 @@ def main():
                             # the objective is to remove everything before the
                             # slash (/) including and after a certain character
                             # in the string \s* will helps to match also the
-                            # preceding vertical or horizontal space character
+                            # pre"ceding vertical or horizontal space character
                             ###################################################
                             #accountName2 = re.sub(
                                 #r'(.*)/(.*)(.*)#(.*)',
                                 #row['Shared Account Parent Name']
                             #)
+                            #print("row = {}".format(row))
                             accountName = re.sub(
                               r'\s*#.*', '',
                               row['Shared Account Parent Name'].split('/',1)[1]
                             )
-                            #print(accountName)
-                            #print row['Cost']
-                            # sum of the Cost field
-                            total_cost += float(row['Cost'])
-                            csv_line = (
-                                "{} print-copy".format(month_year), accountName,
-                                row['Cost']
-                            )
-                            writer.writerow(csv_line)
+                            if SODEXO != accountName:
+                                #print(accountName)
+                                #print row['Cost']
+                                # sum of the Cost field
+                                total_cost += float(row['Cost'])
+                                csv_line = (
+                                    "{} print-copy".format(month_year), accountName,
+                                    row['Cost']
+                                )
+                                writer.writerow(csv_line)
                         except Exception as e:
                             #print "Exception: {}".format(str(e))
                             # Email there was an exception error while
                             # processing .csv
                             SUBJECT = "[Papercut] modified file"
-                            BODY = "There was an exception error: {}".format(
-                                str(e)
+                            BODY = "There was an exception error: {}\n\n{}".format(
+                                str(e), row
                             )
                             send_mail(
                                 None,TO,SUBJECT,FROM,TEMPLATE,BODY,bcc=BCC
@@ -151,19 +149,22 @@ def main():
             file_attach = modified_papercut_file
             subject = "[Papercut] with attachment"
             send_mail(
-                None, TO, subject, FROM, TEMPLATE, bcc=BCC,
-                attach=file_attach
+                None, TO, subject, FROM, TEMPLATE, 'CSV File attached',
+                bcc=BCC, attach=file_attach
             )
+
             # delete monthly-papercut.csv file
             os.remove(modified_papercut_file)
-            phile = False
             # break tells whether we have found the .csv file
+            phile = True
             break
     if not phile:
         # if no file was found, send an email to folks
         SUBJECT = '[Papercut] failed: no file found'
         BODY = 'No .csv file was found'
-        send_mail(None, TO, SUBJECT, FROM, TEMPLATE, BODY, bcc=BCC)
+        if not test:
+            send_mail(None, TO, SUBJECT, FROM, TEMPLATE, BODY, bcc=BCC)
+
 
 if __name__ == "__main__":
     args = parser.parse_args()
