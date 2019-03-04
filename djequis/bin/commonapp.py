@@ -8,7 +8,6 @@ import time
 from time import strftime
 import argparse
 import uuid
-from sqlalchemy import text
 import shutil
 import re
 import logging
