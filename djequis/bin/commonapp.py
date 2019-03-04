@@ -70,7 +70,7 @@ parser.add_argument(
     help="database name.",
     dest="database"
 )
-# sFTP fetch (GET) downloads the file from Common App file from server 
+# sFTP fetch (GET) downloads the file from Common App file from server
 def file_download():
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
@@ -81,17 +81,19 @@ def file_download():
        'password':settings.COMMONAPP_PASS,
        'cnopts':cnopts
     }
-    ############################################################################
-    # sFTP GET downloads the file from Common App file from server 
+    ###########################################################################
+    # sFTP GET downloads the file from Common App file from server
     # and saves in local directory.
-    ############################################################################
+    ###########################################################################
     with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
-        # Remote Path is the Common App server and once logged in we fetch directory listing
+        # Remote Path is the Common App server and once logged in we fetch
+        # directory listing
         remotepath = sftp.listdir()
         # Loop through remote path directory list
         for filename in remotepath:
             remotefile = filename
-            # set local directory for which the common app file will be downloaded to
+            # set local directory for which the common app file will be
+            # downloaded to
             local_dir = ('{0}'.format(
                 settings.COMMONAPP_CSV_OUTPUT
             ))
@@ -115,13 +117,19 @@ logger.setLevel(logging.DEBUG)
 # create console handler and set level to info
 handler = logging.FileHandler('{0}commonapp.log'.format(settings.LOG_FILEPATH))
 handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+formatter = logging.Formatter(
+    '%(asctime)s: %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p'
+)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 # create error file handler and set level to error
-handler = logging.FileHandler('{0}commonapp_error.log'.format(settings.LOG_FILEPATH))
+handler = logging.FileHandler('{0}commonapp_error.log'.format(
+    settings.LOG_FILEPATH)
+)
 handler.setLevel(logging.ERROR)
-formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+formatter = logging.Formatter(
+    '%(asctime)s: %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p'
+)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 # function is used to execute query for test scores (ACT, SAT)
@@ -145,13 +153,13 @@ def insertExam(id, ctgry, cmpl_date, score1, score2, score3, score4, score5, sco
             logger.error(err, exc_info=True)
 
 def main():
-    ############################################################################
+    ###########################################################################
     # development server (bng), you would execute:
     # ==> python commonapp.py --database=train --test
     # production server (psm), you would execute:
     # ==> python commonapp.py --database=cars
     # without the --test argument
-    ############################################################################
+    ###########################################################################
     # execute sftp code that needs to be executed in production only
     if not test:
         file_download()
@@ -172,20 +180,26 @@ def main():
             file_size = os.stat(localpath).st_size
             if localfile.endswith(".txt"):
                 if file_size > 0:
-                    # set destination path and new filename that it will be renamed to when archived
+                    # set destination path and new filename that it will be
+                    # renamed to when archived
                     destination = ('{0}commonapp-{1}_{2}.txt'.format(
-                        settings.COMMONAPP_CSV_ARCHIVED, datetimestr, str(fileCount)
+                        settings.COMMONAPP_CSV_ARCHIVED, datetimestr,
+                        str(fileCount)
                     ))
                     # renamed file name to be processed
-                    renamedfile = ('{0}carthage_applications.txt'.format(source_dir))
+                    renamedfile = ('{0}carthage_applications.txt'.format(
+                        source_dir
+                    ))
                     # renaming file fetched from Common App server
-                    # The filename comming in %m_%d_%y_%h_%i_%s_Applications(%c).txt
+                    # The filename comming in
+                    # %m_%d_%y_%h_%i_%s_Applications(%c).txt
                     # The filename renamed to carthage_applications.txt
                     shutil.move(localpath, renamedfile)
                     try:
                         # set global variable
                         global EARL
-                        # determines which database is being called from the command line
+                        # determines which database is being called from the
+                        # command line
                         if database == 'cars':
                             EARL = INFORMIX_EARL_PROD
                         elif database == 'train':
@@ -193,7 +207,8 @@ def main():
                         else:
                             # this will raise an error when we call get_engine()
                             # below but the argument parser should have taken
-                            # care of this scenario and we will never arrive here.
+                            # care of this scenario and we will never
+                            # arrive here.
                             EARL = None
                         # establish mySQL database connection
                         cursor = connections['admissions'].cursor()
@@ -375,11 +390,13 @@ def main():
                                     studentStatus = 'TRAD'
                                     intendHoursEnrolled = 16
                                     app_PTSM_list.append(str(apptmp_no));
-                                ################################################
-                                # Per Rob Schiferl adjust the code for Common App
-                                # to make any app that comes in through Common App full time
-                                # even if they indicate part time on their Common App
-                                ################################################
+                                ###############################################
+                                # Adjust the code for Common App
+                                # to make any app that comes in through
+                                # Common App full time
+                                # even if they indicate part time on their
+                                # Common App
+                                ###############################################
                                 """
                                 elif row["studentStatus"] == 'Part Time' or row["transferStudentStatus"] == 'Part Time':
                                     studentStatus = 'PTSM'
@@ -645,10 +662,10 @@ def main():
                                             logger.error(err, exc_info=True)
                                 else:
                                     scr.write('--There were no transfer secondary schools attended for this application.\n\n');
-                                """ # removed per Rob Schiferl 9/18/2017
-                                ################################################
+                                """ # removed 9/18/2017
+                                ###############################################
                                 # BEGIN - college(s) attended for a student
-                                ################################################
+                                ###############################################
                                 if row["collegesAttendedNumber"] != '' and int(row["collegesAttendedNumber"]) > 0:
                                     for schoolNumber in range(1, int(row["collegesAttendedNumber"])+1):
                                         # check to see that there is a CeebCode coming from Common App
@@ -677,9 +694,10 @@ def main():
                                 else:
                                     scr.write('--There were no colleges attended for this application.\n\n');
                                 """
-                                #####################################################
-                                # BEGIN - college(s) attended for a transfer student
-                                #####################################################
+                                ###############################################
+                                # BEGIN - college(s) attended for a
+                                # transfer student
+                                ###############################################
                                 if row["transferCollegesAttendedNumber"] != '' and int(row["transferCollegesAttendedNumber"]) > 0:
                                     for schoolNumber in range(1, int(row["transferCollegesAttendedNumber"])+1):
                                         # check to see that there is a CeebCode coming from Common App
@@ -710,9 +728,9 @@ def main():
                                             logger.error(err, exc_info=True)
                                 else:
                                     scr.write('--There were no transfercolleges attended for this application.\n\n');
-                                ################################################
+                                ###############################################
                                 # BEGIN - relatives attended Carthage
-                                ################################################
+                                ###############################################
                                 if row["relativesAttended"] == 'Yes':
                                     for relativeNumber in range (1, 5 +1):
                                         if row['relative'+str(relativeNumber)+'FirstName'] != '':
@@ -735,9 +753,10 @@ def main():
                                                 logger.error(err, exc_info=True)
                                 else:
                                     scr.write('--There were no relatives (ALUMI) for this application.\n\n');
-                                ###################################################################
-                                # BEGIN - siblings **if there are no siblings then nothing is inserted
-                                ###################################################################
+                                ###############################################
+                                # BEGIN - siblings **if there are no siblings
+                                # then nothing is inserted
+                                ###############################################
                                 if row["numberOfSiblings"] > 0:
                                     # set dictionary for sibling education level
                                     educationLevel = {
@@ -768,9 +787,9 @@ def main():
                                                 logger.error(err, exc_info=True)
                                 else:
                                     scr.write('--There were no siblings for this application.\n\n');
-                                ################################################
+                                ###############################################
                                 # BEGIN - parent(s), legal guardian
-                                ################################################
+                                ###############################################
                                 fatherIndex = 1
                                 motherIndex = 2
                                 if row["parent1Type"] == 'Mother':
@@ -819,9 +838,9 @@ def main():
                                     do_sql(q_insert_partmp_rec, key=DEBUG, earl=EARL)
                                 except Exception as err:
                                     logger.error(err, exc_info=True)
-                                ################################################
+                                ###############################################
                                 # BEGIN - activities
-                                ################################################
+                                ###############################################
                                 if row["activity1"] != '' or row["transferActivity1"] != '':
                                     for activityNumber in range (1, 5 +1):
                                         # replacing first part of Common App code for activity
@@ -842,11 +861,11 @@ def main():
                                                 logger.error(err, exc_info=True)
                                 else:
                                     scr.write('--There were no activities for this application.\n\n');
-                                ################################################
+                                ###############################################
                                 # BEGIN - ethnic backgrounds
-                                ################################################
+                                ###############################################
                                 # removing space when there are multiple ethnic backgrounds
-                                background = (row["background"].replace(' ', '')) 
+                                background = (row["background"].replace(' ', ''))
                                 # creating array
                                 array_ethnic = background.split(',')
                                 converted = []
@@ -858,7 +877,8 @@ def main():
                                     'P': 'IS',
                                     'W': 'WH'
                                 }
-                                # Loop through array comparing ethnicity(key) setting it to ethnicity(value)
+                                # Loop through array comparing ethnicity(key)
+                                # setting it to ethnicity(value)
                                 for eth in array_ethnic:
                                     try:
                                         converted.append(ethnicity[eth])
@@ -873,7 +893,8 @@ def main():
                                     ethnic_code = 'MU'
                                 if len(converted) > 1:
                                     for eth_race in converted:
-                                        # creates mracetmp record if there are multiple ethnic codes
+                                        # creates mracetmp record if there are
+                                        # multiple ethnic codes
                                         try:
                                             insert_races = '''
                                             INSERT INTO app_mracetmp_rec
@@ -904,7 +925,8 @@ def main():
                                     'CAT': 'RC',
                                     '': ''
                                 }
-                                # create variables for the religious preference based on the dictionary
+                                # create variables for the religious preference
+                                # based on the dictionary
                                 try:
                                     religiousPreference = denomination[row["religiousPreference"]]
                                 except KeyError as e:
@@ -923,11 +945,12 @@ def main():
                                     do_sql(q_create_prof, key=DEBUG, earl=EARL)
                                 except Exception as err:
                                     logger.error(err, exc_info=True)
-                                ####################################################################
+                                ###############################################
                                 # BEGIN - testing scores
                                 # testing scores array for ACT, SAT_New
-                                # insertExam function at the top of script creates insert statement
-                                ####################################################################
+                                # insertExam function at the top of script
+                                # creates insert statement
+                                ###############################################
                                 if row["totalTestsTaken"] != '':
                                     userTests = row["totalTestsTaken"].split(',')
                                     for t in userTests:
@@ -965,7 +988,8 @@ def main():
                     except Exception as e:
                         logger.error(e, exc_info=True)
                     # rename the archive file
-                    # renames carthage_applications.txt to commonapp-%Y%m%d%H%M%S.txt
+                    # renames carthage_applications.txt to
+                    # commonapp-%Y%m%d%H%M%S.txt
                     shutil.move(renamedfile, destination)
                     fileCount = fileCount +1
                 else:
