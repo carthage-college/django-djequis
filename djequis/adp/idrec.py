@@ -40,10 +40,9 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
             BODY = "ID not found in CX database for ID " + carth_id \
                    + " Name, " + fullname
             SUBJECT = "CX ID not found"
-            sendmail(
-                settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
-                BODY, SUBJECT
-            )
+            # sendmail(
+            #     settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
+            #     BODY, SUBJECT)
     else:
 
         try:
@@ -91,18 +90,17 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                                                   Employee not in id rec for id "
                                  "number " + str(
                         carth_id))
-                    print("Employee not in id rec")
+                    # print("Employee not in id rec")
                 elif str(row[0]) == '0' or str(row[0]) == '':  # No person in id rec? Should never happen
                     fn_write_log("Data missing in idrec.py address function. \
                                   Employee not in id rec for id number " + str(carth_id))
-                    print("Employee not in id rec")
+                    # print("Employee not in id rec")
                     BODY = "ID not found in CX database id_rec.py address " \
                            "routine for ID " + carth_id  + " Name, " + fullname
                     SUBJECT = "CX ID not found"
-                    sendmail(
-                        settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
-                        BODY, SUBJECT
-                    )
+                    # sendmail(
+                    #     settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
+                    #     BODY, SUBJECT )
 
                 # Update ID Rec and archive aa rec
                 elif (row[1] != addr_line1
@@ -113,7 +111,7 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                     or row[6] != zip
                     or row[7] != ctry_cod):
 
-                    print("Update: no address match in ID_REC " + str(carth_id))  #
+                    # print("Update: no address match in ID_REC " + str(carth_id))  #
 
                     q_update_id_rec_addr = ('''UPDATE id_rec SET addr_line1 = ?,
                          addr_line2 = ?, addr_line3 = ?, city = ?, st = ?, zip = ?,
@@ -140,7 +138,7 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                         fn_write_log("Empty Address 1 in ID Rec - Nothing to "
                                      "archive")
                     elif row is not None:
-                        print("row[1] = " + row[1])
+                        # print("row[1] = " + row[1])
                         fn_archive_address(carth_id, fullname, row[1], row[2],
                                      row[3], row[4], row[5], row[6], row[7], phone,
                                            EARL)
@@ -148,14 +146,14 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                         fn_write_log("Empty Address 1 in ID Rec - Nothing to "
                                      "archive")
 
-                else:
-                    print("No Change " + row[1])
+                # else:
+                #     print("No Change " + row[1])
             elif cntry is None:
-                print("invalid country code" + ctry_cod)
+                # print("invalid country code" + ctry_cod)
                 fn_write_log("invalid country code" + ctry_cod)
 
         except Exception as err:
-            print(err.message)
+            # print(err.message)
             fn_write_error("Error in idrec.py for id " + carth_id
                            + ".  Error = " + err.message)
 
