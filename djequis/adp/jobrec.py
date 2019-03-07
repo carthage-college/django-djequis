@@ -7,7 +7,7 @@ from time import strftime
 # django settings for script
 from django.conf import settings
 
-from djequis.core.utils import sendmail
+# from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 
@@ -54,16 +54,16 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         # There are records with no job number.   Nothing to validate against.
         # If Jobtitle_code is empty, end the process with an invalid data message
 
-        print("Job Title Code = " + jobtitlecode + ", " + jobtitledescr
-              + ", " + str(terminationdate) + "------------------")
+        # print("Job Title Code = " + jobtitlecode + ", " + jobtitledescr
+        #       + ", " + str(terminationdate) + "------------------")
         if jobtitlecode is None:
-            print("Missing Job Title Code for " + last + "," + first
-                  + " ID = "  + carthid)
+            # print("Missing Job Title Code for " + last + "," + first
+            #       + " ID = "  + carthid)
             raise ValueError("Missing Job Title Code for " + last + ","
                              + first + " ID = " + carthid)
         elif jobtitlecode == '':
-            print("Missing Job Title Code for " + last + "," + first
-                  + " ID = "  + carthid)
+            # print("Missing Job Title Code for " + last + "," + first
+            #       + " ID = "  + carthid)
             raise ValueError("Missing Job Title Code for " + last + ","
                              + first + " ID = " + carthid)
 
@@ -84,21 +84,21 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
 
         func_code = fn_validate_field(homedeptcode[:3],"func","func",
                     "func_table", "char", EARL)
-        print("Function Code = " + str(func_code))
+        # print("Function Code = " + str(func_code))
         if func_code != '':
             fn_write_log("Valid func_code")
             # print('Validated func_code = ' + homedeptcode[:3] + '\n')
         else:
-            print('Invalid Function Code ' + str(homedeptcode[:3]) + '\n')
+            # print('Invalid Function Code ' + str(homedeptcode[:3]) + '\n')
             fn_write_log('Invalid Function Code ' + str(homedeptcode[:3]) + '\n')
            # fn_write_error("Error in jobrec.py - Invalid Function Code for ' "
             #         + id + ' Code = ' + str(homedeptcode[:3]) + '\n');
 
-            print("Error in jobrec.py - Invalid Function Code for " +
-                  str(carthid) + " Code = " + str(homedeptcode[:3]) + "\n");
+            # print("Error in jobrec.py - Invalid Function Code for " +
+            #       str(carthid) + " Code = " + str(homedeptcode[:3]) + "\n");
 
 
-        print("Supervisor = " + str(spvrID) +'\n')
+        # print("Supervisor = " + str(spvrID) +'\n')
 
         ##############################################################
         # validate hrpay, values in this table should not change without
@@ -126,7 +126,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                                            "work_cat_code", "work_cat_descr",
                                            "cc_work_cat_table", "char", EARL)
 
-        print("Work Cat Update = " + str(v_work_cat_update))
+        # print("Work Cat Update = " + str(v_work_cat_update))
 
         if v_work_cat_update == None or len(str(v_work_cat_update)) == 0:
             q_ins_wc = '''
@@ -197,8 +197,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                         fn_write_log('There were no changes in HRClass '
                                      'description.\n');
 
-            else:
-                print("No Job Class")
+            # else:
+                # print("No Job Class")
 
 
         ##############################################################
@@ -242,20 +242,20 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                 q_upd_div_args = (businessunitdescr,
                               datetime.now().strftime("%m/%d/%Y"),
                               businessunitcode[:4])
-                print("Existing HR Division = " + hrdivision[0] + '\n')
+                # print("Existing HR Division = " + hrdivision[0] + '\n')
                 # print(q_upd_div + str(q_upd_div_args))
                 fn_write_log("Updated hrdiv_table, code = " + businessunitcode[:4])
                 engine.execute(q_upd_div, q_upd_div_args)
                 scr.write(q_upd_div + '\n' + str(q_upd_div_args) + '\n');
 
-        print("Home Dept Code = " + homedeptcode[:3])
-        print("Home Dept descr = " + homedeptdescr)
+        # print("Home Dept Code = " + homedeptcode[:3])
+        # print("Home Dept descr = " + homedeptdescr)
         hrdepartment = fn_needs_update(homedeptcode[:3], homedeptdescr,
                       "hrdept", "descr", "hrdept_table", "char", EARL)
 
-        print("HR Dept Needs update = " + str(hrdepartment))
+        # print("HR Dept Needs update = " + str(hrdepartment))
         if hrdepartment==None or hrdepartment=="" or len(hrdepartment)==0:
-            print("Insert Dept")
+            # print("Insert Dept")
             # This query works 5/25/18
             q_ins_dept = '''
               INSERT INTO hrdept_table(hrdept, hrdiv, descr, 
@@ -264,13 +264,13 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             q_ins_dept_args = (homedeptcode[:3], businessunitcode[:4],
                                homedeptdescr,
                                datetime.now().strftime("%m/%d/%Y"),None)
-            print(q_ins_dept)
-            print(q_ins_dept_args)
+            # print(q_ins_dept)
+            # print(q_ins_dept_args)
             engine.execute(q_ins_dept, q_ins_dept_args)
             fn_write_log("Inserted into hrdept_table, code = " + homedeptcode[:3])
             scr.write(q_ins_dept + '\n' + str(q_ins_dept_args) + '\n');
         else:
-            print("Update Dept")
+            # print("Update Dept")
             if hrdepartment[1] != homedeptdescr:
                 q_upd_dept = '''
                   UPDATE hrdept_table SET hrdiv = ?, descr = ?, 
@@ -278,8 +278,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                   WHERE hrdept = ?'''
                 q_upd_dept_args = (businessunitcode[:4], homedeptdescr,
                                    datetime.now().strftime("%m/%d/%Y"), func_code)
-                print(q_upd_dept)
-                print(q_upd_dept_args)
+                # print(q_upd_dept)
+                # print(q_upd_dept_args)
                 engine.execute(q_upd_dept, q_upd_dept_args)
                 fn_write_log("Updated hrdept_table, code = " + homedeptcode[:3])
                 scr.write(q_upd_dept + '\n' + str(q_upd_dept_args) + '\n');
@@ -290,7 +290,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                  '''.format(homedeptcode[:3])
                 div_val = do_sql(q_check_dept_div, key=DEBUG, earl=EARL)
                 if div_val !=  businessunitcode[:4]:
-                    print("update dept/div relationship")
+                    # print("update dept/div relationship")
                     q_upd_dept_div = '''
                       UPDATE hrdept_table SET hrdiv = ?, descr = ?, 
                           beg_date = ? 
@@ -298,14 +298,14 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                     q_upd_dept_div_args = (businessunitcode[:4], homedeptdescr,
                                        datetime.now().strftime("%m/%d/%Y"),
                                        func_code)
-                    print(q_upd_dept_div)
-                    print(q_upd_dept_div_args)
+                    # print(q_upd_dept_div)
+                    # print(q_upd_dept_div_args)
                     engine.execute(q_upd_dept_div, q_upd_dept_div_args)
                     fn_write_log(
                         "Updated hrdept_table, code = " + homedeptcode[:3])
                     scr.write(q_upd_dept_div + '\n' + str(q_upd_dept_div_args) + '\n');
-                else:
-                   print("Home Dept not updated " + homedeptdescr)
+                # else:
+                   # print("Home Dept not updated " + homedeptdescr)
 
         ###############################################################
         # Use PCN Agg to find TPos FROM position rec
@@ -352,16 +352,16 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             row = sql_tpos.fetchone()
             tpos_result = row[0]
             v_tpos = tpos_result
-            print("New tpos = " + str(v_tpos))
+            # print("New tpos = " + str(v_tpos))
             fn_write_log("New tpos = " + str(v_tpos))
             # print(q_ins_pos)
         else:
             v_tpos = row[0]
-            print("v-tpos = " + str(v_tpos))
-            print("Existing values =" + row[1] + ", " + row[2] + ", " + row[3])
+            # print("v-tpos = " + str(v_tpos))
+            # print("Existing values =" + row[1] + ", " + row[2] + ", " + row[3])
 
             if row[1] != jobtitledescr or row[2] != func_code or row[3] != payrollcompcode:
-                print("Validated t_pos = " + str(v_tpos))
+                # print("Validated t_pos = " + str(v_tpos))
                 q_upd_pos = '''
                   UPDATE pos_table SET pcn_aggr = ?, pcn_01 = ?, pcn_02 = ?, 
                     pcn_03 = ?, pcn_04 = ?, descr = ?, ofc = ?, func_area = ?, 
@@ -410,7 +410,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         # Determine job rank for job_rec
         ##############################################################
         rank = ''
-        print("Primary Position = " + primaryposition + " " + str(terminationdate))
+        # print("Primary Position = " + primaryposition + " " + str(terminationdate))
         if primaryposition == 'Yes':
             rank = 1
         elif primaryposition == 'No':
@@ -472,7 +472,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
         sql_job = do_sql(q_get_job, key=DEBUG, earl=EARL)
         jobrow = sql_job.fetchone()
         if jobrow is None:
-            print("Job Number not found in job rec")
+            # print("Job Number not found in job rec")
             fn_write_log("Job Number not found in job rec")
 
             #  if no record, no duplicate
@@ -480,7 +480,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             # NOTE:  NEED TO ADD JOB CLASS CODE into HRCLASS field
             # Insert into job rec
             # Query works as of 5/29/18
-            print("Rank = " + str(rank))
+            # print("Rank = " + str(rank))
             q_ins_job = '''
               INSERT INTO job_rec
               (tpos_no, descr, bjob_no, id, hrpay, supervisor_no, hrstat, 
@@ -497,7 +497,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                               'N', 'N/A', 'N', 'N',
                               jobtitledescr, rank, workercatcode, jobclass)
             # print(q_ins_job + str(q_ins_job_args))
-            print("New Job Record for " + last + ', id = ' + str(carthid))
+            # print("New Job Record for " + last + ', id = ' + str(carthid))
             engine.execute(q_ins_job, q_ins_job_args)
             fn_write_log("Inserted into job_rec, tpos = " + str(v_tpos)
                          + " Description = " + jobtitledescr + " ID = " + str(carthid))
@@ -505,7 +505,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
 
         else:
             # jobrow = sql_job.fetchone()
-            print('valid job found = ' + str(jobrow[0]))
+            # print('valid job found = ' + str(jobrow[0]))
             fn_write_log('valid job found = ' + str(jobrow[0]))
             #print('v_tpos = ' + str(v_tpos) )
 
@@ -519,9 +519,9 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                     '', businessunitcode[:4], func_code, positioneffective,
                     None if terminationdate == '' else terminationdate,
                     jobtitledescr, workercatcode, jobclass, jobrow[0])
-            print(q_upd_job)
-            print(q_upd_job_args)
-            print("Update Job Record for " + last + ', id = ' + str(carthid))
+            # print(q_upd_job)
+            # print(q_upd_job_args)
+            # print("Update Job Record for " + last + ', id = ' + str(carthid))
             engine.execute(q_upd_job, q_upd_job_args)
             fn_write_log("Updated job_rec, tpos = " + str(v_tpos)
                          + " Description = " + jobtitledescr + " ID = " + str(carthid))
@@ -580,7 +580,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             fn_write_log("Inserted into hremp_rec, home_tpos_no = " + str(v_tpos) + " ID = " + str(carthid))
             scr.write(q_emp_insert + '\n' + str(q_emp_ins_args) + '\n')
         else:
-            print('Found Emp Rec')
+            # print('Found Emp Rec')
             emp_rslt = row
             # print(emp_rslt)
             # this query words - 05/25/2018
@@ -593,7 +593,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                  is_tenured,is_tenure_track, carthid)
             #print(q_emp_upd)
             #print(q_emp_upd_args)
-            print("Update HREMP_REC")
+            # print("Update HREMP_REC")
             engine.execute(q_emp_upd, q_emp_upd_args)
             fn_write_log("Updated hremp_rec, home_tpos_no = " + str(v_tpos)
                          + " ID = " + str(carthid))
@@ -661,7 +661,7 @@ def fn_validate_supervisor(id, EARL):
                      + id + ", " + last + ", " + first + " Err = " + e.message)
 
     except Exception as e:
-        print(e)
+        # print(e)
         fn_write_error("Error in jobrec.py fn_validate_supervisor. ID = "
                        + id + ", " + last + ", "
                        + first + " Err = " + e.message)
