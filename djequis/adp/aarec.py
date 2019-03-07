@@ -369,22 +369,19 @@ def fn_set_email(email, id, fullname, eml, EARL):
         # print(q_check_begin)
         sql_begin = do_sql(q_check_begin, key=DEBUG, earl=EARL)
         beg_rslt = sql_begin.fetchone()
+        print("Beg Result = " + str(beg_rslt))
         if beg_rslt[0] is None:
-            # print('END IS NONE')
-            enddate = datetime.now().strftime("%m/%d/%Y")
-            # x = datetime.strptime(enddate, "%m/%d/%Y") + timedelta(days=1)
+            print('END IS NONE')
             begindate = datetime.now().strftime("%m/%d/%Y")
-            # print(begindate)
-            # print(enddate)
+            print("Set Email New Begin Date = " + begindate)
         elif datetime.strftime(beg_rslt[0],
                                "%m/%d/%Y") >= datetime.strftime(
             datetime.now(), "%m/%d/%Y"):
-            x = beg_rslt[0]
+            # x = beg_rslt[0]
             y = beg_rslt[0] + timedelta(days=1)
-            enddate = x.strftime("%m/%d/%Y")
+            # enddate = x.strftime("%m/%d/%Y")
             begindate = y.strftime("%m/%d/%Y")
-            # print(enddate)
-            # print(begindate)
+            print("Set Email Begin Date = " + str(begindate))
 
         q_check_email = '''
                       SELECT aa_rec.aa, aa_rec.id, aa_rec.line1, 
@@ -401,7 +398,9 @@ def fn_set_email(email, id, fullname, eml, EARL):
         if sql_email is not None:
             email_result = sql_email.fetchone()
             if email_result == None:
-                # print("New Email will be = " + email)
+                print("New Email will be = " + email)
+                print("Begin Date = " + begindate)
+
                 fn_insert_aa(id, fullname, eml,
                                email, "", "", "", "", "", "",
                                begindate, "", EARL)
@@ -411,21 +410,22 @@ def fn_set_email(email, id, fullname, eml, EARL):
                 return("No email Change")
             else:
                 # End date current EMail
-                # End date current CELL
-                # print("Existing Email = " + email_result[0])
+                print("Existing Email = " + email_result[0])
+                print("Beg Date = " + str(begindate))
                 # print("EMAIL = " + eml + ", " + email)
+                enddate = datetime.now().strftime("%m/%d/%Y")
                 fn_end_date_aa(id, email_result[3], fullname, enddate, eml, EARL)
                 fn_insert_aa(id, fullname, eml, email, "", "", "", "", "",
                              "", begindate, "", EARL)
-
 
             return("Email updated")
 
     except Exception as e:
         # print("Error in aarec.py, fn_set_email, for for ID " + id + ", Name "
         #       + fullname + " Error = " + e.message)
-        fn_write_error("Error in aarec.py, fn_set_email, for for ID " + id + ", Name "
-              + fullname + " Error = " + e.message)
+        fn_write_error("Error in aarec.py, fn_set_email, for for ID " + id +
+                       ", Name " + fullname + ", Email " + email +
+                       " Error = " + e.message)
         return ""
 
 def fn_set_schl_rec(id, fullname, phone, ext, loc, room, EARL):
