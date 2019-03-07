@@ -7,7 +7,7 @@ from time import strftime
 # django settings for script
 from django.conf import settings
 
-from djequis.core.utils import sendmail
+# from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 
@@ -35,7 +35,7 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
         ##########################################################
         prof_rslt = fn_validate_field(id, "id", "id",
                                       "profile_rec", "integer", EARL)
-        #print("Prof Result = " + str(prof_rslt))
+        print("Prof Result = " + str(prof_rslt))
         # create race dictionary
         if race is None:
             # fn_write_error("Race is None")
@@ -70,6 +70,7 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
 
         age = fn_calculate_age(birth_date)
         # print("Age = " + str(age))
+
         if prof_rslt is None or prof_rslt == 0:
             # Insert or update as needed
             q_insert_prof_rec = '''
@@ -78,8 +79,8 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
               VALUES (?, ?, ?, ?, ?, ?, ?) '''
             q_ins_prof_args=(id, sex, v_race, is_hispanic, birth_date, age,
                              prof_last_upd_date)
-            # print(q_insert_prof_rec)
-            # print(q_ins_prof_args)
+            print(q_insert_prof_rec)
+            print(q_ins_prof_args)
             engine.execute(q_insert_prof_rec, q_ins_prof_args)
             fn_write_log("Inserted into profile_rec table values " + str(id)
                          + ", " + v_race + ", " + str(is_hispanic));
