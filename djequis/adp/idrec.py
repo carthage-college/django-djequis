@@ -54,8 +54,8 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
 
             q_update_id_args = (fullname, lastname, firstname, middlename, ss_no, eff_date,
                            carth_id)
-            # print(q_update_id_rec)
-            # print(q_update_id_args)
+            print(q_update_id_rec)
+            print(q_update_id_args)
             fn_write_log("Update basic info in id_rec table for " + fullname +
                          ", ID = " + str(carth_id))
             # logger.info("Update id_rec table");
@@ -67,15 +67,16 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                            + err.message)
             # logger.error(err, exc_info=True)
 
-
+        # print("Country Code = " + str(len(ctry_cod)))
 
         try:
             # also need to deal with address changes
             # Search for existing address record
-            if ctry_cod != '':
+            if ctry_cod.strip() != '' and len(ctry_cod) > 0:
                 cntry = fn_validate_field(ctry_cod, 'ctry', 'ctry', 'ctry_table', 'char', EARL)
-                #print("Valid Country Code = " + cntry)
-                # print(" In Check Address")
+                print("Valid Country Code = " + cntry)
+
+                print(" In Check Address")
                 q_check_addr = '''
                             SELECT id, addr_line1, addr_line2, addr_line3, city,
                                 st, zip, ctry, phone
@@ -148,7 +149,7 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
 
                 # else:
                 #     print("No Change " + row[1])
-            elif cntry is None:
+            elif ctry_cod is None or len(ctry_cod) == 0:
                 # print("invalid country code" + ctry_cod)
                 fn_write_log("invalid country code" + ctry_cod)
 
