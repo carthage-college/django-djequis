@@ -692,7 +692,7 @@ def main():
                              fn_process_cvid(row["carth_id"],
                                              row["file_number"],
                                              row["ssn"],
-                                             row["employee_assoc_id"])
+                                             row["employee_assoc_id"], EARL)
 
                 fn_clear_logger()
 
@@ -722,7 +722,7 @@ def main():
             ##################################################################
             # The last step - move last to archive, rename new file to _last
             ##################################################################
-            if test:
+            if not test:
 
                 adptocx_archive = ('{0}adptocxlast_{1}.csv'.format(settings.ADP_CSV_ARCHIVED,datetimestr))
                 shutil.move(last_adp_file, adptocx_archive)
