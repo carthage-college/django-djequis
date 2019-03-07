@@ -414,11 +414,13 @@ def main():
                     engine.execute(q_cc_adp_rec, cc_adp_args)
                     # ccadpcount =+ 1
                     scr.write(q_cc_adp_rec + '\n' + str(cc_adp_args) + '\n');
-                    fn_write_log("Inserted data into cc_adp_rec table for " + row["payroll_name"] + " ID = " + row["carth_id"]);
+                    fn_write_log("Inserted data into cc_adp_rec table for "
+                                 + row["payroll_name"] + " ID = " + row["carth_id"]);
 
                     ccadpcount = ccadpcount + 1
                 except Exception as e:
-                    fn_write_error("Error in adptcx.py while inserting into cc_adp_rec.  Error = " + e.message)
+                    fn_write_error("Error in adptcx.py while inserting into"
+                                   " cc_adp_rec.  Error = " + e.message)
                     continue
                     # print(e)
 
@@ -439,9 +441,9 @@ def main():
                     BODY = 'No Carthage ID, process aborted. Name = {0}, \
                         ADP File = {1}'.format(row["payroll_name"], \
                                                row["file_number"])
-                    sendmail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
-                        BODY, SUBJECT
-                    )
+                    # sendmail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
+                    #     BODY, SUBJECT
+                    # )
                     fn_write_log('There was no carthage ID in file, row \
                              skipped. Name = {0}, \
                              ADP File = {1}'.format(row["payroll_name"], \
@@ -451,7 +453,7 @@ def main():
                     # Do this first, or everything else is moot
                     results = fn_validate_field(row["carth_id"], "id", "id",
                                                 "id_rec", "integer", EARL)
-                    print("ID Validate result = " + str(results))
+                    # print("ID Validate result = " + str(results))
 
                     if results is None:
                         SUBJECT = 'No matcining ID in id_rec - abort and ' \
@@ -461,8 +463,8 @@ def main():
                                                        ADP File = {1}'.format(
                             fullname, file_number)
                         #print(SUBJECT)
-                        sendmail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
-                                 BODY, SUBJECT)
+                        # sendmail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
+                        #          BODY, SUBJECT)
                         fn_write_log('There was no matching ID in id_Rec \
                                                     table, row skipped. Name '
                                      '= {0}, \
@@ -523,11 +525,13 @@ def main():
                             # print("sql addr " + addr_result[1].strip() + " loop
                             # address = " + row["primary_address1"].strip())
 
-                            print("Email 2 = " + row["personal_email"])
-                            print("Email 3 = " + row["wc_work_email"])
-                            if row["personal_email"] != '' and row["wc_work_email"] is not None:
+                            # print("Email 2 = " + row["personal_email"])
+                            # print("Email 3 = " + row["wc_work_email"])
+                            if row["personal_email"] != '' and \
+                                    row["wc_work_email"] is not None:
                                 email_result = fn_set_email(row["personal_email"],
-                                              row["carth_id"],row["payroll_name"], "EML2", EARL)
+                                              row["carth_id"],row["payroll_name"],
+                                                            "EML2", EARL)
                                 print("Email = " + str(email_result))
 
                                 # if email_result.strip == "":
@@ -535,20 +539,20 @@ def main():
                                 # elif email_result is None:
                                 # else
                                 #     emailcount = emailcount + 1
-                            else:
-                                # we can remove the else
-                                print("No personal email from ADP")
+                            # else:
+                            # we can remove the else
+                            #     print("No personal email from ADP")
 
 
                             if row["wc_work_email"] != '' and row["wc_work_email"] is not None:
                                 email_result = fn_set_email(row["wc_work_email"],
                                               row["carth_id"],row["payroll_name"], "EML3", EARL)
-                                print("Email3 = " + str(email_result))
+                                # print("Email3 = " + str(email_result))
                                 # if email_result != "":
                                 #     emailcount = emailcount + 1
-                            else:
-                                # we can remove the else
-                                print("No work email from ADP")
+                            # else:
+                            #     # we can remove the else
+                            #     print("No work email from ADP")
 
 
                             # Check to update phone in aa_rec
@@ -575,7 +579,7 @@ def main():
                             profilecount = profilecount + prof_rslt
 
                             #
-                            # print(prof_rslt)
+                            print("Profile Result = " + str( prof_rslt))
                              ##########################################################
                             # STEP 2d--
                             # Do updates to cvid_rec (cvidrec.py)
@@ -706,10 +710,10 @@ def main():
                 # there was no file found on the server
                 SUBJECT = '[APD To CX Application] failed'
                 BODY = "There was no .sql output file to move."
-                sendmail(
-                    settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
-                    BODY, SUBJECT
-                )
+                # sendmail(
+                #     settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
+                #     BODY, SUBJECT
+                # )
                 fn_write_log("There was no .sql output file to move.")
             else:
                 # rename and move the file to the archive directory
@@ -718,7 +722,7 @@ def main():
             ##################################################################
             # The last step - move last to archive, rename new file to _last
             ##################################################################
-            if not test:
+            if test:
 
                 adptocx_archive = ('{0}adptocxlast_{1}.csv'.format(settings.ADP_CSV_ARCHIVED,datetimestr))
                 shutil.move(last_adp_file, adptocx_archive)
@@ -726,7 +730,7 @@ def main():
                 adptocx_rename = ('{0}ADPtoCXLast.csv'.format(settings.ADP_CSV_OUTPUT))
                 shutil.move(new_adp_file,adptocx_rename)
 
-
+            print("---------------------------------------------------------")
             print("ADP Count = " + str(adpcount))
             print("CCADP Count = " + str(ccadpcount))
             print("ID Count = " + str(idcount))
