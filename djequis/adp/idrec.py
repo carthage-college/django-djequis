@@ -54,8 +54,8 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
 
             q_update_id_args = (fullname, lastname, firstname, middlename, ss_no, eff_date,
                            carth_id)
-            print(q_update_id_rec)
-            print(q_update_id_args)
+            # print(q_update_id_rec)
+            # print(q_update_id_args)
             fn_write_log("Update basic info in id_rec table for " + fullname +
                          ", ID = " + str(carth_id))
             # logger.info("Update id_rec table");
