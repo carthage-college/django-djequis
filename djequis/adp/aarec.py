@@ -289,7 +289,6 @@ def fn_set_cell_phone(phone, id, fullname, EARL):
 
         sql_end = do_sql(q_check_begin, key=DEBUG, earl=EARL)
         beg_rslt = sql_end.fetchone()
-
         if beg_rslt[0] is None:
             # print('No existing begin date')
             enddate = datetime.now().strftime("%m/%d/%Y")
@@ -370,18 +369,25 @@ def fn_set_email(email, id, fullname, eml, EARL):
         sql_begin = do_sql(q_check_begin, key=DEBUG, earl=EARL)
         beg_rslt = sql_begin.fetchone()
         print("Beg Result = " + str(beg_rslt))
+
+        # We will not update an existing email address.
+        # If the email matches, no change
+        # if no email, add new
+        # if existing but different, end date the old, add new
+        # Records of the same type cannot have the same start date.
+
         if beg_rslt[0] is None:
-            print('END IS NONE')
             begindate = datetime.now().strftime("%m/%d/%Y")
-            print("Set Email New Begin Date = " + begindate)
-        elif datetime.strftime(beg_rslt[0],
-                               "%m/%d/%Y") >= datetime.strftime(
-            datetime.now(), "%m/%d/%Y"):
-            # x = beg_rslt[0]
+            # print("Set Email New Begin Date = " + begindate)
+        else:
+            # Normally, the begin date would be today.
+            # If max begin date is already today, or future...
+            # New begin date must be 1 day greater than last one
             y = beg_rslt[0] + timedelta(days=1)
+            # print(str(y))
             # enddate = x.strftime("%m/%d/%Y")
             begindate = y.strftime("%m/%d/%Y")
-            print("Set Email Begin Date = " + str(begindate))
+            # print("Set Email Begin Date = " + str(begindate))
 
         q_check_email = '''
                       SELECT aa_rec.aa, aa_rec.id, aa_rec.line1, 
@@ -395,11 +401,15 @@ def fn_set_email(email, id, fullname, eml, EARL):
         # logger.info("Select email info from aa_rec table");
 
         sql_email = do_sql(q_check_email, earl=EARL)
+
+        print("Begin Date = " + begindate)
+
         if sql_email is not None:
             email_result = sql_email.fetchone()
+            print(email_result)
             if email_result == None:
                 print("New Email will be = " + email)
-                print("Begin Date = " + begindate)
+                # print("Begin Date = " + begindate)
 
                 fn_insert_aa(id, fullname, eml,
                                email, "", "", "", "", "", "",
@@ -408,10 +418,11 @@ def fn_set_email(email, id, fullname, eml, EARL):
                 return("New email")
             elif email_result[2] == email:
                 return("No email Change")
+                # print("No Change")
             else:
                 # End date current EMail
                 print("Existing Email = " + email_result[0])
-                print("Beg Date = " + str(begindate))
+                # print("Beg Date = " + str(begindate))
                 # print("EMAIL = " + eml + ", " + email)
                 enddate = datetime.now().strftime("%m/%d/%Y")
                 fn_end_date_aa(id, email_result[3], fullname, enddate, eml, EARL)
