@@ -79,8 +79,8 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
               VALUES (?, ?, ?, ?, ?, ?, ?) '''
             q_ins_prof_args=(id, sex, v_race, is_hispanic, birth_date, age,
                              prof_last_upd_date)
-            print(q_insert_prof_rec)
-            print(q_ins_prof_args)
+            # print(q_insert_prof_rec)
+            # print(q_ins_prof_args)
             engine.execute(q_insert_prof_rec, q_ins_prof_args)
             fn_write_log("Inserted into profile_rec table values " + str(id)
                          + ", " + v_race + ", " + str(is_hispanic));
