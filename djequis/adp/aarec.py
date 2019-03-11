@@ -90,7 +90,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
         # print(q_check_aa_date)
         sql_date = do_sql(q_check_aa_date, key=DEBUG, earl=EARL)
         date_result = sql_date.fetchone()
-        #print(date_result)
+        # print("AA Max date = " + date_result)
 
         #################################
         # Define date variables
@@ -104,7 +104,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
             # a1 = date_result[3]
 
         # print("A1 = " + a1 )
-        #print("Max date = " + str(max_date))
+        # print("Max date = " + str(max_date))
 
         # Scenario 1
         # This means that the ID_Rec address will change
@@ -129,7 +129,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
             # or addr_result[5] == addr2 \
             # or addr_result[6] == addr3 \
 
-            # print("An Address exists and matches new data - Update new")
+            print("An Address exists and matches new data - Update new")
             #################################
             # Match found then we are UPDATING only....
             #################################
