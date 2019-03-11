@@ -67,8 +67,13 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
             }
             is_hispanic = ethnic_code.get(ethnicity)
         # print(is_hispanic)
+        if birth_date is None or birth_date.strip() == "" or len(birth_date) == 0:
+            birth_date = None
+            print ("Empty Birthdate")
+            age = None
+        else:
+            age = fn_calculate_age(birth_date)
 
-        age = fn_calculate_age(birth_date)
         # print("Age = " + str(age))
 
         if prof_rslt is None or prof_rslt == 0:
@@ -77,11 +82,11 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
               INSERT INTO profile_rec (id, sex, race, hispanic, birth_date, 
                 age, prof_last_upd_date)
               VALUES (?, ?, ?, ?, ?, ?, ?) '''
-            q_ins_prof_args=(id, sex, v_race, is_hispanic, birth_date, age,
+            q_ins_prof_args=(id, sex, v_race, is_hispanic, None, age,
                              prof_last_upd_date)
             # print(q_insert_prof_rec)
-            # print(q_ins_prof_args)
-            engine.execute(q_insert_prof_rec, q_ins_prof_args)
+            print(q_ins_prof_args)
+            # engine.execute(q_insert_prof_rec, q_ins_prof_args)
             fn_write_log("Inserted into profile_rec table values " + str(id)
                          + ", " + v_race + ", " + str(is_hispanic));
             # print("Inserted into profile_rec table values " + str(id) + ","
@@ -95,10 +100,10 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
                            prof_last_upd_date = ?
                            WHERE id = ?'''
             q_upd_prof_args = (sex, is_hispanic, v_race,
-                birth_date, age, prof_last_upd_date, id)
+                None, age, prof_last_upd_date, id)
             # print(q_update_prof_rec)
-            # print(q_upd_prof_args)
-            engine.execute(q_update_prof_rec, q_upd_prof_args)
+            print(q_upd_prof_args)
+            # engine.execute(q_update_prof_rec, q_upd_prof_args)
             fn_write_log("Updated profile_rec table values " + str(id) + ","
                          + v_race + ", " + str(is_hispanic));
             scr.write(q_update_prof_rec + '\n' + str(q_upd_prof_args) + '\n')
