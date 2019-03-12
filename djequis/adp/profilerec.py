@@ -48,10 +48,12 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
                 '1': 'WH',
                 '2': 'BL',
                 '4': 'AS',
+                '5': 'AM',
                 '6': 'AP',
                 '9': 'MU'
             }
             v_race = racecode.get(race)
+
 
         # create ethnicity dictionary
         if ethnicity is None:
@@ -84,7 +86,7 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
               VALUES (?, ?, ?, ?, ?, ?, ?) '''
             q_ins_prof_args=(id, sex, v_race, is_hispanic, None, age,
                              prof_last_upd_date)
-            # print(q_insert_prof_rec)
+            print(q_insert_prof_rec)
             print(q_ins_prof_args)
             # engine.execute(q_insert_prof_rec, q_ins_prof_args)
             fn_write_log("Inserted into profile_rec table values " + str(id)
@@ -101,9 +103,9 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
                            WHERE id = ?'''
             q_upd_prof_args = (sex, is_hispanic, v_race,
                 None, age, prof_last_upd_date, id)
-            # print(q_update_prof_rec)
+            print(q_update_prof_rec)
             print(q_upd_prof_args)
-            # engine.execute(q_update_prof_rec, q_upd_prof_args)
+            engine.execute(q_update_prof_rec, q_upd_prof_args)
             fn_write_log("Updated profile_rec table values " + str(id) + ","
                          + v_race + ", " + str(is_hispanic));
             scr.write(q_update_prof_rec + '\n' + str(q_upd_prof_args) + '\n')
