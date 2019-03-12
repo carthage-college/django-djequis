@@ -58,6 +58,7 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
             # print(q_update_id_args)
             fn_write_log("Update basic info in id_rec table for " + fullname +
                          ", ID = " + str(carth_id))
+            scr.write(q_update_id_rec + '\n' + str(q_update_id_args));
             # logger.info("Update id_rec table");
             engine.execute(q_update_id_rec, q_update_id_args)
         except Exception as err:
