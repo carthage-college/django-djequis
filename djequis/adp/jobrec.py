@@ -457,6 +457,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                 # print(q_end_job)
                 # print(q_end_job_args)
                 engine.execute(q_end_job, q_end_job_args)
+                scr.write(q_end_job + '\n' + str(q_end_job_args) + '\n')
 
         q_get_job = '''
           SELECT job_no
