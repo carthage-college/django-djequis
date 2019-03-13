@@ -40,7 +40,7 @@ def fn_validate_field(searchval, keyfield, retfield, table, keytype, EARL):
     elif keytype == "integer":
         qval_sql = "SELECT DISTINCT " + retfield + " FROM " + table \
                    + " WHERE " + keyfield + " = " + str(searchval)
-    #print("Validate Field SQL = " + qval_sql)
+    # print("Validate Field SQL = " + qval_sql)
     try:
         sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
         # print("sql_val = " + str(sql_val))
