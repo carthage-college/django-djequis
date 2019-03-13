@@ -292,11 +292,14 @@ def main():
                 # print("Use as legal {0}".format(row["primary_legal_address"]))
                 ethnic_code = {
                     'Not Hispanic or Latino': 'N',
-                    'HISPANIC OR LATINO': 'Y'
+                    'Hispanic or Latino': 'Y'
                 }
 
                 is_hispanic = ethnic_code.get(row["ethnicity"])
-                print("Is Hispanic = " + is_hispanic)
+                if is_hispanic is None:
+                    is_hispanic = ""
+                # else:
+                print("Is Hispanic = " + str(is_hispanic))
 
                 racecode = {
                     '1': 'WH',
@@ -306,8 +309,13 @@ def main():
                     '6': 'AP',
                     '9': 'MU'
                 }
+
                 race = racecode.get(row["race"])
-                print("Race = " + race)
+                if race is None:
+                    race = ""
+                print("Race = " + str(race))
+
+                # else:
                 ##############################################################
                 # STEP 2a--
                 # Write entire row to cc_adp_rec table
