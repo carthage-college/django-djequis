@@ -299,7 +299,7 @@ def main():
                 if is_hispanic is None:
                     is_hispanic = ""
                 # else:
-                print("Is Hispanic = " + str(is_hispanic))
+                # print("Is Hispanic = " + str(is_hispanic))
 
                 racecode = {
                     '1': 'WH',
@@ -313,7 +313,7 @@ def main():
                 race = racecode.get(row["race"])
                 if race is None:
                     race = ""
-                print("Race = " + str(race))
+                # print("Race = " + str(race))
 
                 # else:
                 ##############################################################
@@ -491,7 +491,8 @@ def main():
                         # fn_process_idrec(row["carth_id"], row["file_number"],
                         #          row["payroll_name"],
                         #          row["last_name"], row["first_name"],
-                        #          row["middle_name"], row["primary_address1"],
+                        #          row["middle_name"],  row["salutation"],
+                        #          row["primary_address1"],
                         #          row["primary_address2"],
                         #          row["primary_address3"],
                         #          row["primary_city"],
@@ -521,6 +522,7 @@ def main():
                                      row["payroll_name"],
                                      row["last_name"], row["first_name"],
                                      row["middle_name"],
+                                     row["salutation"],
                                      row["primary_address1"],
                                      row["primary_address2"],
                                      row["primary_address3"],
