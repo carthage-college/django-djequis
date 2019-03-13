@@ -29,6 +29,8 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
         prof_last_upd_date, EARL):
     engine = get_engine(EARL)
 
+    print("Race = " + str(race))
+    print("Ethnicity = " + str(ethnicity))
     try:
         ##########################################################
         #  Find out if record exists to determine update vs insert
@@ -40,34 +42,37 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
         if race is None:
             # fn_write_error("Race is None")
             v_race = 'UN'
-        elif race.strip() == '':
-            # fn_write_error("Race is empty")
-            v_race = 'UN'
         else:
-            racecode = {
-                '1': 'WH',
-                '2': 'BL',
-                '4': 'AS',
-                '5': 'AM',
-                '6': 'AP',
-                '9': 'MU'
-            }
-            v_race = racecode.get(race)
+            v_race = race
+        # elif race == '':
+        #     # fn_write_error("Race is empty")
+        #     v_race = 'UN'
+        # else:
+        #     racecode = {
+        #         '1': 'WH',
+        #         '2': 'BL',
+        #         '4': 'AS',
+        #         '5': 'AM',
+        #         '6': 'AP',
+        #         '9': 'MU'
+        #     }
+        #     v_race = racecode.get(race)
 
 
         # create ethnicity dictionary
         if ethnicity is None:
             is_hispanic = 'N'
-        elif ethnicity.strip() == '':
-            is_hispanic = 'N'
+        # elif ethnicity == '':
+        #     is_hispanic = 'N'
         else:
-            ethnic_code = {
-                'Not Hispanic or Latino': 'N',
-                'NOT HISPANIC OR LATINO' : 'N',
-                'HISPANIC OR LATINO': 'Y',
-                'Hispanic or Latino': 'Y'
-            }
-            is_hispanic = ethnic_code.get(ethnicity)
+            is_hispanic = ethnicity
+            # ethnic_code = {
+            #     'Not Hispanic or Latino': 'N',
+            #     'NOT HISPANIC OR LATINO' : 'N',
+            #     'HISPANIC OR LATINO': 'Y',
+            #     'Hispanic or Latino': 'Y'
+            # }
+            # is_hispanic = ethnic_code.get(ethnicity)
         # print(is_hispanic)
         if birth_date is None or birth_date.strip() == "" or len(birth_date) == 0:
             birth_date = None
@@ -86,8 +91,8 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
               VALUES (?, ?, ?, ?, ?, ?, ?) '''
             q_ins_prof_args=(id, sex, v_race, is_hispanic, None, age,
                              prof_last_upd_date)
-            print(q_insert_prof_rec)
-            print(q_ins_prof_args)
+            # print(q_insert_prof_rec)
+            # print(q_ins_prof_args)
             # engine.execute(q_insert_prof_rec, q_ins_prof_args)
             fn_write_log("Inserted into profile_rec table values " + str(id)
                          + ", " + v_race + ", " + str(is_hispanic));
@@ -103,8 +108,8 @@ def fn_process_profile_rec(id, ethnicity, sex, race, birth_date,
                            WHERE id = ?'''
             q_upd_prof_args = (sex, is_hispanic, v_race,
                 None, age, prof_last_upd_date, id)
-            print(q_update_prof_rec)
-            print(q_upd_prof_args)
+            # print(q_update_prof_rec)
+            # print(q_upd_prof_args)
             engine.execute(q_update_prof_rec, q_upd_prof_args)
             fn_write_log("Updated profile_rec table values " + str(id) + ","
                          + v_race + ", " + str(is_hispanic));
