@@ -50,7 +50,7 @@ start_time = time.time()
 def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
             phone, EARL):
     try:
-        # print(addr1, addr2, addr3)
+        print(addr1, addr2, addr3)
         #################################
         #  See if there is already an Archive record
         #################################
@@ -67,7 +67,8 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
 
         # print(q_check_aa_adr)
         # print("AA_rec Addr Result = " + str(addr_result))
-        if addr_result is None:
+        if addr_result is None or len(str(addr_result[2])) == 0:
+            # print("No archive address")
             found_aa_num = 0
         else:
             found_aa_num = addr_result[2]
@@ -90,7 +91,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
         # print(q_check_aa_date)
         sql_date = do_sql(q_check_aa_date, key=DEBUG, earl=EARL)
         date_result = sql_date.fetchone()
-        # print("AA Max date = " + date_result)
+        print("AA Max date = " + date_result)
 
         #################################
         # Define date variables
@@ -103,14 +104,14 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
             max_date = date.strftime(date_result[0],"%m/%d/%Y")
             # a1 = date_result[3]
 
-        # print("A1 = " + a1 )
+        print("A1 = " + a1 )
         # print("Max date = " + str(max_date))
 
         # Scenario 1
         # This means that the ID_Rec address will change
         # but nothing exists in aa_rec, so we will only insert as 'PREV'
         if found_aa_num == 0: # No address in aa rec?
-              # print("No existing record - Insert only")
+              print("No existing record - Insert only")
               # print(datetime.now().strftime("%m/%d/%Y"))
               fn_insert_aa(id, fullname, 'PREV', addr1, addr2, addr3,
                            cty, st, zp, ctry,
@@ -148,7 +149,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
             x = datetime.strptime(end_date, "%m/%d/%Y") + timedelta(days=1)
             beg_date = x.strftime("%m/%d/%Y")
 
-            # print("Check begin date = " + beg_date)
+            print("Check begin date = " + beg_date)
             # id, aa_num, fullname, enddate, aa
             fn_end_date_aa(id, found_aa_num, fullname,
                            end_date, 'PREV', EARL)
@@ -164,7 +165,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
               WHERE aa_no = {0}
               AND aa = 'PREV'
               '''.format(found_aa_num)
-            # print(q_check_enddate)
+            print(q_check_enddate)
             q_confirm_enddate = do_sql(q_check_enddate, key=DEBUG, earl=EARL)
 
             v_enddate = q_confirm_enddate.fetchone()
@@ -291,12 +292,13 @@ def fn_set_cell_phone(phone, id, fullname, EARL):
         beg_rslt = sql_end.fetchone()
         if beg_rslt[0] is None:
             # print('No existing begin date')
+            begindate = datetime.now().strftime("%m/%d/%Y")
             enddate = datetime.now().strftime("%m/%d/%Y")
             # x = datetime.strptime(enddate, "%m/%d/%Y") + timedelta(days=1)
-            begindate = datetime.now().strftime("%m/%d/%Y")
             # print("Begin Date = " + str(begindate))
             # print("End Date = " + str(enddate))
-        elif datetime.strftime(beg_rslt[0], "%m/%d/%Y") >= datetime.strftime(datetime.now(), "%m/%d/%Y"):
+        # elif datetime.strftime(beg_rslt[0], "%m/%d/%Y") >= datetime.strftime(datetime.now(), "%m/%d/%Y"):
+        else:
             x = beg_rslt[0]
             y = beg_rslt[0] + timedelta(days=1)
             enddate = x.strftime("%m/%d/%Y")
@@ -368,7 +370,7 @@ def fn_set_email(email, id, fullname, eml, EARL):
         # print(q_check_begin)
         sql_begin = do_sql(q_check_begin, key=DEBUG, earl=EARL)
         beg_rslt = sql_begin.fetchone()
-        print("Beg Result = " + str(beg_rslt))
+        # print("Beg Result = " + str(beg_rslt))
 
         # We will not update an existing email address.
         # If the email matches, no change
@@ -402,11 +404,11 @@ def fn_set_email(email, id, fullname, eml, EARL):
 
         sql_email = do_sql(q_check_email, earl=EARL)
 
-        print("Begin Date = " + begindate)
+        # print("Begin Date = " + begindate)
 
         if sql_email is not None:
             email_result = sql_email.fetchone()
-            print(email_result)
+            # print(email_result)
             if email_result == None:
                 print("New Email will be = " + email)
                 # print("Begin Date = " + begindate)
