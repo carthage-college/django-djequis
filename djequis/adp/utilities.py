@@ -162,7 +162,7 @@ def fn_convert_date(date):
 #########################################################
 def fn_format_phone(phone):
     try:
-        if phone is None:
+        if phone is None or len(phone) == 0:
             return ""
         elif phone != "":
             ph = str(phone).replace("(","")
