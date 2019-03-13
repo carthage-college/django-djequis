@@ -25,9 +25,9 @@ scr = open("apdtocx_output.sql", "a")
 # Begin Processing
 #############################################
 
-def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middlename,
-        addr_line1, addr_line2, addr_line3, city, st, zip, ctry, ctry_cod, ss_no, phone,
-        decsd, eff_date, EARL):
+def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname,
+        middlename, title, addr_line1, addr_line2, addr_line3, city, st,
+        zip, ctry, ctry_cod, ss_no, phone, decsd, eff_date, EARL):
     print("Start ID Rec Processing")
     engine = get_engine(EARL)
 
@@ -58,7 +58,7 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
             # print(q_update_id_args)
             fn_write_log("Update basic info in id_rec table for " + fullname +
                          ", ID = " + str(carth_id))
-            scr.write(q_update_id_rec + '\n' + str(q_update_id_args));
+            scr.write(q_update_id_rec + '\n' + str(q_update_id_args) + '\n');
             # logger.info("Update id_rec table");
             engine.execute(q_update_id_rec, q_update_id_args)
         except Exception as err:
@@ -67,6 +67,38 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
             fn_write_error("Error in id_rec.py updating basic info.  Error = "
                            + err.message)
             # logger.error(err, exc_info=True)
+
+        #########################################################
+        # Title is a problem - most blank in ADP
+        # To avoid overwriting, will need to validate and do
+        # a separate update of the record
+        try:
+
+
+            if title is not None:
+                x = title.replace(".", "")
+                vTitle  = fn_validate_field(x.upper(), 'title', 'title', 'title_table',
+                                         'char', EARL)
+                print("Title = " + str(vTitle))
+                if vTitle is not None and vTitle != "":
+                    q_update_title = ('''UPDATE id_rec SET title = ?
+                                WHERE id = ?''')
+                    q_update_title_args = (vTitle, carth_id)
+                    fn_write_log("Update Title info in id_rec table for " + fullname +
+                                 ", ID = " + str(carth_id))
+                    scr.write(q_update_title + '\n' + str(q_update_title_args) + '\n');
+                    # logger.info("Update id_rec table");
+                    engine.execute(q_update_title, q_update_title_args)
+            else:
+                print("No Title")
+
+        except Exception as err:
+            # print(err.message)
+            return (err.message)
+            fn_write_error("Error in id_rec.py updating title info.  Error = " + err.message)
+            # logger.error(err, exc_info=True)
+
+#########################################################
 
         # print("Country Code = " + str(len(ctry_cod)))
 
@@ -128,6 +160,9 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                                  " address = " + addr_line1)
                     engine.execute(q_update_id_rec_addr, q_update_id_addr_args)
                     scr.write(q_update_id_rec_addr + '\n' + str(q_update_id_addr_args) + '\n')
+
+
+
                     #########################################################
                     # Routine to deal with aa_rec
                     #########################################################
