@@ -296,15 +296,18 @@ def main():
                 }
 
                 is_hispanic = ethnic_code.get(row["ethnicity"])
+                print("Is Hispanic = " + is_hispanic)
 
                 racecode = {
                     '1': 'WH',
                     '2': 'BL',
                     '4': 'AS',
+                    '5': 'AM',
                     '6': 'AP',
                     '9': 'MU'
                 }
                 race = racecode.get(row["race"])
+                print("Race = " + race)
                 ##############################################################
                 # STEP 2a--
                 # Write entire row to cc_adp_rec table
@@ -518,9 +521,8 @@ def main():
                                      row["primary_zip"],
                                      row["primary_country"],
                                      row["primary_country_code"],
-                                     row["ssn"], "1234567890",
+                                     row["ssn"], fn_format_phone(row["home_phone"]),
                                      # ("" if None else
-                                     # fn_format_phone(row["home_phone"])),
                                      row["position_status"],
                                      fn_convert_date(row["pos_effective_date"]), EARL)
                             # print(id_rslt)
@@ -572,13 +574,13 @@ def main():
                             #################################################
                             print("In Profile Rec")
                             prof_rslt = fn_process_profile_rec(row["carth_id"],
-                                        row["ethnicity"], row["gender"],
-                                        row["race"], row["birth_date"],
+                                        is_hispanic, row["gender"],
+                                        race, row["birth_date"],
                                         datetime.now().strftime("%m/%d/%Y"),
                                         EARL)
 
 
-                            profilecount = profilecount + prof_rslt
+                            # profilecount = profilecount + prof_rslt
                             print("Profile Result = " + str( prof_rslt))
                              #################################################
                             # STEP 2d--
