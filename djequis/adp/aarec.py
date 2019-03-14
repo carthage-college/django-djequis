@@ -50,7 +50,7 @@ start_time = time.time()
 def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
             phone, EARL):
     try:
-        print(addr1, addr2, addr3)
+        # print(addr1, addr2, addr3)
         #################################
         #  See if there is already an Archive record
         #################################
@@ -91,20 +91,16 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
         # print(q_check_aa_date)
         sql_date = do_sql(q_check_aa_date, key=DEBUG, earl=EARL)
         date_result = sql_date.fetchone()
-        print("AA Max date = " + date_result)
+        # print("AA Max date = " + str(date_result))
 
         #################################
         # Define date variables
         #################################
         if found_aa_num == 0 or date_result is None: #No aa rec found
-            # a1 = ""
             max_date = datetime.now().strftime("%m/%d/%Y")
         # Make sure dates don't overlap
         else:
             max_date = date.strftime(date_result[0],"%m/%d/%Y")
-            # a1 = date_result[3]
-
-        print("A1 = " + a1 )
         # print("Max date = " + str(max_date))
 
         # Scenario 1
@@ -149,7 +145,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
             x = datetime.strptime(end_date, "%m/%d/%Y") + timedelta(days=1)
             beg_date = x.strftime("%m/%d/%Y")
 
-            print("Check begin date = " + beg_date)
+            # print("Check begin date = " + beg_date)
             # id, aa_num, fullname, enddate, aa
             fn_end_date_aa(id, found_aa_num, fullname,
                            end_date, 'PREV', EARL)
@@ -165,7 +161,7 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
               WHERE aa_no = {0}
               AND aa = 'PREV'
               '''.format(found_aa_num)
-            print(q_check_enddate)
+            # print(q_check_enddate)
             q_confirm_enddate = do_sql(q_check_enddate, key=DEBUG, earl=EARL)
 
             v_enddate = q_confirm_enddate.fetchone()
@@ -179,14 +175,14 @@ def fn_archive_address(id, fullname, addr1, addr2, addr3, cty, st, zp, ctry,
                 # print("Failure on insert.  Could not verify enddate of previous")
                 fn_write_error("Failure on insert.  Could not verify enddate "
                                "of previous")
-            print("An Address exists but does not match - end current, insert new")
+            # print("An Address exists but does not match - end current, insert new")
 
         return "Success"
 
     except Exception as e:
         # print("Error in aarec.py, fn_archive_address, for ID " + id + ", Name "
         #       + fullname + " error = " + e.message)
-        fn_write_error("Error in aarec.py, fn_archive_address, for ID " + id
+        fn_write_error("Error in aarec.py, fn_archive_address, for ID " + str(id)
                        + ", Name " + fullname + " error = " + e.message)
 ###################################################
 # SQL Functions
@@ -216,9 +212,9 @@ def fn_insert_aa(id, fullname, aa, addr1, addr2, addr3, cty, st, zp, ctry,
         # print("insert aa completed")
 
     except Exception as e:
-        # print("Error in aarec.py, fn_insert_aa.  for ID " + id + ", Name "
+        # print("Error in aarec.py, fn_insert_aa.  for ID " + str(id) + ", Name "
         #       + fullname + " Error = " + e.message)
-        fn_write_error("Error in aarec.py, fn_insert_aa.  for ID " + id + ", Name "
+        fn_write_error("Error in aarec.py, fn_insert_aa.  for ID " + str(id) + ", Name "
               + fullname + " Error = " + e.message)
 
 
@@ -351,8 +347,8 @@ def fn_set_cell_phone(phone, id, fullname, EARL):
     except Exception as e:
         # print("Error in aarec.py, fn_set_cell_phone, for ID " + id + ", Name "
         #       + fullname + " Error = " + e.message)
-        fn_write_error("Error in aarec.py, fn_set_cell_phone, for ID " + id + ", Name "
-              + fullname + " Error = " + e.message)
+        fn_write_error("Error in aarec.py, fn_set_cell_phone, for ID " + str(id)
+                       + ", Name " + fullname + " Error = " + e.message)
         return ""
 
 #########################################################
@@ -423,7 +419,9 @@ def fn_set_email(email, id, fullname, eml, EARL):
                 # print("No Change")
             else:
                 # End date current EMail
-                print("Existing Email = " + email_result[0])
+
+                print("Existing Email")
+                      # + email_result[0])
                 # print("Beg Date = " + str(begindate))
                 # print("EMAIL = " + eml + ", " + email)
                 enddate = datetime.now().strftime("%m/%d/%Y")
@@ -436,8 +434,8 @@ def fn_set_email(email, id, fullname, eml, EARL):
     except Exception as e:
         # print("Error in aarec.py, fn_set_email, for for ID " + id + ", Name "
         #       + fullname + " Error = " + e.message)
-        fn_write_error("Error in aarec.py, fn_set_email, for for ID " + id +
-                       ", Name " + fullname + ", Email " + email +
+        fn_write_error("Error in aarec.py, fn_set_email, for for ID " + str(id)
+                       + ", Name " + fullname + ", Email " + email +
                        " Error = " + e.message)
         return ""
 
