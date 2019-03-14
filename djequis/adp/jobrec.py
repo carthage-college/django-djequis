@@ -482,6 +482,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             # Insert into job rec
             # Query works as of 5/29/18
             # print("Rank = " + str(rank))
+            # print("Supervisor = " + str(spvrID) + '\n')
             q_ins_job = '''
               INSERT INTO job_rec
               (tpos_no, descr, bjob_no, id, hrpay, supervisor_no, hrstat, 
@@ -497,7 +498,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                               None if terminationdate == '' else terminationdate,
                               'N', 'N/A', 'N', 'N',
                               jobtitledescr, rank, workercatcode, jobclass)
-            # print(q_ins_job + str(q_ins_job_args))
+            print(q_ins_job + str(q_ins_job_args))
             # print("New Job Record for " + last + ', id = ' + str(carthid))
             engine.execute(q_ins_job, q_ins_job_args)
             fn_write_log("Inserted into job_rec, tpos = " + str(v_tpos)
@@ -520,8 +521,9 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                     '', businessunitcode[:4], func_code, positioneffective,
                     None if terminationdate == '' else terminationdate,
                     jobtitledescr, workercatcode, jobclass, jobrow[0])
-            # print(q_upd_job)
-            # print(q_upd_job_args)
+            # print("Supervisor = " + str(spvrID) + '\n')
+            print(q_upd_job)
+            print(q_upd_job_args)
             # print("Update Job Record for " + last + ', id = ' + str(carthid))
             engine.execute(q_upd_job, q_upd_job_args)
             fn_write_log("Updated job_rec, tpos = " + str(v_tpos)
