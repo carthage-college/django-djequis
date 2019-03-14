@@ -79,7 +79,7 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname,
                 x = title.replace(".", "")
                 vTitle  = fn_validate_field(x.upper(), 'title', 'title', 'title_table',
                                          'char', EARL)
-                print("Title = " + str(vTitle))
+                # print("Title = " + str(vTitle))
                 if vTitle is not None and vTitle != "":
                     q_update_title = ('''UPDATE id_rec SET title = ?
                                 WHERE id = ?''')
@@ -89,8 +89,8 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname,
                     scr.write(q_update_title + '\n' + str(q_update_title_args) + '\n');
                     # logger.info("Update id_rec table");
                     engine.execute(q_update_title, q_update_title_args)
-            else:
-                print("No Title")
+            # else:
+            #     print("No Title")
 
         except Exception as err:
             # print(err.message)
@@ -107,9 +107,9 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname,
             # Search for existing address record
             if ctry_cod.strip() != '' and len(ctry_cod) > 0:
                 cntry = fn_validate_field(ctry_cod, 'ctry', 'ctry', 'ctry_table', 'char', EARL)
-                print("Valid Country Code = " + cntry)
+                # print("Valid Country Code = " + cntry)
 
-                print(" In Check Address")
+                # print(" In Check Address")
                 q_check_addr = '''
                             SELECT id, addr_line1, addr_line2, addr_line3, city,
                                 st, zip, ctry, phone
