@@ -1,9 +1,8 @@
 import os
 import sys
-# import pysftp
 import csv
 from datetime import datetime
-import time
+# import time
 from time import strftime
 import argparse
 import shutil
@@ -69,32 +68,30 @@ parser.add_argument(
     dest="database"
 )
 
-# write out the .sql file
-# scr = open("handshake_output.sql", "a")
-
 def main():
     # set start_time in order to see how long script takes to execute
     # start_time = time.time()
 
     ##########################################################################
     # development server (bng), you would execute:
-    # ==> python adptocx.py --database=train --test
+    # ==> python buildcsv.py --database=train --test
     # production server (psm), you would execute:
-    # ==> python adptocx.py --database=cars
+    # ==> python buildcsv.py --database=cars
     # without the --test argument
     ##########################################################################
 
     # set date and time to be added to the filename
-    # datetimestr = time.strftime("%Y%m%d%H%M%S")
+    datetimestr = time.strftime("%Y%m%d%H%M%S")
 
     # Defines file names and directory location
-    handshakedata = ('handshake.csv'.format(
+    handshakedata = ('{0}handshake.csv'.format(
          settings.HANDSHAKE_CSV_OUTPUT
     ))
 
-    # First remove yesterdays file of updates
-    # if os.path.isfile(adp_diff_file):
-    #     os.remove(adp_diff_file)
+    # set archive directory
+    archived_destination = ('{0}handshake-{1}.csv'.format(
+        settings.HANDSHAKE_CSV_ARCHIVED, datetimestr
+    ))
 
     try:
         # set global variable
@@ -111,10 +108,10 @@ def main():
             EARL = None
         # establish database connection
         engine = get_engine(EARL)
+        print(handshakedata)
 
-        # with open(handshakedata, 'wb') as file_out:
-        with open("handshakedata.csv", 'wb') as file_out:
-            # Write header row
+        # Write header row
+        with open(handshakedata, 'wb') as file_out:
             csvWriter = csv.writer(file_out)
             csvWriter.writerow(
                 ["email_address", "username", "auth_identifier" ,"card_id",
@@ -253,7 +250,6 @@ def main():
 
             # print(q_get_data)
             data_result = do_sql(q_get_data, key=DEBUG, earl=EARL)
-            # scr.write(q_check_addr + '\n');
             ret = list(data_result.fetchall())
             if ret is None:
                 print("Data missing")
@@ -261,14 +257,32 @@ def main():
             else:
                 print("Data found")
                 # print(ret[0][0])
-                # with open(handshakedata, 'ab') as file_out:
-                with open("handshakedata.csv", 'ab') as file_out:
+                with open(handshakedata, 'ab') as file_out:
+                # with open("handshakedata.csv", 'ab') as file_out:
                     csvWriter = csv.writer(file_out)
                     for row in ret:
-                         # print(row)
                          csvWriter.writerow(row)
-
                 file_out.close()
+
+
+        # Archive
+        # Check to see if file exists, if not send Email
+        if os.path.isfile(handshakedata) != True:
+            # there was no file found on the server
+            SUBJECT = '[Handshake Application] failed'
+            BODY = "There was no .csv output file to move."
+            print(SUBJECT + ", " + BODY)
+            # sendmail(
+            #     settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
+            #     BODY, SUBJECT
+            # )
+            # fn_write_log("There was no .csv output file to move.")
+        else:
+            # rename and move the file to the archive directory
+            print("Made it to archive code")
+            shutil.copy(handshakedata, archived_destination)
+
+
 
     except Exception as e:
         # fn_write_error("Error in handshake buildcsv.py, Error = "  + e.message)
