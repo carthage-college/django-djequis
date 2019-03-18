@@ -2,7 +2,7 @@ import os
 import sys
 import csv
 from datetime import datetime
-# import time
+import time
 from time import strftime
 import argparse
 import shutil
@@ -204,6 +204,7 @@ def main():
 					LEFT JOIN		major_table	MAJ3	ON	PER.major3		=	MAJ3.major
 					LEFT JOIN		deg_table		DEG	ON	PER.deg			=	DEG.deg
 					INNER JOIN	adm_rec		ADM	ON	PER.id			=	ADM.id
+							AND ADM.prog = PER.prog
 							AND	ADM.primary_app	=	'Y'
 					INNER JOIN	profile_rec	PRO	ON	PER.id			=	PRO.id
 					LEFT JOIN		minor_table	MIN1	ON	PER.minor1		=	MIN1.minor
@@ -245,8 +246,8 @@ def main():
                     AND PER.subprog in ('TRAD')
                     AND	NVL(PER.lv_date, TODAY)	>=	TODAY
                     AND EML.line1 is not null
-                    LIMIT 15
                 '''.format()
+            # LIMIT  15
 
             # print(q_get_data)
             data_result = do_sql(q_get_data, key=DEBUG, earl=EARL)
@@ -271,7 +272,6 @@ def main():
             # there was no file found on the server
             SUBJECT = '[Handshake Application] failed'
             BODY = "There was no .csv output file to move."
-            print(SUBJECT + ", " + BODY)
             # sendmail(
             #     settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
             #     BODY, SUBJECT
@@ -279,10 +279,7 @@ def main():
             # fn_write_log("There was no .csv output file to move.")
         else:
             # rename and move the file to the archive directory
-            print("Made it to archive code")
             shutil.copy(handshakedata, archived_destination)
-
-
 
     except Exception as e:
         # fn_write_error("Error in handshake buildcsv.py, Error = "  + e.message)
