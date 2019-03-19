@@ -28,7 +28,11 @@ django.setup()
 from django.conf import settings
 from django.db import connections
 from djzbar.utils.informix import do_sql
+from djequis.core.utils import sendmail
 from djzbar.utils.informix import get_engine
+from djtools.fields import TODAY
+from djzbar.settings import INFORMIX_EARL_TEST
+from djzbar.settings import INFORMIX_EARL_PROD
 
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
@@ -40,19 +44,12 @@ os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
-from djequis.core.utils import sendmail
-from djzbar.utils.informix import get_engine
-from djzbar.settings import INFORMIX_EARL_TEST
-from djzbar.settings import INFORMIX_EARL_PROD
-
-from djtools.fields import TODAY
-
 # normally set as 'debug" in SETTINGS
 DEBUG = settings.INFORMIX_DEBUG
 
 # set up command-line options
 desc = """
-    Upload ADP data to CX
+    Collect Handshake data for import
 """
 parser = argparse.ArgumentParser(description=desc)
 
@@ -246,8 +243,8 @@ def main():
                     AND PER.subprog in ('TRAD')
                     AND	NVL(PER.lv_date, TODAY)	>=	TODAY
                     AND EML.line1 is not null
+            LIMIT  25
                 '''.format()
-            # LIMIT  15
 
             # print(q_get_data)
             data_result = do_sql(q_get_data, key=DEBUG, earl=EARL)
