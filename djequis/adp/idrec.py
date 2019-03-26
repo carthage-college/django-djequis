@@ -25,9 +25,9 @@ scr = open("apdtocx_output.sql", "a")
 # Begin Processing
 #############################################
 
-def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middlename,
-        addr_line1, addr_line2, addr_line3, city, st, zip, ctry, ctry_cod, ss_no, phone,
-        decsd, eff_date, EARL):
+def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname,
+        middlename, title, addr_line1, addr_line2, addr_line3, city, st,
+        zip, ctry, ctry_cod, ss_no, phone, decsd, eff_date, EARL):
     print("Start ID Rec Processing")
     engine = get_engine(EARL)
 
@@ -40,10 +40,9 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
             BODY = "ID not found in CX database for ID " + carth_id \
                    + " Name, " + fullname
             SUBJECT = "CX ID not found"
-            sendmail(
-                settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
-                BODY, SUBJECT
-            )
+            # sendmail(
+            #     settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
+            #     BODY, SUBJECT)
     else:
 
         try:
@@ -59,6 +58,7 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
             # print(q_update_id_args)
             fn_write_log("Update basic info in id_rec table for " + fullname +
                          ", ID = " + str(carth_id))
+            scr.write(q_update_id_rec + '\n' + str(q_update_id_args) + '\n');
             # logger.info("Update id_rec table");
             engine.execute(q_update_id_rec, q_update_id_args)
         except Exception as err:
@@ -68,14 +68,47 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                            + err.message)
             # logger.error(err, exc_info=True)
 
+        #########################################################
+        # Title is a problem - most blank in ADP
+        # To avoid overwriting, will need to validate and do
+        # a separate update of the record
+        try:
 
+
+            if title is not None:
+                x = title.replace(".", "")
+                vTitle  = fn_validate_field(x.upper(), 'title', 'title', 'title_table',
+                                         'char', EARL)
+                # print("Title = " + str(vTitle))
+                if vTitle is not None and vTitle != "":
+                    q_update_title = ('''UPDATE id_rec SET title = ?
+                                WHERE id = ?''')
+                    q_update_title_args = (vTitle, carth_id)
+                    fn_write_log("Update Title info in id_rec table for " + fullname +
+                                 ", ID = " + str(carth_id))
+                    scr.write(q_update_title + '\n' + str(q_update_title_args) + '\n');
+                    # logger.info("Update id_rec table");
+                    engine.execute(q_update_title, q_update_title_args)
+            # else:
+            #     print("No Title")
+
+        except Exception as err:
+            # print(err.message)
+            return (err.message)
+            fn_write_error("Error in id_rec.py updating title info.  Error = " + err.message)
+            # logger.error(err, exc_info=True)
+
+#########################################################
+
+        # print("Country Code = " + str(len(ctry_cod)))
 
         try:
             # also need to deal with address changes
             # Search for existing address record
-            if ctry_cod != '':
+            if ctry_cod.strip() != '' and len(ctry_cod) > 0:
                 cntry = fn_validate_field(ctry_cod, 'ctry', 'ctry', 'ctry_table', 'char', EARL)
-                #print("Valid Country Code = " + cntry)
+                # print("Valid Country Code = " + cntry)
+
                 # print(" In Check Address")
                 q_check_addr = '''
                             SELECT id, addr_line1, addr_line2, addr_line3, city,
@@ -91,18 +124,17 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                                                   Employee not in id rec for id "
                                  "number " + str(
                         carth_id))
-                    print("Employee not in id rec")
+                    # print("Employee not in id rec")
                 elif str(row[0]) == '0' or str(row[0]) == '':  # No person in id rec? Should never happen
                     fn_write_log("Data missing in idrec.py address function. \
                                   Employee not in id rec for id number " + str(carth_id))
-                    print("Employee not in id rec")
+                    # print("Employee not in id rec")
                     BODY = "ID not found in CX database id_rec.py address " \
                            "routine for ID " + carth_id  + " Name, " + fullname
                     SUBJECT = "CX ID not found"
-                    sendmail(
-                        settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
-                        BODY, SUBJECT
-                    )
+                    # sendmail(
+                    #     settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
+                    #     BODY, SUBJECT )
 
                 # Update ID Rec and archive aa rec
                 elif (row[1] != addr_line1
@@ -113,7 +145,7 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                     or row[6] != zip
                     or row[7] != ctry_cod):
 
-                    print("Update: no address match in ID_REC " + str(carth_id))  #
+                    # print("Update: no address match in ID_REC " + str(carth_id))  #
 
                     q_update_id_rec_addr = ('''UPDATE id_rec SET addr_line1 = ?,
                          addr_line2 = ?, addr_line3 = ?, city = ?, st = ?, zip = ?,
@@ -128,6 +160,9 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                                  " address = " + addr_line1)
                     engine.execute(q_update_id_rec_addr, q_update_id_addr_args)
                     scr.write(q_update_id_rec_addr + '\n' + str(q_update_id_addr_args) + '\n')
+
+
+
                     #########################################################
                     # Routine to deal with aa_rec
                     #########################################################
@@ -140,7 +175,7 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                         fn_write_log("Empty Address 1 in ID Rec - Nothing to "
                                      "archive")
                     elif row is not None:
-                        print("row[1] = " + row[1])
+                        # print("row[1] = " + row[1])
                         fn_archive_address(carth_id, fullname, row[1], row[2],
                                      row[3], row[4], row[5], row[6], row[7], phone,
                                            EARL)
@@ -148,14 +183,14 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname, middl
                         fn_write_log("Empty Address 1 in ID Rec - Nothing to "
                                      "archive")
 
-                else:
-                    print("No Change " + row[1])
-            elif cntry is None:
-                print("invalid country code" + ctry_cod)
+                # else:
+                #     print("No Change " + row[1])
+            elif ctry_cod is None or len(ctry_cod) == 0:
+                # print("invalid country code" + ctry_cod)
                 fn_write_log("invalid country code" + ctry_cod)
 
         except Exception as err:
-            print(err.message)
+            # print(err.message)
             fn_write_error("Error in idrec.py for id " + carth_id
                            + ".  Error = " + err.message)
 

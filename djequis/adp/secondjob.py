@@ -243,10 +243,10 @@ def fn_process_second_job(carthid, workercatcode, pcnaggr, jobtitledescr,
         SUBJECT = '[APD To CX Application] Data Error'
         BODY = "The Home Cost Number Code is not valid for secondary job.  " \
                "Code = " + pcnaggr
-        sendmail(
-            settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
-            BODY, SUBJECT
-        )
+        # sendmail(
+        #     settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
+        #     BODY, SUBJECT
+        # )
         fn_write_log("The Home Cost Number Code is not valid for secondary "
                      "job.  Code = " + pcnaggr)
 

@@ -32,7 +32,7 @@ os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
-from djequis.sql.wisact284 import WIS_ACT_284_SQL
+from djequis.sql.wisact284 import WIS_ACT_284_SQL, WIS_ACT_284_RC_SQL
 from djequis.core.utils import sendmail
 from djequis.core.financialaid.utils import csv_gen
 from djzbar.utils.informix import do_sql
@@ -55,6 +55,12 @@ desc = """
 parser = argparse.ArgumentParser(description=desc)
 
 parser.add_argument(
+    "--spring",
+    action='store_true',
+    help="spring term only",
+    dest='spring'
+)
+parser.add_argument(
     "--dispersed",
     action='store_true',
     help="amount status = AD",
@@ -70,11 +76,16 @@ parser.add_argument(
 
 def main():
 
+    # spring term only
+    if spring:
+        sql = WIS_ACT_284_RC_SQL
+    else:
+        sql = WIS_ACT_284_SQL
     # determines if aid has been despersed
     if dispersed:
-        sql = WIS_ACT_284_SQL(amt_stat = '"AD"')
+        sql = sql(amt_stat = '"AD"')
     else:
-        sql = WIS_ACT_284_SQL(amt_stat = '"AA","AD","AP","EA"')
+        sql = sql(amt_stat = '"AA","AD","AP","EA"')
 
     # run getaid_sql SQL statement
     sqlresults = do_sql(sql, earl=EARL)
@@ -110,6 +121,7 @@ def main():
 if __name__ == '__main__':
     args = parser.parse_args()
     dispersed = args.dispersed
+    spring = args.spring
     test = args.test
 
     sys.exit(main())

@@ -9,7 +9,7 @@ from logging.handlers import SMTPHandler
 # django settings for script
 from django.conf import settings
 
-from djequis.core.utils import sendmail
+# from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 
@@ -40,7 +40,7 @@ def fn_validate_field(searchval, keyfield, retfield, table, keytype, EARL):
     elif keytype == "integer":
         qval_sql = "SELECT DISTINCT " + retfield + " FROM " + table \
                    + " WHERE " + keyfield + " = " + str(searchval)
-    #print("Validate Field SQL = " + qval_sql)
+    # print("Validate Field SQL = " + qval_sql)
     try:
         sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
         # print("sql_val = " + str(sql_val))
@@ -162,7 +162,7 @@ def fn_convert_date(date):
 #########################################################
 def fn_format_phone(phone):
     try:
-        if phone is None:
+        if phone is None or len(phone) == 0:
             return ""
         elif phone != "":
             ph = str(phone).replace("(","")

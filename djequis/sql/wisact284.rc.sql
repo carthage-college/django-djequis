@@ -1,7 +1,7 @@
 SELECT DISTINCT
     '00383900' AS OPEID,
-    ACADREC.prog AS prog, ACADREC.subprog AS subprog,
     '20' || LEFT(CALREC.acyr, 2) || '-20' || RIGHT(CALREC.acyr, 2) AS AcadYear,
+    ACADREC.sess,
     REPLACE(StuID.ss_no, '-', '') AS Social_Security_Number,
     TRIM(StuID.firstname) AS Student_First_Name,
     TRIM(StuID.lastname) AS Student_Last_Name,
@@ -14,21 +14,8 @@ SELECT DISTINCT
     TRIM(StuID.zip) AS Student_Postal_Code,
     TRIM(StuID.ctry) AS Student_Country_Code,
     TRIM(NVL(Email.line1,'')) AS Student_email,
-    --Aid Detail
-    --TRIM(CUM_AID.aid) AS Aid_Code,
     TRIM(CUM_AID.txt) AS Loan_name,
     NVL(CUM_AID.Aid_Amount, 0.00) AS Aid_Amount,
-    --CASE
-    --    WHEN
-    --        CUM_AID.Aid_Amount IS NULL
-    --    THEN
-    --        0
-    --    ELSE
-    --        CUM_AID.Aid_Amount END AS Aid_Amount,
-    --CUM_AID.Aid_Amount AS Aid_Amount,
-    --Aid Other
-    --AidOther.c_InstGrants, AidOther.c_InstScholar, AidOther.c_FedGrants,
-    --AidOther.c_SteGrants, AidOther.c_OutsideAid,
     NVL(AidOther.c_InstGrants, 0.00) AS c_InstGrants,
     NVL(AidOther.c_InstScholar, 0.00) AS c_InstScholar,
     NVL(AidOther.c_FedGrants, 0.00) AS c_FedGrants,
@@ -37,17 +24,18 @@ SELECT DISTINCT
     --Loan Date
     TO_CHAR(CUM_AID.beg_date, '%Y%m%d') AS Loan_Date,
     --Budget Summary
+    --ACADREC.prog, ACADREC.subprog,
     CASE
         WHEN ACADREC.prog = 'PRDV'
         THEN 2200
         WHEN ACADREC.prog = 'GRAD' AND NVL(BGT_COSTS.No_TUFE,0) = 0
-        THEN 14080
+        THEN 10160
         WHEN ACADREC.subprog = 'TRAD' AND NVL(BGT_COSTS.No_TUFE,0) = 0
-        THEN 41950
+        THEN 43550
         WHEN ACADREC.subprog = 'TRAP' AND NVL(BGT_COSTS.No_TUFE,0) = 0
-        THEN 8800
+        THEN 9200
         WHEN ACADREC.subprog = 'PTSM' AND NVL(BGT_COSTS.No_TUFE,0) = 0
-        THEN 8800
+        THEN 9200
         WHEN ACADREC.subprog = '7WK' AND NVL(BGT_COSTS.No_TUFE,0) = 0
         THEN 14700
         WHEN NVL(BGT_COSTS.No_TUFE,0) > 0
@@ -144,6 +132,8 @@ FROM
         CALREC.yr = ACADREC.yr
     AND
         CALREC.prog = ACADREC.prog
+    AND 
+        CALREC.sess in ('AK', 'AM', 'GC', 'KC',  'PC', 'RC', 'YC')
     AND
         CALREC.acyr =
         CASE
@@ -151,6 +141,21 @@ FROM
             THEN MOD(YEAR(TODAY) - 1, 100) || MOD(YEAR(TODAY), 100)
             ELSE MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY) + 1, 100)
         END
+    AND ACADREC.ID
+        NOT IN
+            (SELECT distinct id FROM stu_acad_rec s, acad_cal_rec a
+                WHERE
+                s.sess = a.sess
+                AND s.yr = a.yr
+                AND s.prog = a.prog
+                AND a.sess in ('AA', 'AB', 'GA', 'KA', 'PA', 'QB', 'RA', 'YA')
+                AND
+                A.acyr =
+                    CASE
+                    WHEN TODAY < TO_DATE(YEAR(TODAY) || '-07-01', '%Y-%m-%d')
+                    THEN MOD(YEAR(TODAY) - 1, 100) || MOD(YEAR(TODAY), 100)
+                    ELSE MOD(YEAR(TODAY), 100) || MOD(YEAR(TODAY) + 1, 100)
+                    END)
     -----------------------------------------------
     --STUDENT INFO
     -----------------------------------------------
