@@ -180,7 +180,7 @@ USERS = '''
                AND (title4.end_date is null or title4.end_date > current) AND title4.job_title IS NOT NULL
            LEFT JOIN prog_enr_rec TLE
                ON TLE.id = jenzprs_rec.host_id
-               AND TLE.acst= 'GOOD'
+    		   AND TLE.acst in ('GOOD', 'GRAD')
                AND TLE.tle = 'Y'
            LEFT JOIN addree_rec ON addree_rec.prim_id = jenzprs_rec.host_id
            AND addree_rec.style = 'N'
