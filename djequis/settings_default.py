@@ -108,11 +108,9 @@ INSTALLED_APPS = (
     #'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
-    'django.contrib.flatpages',
     'django.contrib.humanize',
     'django.contrib.messages',
     'django.contrib.sessions',
-    'django.contrib.sites',
     'django.contrib.staticfiles',
     'djequis',
     'djequis.core',
@@ -131,7 +129,6 @@ MIDDLEWARE_CLASSES = (
     # the following should be uncommented unless you are
     # embedding your apps in iframes
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware'
 )
 
 # template stuff
