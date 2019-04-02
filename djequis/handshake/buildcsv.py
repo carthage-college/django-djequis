@@ -29,7 +29,7 @@ from django.conf import settings
 from django.db import connections
 from djzbar.utils.informix import do_sql
 from djequis.core.utils import sendmail
-from djzbar.utils.informix import get_engine
+from djzbar.utils.informix import get_engine, get_session
 from djtools.fields import TODAY
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
@@ -73,7 +73,7 @@ parser.add_argument(
 def main():
     # set start_time in order to see how long script takes to execute
     # start_time = time.time()
-
+    print("begin")
     ##########################################################################
     # development server (bng), you would execute:
     # ==> python buildcsv.py --database=train --test
@@ -89,12 +89,13 @@ def main():
     handshakedata = ('{0}handshake.csv'.format(
          settings.HANDSHAKE_CSV_OUTPUT
     ))
-
+    print ('Settings')
+    print (settings.HANDSHAKE_CSV_OUTPUT)
     # set archive directory
     archived_destination = ('{0}handshake-{1}.csv'.format(
         settings.HANDSHAKE_CSV_ARCHIVED, datetimestr
     ))
-
+    print("settings set")
     try:
         # set global variable
         global EARL
@@ -110,12 +111,15 @@ def main():
             EARL = None
         # establish database connection
         engine = get_engine(EARL)
-        print(handshakedata)
+        print("Handshakedata = " + handshakedata)
 
         #--------------------------
         # Create the csv file
         # Write header row
-        with open(handshakedata, 'wb') as file_out:
+        print('about to write header')
+        # with open("handshakedata.csv", 'w') as file_out:
+        with open(handshakedata, 'w') as file_out:
+            print ("Opened handshake data location")
             csvWriter = csv.writer(file_out)
             csvWriter.writerow(
                 ["email_address", "username", "auth_identifier" ,"card_id",
@@ -135,40 +139,45 @@ def main():
                  "mobile_number", "assigned_to_email_address", "athlete",
                  "veteran", "hometown_location_attributes:name",
                  "eu_gdpr_subject"])
+        file_out.close()
+        print(' write header')
+        # Query CX and start loop through records
+        # print(HANDSHAKE_QUERY)
+
+        # engine = get_engine(EARL)
+        # engine.execute(HANDSHAKE_QUERY)
+
+        data_result = do_sql(HANDSHAKE_QUERY, key=DEBUG, earl=EARL)
+        # data_result = do_sql(q_get_data, key=DEBUG, earl=EARL)
+        ret = list(data_result.fetchall())
+        if ret is None:
+            print("Data missing")
+        #     # fn_write_log("Data missing )
+        else:
+            print("Data found")
+            print(ret[0][0])
+            with open(handshakedata, 'a') as file_out:
+            # with open("handshakedata.csv", 'ab') as file_out:
+                csvWriter = csv.writer(file_out)
+                for row in ret:
+                     csvWriter.writerow(row)
             file_out.close()
 
-            # Query CX and start loop through records
-            # print(HANDSHAKE_QUERY)
-            data_result = do_sql(HANDSHAKE_QUERY, key=DEBUG, earl=EARL)
-            # data_result = do_sql(q_get_data, key=DEBUG, earl=EARL)
-            ret = list(data_result.fetchall())
-            if ret is None:
-                print("Data missing")
-            #     # fn_write_log("Data missing )
-            else:
-                print("Data found")
-                # print(ret[0][0])
-                with open(handshakedata, 'ab') as file_out:
-                # with open("handshakedata.csv", 'ab') as file_out:
-                    csvWriter = csv.writer(file_out)
-                    for row in ret:
-                         csvWriter.writerow(row)
-                file_out.close()
-
-        # Archive
-        # Check to see if file exists, if not send Email
-        if os.path.isfile(handshakedata) != True:
-            # there was no file found on the server
-            SUBJECT = '[Handshake Application] failed'
-            BODY = "There was no .csv output file to move."
-            # sendmail(
-            #     settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
-            #     BODY, SUBJECT
-            # )
-            # fn_write_log("There was no .csv output file to move.")
-        else:
-            # rename and move the file to the archive directory
-            shutil.copy(handshakedata, archived_destination)
+        # # Archive
+        # # Check to see if file exists, if not send Email
+        # if os.path.isfile(handshakedata) != True:
+        #     # there was no file found on the server
+        #     SUBJECT = '[Handshake Application] failed'
+        #     BODY = "There was no .csv output file to move."
+        #     # sendmail(
+        #     #     settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
+        #     #     BODY, SUBJECT
+        #     # )
+        #     # fn_write_log("There was no .csv output file to move.")
+        #     print("There was no .csv output file to move.")
+        # else:
+        #     # rename and move the file to the archive directory
+        #     shutil.copy(handshakedata, archived_destination)
 
 
     except Exception as e:
@@ -177,7 +186,7 @@ def main():
 
         # Test with this then remove, use the standard logging mechanism
         fn_write_error("Error in handshake buildcsv.py, Error = " + e.message)
-        # print("Error in handshake buildcsv.py, Error = " + e.message)
+        print("Error in handshake buildcsv.py, Error = " + e.message)
     # finally:
     #     logging.shutdown()
 
