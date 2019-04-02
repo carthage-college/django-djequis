@@ -106,6 +106,7 @@ FROM
 					LEFT JOIN st_table ST ON ST.st = IR.st  
 					LEFT JOIN		(
 							SELECT id.id, 
+                            replace(
 							replace(
 							replace(
 							replace(
@@ -128,6 +129,7 @@ FROM
 									, "')","")
 									, "'(","")
 									, ',',';')
+									,"''","'")
 								  DESCR
 								FROM id_rec id
 							) SPORT ON SPORT.id = PER.id
