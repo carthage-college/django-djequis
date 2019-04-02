@@ -8,6 +8,7 @@ import argparse
 import shutil
 import logging
 from logging.handlers import SMTPHandler
+from sqlalchemy import text
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -143,10 +144,6 @@ def main():
         print(' write header')
         # Query CX and start loop through records
         # print(HANDSHAKE_QUERY)
-
-        # engine = get_engine(EARL)
-        # engine.execute(HANDSHAKE_QUERY)
-
         data_result = do_sql(HANDSHAKE_QUERY, key=DEBUG, earl=EARL)
         # data_result = do_sql(q_get_data, key=DEBUG, earl=EARL)
         ret = list(data_result.fetchall())
