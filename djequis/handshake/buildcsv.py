@@ -83,17 +83,16 @@ def main():
     ##########################################################################
 
     # set date and time to be added to the filename
-    datetimestr = time.strftime("%Y%m%d%H%M%S")
+    datestr = datetime.now().strftime("%Y%m%d")
+    print(datestr)
 
     # Defines file names and directory location
-    handshakedata = ('{0}handshake.csv'.format(
-         settings.HANDSHAKE_CSV_OUTPUT
+    handshakedata = ('{0}/{1}_users.csv'.format(
+         settings.HANDSHAKE_CSV_OUTPUT, datestr
     ))
+    print("Handshakedata = " + handshakedata)
     # print (settings.HANDSHAKE_CSV_OUTPUT)
-    # set archive directory
-    archived_destination = ('{0}handshake-{1}.csv'.format(
-        settings.HANDSHAKE_CSV_ARCHIVED, datetimestr
-    ))
+
     try:
         # set global variable
         global EARL
@@ -109,7 +108,6 @@ def main():
             EARL = None
         # establish database connection
         engine = get_engine(EARL)
-        print("Handshakedata = " + handshakedata)
 
         #--------------------------
         # Create the csv file
@@ -156,22 +154,6 @@ def main():
                 for row in ret:
                      csvWriter.writerow(row)
             file_out.close()
-
-        # Archive
-        # Check to see if file exists, if not send Email
-        if os.path.isfile(handshakedata) != True:
-            # there was no file found on the server
-            SUBJECT = '[Handshake Application] failed'
-            BODY = "There was no .csv output file to move."
-            # sendmail(
-            #     settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
-            #     BODY, SUBJECT
-            # )
-            # fn_write_log("There was no .csv output file to move.")
-            print("There was no .csv output file to move.")
-        else:
-            # rename and move the file to the archive directory
-            shutil.copy(handshakedata, archived_destination)
 
     except Exception as e:
         # Use this for final version
