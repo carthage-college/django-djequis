@@ -227,5 +227,5 @@ FROM
 					LEFT JOIN conc_table CT3 ON CT3.conc = PER.conc3						
 WHERE 
 	EML.line1 IS NOT NULL
-		LIMIT 10
+		LIMIT 3
 '''
