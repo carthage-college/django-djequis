@@ -82,16 +82,23 @@ def main():
     # without the --test argument
     ##########################################################################
 
+    # # set date and time to be added to the filename
+    # datestr = datetime.now().strftime("%Y%m%d")
+    # print(datestr)
+
     # set date and time to be added to the filename
-    datestr = datetime.now().strftime("%Y%m%d")
-    print(datestr)
+    datetimestr = time.strftime("%Y%m%d%H%M%S")
 
     # Defines file names and directory location
-    handshakedata = ('{0}/{1}_users.csv'.format(
-         settings.HANDSHAKE_CSV_OUTPUT, datestr
-    ))
+    handshakedata = ('{0}users.csv'.format(
+         settings.HANDSHAKE_CSV_OUTPUT))
     print("Handshakedata = " + handshakedata)
     # print (settings.HANDSHAKE_CSV_OUTPUT)
+
+    # set archive directory
+    archived_destination = ('{0}_users-{1}.csv'.format(
+        settings.HANDSHAKE_CSV_ARCHIVED, datetimestr
+        ))
 
     try:
         # set global variable
@@ -108,6 +115,23 @@ def main():
             EARL = None
         # establish database connection
         engine = get_engine(EARL)
+
+        # Archive
+        # Check to see if file exists, if not send Email
+        if os.path.isfile(handshakedata) != True:
+            # there was no file found on the server
+            SUBJECT = '[Handshake Application] failed'
+            BODY = "There was no .csv output file to move."
+            # sendmail(
+            #     settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
+            #     BODY, SUBJECT
+            # )
+            # fn_write_log("There was no .csv output file to move.")
+            print("There was no .csv output file to move.")
+        else:
+            # rename and move the file to the archive directory
+            shutil.copy(handshakedata, archived_destination)
+
 
         #--------------------------
         # Create the csv file
@@ -154,6 +178,8 @@ def main():
                 for row in ret:
                      csvWriter.writerow(row)
             file_out.close()
+        #
+
 
     except Exception as e:
         # Use this for final version
