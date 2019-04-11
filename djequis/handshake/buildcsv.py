@@ -140,7 +140,7 @@ def main():
             #--------------------------
             # Create the csv file
             # Write header row
-            # print('about to write header')
+            print('about to write header')
             # with open("handshakedata.csv", 'w') as file_out:
             with open(handshakedata, 'w') as file_out:
                 print ("Opened handshake data location")
@@ -168,7 +168,7 @@ def main():
                      "veteran", "hometown_location_attributes:name",
                      "eu_gdpr_subject"])
             file_out.close()
-            # print(' write header')
+            print(' write header')
             # Query CX and start loop through records
             # print(HANDSHAKE_QUERY)
 
