@@ -14,3 +14,4 @@ reportlab==3.5.13
 python-dateutil==2.8.0
 smartystreets-python-sdk==4.0.1
 pytz==2018.9
+awscli==1.16.137
