@@ -42,6 +42,10 @@ def main():
     remote_folder = settings.HANDSHAKE_S3_FOLDER
     key_name = remote_folder + '/' + object_name
 
+    file_date = time.strftime('%m/%d/%Y',
+                              time.gmtime(os.path.getmtime(handshakedata)))
+    print("Date of file = " + file_date)
+
     print("Local File Name and Path = " + handshakedata)
     # print("Local Object Name = " + object_name)
     print("Bucket = " + bucket_name)
@@ -60,8 +64,6 @@ def main():
 def fn_upload_file(file_name, bucket_name,  object_name):
     try:
         print("In aws.py, " + file_name + ', ' + bucket_name + ', ' + object_name)
-
-
 
         client = boto3.client('s3')
         print("Client = " + str(client))     #returns <botocore.client.S3 object at 0x7fe83f038d90>
@@ -86,7 +88,8 @@ def fn_upload_file(file_name, bucket_name,  object_name):
         else:
             raise
             return "Unknown error in aws.py " + e.message
-
+    except Exception as e:
+        print("Error in fn_upload_file = " + e.message)
     return True
 
 if __name__ == '__main__':
