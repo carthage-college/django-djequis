@@ -4,11 +4,18 @@ import csv
 from datetime import datetime
 import time
 from time import strftime
+# import awscli
+# import botocore
+# import boto3
+# import fcntl
 import argparse
 import shutil
 import logging
 from logging.handlers import SMTPHandler
 from sqlalchemy import text
+# from botocore.exceptions import ClientError
+
+from aws import fn_upload_file
 
 # python path
 sys.path.append('/usr/lib/python2.7/dist-packages/')
@@ -46,6 +53,7 @@ os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 from handshake_sql import HANDSHAKE_QUERY
+
 
 # normally set as 'debug" in SETTINGS
 DEBUG = settings.INFORMIX_DEBUG
@@ -116,21 +124,21 @@ def main():
         # establish database connection
         engine = get_engine(EARL)
 
-        # Archive
-        # Check to see if file exists, if not send Email
-        if os.path.isfile(handshakedata) != True:
-            # there was no file found on the server
-            SUBJECT = '[Handshake Application] failed'
-            BODY = "There was no .csv output file to move."
-            # sendmail(
-            #     settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
-            #     BODY, SUBJECT
-            # )
-            # fn_write_log("There was no .csv output file to move.")
-            print("There was no .csv output file to move.")
-        else:
-            # rename and move the file to the archive directory
-            shutil.copy(handshakedata, archived_destination)
+        # # Archive
+        # # Check to see if file exists, if not send Email
+        # if os.path.isfile(handshakedata) != True:
+        #     # there was no file found on the server
+        #     SUBJECT = '[Handshake Application] failed'
+        #     BODY = "There was no .csv output file to move."
+        #     # sendmail(
+        #     #     settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
+        #     #     BODY, SUBJECT
+        #     # )
+        #     # fn_write_log("There was no .csv output file to move.")
+        #     print("There was no .csv output file to move.")
+        # else:
+        #     # rename and move the file to the archive directory
+        #     shutil.copy(handshakedata, archived_destination)
 
 
         #--------------------------
@@ -163,34 +171,51 @@ def main():
         # print(' write header')
         # Query CX and start loop through records
         # print(HANDSHAKE_QUERY)
+
         data_result = do_sql(HANDSHAKE_QUERY, key=DEBUG, earl=EARL)
-        # data_result = do_sql(q_get_data, key=DEBUG, earl=EARL)
+
         ret = list(data_result.fetchall())
         if ret is None:
             print("Data missing")
         #     # fn_write_log("Data missing )
         else:
             print("Data found")
-            # print(ret[0][0])
+            print(ret[0][0])
             with open(handshakedata, 'a') as file_out:
             # with open("handshakedata.csv", 'ab') as file_out:
                 csvWriter = csv.writer(file_out)
                 for row in ret:
                      csvWriter.writerow(row)
+            # file_out.flush()
             file_out.close()
-        #
+
+            file_date = time.strftime('%m/%d/%Y', time.gmtime(os.path.getmtime(handshakedata)))
+            print("Date of file = " + file_date)
+            # bucket_name = settings.HANDSHAKE_BUCKET
+            # object_name = ('users.csv')
+            # remote_folder = settings.HANDSHAKE_S3_FOLDER
+            # # key_name = remote_folder + '/' + object_name
+
+            # if filedate = time.strftime('%m/%d/%Y'):   #Make sure file is fresh
+            # rtrn = fn_upload_file(handshakedata, bucket_name,  object_name)
+            # print("Upload status = " + str(rtrn))
+            # I want to call the function in aws.py from here, but it returns
+            # error 10 - No Child Processes...
+            # I suspect it is because the write process above has not released
+            # rights to the csv file, but that is a guess
 
 
     except Exception as e:
-        # Use this for final version
-        # logging.error("Error in handshake buildcsv.py, Error = " + e.message)
-
-        # Test with this then remove, use the standard logging mechanism
-        fn_write_error("Error in handshake buildcsv.py, Error = " + e.message)
+    #         # Use this for final version
+    #         # logging.error("Error in handshake buildcsv.py, Error = " +
+    #         e.message)
+    #
+    #         # Test with this then remove, use the standard logging mechanism
+    #         fn_write_error("Error in handshake buildcsv.py, Error = " +
+    #         e.message)
         print("Error in handshake buildcsv.py, Error = " + e.message)
-    # finally:
-    #     logging.shutdown()
-
+    #     # finally:
+    #     #     logging.shutdown()
 
 def fn_write_error(msg):
     # Test with this then remove, use the standard logging mechanism
