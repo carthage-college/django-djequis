@@ -4,26 +4,17 @@ import csv
 from datetime import datetime
 import time
 from time import strftime
-# import awscli
-# import botocore
-# import boto3
-# import fcntl
+import awscli
+import botocore
+import boto3
+from botocore.exceptions import ClientError
 import argparse
 import shutil
 import logging
 from logging.handlers import SMTPHandler
 from sqlalchemy import text
-# from botocore.exceptions import ClientError
 
-from aws import fn_upload_file
-
-# python path
-sys.path.append('/usr/lib/python2.7/dist-packages/')
-sys.path.append('/usr/lib/python2.7/')
-sys.path.append('/usr/local/lib/python2.7/dist-packages/')
-sys.path.append('/data2/django_1.11/')
-sys.path.append('/data2/django_projects/')
-sys.path.append('/data2/django_third/')
+# from aws import fn_upload_file
 
 # django settings for shell environment
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
@@ -42,18 +33,7 @@ from djtools.fields import TODAY
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 
-# informix environment
-os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
-os.environ['DBSERVERNAME'] = settings.DBSERVERNAME
-os.environ['INFORMIXDIR'] = settings.INFORMIXDIR
-os.environ['ODBCINI'] = settings.ODBCINI
-os.environ['ONCONFIG'] = settings.ONCONFIG
-os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
-os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
-os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
-
 from handshake_sql import HANDSHAKE_QUERY
-
 
 # normally set as 'debug" in SETTINGS
 DEBUG = settings.INFORMIX_DEBUG
@@ -78,6 +58,22 @@ parser.add_argument(
     help="database name.",
     dest="database"
 )
+def fn_write_error(msg):
+    # Test with this then remove, use the standard logging mechanism
+    # create error file handler and set level to error
+    handler = logging.FileHandler(
+         '{0}handshake_error.log'.format(settings.LOG_FILEPATH))
+    handler.setLevel(logging.ERROR)
+    formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
+                                   datefmt='%m/%d/%Y %I:%M:%S %p')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.error(msg)
+    handler.close()
+    logger.removeHandler(handler)
+    logging.shutdown()
+    return("Error logged")
+
 
 def main():
     # set start_time in order to see how long script takes to execute
@@ -91,11 +87,12 @@ def main():
     ##########################################################################
 
     # # set date and time to be added to the filename
-    # datestr = datetime.now().strftime("%Y%m%d")
+    datestr = datetime.now().strftime("%Y%m%d")
     # print(datestr)
 
-    # set date and time to be added to the filename
+    # set date and time to be added to the archive filename
     datetimestr = time.strftime("%Y%m%d%H%M%S")
+    # print(datetimestr)
 
     # Defines file names and directory location
     handshakedata = ('{0}users.csv'.format(
@@ -122,87 +119,106 @@ def main():
         # care of this scenario and we will never arrive here.
             EARL = None
         # establish database connection
-        engine = get_engine(EARL)
+        # engine = get_engine(EARL)
 
-        # # Archive
-        # # Check to see if file exists, if not send Email
-        # if os.path.isfile(handshakedata) != True:
-        #     # there was no file found on the server
-        #     SUBJECT = '[Handshake Application] failed'
-        #     BODY = "There was no .csv output file to move."
-        #     # sendmail(
-        #     #     settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
-        #     #     BODY, SUBJECT
-        #     # )
-        #     # fn_write_log("There was no .csv output file to move.")
-        #     print("There was no .csv output file to move.")
-        # else:
-        #     # rename and move the file to the archive directory
-        #     shutil.copy(handshakedata, archived_destination)
+            # # Archive
+            # # Check to see if file exists, if not send Email
+            # if os.path.isfile(handshakedata) != True:
+            #     # there was no file found on the server
+            #     SUBJECT = '[Handshake Application] failed'
+            #     BODY = "There was no .csv output file to move."
+            #     # sendmail(
+            #     #     settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
+            #     #     BODY, SUBJECT
+            #     # )
+            #     # fn_write_log("There was no .csv output file to move.")
+            #     print("There was no .csv output file to move.")
+            # else:
+            #     # rename and move the file to the archive directory
+            #     shutil.copy(handshakedata, archived_destination)
 
-
-        #--------------------------
-        # Create the csv file
-        # Write header row
-        # print('about to write header')
-        # with open("handshakedata.csv", 'w') as file_out:
-        with open(handshakedata, 'w') as file_out:
-            print ("Opened handshake data location")
-            csvWriter = csv.writer(file_out)
-            csvWriter.writerow(
-                ["email_address", "username", "auth_identifier" ,"card_id",
-                 "first_name", "last_name", "middle_name", "preferred_name",
-                 "school_year_name", "primary_education:education_level_name",
-                 "primary_education:cumulative_gpa",
-                 "primary_education:department_gpa",
-                 "primary_education:primary_major_name",
-                 "primary_education:major_names",
-                 "primary_education:minor_names",
-                 "primary_education:college_name",
-                 "primary_education:start_date",
-                 "primary_education:end_date",
-                 "primary_education:currently_attending",
-                 "campus_name", "opt_cpt_eligible", "ethnicity", "gender",
-                 "disabled", "work_study_eligible", "system_label_names",
-                 "mobile_number", "assigned_to_email_address", "athlete",
-                 "veteran", "hometown_location_attributes:name",
-                 "eu_gdpr_subject"])
-        file_out.close()
-        # print(' write header')
-        # Query CX and start loop through records
-        # print(HANDSHAKE_QUERY)
-
-        data_result = do_sql(HANDSHAKE_QUERY, key=DEBUG, earl=EARL)
-
-        ret = list(data_result.fetchall())
-        if ret is None:
-            print("Data missing")
-        #     # fn_write_log("Data missing )
-        else:
-            print("Data found")
-            print(ret[0][0])
-            with open(handshakedata, 'a') as file_out:
-            # with open("handshakedata.csv", 'ab') as file_out:
+            #--------------------------
+            # Create the csv file
+            # Write header row
+            # print('about to write header')
+            # with open("handshakedata.csv", 'w') as file_out:
+            with open(handshakedata, 'w') as file_out:
+                print ("Opened handshake data location")
                 csvWriter = csv.writer(file_out)
-                for row in ret:
-                     csvWriter.writerow(row)
-            # file_out.flush()
+                csvWriter.writerow(
+                    ["email_address", "username", "auth_identifier" ,
+                    "card_id",
+                     "first_name", "last_name", "middle_name",
+                     "preferred_name",
+                     "school_year_name",
+                     "primary_education:education_level_name",
+                     "primary_education:cumulative_gpa",
+                     "primary_education:department_gpa",
+                     "primary_education:primary_major_name",
+                     "primary_education:major_names",
+                     "primary_education:minor_names",
+                     "primary_education:college_name",
+                     "primary_education:start_date",
+                     "primary_education:end_date",
+                     "primary_education:currently_attending",
+                     "campus_name", "opt_cpt_eligible", "ethnicity",
+                     "gender",
+                     "disabled", "work_study_eligible", "system_label_names",
+                     "mobile_number", "assigned_to_email_address", "athlete",
+                     "veteran", "hometown_location_attributes:name",
+                     "eu_gdpr_subject"])
             file_out.close()
+            # print(' write header')
+            # Query CX and start loop through records
+            # print(HANDSHAKE_QUERY)
 
-            file_date = time.strftime('%m/%d/%Y', time.gmtime(os.path.getmtime(handshakedata)))
-            print("Date of file = " + file_date)
-            # bucket_name = settings.HANDSHAKE_BUCKET
-            # object_name = ('users.csv')
-            # remote_folder = settings.HANDSHAKE_S3_FOLDER
-            # # key_name = remote_folder + '/' + object_name
+            #______****************************************
+            # WHEN I MAKE THE DATABASE CALL, IT MESSES UP THE BOTO3 CLIENT CALL??
+            data_result = do_sql(HANDSHAKE_QUERY, key=DEBUG, earl=EARL)
+            # Causes the error 10 = no child process
+            #______****************************************
 
-            # if filedate = time.strftime('%m/%d/%Y'):   #Make sure file is fresh
-            # rtrn = fn_upload_file(handshakedata, bucket_name,  object_name)
-            # print("Upload status = " + str(rtrn))
-            # I want to call the function in aws.py from here, but it returns
-            # error 10 - No Child Processes...
-            # I suspect it is because the write process above has not released
-            # rights to the csv file, but that is a guess
+
+            ret = list(data_result.fetchall())
+            if ret is None:
+                print("Data missing")
+            #     # fn_write_log("Data missing )
+            else:
+                print("Data found")
+                with open(handshakedata, 'a') as file_out:
+                    csvWriter = csv.writer(file_out)
+                    for row in ret:
+                         csvWriter.writerow(row)
+                file_out.close()
+
+
+        file_date = time.strftime('%m/%d/%Y', time.gmtime(os.path.getmtime(handshakedata)))
+        print("Date of file = " + file_date)
+        bucket_name = settings.HANDSHAKE_BUCKET
+        object_name = (datestr + '_users.csv')
+        file_name = '/data2/www/data/handshake/users.csv'
+        remote_folder = settings.HANDSHAKE_S3_FOLDER
+        key_name = remote_folder + '/' + object_name
+        print("In fn_upload_file, " + file_name + ', ' + bucket_name + ', ' + key_name)
+        print('AWSCLI Data Path = ' + str(awscli._awscli_data_path))
+
+        # for some reason, the aws.py creates the client, but this won't
+        client = boto3.client('s3')
+        print("Client = " + str(client))  # returns <botocore.client.S3 object at 0x7fe83f038d90>
+        # THIS WORKS DO NOT LOSE!
+        print("Upload will use: " + file_name + ", " + bucket_name + ", " + key_name)
+        # client.upload_file(Filename='20190404_users.csv',
+        #                      Bucket='handshake-importer-uploads',
+        #                      Key='importer-production-carthage/20190404_users.csv')
+
+        # REPLACE WITH
+        # client.upload_file(Filename=file_name, Bucket=bucket_name, Key=key_name)
+
+
+        # I want to call the function in aws.py from here, but it returns
+        # error 10 - No Child Processes...
+        # I suspect it is because the write process above has not released
+        # rights to the csv file, but that is a guess
 
 
     except Exception as e:
@@ -217,21 +233,7 @@ def main():
     #     # finally:
     #     #     logging.shutdown()
 
-def fn_write_error(msg):
-    # Test with this then remove, use the standard logging mechanism
-    # create error file handler and set level to error
-    handler = logging.FileHandler(
-         '{0}handshake_error.log'.format(settings.LOG_FILEPATH))
-    handler.setLevel(logging.ERROR)
-    formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
-                                   datefmt='%m/%d/%Y %I:%M:%S %p')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    logger.error(msg)
-    handler.close()
-    logger.removeHandler(handler)
-    logging.shutdown()
-    return("Error logged")
+
 
 
 if __name__ == "__main__":
