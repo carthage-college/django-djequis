@@ -53,7 +53,7 @@ def main():
         sftp.close()
     except Exception, e:
         print('Unable to connect to Common App server.\n\n{0}'.format(str(e)))
-        
+
 
 if __name__ == '__main__':
 

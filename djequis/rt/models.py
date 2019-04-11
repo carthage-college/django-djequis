@@ -40,6 +40,7 @@ class Acl(models.Model):
     class Meta:
         managed = False
         db_table = 'ACL'
+        app_label = 'rt_acl'
 
 
 class Articles(models.Model):
@@ -59,6 +60,7 @@ class Articles(models.Model):
     class Meta:
         managed = False
         db_table = 'Articles'
+        app_label = 'rt_articles'
 
 
 class Assets(models.Model):
@@ -74,6 +76,7 @@ class Assets(models.Model):
     class Meta:
         managed = False
         db_table = 'Assets'
+        app_label = 'rt_assets'
 
 
 class Attributes(models.Model):
@@ -91,6 +94,7 @@ class Attributes(models.Model):
     class Meta:
         managed = False
         db_table = 'Attributes'
+        app_label = 'rt_attributes'
 
 
 class Cachedgroupmembers(models.Model):
@@ -103,6 +107,7 @@ class Cachedgroupmembers(models.Model):
     class Meta:
         managed = False
         db_table = 'CachedGroupMembers'
+        app_label = 'rt_cachedgroupmembers'
 
 
 class Catalogs(models.Model):
@@ -118,6 +123,7 @@ class Catalogs(models.Model):
     class Meta:
         managed = False
         db_table = 'Catalogs'
+        app_label = 'rt_catalogs'
 
 
 class Classes(models.Model):
@@ -134,6 +140,7 @@ class Classes(models.Model):
     class Meta:
         managed = False
         db_table = 'Classes'
+        app_label = 'rt_classes'
 
 
 class Customfieldvalues(models.Model):
@@ -150,6 +157,7 @@ class Customfieldvalues(models.Model):
     class Meta:
         managed = False
         db_table = 'CustomFieldValues'
+        app_label = 'rt_customfieldvalues'
 
 
 class Customfields(models.Model):
@@ -173,6 +181,7 @@ class Customfields(models.Model):
     class Meta:
         managed = False
         db_table = 'CustomFields'
+        app_label = 'rt_customfields'
 
 
 class Customroles(models.Model):
@@ -189,6 +198,7 @@ class Customroles(models.Model):
     class Meta:
         managed = False
         db_table = 'CustomRoles'
+        app_label = 'rt_customroles'
 
 
 class FmArticles(models.Model):
@@ -207,6 +217,7 @@ class FmArticles(models.Model):
     class Meta:
         managed = False
         db_table = 'FM_Articles'
+        app_label = 'rt_fmarticles'
 
 
 class FmClasses(models.Model):
@@ -223,6 +234,7 @@ class FmClasses(models.Model):
     class Meta:
         managed = False
         db_table = 'FM_Classes'
+        app_label = 'rt_fmclasses'
 
 
 class FmObjecttopics(models.Model):
@@ -233,6 +245,7 @@ class FmObjecttopics(models.Model):
     class Meta:
         managed = False
         db_table = 'FM_ObjectTopics'
+        app_label = 'rt_fmobjects'
 
 
 class FmTopics(models.Model):
@@ -245,6 +258,7 @@ class FmTopics(models.Model):
     class Meta:
         managed = False
         db_table = 'FM_Topics'
+        app_label = 'rt_fmtopics'
 
 
 class Groupmembers(models.Model):
@@ -258,6 +272,7 @@ class Groupmembers(models.Model):
     class Meta:
         managed = False
         db_table = 'GroupMembers'
+        app_label = 'rt_groupmembers'
         unique_together = (('groupid', 'memberid'),)
 
 
@@ -274,6 +289,7 @@ class Groups(models.Model):
     class Meta:
         managed = False
         db_table = 'Groups'
+        app_label = 'rt_groups'
 
 
 class Links(models.Model):
@@ -290,6 +306,7 @@ class Links(models.Model):
     class Meta:
         managed = False
         db_table = 'Links'
+        app_label = 'rt_links'
 
 
 class Objectclasses(models.Model):
@@ -305,6 +322,7 @@ class Objectclasses(models.Model):
     class Meta:
         managed = False
         db_table = 'ObjectClasses'
+        app_label = 'rt_objectclasses'
 
 
 class Objectcustomfieldvalues(models.Model):
@@ -325,6 +343,7 @@ class Objectcustomfieldvalues(models.Model):
     class Meta:
         managed = False
         db_table = 'ObjectCustomFieldValues'
+        app_label = 'rt_objectcustomfieldvalues'
 
 
 class Objectcustomfields(models.Model):
@@ -339,6 +358,7 @@ class Objectcustomfields(models.Model):
     class Meta:
         managed = False
         db_table = 'ObjectCustomFields'
+        app_label = 'rt_objectcustomfields'
 
 
 class Objectcustomroles(models.Model):
@@ -353,6 +373,7 @@ class Objectcustomroles(models.Model):
     class Meta:
         managed = False
         db_table = 'ObjectCustomRoles'
+        app_label = 'rt_objectcustomroles'
         unique_together = (('objectid', 'customrole'),)
 
 
@@ -369,6 +390,7 @@ class Objectscrips(models.Model):
     class Meta:
         managed = False
         db_table = 'ObjectScrips'
+        app_label = 'rt_objectcscripts'
         unique_together = (('objectid', 'scrip'),)
 
 
@@ -380,6 +402,7 @@ class Objecttopics(models.Model):
     class Meta:
         managed = False
         db_table = 'ObjectTopics'
+        app_label = 'rt_objectctopics'
 
 
 class Principals(models.Model):
@@ -389,6 +412,7 @@ class Principals(models.Model):
     class Meta:
         managed = False
         db_table = 'Principals'
+        app_label = 'rt_principals'
 
 
 class Queues(models.Model):
@@ -409,6 +433,7 @@ class Queues(models.Model):
     class Meta:
         managed = False
         db_table = 'Queues'
+        app_label = 'rt_queues'
 
 
 class Rtxassets(models.Model):
@@ -424,6 +449,7 @@ class Rtxassets(models.Model):
     class Meta:
         managed = False
         db_table = 'RTxAssets'
+        app_label = 'rt_rtxassets'
 
 
 class Rtxcatalogs(models.Model):
@@ -439,6 +465,7 @@ class Rtxcatalogs(models.Model):
     class Meta:
         managed = False
         db_table = 'RTxCatalogs'
+        app_label = 'rt_rtxcatalogs'
 
 
 class Scripactions(models.Model):
@@ -454,6 +481,7 @@ class Scripactions(models.Model):
     class Meta:
         managed = False
         db_table = 'ScripActions'
+        app_label = 'rt_scriptactions'
 
 
 class Scripconditions(models.Model):
@@ -470,6 +498,7 @@ class Scripconditions(models.Model):
     class Meta:
         managed = False
         db_table = 'ScripConditions'
+        app_label = 'rt_scriptconditions'
 
 
 class Scrips(models.Model):
@@ -489,6 +518,7 @@ class Scrips(models.Model):
     class Meta:
         managed = False
         db_table = 'Scrips'
+        app_label = 'rt_scripts'
 
 
 class Templates(models.Model):
@@ -505,6 +535,7 @@ class Templates(models.Model):
     class Meta:
         managed = False
         db_table = 'Templates'
+        app_label = 'rt_templates'
 
 
 class Topics(models.Model):
@@ -517,6 +548,7 @@ class Topics(models.Model):
     class Meta:
         managed = False
         db_table = 'Topics'
+        app_label = 'rt_topics'
 
 
 class Transactions(models.Model):
@@ -537,6 +569,7 @@ class Transactions(models.Model):
     class Meta:
         managed = False
         db_table = 'Transactions'
+        app_label = 'rt_transactions'
 
 
 class Users(models.Model):
@@ -675,6 +708,7 @@ class Users(models.Model):
     class Meta:
         managed = False
         db_table = 'Users'
+        app_label = 'rt_users'
 
     def __unicode__(self):
         '''
@@ -777,6 +811,7 @@ class Tickets(models.Model):
     class Meta:
         managed = False
         db_table = 'Tickets'
+        app_label = 'rt_tickets'
 
     def __unicode__(self):
         '''
