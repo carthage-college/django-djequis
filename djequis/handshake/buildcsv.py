@@ -5,9 +5,9 @@ from datetime import datetime
 import time
 from time import strftime
 import awscli
-import botocore
-import boto3
-from botocore.exceptions import ClientError
+# import botocore
+# import boto3
+# from botocore.exceptions import ClientError
 import argparse
 import shutil
 import logging
@@ -32,8 +32,8 @@ from djzbar.utils.informix import get_engine, get_session
 from djtools.fields import TODAY
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
-
 from handshake_sql import HANDSHAKE_QUERY
+from aws_boto import fn_upload_aws_file
 
 # normally set as 'debug" in SETTINGS
 DEBUG = settings.INFORMIX_DEBUG
@@ -59,7 +59,13 @@ parser.add_argument(
     dest="database"
 )
 
-def main():
+# def main():
+
+
+def fn_build_csv():
+    database = 'train'   # I think I will set this in the other module
+
+
     # set start_time in order to see how long script takes to execute
     # start_time = time.time()
     ##########################################################################
@@ -165,8 +171,12 @@ def main():
         # I have tried session.close() and session.commit() and session.expire_all()
         # still same error
 
-        session = get_session(EARL)
-        data_result = session.execute(HANDSHAKE_QUERY)
+        # session = get_session(EARL)
+        # data_result = session.execute(HANDSHAKE_QUERY)
+        engine = get_engine(EARL)  # do_sql calls get engine
+        data_result = engine.execute(HANDSHAKE_QUERY)
+
+
         # Causes the error 10 = no child process
         #______****************************************
 
@@ -181,9 +191,9 @@ def main():
                 for row in ret:
                      csvWriter.writerow(row)
             file_out.close()
-        # session.commit()
-        # session.close()
-        # session.expire_all()
+        engine.close()
+        engine.dispose()
+        EARL.dispose()
 
 
         file_date = time.strftime('%m/%d/%Y', time.gmtime(os.path.getmtime(handshakedata)))
@@ -193,7 +203,6 @@ def main():
         file_name = '/data2/www/data/handshake/users.csv'
         remote_folder = settings.HANDSHAKE_S3_FOLDER
         key_name = remote_folder + '/' + object_name
-        print("Prepare to send file, " + file_name + ', ' + bucket_name + ', ' + key_name)
         # print('AWSCLI Data Path = ' + str(awscli._awscli_data_path))
 
         # print("Waiting for session to clear")
