@@ -14,8 +14,6 @@ import logging
 from logging.handlers import SMTPHandler
 from sqlalchemy import text
 
-# from aws import fn_upload_file
-
 # django settings for shell environment
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 
@@ -60,12 +58,9 @@ parser.add_argument(
 )
 
 def main():
-
-# def fn_build_csv():
     client = boto3.client('s3')
     print('Client = ' + str(client))
     database = 'train'   # I think I will set this in the other module
-
 
     # set start_time in order to see how long script takes to execute
     # start_time = time.time()
@@ -77,7 +72,7 @@ def main():
     # without the --test argument
     ##########################################################################
 
-    # # set date and time to be added to the filename
+    # set date and time to be added to the filename
     datestr = datetime.now().strftime("%Y%m%d")
     # print(datestr)
 
@@ -162,24 +157,8 @@ def main():
         # Query CX and start loop through records
         # print(HANDSHAKE_QUERY)
 
-        #______****************************************
-        # WHEN I MAKE THE DATABASE CALL, IT MESSES UP THE BOTO3 CLIENT CALL??
-        # data_result = do_sql(HANDSHAKE_QUERY, key=DEBUG, earl=EARL)
-        # engine = get_engine(EARL)  # do_sql calls get engine
-        # data_result = engine.execute(HANDSHAKE_QUERY)
-        # I have tried get_engine, execute,. get_session, execute
-        # I have confirmed it is NOT the write to file process that is the problem
-        # I have tried session.close() and session.commit() and session.expire_all()
-        # still same error
-
-        # session = get_session(EARL)
-        # data_result = session.execute(HANDSHAKE_QUERY)
         engine = get_engine(EARL)  # do_sql calls get engine
         data_result = engine.execute(HANDSHAKE_QUERY)
-
-
-        # Causes the error 10 = no child process
-        #______****************************************
 
         ret = list(data_result.fetchall())
         if ret is None:
@@ -193,37 +172,31 @@ def main():
                      csvWriter.writerow(row)
             file_out.close()
 
+        # Send the file to Handshake via AWS
         file_date = time.strftime('%m/%d/%Y', time.gmtime(os.path.getmtime(handshakedata)))
         print("Date of file = " + file_date)
         bucket_name = settings.HANDSHAKE_BUCKET
         object_name = (datestr + '_users.csv')
         print(object_name)
 
-        file_name = '/data2/www/data/handshake/users.csv'
+        # file_name = '/data2/www/data/handshake/users.csv'
+        local_file_name = settings.HANDSHAKE_CSV_OUTPUT + 'users.csv'
         remote_folder = settings.HANDSHAKE_S3_FOLDER
         key_name = remote_folder + '/' + object_name
         # print('AWSCLI Data Path = ' + str(awscli._awscli_data_path))
 
         # print("Waiting for session to clear")
-        # time.sleep(30)
-        # # for some reason, the aws.py creates the client, but this won't
         print("Client = " + str(client))  # returns <botocore.client.S3 object at 0x7fe83f038d90>
         # # THIS WORKS DO NOT LOSE!
-        print("Upload will use: " + file_name + ", " + bucket_name + ", " + key_name)
-        ret = client.upload_file(Filename=file_name,Bucket=bucket_name,Key=key_name)
-        print("Return = " + str(ret))
+        print("Upload will use: " + local_file_name + ", " + bucket_name + ", " + key_name)
+        # retaws = client.upload_file(Filename=local_file_name,Bucket=bucket_name,Key=key_name)
+        # print("Return = " + str(retaws))
         # # client.upload_file(Filename='20190404_users.csv',
         # #                      Bucket='handshake-importer-uploads',
         # #                      Key='importer-production-carthage/20190404_users.csv')
         #
         # # REPLACE WITH
-        # # client.upload_file(Filename=file_name, Bucket=bucket_name, Key=key_name)
-        #
-        #
-        # # I want to call the function in aws.py from here, but it returns
-        # # error 10 - No Child Processes...
-        # # I suspect it is because the write process above has not released
-        # # rights to the csv file, but that is a guess
+        # # client.upload_file(Filename=local_file_name, Bucket=bucket_name, Key=key_name)
 
 
     except Exception as e:
