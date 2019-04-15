@@ -5,9 +5,9 @@ from datetime import datetime
 import time
 from time import strftime
 import awscli
-# import botocore
-# import boto3
-# from botocore.exceptions import ClientError
+import botocore
+import boto3
+from botocore.exceptions import ClientError
 import argparse
 import shutil
 import logging
@@ -59,10 +59,11 @@ parser.add_argument(
     dest="database"
 )
 
-# def main():
+def main():
 
-
-def fn_build_csv():
+# def fn_build_csv():
+    client = boto3.client('s3')
+    print('Client = ' + str(client))
     database = 'train'   # I think I will set this in the other module
 
 
@@ -191,15 +192,13 @@ def fn_build_csv():
                 for row in ret:
                      csvWriter.writerow(row)
             file_out.close()
-        engine.close()
-        engine.dispose()
-        EARL.dispose()
-
 
         file_date = time.strftime('%m/%d/%Y', time.gmtime(os.path.getmtime(handshakedata)))
         print("Date of file = " + file_date)
         bucket_name = settings.HANDSHAKE_BUCKET
         object_name = (datestr + '_users.csv')
+        print(object_name)
+
         file_name = '/data2/www/data/handshake/users.csv'
         remote_folder = settings.HANDSHAKE_S3_FOLDER
         key_name = remote_folder + '/' + object_name
@@ -208,10 +207,11 @@ def fn_build_csv():
         # print("Waiting for session to clear")
         # time.sleep(30)
         # # for some reason, the aws.py creates the client, but this won't
-        # client = boto3.client('s3')
-        # print("Client = " + str(client))  # returns <botocore.client.S3 object at 0x7fe83f038d90>
+        print("Client = " + str(client))  # returns <botocore.client.S3 object at 0x7fe83f038d90>
         # # THIS WORKS DO NOT LOSE!
-        # print("Upload will use: " + file_name + ", " + bucket_name + ", " + key_name)
+        print("Upload will use: " + file_name + ", " + bucket_name + ", " + key_name)
+        ret = client.upload_file(Filename=file_name,Bucket=bucket_name,Key=key_name)
+        print("Return = " + str(ret))
         # # client.upload_file(Filename='20190404_users.csv',
         # #                      Bucket='handshake-importer-uploads',
         # #                      Key='importer-production-carthage/20190404_users.csv')
