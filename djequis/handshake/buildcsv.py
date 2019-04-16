@@ -1,9 +1,9 @@
 import os
 import sys
 import csv
-from datetime import datetime
 import time
 from time import strftime
+from datetime import datetime
 import awscli
 import botocore
 import boto3
@@ -12,7 +12,6 @@ import argparse
 import shutil
 import logging
 from logging.handlers import SMTPHandler
-from sqlalchemy import text
 
 # django settings for shell environment
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
@@ -24,14 +23,12 @@ django.setup()
 # django settings for script
 from django.conf import settings
 from django.db import connections
-from djzbar.utils.informix import do_sql
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import get_engine, get_session
 from djtools.fields import TODAY
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 from handshake_sql import HANDSHAKE_QUERY
-from aws_boto import fn_upload_aws_file
 
 # normally set as 'debug" in SETTINGS
 DEBUG = settings.INFORMIX_DEBUG
@@ -57,13 +54,29 @@ parser.add_argument(
     dest="database"
 )
 
+def fn_write_error(msg):
+    # create error file handler and set level to error
+    handler = logging.FileHandler(
+        '{0}handshake_error.log'.format(settings.LOG_FILEPATH))
+    handler.setLevel(logging.ERROR)
+    formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
+                                  datefmt='%m/%d/%Y %I:%M:%S %p')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.error(msg)
+    handler.close()
+    logger.removeHandler(handler)
+    fn_clear_logger()
+    return("Error logged")
+
 def main():
+    # It is necessary to create the boto3 client early because the call to
+    #  the Informix database will not allow it later.
     client = boto3.client('s3')
     print('Client = ' + str(client))
-    database = 'train'   # I think I will set this in the other module
 
-    # set start_time in order to see how long script takes to execute
-    # start_time = time.time()
+    print("LogFilePath = " + settings.LOG_FILEPATH)
+
     ##########################################################################
     # development server (bng), you would execute:
     # ==> python buildcsv.py --database=train --test
@@ -104,29 +117,27 @@ def main():
             # below but the argument parser should have taken
             # care of this scenario and we will never arrive here.
             EARL = None
-            # establish database connection
-            # session = get_session(EARL)
-            # # # Archive
-            # # Check to see if file exists, if not send Email
-            # if os.path.isfile(handshakedata) != True:
-            #     # there was no file found on the server
-            #     SUBJECT = '[Handshake Application] failed'
-            #     BODY = "There was no .csv output file to move."
-            #     # sendmail(
-            #     #     settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
-            #     #     BODY, SUBJECT
-            #     # )
-            #     # fn_write_log("There was no .csv output file to move.")
-            #     print("There was no .csv output file to move.")
-            # else:
-            #     # rename and move the file to the archive directory
-            #     shutil.copy(handshakedata, archived_destination)
+
+        # # Archive
+        # Check to see if file exists, if not send Email
+        if os.path.isfile(handshakedata) != True:
+            # there was no file found on the server
+            SUBJECT = '[Handshake Application] failed'
+            BODY = "There was no .csv output file to move."
+            # sendmail(
+            #     settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
+            #     BODY, SUBJECT
+            # )
+            # fn_write_error("There was no .csv output file to move.")
+            print("There was no .csv output file to move.")
+        else:
+            # rename and move the file to the archive directory
+            shutil.copy(handshakedata, archived_destination)
 
         #--------------------------
         # Create the csv file
         # Write header row
         print('about to write header')
-        # with open("handshakedata.csv", 'w') as file_out:
         with open(handshakedata, 'w') as file_out:
             print ("Opened handshake data location")
             csvWriter = csv.writer(file_out)
@@ -153,7 +164,6 @@ def main():
                  "veteran", "hometown_location_attributes:name",
                  "eu_gdpr_subject"])
         file_out.close()
-        print(' write header')
         # Query CX and start loop through records
         # print(HANDSHAKE_QUERY)
 
@@ -164,6 +174,7 @@ def main():
         if ret is None:
             print("Data missing")
         #     # fn_write_log("Data missing )
+        #  send a mail alert to someone
         else:
             print("Data found")
             with open(handshakedata, 'a') as file_out:
@@ -172,45 +183,49 @@ def main():
                      csvWriter.writerow(row)
             file_out.close()
 
+
         # Send the file to Handshake via AWS
-        file_date = time.strftime('%m/%d/%Y', time.gmtime(os.path.getmtime(handshakedata)))
+        file_date = time.strftime('%m/%d/%Y',
+                time.gmtime(os.path.getmtime(handshakedata)))
         print("Date of file = " + file_date)
         bucket_name = settings.HANDSHAKE_BUCKET
         object_name = (datestr + '_users.csv')
-        print(object_name)
+        # print(object_name)
 
-        # file_name = '/data2/www/data/handshake/users.csv'
         local_file_name = settings.HANDSHAKE_CSV_OUTPUT + 'users.csv'
         remote_folder = settings.HANDSHAKE_S3_FOLDER
         key_name = remote_folder + '/' + object_name
         # print('AWSCLI Data Path = ' + str(awscli._awscli_data_path))
 
-        # print("Waiting for session to clear")
-        print("Client = " + str(client))  # returns <botocore.client.S3 object at 0x7fe83f038d90>
-        # # THIS WORKS DO NOT LOSE!
-        print("Upload will use: " + local_file_name + ", " + bucket_name + ", " + key_name)
-        # retaws = client.upload_file(Filename=local_file_name,Bucket=bucket_name,Key=key_name)
+        print("Client = " + str(client))
+        print("Upload will use: " + local_file_name + ", " + bucket_name
+              + ", " + key_name)
+        # retaws = client.upload_file(Filename=local_file_name,
+        #   Bucket=bucket_name,Key=key_name)
         # print("Return = " + str(retaws))
+
+        # # THIS IS WHAT IT SHOULD LOOK LIKE - IT WORKS DO NOT LOSE!
         # # client.upload_file(Filename='20190404_users.csv',
-        # #                      Bucket='handshake-importer-uploads',
-        # #                      Key='importer-production-carthage/20190404_users.csv')
-        #
-        # # REPLACE WITH
-        # # client.upload_file(Filename=local_file_name, Bucket=bucket_name, Key=key_name)
+        # #            Bucket='handshake-importer-uploads',
+        # #            Key='importer-production-carthage/20190404_users.csv')
 
 
     except Exception as e:
     #         # Use this for final version
     #         # logging.error("Error in handshake buildcsv.py, Error = " +
     #         e.message)
-    #
-    #         # Test with this then remove, use the standard logging mechanism
-    #         fn_write_error("Error in handshake buildcsv.py, Error = " +
-    #         e.message)
+
+        # Test with this then remove, use the standard logging mechanism
+        # fn_write_error("Error in handshake buildcsv.py, Error = " +
+        # e.message)
         print("Error in handshake buildcsv.py, Error = " + e.message)
+
+        SUBJECT = '[Handshake Application] Error'
+        BODY = "Error in handshake buildcsv.py, Error = " + e.message
+        # sendmail(settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
+        #     BODY, SUBJECT)
     #     # finally:
     #     #     logging.shutdown()
-
 
 if __name__ == "__main__":
     args = parser.parse_args()
