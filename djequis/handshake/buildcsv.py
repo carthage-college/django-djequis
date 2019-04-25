@@ -24,7 +24,7 @@ django.setup()
 from django.conf import settings
 from django.db import connections
 from djequis.core.utils import sendmail
-from djzbar.utils.informix import get_engine, get_session
+from djzbar.utils.informix import get_engine
 from djtools.fields import TODAY
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
@@ -69,13 +69,18 @@ def fn_write_error(msg):
     fn_clear_logger()
     return("Error logged")
 
+def fn_clear_logger():
+    logging.shutdown()
+    return("Clear Logger")
+
+
 def main():
     # It is necessary to create the boto3 client early because the call to
     #  the Informix database will not allow it later.
     client = boto3.client('s3')
-    print('Client = ' + str(client))
+    # print('Client = ' + str(client))
 
-    print("LogFilePath = " + settings.LOG_FILEPATH)
+    # print("LogFilePath = " + settings.LOG_FILEPATH)
 
     ##########################################################################
     # development server (bng), you would execute:
@@ -96,11 +101,11 @@ def main():
     # Defines file names and directory location
     handshakedata = ('{0}users.csv'.format(
          settings.HANDSHAKE_CSV_OUTPUT))
-    print("Handshakedata = " + handshakedata)
+    # print("Handshakedata = " + handshakedata)
     # print (settings.HANDSHAKE_CSV_OUTPUT)
 
     # set archive directory
-    archived_destination = ('{0}_users-{1}.csv'.format(
+    archived_destination = ('{0}users-{1}.csv'.format(
         settings.HANDSHAKE_CSV_ARCHIVED, datetimestr
         ))
 
@@ -108,8 +113,8 @@ def main():
         # set global variable
         global EARL
         # determines which database is being called from the command line
-        # if database == 'cars':
-        #     EARL = INFORMIX_EARL_PROD
+        if database == 'cars':
+            EARL = INFORMIX_EARL_PROD
         if database == 'train':
             EARL = INFORMIX_EARL_TEST
         else:
@@ -124,11 +129,11 @@ def main():
             # there was no file found on the server
             SUBJECT = '[Handshake Application] failed'
             BODY = "There was no .csv output file to move."
-            # sendmail(
-            #     settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
-            #     BODY, SUBJECT
-            # )
-            # fn_write_error("There was no .csv output file to move.")
+            sendmail(
+                settings.HANDSHAKE_TO_EMAIL,settings.HANDSHAKE_FROM_EMAIL,
+                BODY, SUBJECT
+            )
+            fn_write_error("There was no .csv output file to move.")
             print("There was no .csv output file to move.")
         else:
             # rename and move the file to the archive directory
@@ -137,9 +142,9 @@ def main():
         #--------------------------
         # Create the csv file
         # Write header row
-        print('about to write header')
+        # print('about to write header')
         with open(handshakedata, 'w') as file_out:
-            print ("Opened handshake data location")
+            # print ("Opened handshake data location")
             csvWriter = csv.writer(file_out)
             csvWriter.writerow(
                 ["email_address", "username", "auth_identifier" ,
@@ -173,10 +178,15 @@ def main():
         ret = list(data_result.fetchall())
         if ret is None:
             print("Data missing")
-        #     # fn_write_log("Data missing )
         #  send a mail alert to someone
+            SUBJECT = '[Handshake Application] failed'
+            BODY = "SQL Query returned no data."
+            sendmail(
+                settings.HANDSHAKE_TO_EMAIL,settings.HANDSHAKE_FROM_EMAIL,
+                BODY, SUBJECT
+            )
         else:
-            print("Data found")
+            # print("Data found")
             with open(handshakedata, 'a') as file_out:
                 csvWriter = csv.writer(file_out)
                 for row in ret:
@@ -187,7 +197,7 @@ def main():
         # Send the file to Handshake via AWS
         file_date = time.strftime('%m/%d/%Y',
                 time.gmtime(os.path.getmtime(handshakedata)))
-        print("Date of file = " + file_date)
+        # print("Date of file = " + file_date)
         bucket_name = settings.HANDSHAKE_BUCKET
         object_name = (datestr + '_users.csv')
         # print(object_name)
@@ -201,7 +211,7 @@ def main():
         print("Upload will use: " + local_file_name + ", " + bucket_name
               + ", " + key_name)
         # retaws = client.upload_file(Filename=local_file_name,
-        #   Bucket=bucket_name,Key=key_name)
+        #                             Bucket=bucket_name, Key=key_name)
         # print("Return = " + str(retaws))
 
         # # THIS IS WHAT IT SHOULD LOOK LIKE - IT WORKS DO NOT LOSE!
@@ -222,8 +232,8 @@ def main():
 
         SUBJECT = '[Handshake Application] Error'
         BODY = "Error in handshake buildcsv.py, Error = " + e.message
-        # sendmail(settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
-        #     BODY, SUBJECT)
+        sendmail(settings.HANDSHAKE_TO_EMAIL,settings.HANDSHAKE_FROM_EMAIL,
+            BODY, SUBJECT)
     #     # finally:
     #     #     logging.shutdown()
 
