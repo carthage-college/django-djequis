@@ -77,11 +77,15 @@ SELECT Distinct
 		'FALSE' as disabled,
 	CASE WHEN AID.id IS NULL THEN 'FALSE' ELSE 'TRUE' 
 		END AS work_study_eligible, 
-		''||TRIM(NVL(CT1.txt,''))
-		||CASE WHEN CT2.txt IS NULL OR TRIM(CT2.txt) = '' THEN '' 
-			ELSE ';'||TRIM(CT2.txt) END 
-		||CASE WHEN CT3.txt IS NULL OR TRIM(CT3.txt) = '' THEN '' 
-			ELSE ';'||TRIM(CT3.txt) END 
+	''||CASE WHEN LENGTH(NVL(CT1.txt,'')) = 0 then '' ELSE TRIM(CT1.txt) END
+ 		||CASE  
+		    WHEN CT2.txt IS NOT NULL AND LENGTH(NVL(CT1.txt,'')) = 0 THEN TRIM(CT2.txt) 
+		    WHEN CT2.txt IS NOT NULL AND LENGTH(NVL(CT1.txt,'')) > 0 THEN ';'||TRIM(CT2.txt) 
+			ELSE '' END
+ 		||CASE  
+		    WHEN CT3.txt IS NOT NULL AND LENGTH(NVL(CT1.txt,'')||NVL(CT1.txt,'')) = 0 THEN TRIM(CT2.txt) 
+		    WHEN CT3.txt IS NOT NULL AND LENGTH(NVL(CT1.txt,'')||NVL(CT1.txt,'')) > 0 THEN ';'||TRIM(CT2.txt) 
+			ELSE '' END
 		||CASE WHEN (NVL(CT1.txt,'') != '' AND NVL(SPORT.descr,'') != '') 
 			THEN ';' ELSE '' END
 		||CASE WHEN SPORT.descr IS NULL OR TRIM(SPORT.descr) = '' THEN '' 
@@ -230,5 +234,5 @@ FROM
 						WHERE LEFT(cip_no,2) in ('51')) CT3 
   					ON CT3.conc = PER.conc3 WHERE 
 	EML.line1 IS NOT NULL
-	LIMIT 2
+-- LIMIT 100
 '''
