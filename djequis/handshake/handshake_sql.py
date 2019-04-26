@@ -60,14 +60,14 @@ SELECT Distinct
 	--send the **CLEAR** for a period of time.
 	--This should insure that old leave dates are erased and won't 
 	--send **CLEAR** for anyone else
-/* 	CASE 
+ 	CASE 
 		WHEN PER.prog = 'GRAD' and PER.acst = 'GOOD' and PER.lv_date is null 
-			and PER.acad_date > TODAY-30 THEN '**CLEAR**'  
+			and PER.acad_date > TODAY-5 THEN '**CLEAR**'  
 	 	WHEN PER.prog != 'GRAD' and PER.acst = 'READ' and PER.lv_date is null 
-	 		and PER.acad_date > TODAY-30 THEN '**CLEAR**'  
+	 		and PER.acad_date > TODAY-5 THEN '**CLEAR**'  
 		ELSE TO_CHAR(PER.lv_date) 
-		END */
-	PER.lv_date AS end_date,
+		END AS end_date,
+--	PER.lv_date AS end_date,
 	'' as currently_attending,
 	'' AS campus_name,
 	'' AS opt_cpt_eligible,  --(Optional Practical Training) and CPT (Curricular 
@@ -77,14 +77,18 @@ SELECT Distinct
 		'FALSE' as disabled,
 	CASE WHEN AID.id IS NULL THEN 'FALSE' ELSE 'TRUE' 
 		END AS work_study_eligible, 
-	''||CASE WHEN LENGTH(NVL(CT1.txt,'')) = 0 then '' ELSE TRIM(CT1.txt) END
+		''||CASE WHEN LENGTH(NVL(CT1.txt,'')) = 0 then '' ELSE TRIM(CT1.txt) END
  		||CASE  
-		    WHEN CT2.txt IS NOT NULL AND LENGTH(NVL(CT1.txt,'')) = 0 THEN TRIM(CT2.txt) 
-		    WHEN CT2.txt IS NOT NULL AND LENGTH(NVL(CT1.txt,'')) > 0 THEN ';'||TRIM(CT2.txt) 
+		    WHEN CT2.txt IS NOT NULL 
+		    AND LENGTH(NVL(CT1.txt,'')) = 0 THEN TRIM(CT2.txt) 
+		    WHEN CT2.txt IS NOT NULL 
+		    AND LENGTH(NVL(CT1.txt,'')) > 0 THEN ';'||TRIM(CT2.txt) 
 			ELSE '' END
  		||CASE  
-		    WHEN CT3.txt IS NOT NULL AND LENGTH(NVL(CT1.txt,'')||NVL(CT1.txt,'')) = 0 THEN TRIM(CT2.txt) 
-		    WHEN CT3.txt IS NOT NULL AND LENGTH(NVL(CT1.txt,'')||NVL(CT1.txt,'')) > 0 THEN ';'||TRIM(CT2.txt) 
+		    WHEN CT3.txt IS NOT NULL 
+		    AND LENGTH(NVL(CT1.txt,'')||NVL(CT1.txt,'')) = 0 THEN TRIM(CT2.txt) 
+		    WHEN CT3.txt IS NOT NULL 
+		    AND LENGTH(NVL(CT1.txt,'')||NVL(CT1.txt,'')) > 0 THEN ';'||TRIM(CT2.txt) 
 			ELSE '' END
 		||CASE WHEN (NVL(CT1.txt,'') != '' AND NVL(SPORT.descr,'') != '') 
 			THEN ';' ELSE '' END
@@ -109,7 +113,6 @@ SELECT Distinct
 		AS hometown_location_attributes, 
 	'FALSE' AS eu_gdpr_subject   
 FROM
-	--	select * from
 		 --Students
 	  		(select id, prog, acst, subprog, deg,  site, cl, adm_yr, 
 			adm_date, enr_date, acad_date, major1, major2, major3, adv_id,
@@ -133,10 +136,11 @@ FROM
 					) as row_num	
 	        	from prog_enr_rec
 	        	where prog_enr_rec.acst IN ('GOOD' ,'LOC' ,'PROB' ,'PROC' ,
-	        	'PROR' ,'READ' ,'RP' ,'SAB' ,'SHAC' ,'SHOC')
+	        	'PROR' ,'READ' ,'RP' ,'SAB' ,'SHAC' ,'SHOC', 'GRAD')
    				AND (subprog not IN ('KUSD', 'UWPK', 'YOP', 'ENRM'))
 				AND (CL != 'UP')
-	        	and prog_enr_rec.lv_date IS NULL 
+	        	AND (prog_enr_rec.lv_date IS NULL 
+	        	OR prog_enr_rec.lv_date > TODAY-3)
 	     		) rnk_prog
 			where row_num = 1		
  			) PER 
@@ -223,7 +227,6 @@ FROM
 		 				AND sr.yr = cv.yr) SAR
 						ON SAR.id = PER.id	
 							AND SAR.prog = PER.prog	  
---  					LEFT JOIN conc_table CT1 ON CT1.conc = PER.conc1
 					LEFT JOIN (select conc, txt from conc_table 
 						WHERE LEFT(cip_no,2) in ('51')) CT1 
   					ON CT1.conc = PER.conc1
@@ -234,5 +237,5 @@ FROM
 						WHERE LEFT(cip_no,2) in ('51')) CT3 
   					ON CT3.conc = PER.conc3 WHERE 
 	EML.line1 IS NOT NULL
--- LIMIT 100
+--LIMIT 10
 '''
