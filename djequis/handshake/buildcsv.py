@@ -207,9 +207,9 @@ def main():
         key_name = remote_folder + '/' + object_name
         # print('AWSCLI Data Path = ' + str(awscli._awscli_data_path))
 
-        print("Client = " + str(client))
-        print("Upload will use: " + local_file_name + ", " + bucket_name
-              + ", " + key_name)
+        # print("Client = " + str(client))
+        # print("Upload will use: " + local_file_name + ", " + bucket_name
+        #       + ", " + key_name)
         # retaws = client.upload_file(Filename=local_file_name,
         #                             Bucket=bucket_name, Key=key_name)
         # print("Return = " + str(retaws))
