@@ -1,5 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import os
 import sys
+import codecs
 import csv
 import time
 from time import strftime
@@ -80,8 +83,6 @@ def main():
     client = boto3.client('s3')
     # print('Client = ' + str(client))
 
-    # print("LogFilePath = " + settings.LOG_FILEPATH)
-
     ##########################################################################
     # development server (bng), you would execute:
     # ==> python buildcsv.py --database=train --test
@@ -92,17 +93,13 @@ def main():
 
     # set date and time to be added to the filename
     datestr = datetime.now().strftime("%Y%m%d")
-    # print(datestr)
 
     # set date and time to be added to the archive filename
     datetimestr = time.strftime("%Y%m%d%H%M%S")
-    # print(datetimestr)
 
     # Defines file names and directory location
     handshakedata = ('{0}users.csv'.format(
          settings.HANDSHAKE_CSV_OUTPUT))
-    # print("Handshakedata = " + handshakedata)
-    # print (settings.HANDSHAKE_CSV_OUTPUT)
 
     # set archive directory
     archived_destination = ('{0}users-{1}.csv'.format(
@@ -144,6 +141,7 @@ def main():
         # Write header row
         # print('about to write header')
         with open(handshakedata, 'w') as file_out:
+            # with codecs.open(handshakedata, 'w', encoding='utf-8') as file_out:
             # print ("Opened handshake data location")
             csvWriter = csv.writer(file_out)
             csvWriter.writerow(
@@ -187,29 +185,31 @@ def main():
             )
         else:
             # print("Data found")
-            with open(handshakedata, 'a') as file_out:
-                csvWriter = csv.writer(file_out)
-                for row in ret:
-                     csvWriter.writerow(row)
-            file_out.close()
-
+            try:
+                with open(handshakedata, 'a') as file_out:
+                    # with codecs.open(handshakedata, 'a', encoding='utf-8') as file_out:
+                    csvWriter = csv.writer(file_out)
+                    for row in ret:
+                        csvWriter.writerow(row)
+                file_out.close()
+            except Exception as e:
+                SUBJECT = '[Handshake Application] Error'
+                BODY = "Error in handshake buildcsv.py, writing csv.  Error = " + e.message
+                sendmail(settings.HANDSHAKE_TO_EMAIL, settings.HANDSHAKE_FROM_EMAIL,
+                         BODY, SUBJECT)
 
         # Send the file to Handshake via AWS
-        file_date = time.strftime('%m/%d/%Y',
-                time.gmtime(os.path.getmtime(handshakedata)))
-        # print("Date of file = " + file_date)
         bucket_name = settings.HANDSHAKE_BUCKET
         object_name = (datestr + '_users.csv')
-        # print(object_name)
 
         local_file_name = settings.HANDSHAKE_CSV_OUTPUT + 'users.csv'
         remote_folder = settings.HANDSHAKE_S3_FOLDER
         key_name = remote_folder + '/' + object_name
-        # print('AWSCLI Data Path = ' + str(awscli._awscli_data_path))
-
-        # print("Client = " + str(client))
         # print("Upload will use: " + local_file_name + ", " + bucket_name
         #       + ", " + key_name)
+        # client.upload_file(Filename=local_file_name,
+        #                             Bucket=bucket_name, Key=key_name)
+
         # retaws = client.upload_file(Filename=local_file_name,
         #                             Bucket=bucket_name, Key=key_name)
         # print("Return = " + str(retaws))
