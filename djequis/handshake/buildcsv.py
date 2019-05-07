@@ -81,13 +81,12 @@ def encode_rows_to_utf8(rows):
         for row in rows:
             encoded_row = []
             for value in row:
-                # print("Value = " + str(value))
                 if isinstance(value, basestring):
                     value = value.decode('cp1252').encode("utf-8")
                 encoded_row.append(value)
             encoded_rows.append(encoded_row)
     except Exception as e:
-        print("Error in encoded_rows routine " + e.message)
+        fn_write_error("Error in encoded_rows routine " + e.message)
     return encoded_rows
 
 def main():
@@ -143,11 +142,9 @@ def main():
                 BODY, SUBJECT
             )
             fn_write_error("There was no .csv output file to move.")
-            print("There was no .csv output file to move.")
         else:
             # rename and move the file to the archive directory
-            print("NOT ARCHIVING DURING TEST")
-            # shutil.copy(handshakedata, archived_destination)
+            shutil.copy(handshakedata, archived_destination)
 
         #--------------------------
         # Create the csv file
@@ -184,8 +181,6 @@ def main():
 
         ret = list(data_result.fetchall())
         if ret is None:
-            print("Data missing")
-        #  send a mail alert to someone
             SUBJECT = '[Handshake Application] failed'
             BODY = "SQL Query returned no data."
             sendmail(
@@ -193,18 +188,14 @@ def main():
                 BODY, SUBJECT
             )
         else:
-            # print("Data found")
             with open(handshakedata, 'a') as file_out:
                 csvWriter = csv.writer(file_out)
-                # print("Enter Encoded Rows module")
                 encoded_rows = encode_rows_to_utf8(ret)
                 for row in encoded_rows:
                     csvWriter.writerow(row)
             file_out.close()
 
         # Send the file to Handshake via AWS
-        file_date = time.strftime('%m/%d/%Y',
-                time.gmtime(os.path.getmtime(handshakedata)))
         bucket_name = settings.HANDSHAKE_BUCKET
         object_name = (datestr + '_users.csv')
 
@@ -212,10 +203,7 @@ def main():
         remote_folder = settings.HANDSHAKE_S3_FOLDER
         key_name = remote_folder + '/' + object_name
 
-        # print("Client = " + str(client))
-        # print("Upload will use: " + local_file_name + ", " + bucket_name
-        #       + ", " + key_name)
-
+        # print("Filename = " + local_file_name + ", Bucket = " + bucket_name + ", Key = " + key_name)
         client.upload_file(Filename=local_file_name, Bucket=bucket_name,
                            Key=key_name)
 
@@ -234,11 +222,7 @@ def main():
     #         # logging.error("Error in handshake buildcsv.py, Error = " +
     #         e.message)
 
-        # Test with this then remove, use the standard logging mechanism
-        # fn_write_error("Error in handshake buildcsv.py, Error = " +
-        # e.message)
-        print("Error in handshake buildcsv.py, Error = " + e.message)
-
+        fn_write_error("Error in handshake buildcsv.py, Error = " + e.message)
         SUBJECT = '[Handshake Application] Error'
         BODY = "Error in handshake buildcsv.py, Error = " + e.message
         sendmail(settings.HANDSHAKE_TO_EMAIL,settings.HANDSHAKE_FROM_EMAIL,
