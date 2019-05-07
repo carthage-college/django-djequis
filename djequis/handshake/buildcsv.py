@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import os
 import sys
 import csv
@@ -73,6 +75,20 @@ def fn_clear_logger():
     logging.shutdown()
     return("Clear Logger")
 
+def encode_rows_to_utf8(rows):
+    encoded_rows = []
+    try:
+        for row in rows:
+            encoded_row = []
+            for value in row:
+                # print("Value = " + str(value))
+                if isinstance(value, basestring):
+                    value = value.decode('cp1252').encode("utf-8")
+                encoded_row.append(value)
+            encoded_rows.append(encoded_row)
+    except Exception as e:
+        print("Error in encoded_rows routine " + e.message)
+    return encoded_rows
 
 def main():
     # It is necessary to create the boto3 client early because the call to
@@ -130,7 +146,8 @@ def main():
             print("There was no .csv output file to move.")
         else:
             # rename and move the file to the archive directory
-            shutil.copy(handshakedata, archived_destination)
+            print("NOT ARCHIVING DURING TEST")
+            # shutil.copy(handshakedata, archived_destination)
 
         #--------------------------
         # Create the csv file
@@ -179,8 +196,10 @@ def main():
             # print("Data found")
             with open(handshakedata, 'a') as file_out:
                 csvWriter = csv.writer(file_out)
-                for row in ret:
-                     csvWriter.writerow(row)
+                # print("Enter Encoded Rows module")
+                encoded_rows = encode_rows_to_utf8(ret)
+                for row in encoded_rows:
+                    csvWriter.writerow(row)
             file_out.close()
 
         # Send the file to Handshake via AWS
@@ -196,6 +215,7 @@ def main():
         # print("Client = " + str(client))
         # print("Upload will use: " + local_file_name + ", " + bucket_name
         #       + ", " + key_name)
+
         client.upload_file(Filename=local_file_name, Bucket=bucket_name,
                            Key=key_name)
 
