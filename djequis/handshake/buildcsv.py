@@ -1,8 +1,5 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import os
 import sys
-import codecs
 import csv
 import time
 from time import strftime
@@ -81,7 +78,6 @@ def main():
     # It is necessary to create the boto3 client early because the call to
     #  the Informix database will not allow it later.
     client = boto3.client('s3')
-    # print('Client = ' + str(client))
 
     ##########################################################################
     # development server (bng), you would execute:
@@ -139,10 +135,7 @@ def main():
         #--------------------------
         # Create the csv file
         # Write header row
-        # print('about to write header')
         with open(handshakedata, 'w') as file_out:
-            # with codecs.open(handshakedata, 'w', encoding='utf-8') as file_out:
-            # print ("Opened handshake data location")
             csvWriter = csv.writer(file_out)
             csvWriter.writerow(
                 ["email_address", "username", "auth_identifier" ,
@@ -168,7 +161,6 @@ def main():
                  "eu_gdpr_subject"])
         file_out.close()
         # Query CX and start loop through records
-        # print(HANDSHAKE_QUERY)
 
         engine = get_engine(EARL)  # do_sql calls get engine
         data_result = engine.execute(HANDSHAKE_QUERY)
@@ -185,30 +177,27 @@ def main():
             )
         else:
             # print("Data found")
-            try:
-                with open(handshakedata, 'a') as file_out:
-                    # with codecs.open(handshakedata, 'a', encoding='utf-8') as file_out:
-                    csvWriter = csv.writer(file_out)
-                    for row in ret:
-                        csvWriter.writerow(row)
-                file_out.close()
-            except Exception as e:
-                SUBJECT = '[Handshake Application] Error'
-                BODY = "Error in handshake buildcsv.py, writing csv.  Error = " + e.message
-                sendmail(settings.HANDSHAKE_TO_EMAIL, settings.HANDSHAKE_FROM_EMAIL,
-                         BODY, SUBJECT)
+            with open(handshakedata, 'a') as file_out:
+                csvWriter = csv.writer(file_out)
+                for row in ret:
+                     csvWriter.writerow(row)
+            file_out.close()
 
         # Send the file to Handshake via AWS
+        file_date = time.strftime('%m/%d/%Y',
+                time.gmtime(os.path.getmtime(handshakedata)))
         bucket_name = settings.HANDSHAKE_BUCKET
         object_name = (datestr + '_users.csv')
 
         local_file_name = settings.HANDSHAKE_CSV_OUTPUT + 'users.csv'
         remote_folder = settings.HANDSHAKE_S3_FOLDER
         key_name = remote_folder + '/' + object_name
+
+        # print("Client = " + str(client))
         # print("Upload will use: " + local_file_name + ", " + bucket_name
         #       + ", " + key_name)
-        client.upload_file(Filename=local_file_name,
-                                    Bucket=bucket_name, Key=key_name)
+        client.upload_file(Filename=local_file_name, Bucket=bucket_name,
+                           Key=key_name)
 
         # retaws = client.upload_file(Filename=local_file_name,
         #                             Bucket=bucket_name, Key=key_name)
