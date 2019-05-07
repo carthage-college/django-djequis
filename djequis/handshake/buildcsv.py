@@ -77,16 +77,16 @@ def fn_clear_logger():
 
 def encode_rows_to_utf8(rows):
     encoded_rows = []
-    try:
-        for row in rows:
+    for row in rows:
+        try:
             encoded_row = []
             for value in row:
                 if isinstance(value, basestring):
                     value = value.decode('cp1252').encode("utf-8")
                 encoded_row.append(value)
             encoded_rows.append(encoded_row)
-    except Exception as e:
-        fn_write_error("Error in encoded_rows routine " + e.message)
+        except Exception as e:
+            fn_write_error("Error in encoded_rows routine " + e.message)
     return encoded_rows
 
 def main():
@@ -145,7 +145,7 @@ def main():
         else:
             # rename and move the file to the archive directory
             shutil.copy(handshakedata, archived_destination)
-
+            # print("x")
         #--------------------------
         # Create the csv file
         # Write header row
@@ -218,17 +218,12 @@ def main():
 
 
     except Exception as e:
-    #         # Use this for final version
-    #         # logging.error("Error in handshake buildcsv.py, Error = " +
-    #         e.message)
 
         fn_write_error("Error in handshake buildcsv.py, Error = " + e.message)
         SUBJECT = '[Handshake Application] Error'
         BODY = "Error in handshake buildcsv.py, Error = " + e.message
         sendmail(settings.HANDSHAKE_TO_EMAIL,settings.HANDSHAKE_FROM_EMAIL,
             BODY, SUBJECT)
-    #     # finally:
-    #     #     logging.shutdown()
 
 if __name__ == "__main__":
     args = parser.parse_args()
