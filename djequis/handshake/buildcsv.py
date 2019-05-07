@@ -145,7 +145,7 @@ def main():
         else:
             # rename and move the file to the archive directory
             shutil.copy(handshakedata, archived_destination)
-            # print("x")
+
         #--------------------------
         # Create the csv file
         # Write header row
@@ -215,7 +215,6 @@ def main():
         # # client.upload_file(Filename='20190404_users.csv',
         # #            Bucket='handshake-importer-uploads',
         # #            Key='importer-production-carthage/20190404_users.csv')
-
 
     except Exception as e:
 
