@@ -1,20 +1,13 @@
 import os
 import sys
-import csv
 from datetime import datetime
 import time
-from time import strftime
-import awscli
-import subprocess
 # import botocore
 # import boto3
 # from botocore.exceptions import ClientError
 import argparse
 import shutil
 import logging
-from logging.handlers import SMTPHandler
-# from sqlalchemy import text
-
 
 # django settings for shell environment
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
@@ -25,11 +18,8 @@ django.setup()
 
 # django settings for script
 from django.conf import settings
-from django.db import connections
-from djzbar.utils.informix import do_sql
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import get_engine, get_session
-from djtools.fields import TODAY
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 # from handshake_sql import HANDSHAKE_QUERY

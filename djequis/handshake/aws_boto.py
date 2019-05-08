@@ -3,40 +3,11 @@ import sys
 # import awscli
 # import botocore
 # import boto3
-from datetime import datetime
-import time
-from time import strftime
 from botocore.exceptions import ClientError
 import logging
-from logging.handlers import SMTPHandler
 import argparse
-import shutil
-from sqlalchemy import text
-
-# django settings for shell environment
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
-
-# prime django
-import django
-django.setup()
-
-# django settings for script
-from django.conf import settings
-
-# django settings for script
-from django.conf import settings
-from django.db import connections
-from djzbar.utils.informix import do_sql
-from djequis.core.utils import sendmail
-from djzbar.utils.informix import get_engine, get_session
-from djtools.fields import TODAY
-from djzbar.settings import INFORMIX_EARL_TEST
-from djzbar.settings import INFORMIX_EARL_PROD
 
 from handshake_sql import HANDSHAKE_QUERY
-
-# normally set as 'debug" in SETTINGS
-DEBUG = settings.INFORMIX_DEBUG
 
 # set up command-line options
 desc = """
@@ -74,4 +45,3 @@ def fn_upload_aws_file(client, file_name, bucket_name,  object_name):
     except Exception as e:
         print("Error in fn_upload_file = " + e.message + e.__str__())
     return True
-
