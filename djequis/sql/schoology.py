@@ -195,6 +195,10 @@ USERS = '''
                    AND action = 'Active'
                    AND roles NOT IN ('Contractor')
        )
+    AND	jenzprs_rec.host_id NOT IN 
+	(select ID from role_rec
+	where role = 'PREFF' and end_date is null)
+	
        GROUP BY id_rec.lastname, id_rec.firstname, preferred_first_name,
        id_rec.middlename, name_prefix, username, email, UniqueID, schoology_id,
        Position, title1.job_title, TLE.tle, title1.hrpay
@@ -231,6 +235,9 @@ ENROLLMENT = '''
         jenztrm_rec.end_date >= ADD_MONTHS(today,-1)
     AND
     RIGHT(TRIM(jenzcrp_rec.term_code),4) NOT IN ('PRDV','PARA','KUSD')
+	AND to_number(jenzcrp_rec.host_id) NOT IN 
+	(select ID from role_rec
+	where role = 'PREFF' and end_date is null)
 
     UNION ALL
 
