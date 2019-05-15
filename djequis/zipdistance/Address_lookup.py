@@ -4,20 +4,11 @@ import json
 import string
 import sys
 import csv
-import datetime
 import argparse
-from sqlalchemy import text
-import shutil
 from math import sin, cos, sqrt, atan2, radians
 
-# import logging
-# from logging.handlers import SMTPHandler
-# from djtools.utils.logging import seperator
-
 from djzbar.utils.informix import get_engine
-
 from django.conf import settings
-# from django.core.urlresolvers import reverse
 from math import sin, cos, sqrt, atan2, radians
 
 # python path
@@ -46,7 +37,6 @@ os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
-# from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_SANDBOX
@@ -103,7 +93,7 @@ def main():
         engine = get_engine(EARL)
 
         # --------------------------------------------------------
-        #This is for testing.  If an automated version is to come,
+        #This is for testing.  If used elsewhere
         #  it will be passed an address so it will need to exist
         #  as a function in a utility somewhere
 
@@ -120,9 +110,6 @@ def main():
         # print(qval_sql)
 
         sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
-        # ---------------------------------------------------------
-        #  Should take this code and make it a function where the address
-        # is passed in
 
         if sql_val is not None:
             rows = sql_val.fetchall()
@@ -130,19 +117,19 @@ def main():
                 v_id = row[0]
                 # v_street = row[2]
                 # v_street = str(row[2].split(', ')[0])
+
                 # Need something to screen out apt or lot numbers
                 # Not used in geocode
-
                 rslt = fn_fix_unit(row[2])
                 v_street = rslt[0]
                 v_unit = rslt[1]
 
-                print("Street = " + v_street)
+                # print("CX Street = " + v_street)
                 # if row[2].find(",") > 0:
                 #     v_Unit = str(row[2].split(', ')[1])
                 # else:
                 #     v_Unit = ''
-                print("Unit = " + v_unit)
+                # print("CX Unit = " + v_unit)
                 v_city =row[3]
                 v_state = row[4]
                 v_zip = row[5]
@@ -152,8 +139,8 @@ def main():
 
                 # print(str(row[2]).find(","))
 
-
                 fn_single_address(v_id, v_street, v_unit, v_city, v_state, v_zip, v_bdate)
+
     except Exception as e:
         # fn_write_error("Error in zip_distance.py for zip, Error = " + e.message)
         print("Error in address_lookup.py - Error = " + str(e.message))
@@ -177,6 +164,7 @@ def fn_single_address(v_id, v_street, v_unit, v_city,  v_state, v_zip, v_bdate):
         else:
             # print("State from address components...")
             address = x['result']['addressMatches'][0]['matchedAddress']
+            # ---These are the individual components of the address
             # city = x['result']['addressMatches'][0]['addressComponents']['city']
             # state_abrv = x['result']['addressMatches'][0]['addressComponents']['state']
             # zip = x['result']['addressMatches'][0]['addressComponents']['zip']
@@ -186,16 +174,22 @@ def fn_single_address(v_id, v_street, v_unit, v_city,  v_state, v_zip, v_bdate):
             # preType = x['result']['addressMatches'][0]['addressComponents']['preType']
             # suffixType = x['result']['addressMatches'][0]['addressComponents']['suffixType']
             # suffixDirection = x['result']['addressMatches'][0]['addressComponents']['suffixDirection']
-            suffixQualifier = x['result']['addressMatches'][0]['addressComponents']['suffixQualifier']
+            # suffixQualifier = x['result']['addressMatches'][0]['addressComponents']['suffixQualifier']
+            # print("Suffix qualifier = " + suffixQualifier)
+            # print("Suffix direction = " + suffixDirection)
+            # print("Suffix type = " + suffixType)
 
             print("Formatted Full Address = " + address)
             print("Formatted Street Address = " + address.split(', ')[0])
-            print("Formatted Street Address w Unit = " + address.split(', ')[0] + ' ' + v_unit.upper())
+            print("Formatted Street Address w Unit = " + address.split(', ')[0]
+                  + ' ' + v_unit.upper())
             print("Formatted City = " + address.split(', ')[1])
             print("Formatted State = " + address.split(', ')[2])
             print("Formatted Zip = " + address.split(', ')[3])
 
-            # print("Suffix qualifier = " + suffixQualifier)
+            # The address returned does NOT include the lot or apt number
+            #   Need to check for discrepancies
+            # cxaddr = v_street.strip() + " " + v_unit.strip()
 
             y_coordinate = x['result']['addressMatches'][0]['coordinates']['y']
             x_coordinate = x['result']['addressMatches'][0]['coordinates']['x']
@@ -239,6 +233,7 @@ def fn_single_address(v_id, v_street, v_unit, v_city,  v_state, v_zip, v_bdate):
 
             print("Distance from Carthage = " + str(dist))
 
+            # Might be used to clean up county and state codes in CX
             # if v_bdate is not None:
             #     sql_update_cty = "update profile_rec set res_st = ?, " \
             #                "res_cty = ? where id = ? and birth_date = ?"
@@ -250,9 +245,6 @@ def fn_single_address(v_id, v_street, v_unit, v_city,  v_state, v_zip, v_bdate):
             #
             # print(sql_update_cty,upd_cty_args)
             # engine.execute(sql_update_cty, q_upd_prof_args)
-
-
-
 
     except Exception as e:
         # fn_write_error("Error in zip_distance.py for zip, Error = " + e.message)
@@ -267,7 +259,7 @@ def fn_fix_unit(addr):
     # Break up your address into its parts
     chopped = addr.split(" ")
 
-    # Place holder for final string
+    # Placeholder for final string
     l_addr = ""
     unit = ""
     if addr.find('#') > -1:
