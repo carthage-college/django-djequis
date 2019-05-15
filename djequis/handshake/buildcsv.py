@@ -143,8 +143,9 @@ def main():
             )
             fn_write_error("There was no .csv output file to move.")
         else:
+            print("Archive test")
             # rename and move the file to the archive directory
-            shutil.copy(handshakedata, archived_destination)
+            # shutil.copy(handshakedata, archived_destination)
 
         #--------------------------
         # Create the csv file
@@ -203,9 +204,9 @@ def main():
         remote_folder = settings.HANDSHAKE_S3_FOLDER
         key_name = remote_folder + '/' + object_name
 
-        # print("Filename = " + local_file_name + ", Bucket = " + bucket_name + ", Key = " + key_name)
-        client.upload_file(Filename=local_file_name, Bucket=bucket_name,
-                           Key=key_name)
+        print("Filename = " + local_file_name + ", Bucket = " + bucket_name + ", Key = " + key_name)
+        # client.upload_file(Filename=local_file_name, Bucket=bucket_name,
+        #                    Key=key_name)
 
         # retaws = client.upload_file(Filename=local_file_name,
         #                             Bucket=bucket_name, Key=key_name)
