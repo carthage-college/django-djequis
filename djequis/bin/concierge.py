@@ -6,14 +6,6 @@ import time
 import argparse
 import shutil
 
-# python path
-sys.path.append('/usr/lib/python2.7/dist-packages/')
-sys.path.append('/usr/lib/python2.7/')
-sys.path.append('/usr/local/lib/python2.7/dist-packages/')
-sys.path.append('/data2/django_1.11/')
-sys.path.append('/data2/django_projects/')
-sys.path.append('/data2/django_third/')
-
 # django settings for shell environment
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 
@@ -43,8 +35,8 @@ from djzbar.settings import INFORMIX_EARL_PROD
 DEBUG = settings.INFORMIX_DEBUG
 
 desc = """
-    Package Concierge is an automated, self-service locker system that allow students 
-    to retrieve their packages when it is convenient for them.
+    Package Concierge is an automated, self-service locker system that allow
+    students to retrieve their packages when it is convenient for them.
 """
 parser = argparse.ArgumentParser(description=desc)
 
@@ -64,7 +56,8 @@ parser.add_argument(
     authenticating as the user with supplied username and supplied password
 '''
 def file_download():
-    # by adding cnopts, I'm authorizing the program to ignore the host key and just continue
+    # by adding cnopts, I'm authorizing the program to ignore the host key
+    # and just continue
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None # ignore known host key checking
     # sFTP connection information for Package Concierge
@@ -104,13 +97,13 @@ def file_download():
         )
 
 def main():
-    ############################################################################
-    # development server (bng), you would execute:
+    ###########################################################################
+    # development server (hygiea), you would execute:
     # ==> python concierge.py --database=train --test
-    # production server (psm), you would execute:
+    # production server (ceres), you would execute:
     # ==> python concierge.py --database=cars
     # without the --test argument
-    ############################################################################
+    ###########################################################################
     # set global variable
     global EARL
     # determines which database is being called from the command line
@@ -129,9 +122,9 @@ def main():
         'STUDENTS': STUDENTS
     }
     for key, value in sql_dict.items():
-        ########################################################################
+        #######################################################################
         # to print the dictionary key and rows of data, you would execute:
-        ########################################################################
+        #######################################################################
         if test:
             print(key)
 
@@ -142,7 +135,8 @@ def main():
         # set directory and filename to be stored
         # ex. /data2/www/data/concierge/STUDENTS.csv
         filename = ('{0}{1}.csv'.format(settings.CONCIERGE_CSV_OUTPUT, key))
-        # set destination path and new filename that it will be renamed to when archived
+        # set destination path and new filename that it will be renamed to
+        # when archived
         # ex. /data2/www/data/concierge/STUDENTS_BAK_20180123082403.csv
         archive_destination = ('{0}{1}_{2}_{3}.csv'.format(
             settings.CONCIERGE_CSV_ARCHIVED, key, 'BAK', datetimestr
