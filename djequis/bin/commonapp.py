@@ -153,9 +153,9 @@ def insertExam(id, ctgry, cmpl_date, score1, score2, score3, score4, score5, sco
 
 def main():
     ###########################################################################
-    # development server (bng), you would execute:
+    # development server (hygiea), you would execute:
     # ==> python commonapp.py --database=train --test
-    # production server (psm), you would execute:
+    # production server (ceres), you would execute:
     # ==> python commonapp.py --database=cars
     # without the --test argument
     ###########################################################################
