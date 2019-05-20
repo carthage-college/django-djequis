@@ -137,65 +137,18 @@ FROM
 		    AND (PR.CL != 'UP')
 		    AND (PR.lv_date IS NULL)
 		    AND (PR.deg_grant_date IS NULL)
-		    --SCREEN OUT FIRST TIME FROSH UNTIL AUG 1
-			AND PV.ID NOT IN 
-				(Select distinct PR.id --, PR.cl, PR.adm_yr, PR.adm_sess, PR.acst, PR.lv_date,
-					--PR.prog,'' acst,  '' cl, 0 earn_hrs, YEAR(TODAY) yr, '' sess,
-					--'' acyr,  TODAY as beg_date, 
-					--YEAR(TODAY) yr 
-					from prog_enr_rec PR 
-					WHERE PR.cl IN ('PF', 'PN')  -- NO PRE FF at all					
-					UNION
-					--Unclassified Transfers
-					Select distinct PR.id --, PR.cl, PR.adm_yr, PR.adm_sess, PR.acst, 
-					--SA.acst,  SA.cl, sa.earn_hrs, SA.yr, SA.sess,
-					--AR.acyr, AR.beg_date, AR.yr 
-					from prog_enr_rec PR 
-					join stu_acad_rec SA on 				
-					PR.id = SA.id 
-					JOIN acad_cal_rec AR on sa.yr = AR.yr
-					and AR.sess = SA.sess
-					WHERE 
-					PR.cl = 'UT' and PR.acst = 'GOOD'
-					and SA.earn_hrs = 0
-					and PR.adm_yr = YEAR(TODAY)
-					and right(AR.acyr,2) > RIGHT(TO_CHAR(YEAR(TODAY)),2)
-					and month(today) < 8
-					
-					UNION
-					--First time frosh
-					Select distinct PR.id --, PR.cl, PR.adm_yr, PR.adm_sess, PR.acst, 
-					--SA.acst,  SA.cl, sa.earn_hrs, SA.yr, SA.sess,
-					--AR.acyr, AR.beg_date, AR.yr 
-					from prog_enr_rec PR 
-					join stu_acad_rec SA on 				
-					PR.id = SA.id 
-					JOIN acad_cal_rec AR on sa.yr = AR.yr
-					and AR.sess = SA.sess
-					WHERE   PR.cl IN ('FF','FN') 
-					and PR.acst = 'GOOD'
-					and SA.earn_hrs = 0
-					and PR.adm_yr = YEAR(TODAY)
-					and right(AR.acyr,2) > RIGHT(TO_CHAR(YEAR(TODAY)),2)
-					and month(today) < 8
-					and month(today) > 5
-					) --Keeps incoming frosh out during summer
-								--and PR.id = 921099
-		UNION
 
-		SELECT unique PR.id, '' student, '' faculty, '' staff, PR.prog, PR.acst, 
-			PR.subprog, PR.deg, PR.site, PR.cl, PR.adm_yr, PR.adm_date,
-			PR.enr_date, PR.acad_date, PR.major1, PR.major2, PR.major3, adv_id, 
-			conc1, conc2, conc3, minor1, minor2, minor3, deg_grant_date, 
-			vet_ben, lv_date, to_alum, to_alum_date, cohort_yr, honors, tle, 
-			nurs_prog, nurs_prog_date, unmet_need, 1 row_num
-		FROM prog_enr_rec PR
-		WHERE PR.lv_date > TODAY-3
-		AND PR.subprog NOT IN ('KUSD', 'UWPK', 'YOP', 'ENRM', 'PARA')
+		--		   SCREEN OUT FIRST TIME FROSH UNTIL AUG 1
+		--   Dave's method uses role_rec, not prog_enr, stu_acad, etc.
+		 AND	PV.ID NOT IN 
+		(select ID from role_rec
+		where role = 'PREFF' and end_date is null) 
+ 
+
 		
 		    ) rnk_prog
 	WHERE row_num = 1
-		
+	
 	) PER
 
 		INNER JOIN	id_rec		IR	ON	PER.id			=	IR.id
@@ -302,5 +255,5 @@ FROM
 			
 WHERE 
 	EML.line1 IS NOT NULL
- --   LIMIT 3
+--   LIMIT 3
 '''
