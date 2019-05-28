@@ -1,0 +1,290 @@
+from sqlalchemy import text
+
+ADIRONDACK_QUERY = '''
+SELECT --Distinct 
+	TO_CHAR(IR.id) AS STUDENT_NUMBER, 		
+  	TRIM(IR.firstname) AS FIRST_NAME, 
+	TRIM(IR.middlename) AS MIDDLE_NAME, 
+	TRIM(IR.lastname) AS LAST_NAME, 
+	TO_CHAR(birth_date, '%m/%d/%Y') AS DATE_OF_BIRTH,
+	PRO.sex AS GENDER,
+	'' as IDENTIFIED_GENDER,
+	TRIM(ADM.pref_name) AS PREFERRED_NAME,
+	'STUDENT' as PERSON_TYPE,
+	CASE WHEN (NVL(PRO.priv_code, '') = '') THEN 0
+	ELSE -1
+	END 
+	AS PRIVACY_INDICATOR,
+	TO_CHAR(IR.id) as ADDITIONAL_ID1,
+	'' AS ADDITIONAL_ID2,
+	 CASE 
+		WHEN (CL.CL in ('FR', 'FN', 'FF')) THEN 'Freshman'   --First time frosh 
+					--should be pulled prior to Aug 1 of their enrollment year
+	   	WHEN (CL.CL = 'SO') THEN 'Sophomore' 
+	   	WHEN (CL.CL = 'JR') THEN 'Junior' 
+	   	WHEN (CL.CL = 'SR') THEN 'Senior' 
+	   	WHEN (CL.CL in ('GR', 'AT')) THEN 'Masters' 
+	   	WHEN (CL.CL IN ('ND', 'SP')) THEN ''   -- What do we do with students 
+	   		--not yet classified?  Can leave blank
+		ELSE '' 
+		END AS CLASS_STATUS, 
+	CL.CL as STUDENT_STATUS,   --Want FF, FN, PF, PN, UT here
+	PER.plan_grad_yr as CLASS_YEAR,
+	TRIM(MAJ1.txt) as MAJOR,
+	SAR.reg_hrs AS CREDITS_SEMESTER, --Current term enrollment
+	SAR.cum_earn_hrs CREDITS_CUMULATIVE,  --earned credits --Question...
+	SAR.cum_gpa AS GPA,
+	CASE WHEN len(REPLACE(TRIM(NVL(CELL.phone,'')), '-', '')) = 10 
+		THEN REPLACE(TRIM(NVL(CELL.phone,'')), '-', '') 
+		ELSE 
+		CASE WHEN len(REPLACE(TRIM(NVL(CELL.line1,'')), '-', '')) = 10
+			THEN REPLACE(TRIM(NVL(CELL.line1,'')), '-', '')
+			ELSE ''
+			END
+	END AS MOBILE_PHONE,
+	'' as MOBILE_PHONE_CARRIER, --Question...
+ 	0 AS OPT_OUT_OF_TEXT, --Question...
+	TRIM(NVL(EML.eml1,'')) AS CAMPUS_EMAIL, 
+	TRIM(NVL(EML.eml2,'')) AS PERSONAL_EMAIL,
+	trim(TO_CHAR(IR.id)||'.jpg') as PHOTO_FILE_NAME,
+	'' AS PERM_PO_BOX, '' AS PERM_PO_BOX_COMBO, 
+	trim(PER.adm_sess)||' '||PER.adm_yr AS ADMIT_TERM,  -- Term admitted - important for incoming in particular
+	CASE WHEN SPORT.descr IS NULL OR TRIM(SPORT.descr) = '' THEN 0 
+		ELSE -1 
+		END AS STUDENT_ATHLETE,
+	PRO.ethnic_code AS ETHNICITY,
+	IR.aa AS ADDRESS1_TYPE,
+	TRIM(IR.addr_line1) as ADDRESS1_STREET_LINE_1,
+    TRIM(IR.addr_line2) as ADDRESS1_STREET_LINE_2,
+	TRIM(IR.addr_line3) as ADDRESS1_STREET_LINE_3,
+	'' as ADDRESS1_STREET_LINE_4,
+	TRIM(IR.city) as ADDRESS1_CITY,
+	TRIM(IR.st) as ADDRESS1_STATE_NAME,
+	TRIM(IR.zip) AS ADDRESS1_ZIP,
+	TRIM(IR.ctry) AS ADDRESS1_COUNTRY,
+ 	CASE WHEN len(REPLACE(TRIM(NVL(IR.phone,'')), '-', '')) = 10 
+		THEN REPLACE(TRIM(NVL(IR.phone,'')), '-', '') 
+		ELSE ''
+		END AS ADDRESS1_PHONE,
+
+	--Is there an off campus local address?
+	CASE WHEN length(trim(LOC.line1)) > 0 
+		THEN 'LOCAL' 
+		ELSE '' 
+	END AS ADDRESS2_TYPE,
+	TRIM(LOC.line1) as ADDRESS2_STREET_LINE_1,
+    TRIM(LOC.line2) as ADDRESS2_STREET_LINE_2,
+	TRIM(LOC.line3) as ADDRESS2_STREET_LINE_3,
+	'' as ADDRESS2_STREET_LINE_4,
+	TRIM(LOC.city) as ADDRESS2_CITY,
+	TRIM(LOC.st) as ADDRESS2_STATE_NAME,
+	TRIM(LOC.zip) AS ADDRESS2_ZIP,
+	TRIM(LOC.ctry) AS ADDRESS2_COUNTRY,
+	CASE WHEN len(REPLACE(TRIM(NVL(LOC.phone,'')), '-', '')) = 10 
+		THEN REPLACE(TRIM(NVL(LOC.phone,'')), '-', '') 
+		ELSE ''
+	END AS ADDRESS2_PHONE,
+
+	''  AS ADDRESS3_TYPE,
+	TRIM('') as ADDRESS3_STREET_LINE_1,
+    TRIM('') as ADDRESS3_STREET_LINE_2,
+	TRIM('') as ADDRESS3_STREET_LINE_3,
+	'' as ADDRESS3_STREET_LINE_4,
+	TRIM('') as ADDRESS3_CITY,
+	TRIM('') as ADDRESS3_STATE_NAME,
+	TRIM('') AS ADDRESS3_ZIP,
+	TRIM('') AS ADDRESS3_COUNTRY,
+	'' AS ADDRESS3_PHONE,
+
+ 	'EMERGENCY' AS CONTACT1_TYPE,
+	trim(EMER.line1) as CONTACT1_NAME,	
+	'' AS CONTACT1_RELATIONSHIP,
+	EMER.phone AS CONTACT1_HOME_PHONE,
+	'' AS CONTACT1_WORK_PHONE,
+	'' AS CONTACT1_MOBILE_PHONE,
+	'' AS CONTACT1_EMAIL,
+	'' AS CONTACT1_STREET,
+	'' AS CONTACT1_STREET2,
+	'' AS CONTACT1_CITY,
+	'' AS CONTACT1_STATE,
+	'' AS CONTACT1_ZIP,
+	'' AS CONTACT1_COUNTRY, 
+
+	 '' AS CONTACT2_TYPE,
+	'' as CONTACT2_NAME,	
+	'' AS CONTACT2_RELATIONSHIP,
+	'' AS CONTACT2_HOME_PHONE,
+	'' AS CONTACT2_WORK_PHONE,
+	'' AS CONTACT2_MOBILE_PHONE,
+	'' AS CONTACT2_EMAIL,
+	'' AS CONTACT2_STREET,
+	'' AS CONTACT2_STREET2,
+	'' AS CONTACT2_CITY,
+	'' AS CONTACT2_STATE,
+	'' AS CONTACT2_ZIP,
+	'' AS CONTACT2_COUNTRY,  
+
+ 	'' AS CONTACT3_TYPE,
+	'' as CONTACT3_NAME,	
+	'' AS CONTACT3_RELATIONSHIP,
+	'' AS CONTACT3_HOME_PHONE,
+	'' AS CONTACT3_WORK_PHONE,
+	'' AS CONTACT3_MOBILE_PHONE,
+	'' AS CONTACT3_EMAIL,
+	'' AS CONTACT3_STREET,
+	'' AS CONTACT3_STREET2,
+	'' AS CONTACT3_CITY,
+	'' AS CONTACT3_STATE,
+	'' AS CONTACT3_ZIP,
+	'' AS CONTACT3_COUNTRY,  
+
+	TRIM(TRIM(TRM.sess)||' '||TRIM(TO_CHAR(TRM.yr))) as TERM,
+	
+	--Custom fields
+ 	PRO.race as RaceCode,
+	'' as preferred_pronoun,
+	'' as Service_Emotional_Support_Animal,
+	'' as Greek_Affiliation 
+	
+--select * 
+FROM
+	(
+	select * from
+		(SELECT unique PV.id, PV.program, PV.subprog, PV.major, PV.stu_group,
+			PR.acst, PR.cl, PR.major1, PR.plan_grad_yr, PR.adm_sess, PR.adm_yr,
+			row_number() over ( partition BY PR.id
+			ORDER BY 
+				CASE when PR.prog = 'GRAD' then 1 
+					when PR.prog = 'UNDG' then 2 
+					when PR.prog = 'PRDV' then 3 
+					WHEN PR.PROG = 'ACT' THEN 4 
+					when PR.prog = 'PARA' then 5 
+					else 9 end ) 
+					as row_num 
+		--FROM provisioning_vw PV
+		from cx_sandbox:cc_current_students_vw PV
+		LEFT JOIN prog_enr_rec PR
+		        ON PV.id = PR.id
+		WHERE PV.stu_group IN ('prog', 'stu', 'reg_clear')
+			AND PR.acst IN ('GOOD' ,'LOC' ,'PROB' ,'PROC' , 'PROR' ,'READ' ,
+			'RP','SAB','SHAC' ,'SHOC', 'GRAD')
+		    AND (PR.subprog NOT IN ('KUSD', 'UWPK', 'YOP', 'ENRM'))
+		    AND (PR.CL != 'UP')
+		    AND (PR.lv_date IS NULL)
+		    AND (PR.deg_grant_date IS NULL)
+			-- I would think for housing, we do NOT want to exclude any frosh
+			--	AND PV.ID NOT IN 
+			--	(select id from cx_sandbox:first_time_frosh_vw)
+			--(select id from train:new_student_exclusion_vw)
+		
+	 	 ) rnk_prog
+	WHERE row_num = 1 
+		
+	) PER
+
+	INNER JOIN	id_rec		IR	ON	PER.id			=	IR.id
+		
+	LEFT JOIN (
+		SELECT a1.id, a1.aa, a1.line1 eml1, a1.beg_date, a1.end_date, 
+				a2.id, a2.aa, a2.eml2, a2.beg_date, a2.end_date
+		FROM aa_rec a1
+		LEFT JOIN
+	 		(SELECT id, aa, line1 eml2, beg_date, end_date 
+			FROM aa_rec) a2 
+			on a2.id = a1.id 
+			where (a1.aa = 'EML1'
+	    	AND	a1.beg_date < TODAY
+			AND NVL(a1.end_date, TODAY) >= TODAY)
+			and (a2.aa= 'EML2'			
+	    	AND	a2.beg_date < TODAY
+			AND NVL(a2.end_date, TODAY) >= TODAY) 	
+			) EML ON EML.id = PER.id 
+
+
+	LEFT JOIN
+		(SELECT id, line1, line2, line3, city, st, zip, ctry, phone 
+		FROM aa_rec
+		WHERE aa = 'LOC' 
+		AND (end_date IS NULL OR end_date >= TODAY)) LOC
+		ON LOC.id = PER.id
+
+	LEFT JOIN		(
+		SELECT id.id,
+			    replace(replace(replace(replace(replace(replace(replace(
+				multiset(      
+			SELECT DISTINCT trim(a) from 
+				(SELECT invl_table.txt a 
+				FROM involve_rec 
+ 			 	JOIN invl_table 
+				ON invl_table.invl=involve_rec.invl 
+				WHERE id=id.id 
+				AND invl_table.sanc_sport = 'Y' 
+				ORDER BY invl_table.txt)
+				)::lvarchar,'MULTISET{'), 'ROW'), '}'),"')",''), 
+				"('",''), ',',';'), "''","'")
+				DESCR
+			FROM id_rec id	
+			) SPORT ON SPORT.id = PER.id		 
+							    			
+	JOIN (SELECT S.id, S.prog, S.sess, S.YR 
+		FROM STU_ACAD_REC S
+		JOIN acad_cal_rec A
+			ON A.yr = S.yr
+			AND A.sess = S.sess
+			AND A.subsess = ''
+			AND A.end_date > TODAY - 1
+			) 
+			TRM ON TRM.id = PER.id
+
+	INNER JOIN	cvid_rec CV	ON	PER.id = CV.cx_id
+	INNER JOIN	cl_table CL	ON	PER.cl = CL.cl
+	LEFT JOIN major_table MAJ1	ON	PER.major1 = MAJ1.major
+	INNER JOIN adm_rec ADM	ON	PER.id = ADM.id
+		AND ADM.prog = PER.program
+		AND	ADM.primary_app	=	'Y'
+	INNER JOIN	profile_rec	PRO	ON	PER.id = PRO.id
+	LEFT JOIN 
+		(SELECT a.id ID, a.aa aa, a.line1 line1, 
+		    a.phone phone, a.beg_date beg_date
+		FROM aa_rec a
+		INNER JOIN 
+			(
+		    SELECT id, MAX(beg_date) beg_date
+		    FROM aa_rec 
+		    WHERE aa = 'CELL'
+		    GROUP BY id
+			) b 
+			ON a.id = b.id AND a.beg_date = b.beg_date
+			AND a.aa = 'CELL'
+		) CELL
+		ON CELL.ID = PER.ID	 
+	
+	LEFT JOIN 
+		(SELECT id, gpa, mflag
+		FROM degaudgpa_rec
+    	WHERE mflag = 'MAJOR1' AND gpa > 0
+    	) DGR
+		ON 	DGR.id = PER.ID  
+
+	LEFT JOIN 
+		(SELECT distinct sr.prog, sr.id, sr.subprog, 
+			sr.cum_gpa, sr.yr, sr.subprog, sr.earn_hrs, sr.cum_earn_hrs, 
+			sr.reg_hrs
+		FROM stu_acad_rec sr, cursessyr_vw cv
+		WHERE sr.sess = cv.sess
+		AND sr.prog = cv.prog
+		AND sr.yr = cv.yr) SAR
+  		ON SAR.id = PER.id	
+  		AND SAR.prog = PER.program	   
+			
+		--Don't bother with ICE1 or ICE2, little data...
+	LEFT JOIN
+		(SELECT id, line1, line2, line3, city, st, zip, ctry, phone 
+		FROM aa_rec
+		WHERE aa = 'ICE' 
+		AND (end_date IS NULL OR end_date >= TODAY)) EMER
+		ON EMER.id = PER.id
+
+limit 3
+	
+'''
