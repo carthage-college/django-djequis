@@ -141,10 +141,11 @@ SELECT --Distinct
 	TRIM(TRIM(TRM.sess)||' '||TRIM(TO_CHAR(TRM.yr))) as TERM,
 	
 	--Custom fields
- 	PRO.race as RaceCode,
-	'' as preferred_pronoun,
-	'' as Service_Emotional_Support_Animal,
-	'' as Greek_Affiliation 
+ 	PRO.race as RaceCode
+-- these will probably be manually populated 
+--	'' as preferred_pronoun,
+--	'' as Service_Emotional_Support_Animal,
+--	'' as Greek_Affiliation 
 	
 --select * 
 FROM
@@ -285,6 +286,6 @@ FROM
 		AND (end_date IS NULL OR end_date >= TODAY)) EMER
 		ON EMER.id = PER.id
 
-limit 3
+limit 30
 	
 '''
