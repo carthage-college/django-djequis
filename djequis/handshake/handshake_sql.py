@@ -137,16 +137,14 @@ FROM
 			'RP','SAB','SHAC' ,'SHOC', 'GRAD')
 		    AND (PR.subprog NOT IN ('KUSD', 'UWPK', 'YOP', 'ENRM'))
 		    AND (PR.CL != 'UP')
-		    AND (PR.lv_date IS NULL OR PR.lv_date > TODAY-4)
-		    AND (PR.deg_grant_date IS NULL or PR.deg_grant_date > TODAY-4)
+		    AND (PR.lv_date IS NULL OR PR.lv_date > TODAY-3)
+		    AND (PR.deg_grant_date IS NULL or PR.deg_grant_date > TODAY-3)
 
 		--		   SCREEN OUT FIRST TIME FROSH UNTIL AUG 1
 		--   Dave's method uses role_rec, not prog_enr, stu_acad, etc.
 		 AND	PV.ID NOT IN 
 		(select ID from role_rec
 		where role = 'PREFF' and end_date is null) 
- 
-
 		
 		    ) rnk_prog
 	WHERE row_num = 1
