@@ -15,7 +15,7 @@ SELECT --Distinct
 	ELSE -1
 	END 
 	AS PRIVACY_INDICATOR,
-	TO_CHAR(IR.id) as ADDITIONAL_ID1,
+	TRIM(CV.ldap_name) as ADDITIONAL_ID1,
 	'' AS ADDITIONAL_ID2,
 	 CASE 
 		WHEN (CL.CL in ('FR', 'FN', 'FF')) THEN 'Freshman'   --First time frosh 
@@ -286,6 +286,6 @@ FROM
 		AND (end_date IS NULL OR end_date >= TODAY)) EMER
 		ON EMER.id = PER.id
 
-limit 30
+--limit 30
 	
 '''
