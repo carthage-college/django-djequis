@@ -64,7 +64,7 @@ def main():
     # formatting date and time string 
     datetimestr = time.strftime("%Y%m%d%H%M%S")
     # set dictionary
-    dict = {
+    sqldict = {
         'AR100': STU_ACAD_REC_100,
         'AR200': STU_ACAD_REC_200,
         'EXENRCRS': EXENRCRS
@@ -87,7 +87,7 @@ def main():
         'port':settings.BARNESNOBLE2_PORT,
         'cnopts':cnopts
     }
-    for key, value in dict.items():
+    for key, value in sqldict.items():
         if test:
             print key
         #######################################################################
