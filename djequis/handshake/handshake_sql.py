@@ -61,13 +61,15 @@ SELECT Distinct 	TRIM(NVL(EML.line1,'')) AS email_address,
 	--send the **CLEAR** for a period of time.
 	--This should insure that old leave dates are erased and won't 
 	--send **CLEAR** for anyone else
+
 	CASE 
 		WHEN PER.prog = 'GRAD' and PER.acst = 'GOOD' and PER.lv_date is null 
 			and PER.acad_date > TODAY-3 THEN '**CLEAR**'  
 	 	WHEN PER.prog != 'GRAD' and PER.acst = 'READ' and PER.lv_date is null 
 	 		and PER.acad_date > TODAY-3 THEN '**CLEAR**'  
-		ELSE TO_CHAR(PER.lv_date) END 
+		ELSE TO_CHAR(PER.lv_date, '%Y-%m-%d') END 
 		AS end_date,
+
 	'' as currently_attending,
 	'' AS campus_name,
 	'' AS opt_cpt_eligible,  --(Optional Practical Training) and CPT (Curricular 
@@ -135,16 +137,14 @@ FROM
 			'RP','SAB','SHAC' ,'SHOC', 'GRAD')
 		    AND (PR.subprog NOT IN ('KUSD', 'UWPK', 'YOP', 'ENRM'))
 		    AND (PR.CL != 'UP')
-		    AND (PR.lv_date IS NULL)
-		    AND (PR.deg_grant_date IS NULL)
+		    AND (PR.lv_date IS NULL OR PR.lv_date > TODAY-3)
+		    AND (PR.deg_grant_date IS NULL or PR.deg_grant_date > TODAY-3)
 
 		--		   SCREEN OUT FIRST TIME FROSH UNTIL AUG 1
 		--   Dave's method uses role_rec, not prog_enr, stu_acad, etc.
 		 AND	PV.ID NOT IN 
 		(select ID from role_rec
 		where role = 'PREFF' and end_date is null) 
- 
-
 		
 		    ) rnk_prog
 	WHERE row_num = 1
@@ -242,7 +242,7 @@ FROM
 			AND sr.prog = cv.prog
 			AND sr.yr = cv.yr) SAR
   			ON SAR.id = PER.id	
-  			AND SAR.prog = PER.prog	   
+  			AND SAR.prog = PER.prog	    
 		LEFT JOIN (select conc, txt from conc_table 
 			WHERE LEFT(cip_no,2) in ('51')) CT1 
 			ON CT1.conc = PER.conc1
@@ -255,5 +255,6 @@ FROM
 			
 WHERE 
 	EML.line1 IS NOT NULL
---   LIMIT 3
+--    LIMIT 3
+
 '''
