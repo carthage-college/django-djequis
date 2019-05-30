@@ -162,11 +162,11 @@ def main():
     print(datetimestr)
 
     # Defines file names and directory location
-    adirondackdata = ('{0}CARTHAGE_users.txt'.format(
+    adirondackdata = ('{0}carthage_students.txt'.format(
          settings.ADIRONDACK_CSV_OUTPUT))
 
     # set archive directory
-    archived_destination = ('{0}CARTHAGE_users-{1}.txt'.format(
+    archived_destination = ('{0}carthage_users-{1}.txt'.format(
         settings.ADIRONDACK_CSV_ARCHIVED, datetimestr
         ))
 
@@ -205,7 +205,7 @@ def main():
         # Create the csv file
         # Write header row
         # with open(adirondackdata, 'w') as file_out:
-        with open("CARTHAGE_users.txt", 'w') as file_out:
+        with open("carthage_students.txt", 'w') as file_out:
             csvWriter = csv.writer(file_out, delimiter='|')
             csvWriter.writerow(
                 ["STUDENT_NUMBER", "FIRST_NAME", "MIDDLE_NAME",
@@ -279,7 +279,7 @@ def main():
         else:
             print("Query successful")
             # with open(adirondackdata, 'a') as file_out:
-            with open("CARTHAGE_users.txt", 'a') as file_out:
+            with open("carthage_students.txt", 'a') as file_out:
                 csvWriter = csv.writer(file_out, delimiter='|')
                 encoded_rows = encode_rows_to_utf8(ret)
                 for row in encoded_rows:
