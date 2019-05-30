@@ -48,6 +48,19 @@ parser.add_argument(
 )
 
 def main():
+    """
+    OpenSSH 7.0 and greater disable the ssh-dss (DSA) public key algorithm,
+    which B&N use for authentication on their servers, so you have to add
+    ssh-dss to the ssh/sftp command:
+
+    -oHostKeyAlgorithms=+ssh-dss
+
+    or add the following to the cron user's .ssh/config file:
+
+    Host sftp.bncollege.com
+        HostName sftp.bncollege.com
+        HostKeyAlgorithms=+ssh-dss
+    """
     # formatting date and time string 
     datetimestr = time.strftime("%Y%m%d%H%M%S")
     # set dictionary
