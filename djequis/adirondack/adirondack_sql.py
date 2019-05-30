@@ -151,7 +151,8 @@ SELECT --Distinct
 FROM
 	(
 	select * from
-		(SELECT unique PV.id, PV.program, PV.subprog, PV.major, PV.stu_group,
+		(SELECT unique PV.id, PR.prog, PR.subprog, PR.major1 as major, 
+			PV.student,
 			PR.acst, PR.cl, PR.major1, PR.plan_grad_yr, PR.adm_sess, PR.adm_yr,
 			row_number() over ( partition BY PR.id
 			ORDER BY 
@@ -162,21 +163,16 @@ FROM
 					when PR.prog = 'PARA' then 5 
 					else 9 end ) 
 					as row_num 
-		--FROM provisioning_vw PV
-		from cx_sandbox:cc_current_students_vw PV
+		from provisioning_vw PV
 		LEFT JOIN prog_enr_rec PR
 		        ON PV.id = PR.id
-		WHERE PV.stu_group IN ('prog', 'stu', 'reg_clear')
+		WHERE PV.student IN ('prog', 'stu', 'reg_clear')
 			AND PR.acst IN ('GOOD' ,'LOC' ,'PROB' ,'PROC' , 'PROR' ,'READ' ,
 			'RP','SAB','SHAC' ,'SHOC', 'GRAD')
 		    AND (PR.subprog NOT IN ('KUSD', 'UWPK', 'YOP', 'ENRM'))
 		    AND (PR.CL != 'UP')
 		    AND (PR.lv_date IS NULL)
 		    AND (PR.deg_grant_date IS NULL)
-			-- I would think for housing, we do NOT want to exclude any frosh
-			--	AND PV.ID NOT IN 
-			--	(select id from cx_sandbox:first_time_frosh_vw)
-			--(select id from train:new_student_exclusion_vw)
 		
 	 	 ) rnk_prog
 	WHERE row_num = 1 
@@ -241,7 +237,7 @@ FROM
 	INNER JOIN	cl_table CL	ON	PER.cl = CL.cl
 	LEFT JOIN major_table MAJ1	ON	PER.major1 = MAJ1.major
 	INNER JOIN adm_rec ADM	ON	PER.id = ADM.id
-		AND ADM.prog = PER.program
+		AND ADM.prog = PER.prog
 		AND	ADM.primary_app	=	'Y'
 	INNER JOIN	profile_rec	PRO	ON	PER.id = PRO.id
 	LEFT JOIN 
@@ -276,7 +272,7 @@ FROM
 		AND sr.prog = cv.prog
 		AND sr.yr = cv.yr) SAR
   		ON SAR.id = PER.id	
-  		AND SAR.prog = PER.program	   
+  		AND SAR.prog = PER.prog	   
 			
 		--Don't bother with ICE1 or ICE2, little data...
 	LEFT JOIN
@@ -286,6 +282,4 @@ FROM
 		AND (end_date IS NULL OR end_date >= TODAY)) EMER
 		ON EMER.id = PER.id
 
---limit 30
-	
 '''
