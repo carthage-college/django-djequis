@@ -5,13 +5,6 @@ import sys
 import pysftp
 import argparse
 
-sys.path.append('/usr/lib/python2.7/dist-packages/')
-sys.path.append('/usr/lib/python2.7/')
-sys.path.append('/usr/local/lib/python2.7/dist-packages/')
-sys.path.append('/data2/django_1.11/')
-sys.path.append('/data2/django_projects/')
-sys.path.append('/data2/django_third/')
-#os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djzbar.settings")
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 
 from django.conf import settings
@@ -118,6 +111,8 @@ def main():
     # transfer the PDFs to scripsafe
     with pysftp.Connection(**xtrnl_connection) as sftp:
         for f in philes:
+            if test:
+                print("putting {}.pdf".format(f))
             sftp.put("{}.pdf".format(f), preserve_mtime=True)
 
     # backup and cleanup
@@ -131,12 +126,13 @@ def main():
                 print "failed to transfer file to local backup: {}".format(f)
 
             # remove files fetched from local server and generated PDFs
-            try:
-                os.remove(f)
-                os.remove("{}.pdf".format(f))
-                print "removed files: {}, {}.pdf".format(f,f)
-            except OSError:
-                print "failed to remove files from local file system: {}".format(f)
+            if not test:
+                try:
+                    os.remove(f)
+                    os.remove("{}.pdf".format(f))
+                    print "removed files: {}, {}.pdf".format(f,f)
+                except OSError:
+                    print "failed to remove files from local file system: {}".format(f)
 
     sftp.close()
 
