@@ -7,9 +7,9 @@ import time
 from time import strftime
 from datetime import datetime
 import awscli
-import botocore
-import boto3
-from botocore.exceptions import ClientError
+# import botocore
+# import boto3
+# from botocore.exceptions import ClientError
 import argparse
 import shutil
 import logging
