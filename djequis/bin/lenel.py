@@ -5,7 +5,6 @@ import pyodbc
 from djzbar.settings import MSSQL_LENEL_EARL
 
 connection = pyodbc.connect(MSSQL_LENEL_EARL)
-#sql = "SELECT uid, name FROM sysusers ORDER BY name"
 sql = """
     SELECT
         EMP.SSNO as carthageID, EMP.FIRSTNAME, EMP.LASTNAME,
@@ -19,6 +18,7 @@ sql = """
     AND
         emp.ssno = '#LMS_students.host_id#'
 """
+#sql = "SELECT uid, name FROM sysusers ORDER BY name"
 
 result = connection.execute(sql)
 
