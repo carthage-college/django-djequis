@@ -86,6 +86,12 @@ def fn_clear_logger():
     logging.shutdown()
     return("Clear Logger")
 
+def write_file(data, filename):
+    with open(filename, 'wb') as f:
+        f.write(data)
+
+
+
 
 # def sftp_upload():
 #     # by adding cnopts, I'm authorizing the program to ignore the host key and just continue
@@ -163,15 +169,14 @@ def main():
 
     # Defines file names and directory location
     adirondackdata = ('{0}carthage_students.txt'.format(
-         settings.ADIRONDACK_CSV_OUTPUT))
+         settings.ADIRONDACK_JPG_OUTPUT))
 
     # set archive directory
     archived_destination = ('{0}carthage_users-{1}.txt'.format(
-        settings.ADIRONDACK_CSV_ARCHIVED, datetimestr
+        settings.ADIRONDACK_JPG_ARCHIVED, datetimestr
         ))
 
     try:
-        print("try")
         # set global variable
         global EARL
         # determines which database is being called from the command line
@@ -185,14 +190,12 @@ def main():
             # care of this scenario and we will never arrive here.
             EARL = None
 
-        #         # Query CX and start loop through records
-        #
         # print(PICTURE_ID_QUERY)
         engine = get_engine(EARL)  # do_sql calls get engine
         data_result = engine.execute(PICTURE_ID_QUERY)
 
-        ret = list(data_result.fetchall())
-        if ret is None:
+        retID = list(data_result.fetchall())
+        if retID is None:
             SUBJECT = '[adirondack Application] failed'
             BODY = "SQL Query returned no data."
             print(SUBJECT)
@@ -202,26 +205,50 @@ def main():
             #     BODY, SUBJECT
             # )
         else:
-            print("Query successful")
+            print("Query 1 successful")
             try:
-                connection = pyodbc.connect(MSSQL_LENEL_EARL)
-                for row in ret:
-                    # print(row[0] + '.jpg')
+                # connection = pyodbc.connect(MSSQL_LENEL_EARL)
+                # sql = "SELECT uid, name FROM sysusers ORDER BY name"
+                # res = connection.execute(sql)
+                # for row in res:
+                #     print(row)
+                # connection.close()
+                # res.close()
+
+                for row in retID:
                     LENEL_PICTURE_ARG = row[0]
+                    # print("Query = " + LENEL_PICTURE_QUERY)
+                    print("ARG = " + LENEL_PICTURE_ARG)
+                    try:
+                        # query blob data form the authors table
+                        conn = pyodbc.connect(MSSQL_LENEL_EARL)
+                        # cursor = conn.cursor()
+                        print("Execute photo query")
+                        result = conn.execute(LENEL_PICTURE_QUERY.format(LENEL_PICTURE_ARG))
 
-                    print(LENEL_PICTURE_QUERY)
-                    print(LENEL_PICTURE_ARG)
+                        for row1 in result:
+                            print(row1[0])  # this should be the ID
+                            print(row1[1])  # first name
+                            print(row1[2])  # last name
+                            photo = row1[3]
+                            filename = row1[0] + ".jpg"
+                            print(filename)
+                            # write blob data into a file
+                            print("Write to file")
+                            write_file(photo, settings.ADIRONDACK_JPG_OUTPUT + "/" + filename)
+                        result.close()
 
-                    result = connection.execute(LENEL_PICTURE_QUERY, LENEL_PICTURE_ARG)
+                    except Exception as e:
+                        # print(e.__str__())
+                        print("Error getting photo " + e.message)
+                    finally:
+                        # cursor.close()
+                        conn.close()
 
-                    for row in result:
-                        print(row)
-
-                    result.close()
-
-                connection.close()
             except Exception as e:
                 print("Error getting photo " + e.message)
+            # finally:
+            #     connection.close()
 
             # ###############################################
             # # Write all files to a single zip
