@@ -22,12 +22,13 @@ FROM
 	INNER JOIN	profile_rec	PRO	ON	PER.id = PRO.id
 	
 where PRO.priv_code != 'FERP'
-limit 3
+limit 100
 '''
 
 LENEL_PICTURE_QUERY = """
     SELECT
-        EMP.SSNO as carthageID, EMP.FIRSTNAME, EMP.LASTNAME,
+        --EMP.SSNO as carthageID,
+         -- EMP.FIRSTNAME, EMP.LASTNAME,
         MMOBJS.LNL_BLOB as photo
     FROM
         EMP left join MMOBJS on MMOBJS.EMPID = EMP.ID
