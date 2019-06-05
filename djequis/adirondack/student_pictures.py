@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-import csv
+import pysftp
 import pyodbc
 import time
 from time import strftime
@@ -91,62 +91,48 @@ def write_file(data, filename):
         f.write(data)
 
 
-# def sftp_upload():
-#     # by adding cnopts, I'm authorizing the program to ignore the
-#     host key and just continue
-#     cnopts = pysftp.CnOpts()
-#     cnopts.hostkeys = None # ignore known host key checking
-#     # sFTP connection information for Adironcack
-#     XTRNL_CONNECTION = {
-#         'host':settings.ADIRONDACK_HOST,
-#         'username':settings.ADIRONDACK_USER,
-#         'password':settings.ADIRONDACK_PASS,
-#         'port':settings.ADIRONDACKY_PORT,
-#         'cnopts':cnopts
-#     }
-#     # set local path {/data2/www/data/adirondack/}
-#     source_dir = ('{0}'.format(settings.ADIRONDACK_CSV_OUTPUT))
-#     # get list of files and set local path and filenames
-#     # variable == /data2/www/data/adirondack/{filename.csv}
-#     directory = os.listdir(source_dir)
-#     # sFTP PUT moves the COURSES.csv, USERS.csv, ENROLLMENT.csv files
-#     # to the adirondack server
-#     try:
-#         with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
-#             # change directory
-#             sftp.chdir("upload/")
-#             # loop through files in list
-#             for listfile in directory:
-#                 adirondackfiles = source_dir + listfile
-#                 if adirondackfiles.endswith(".csv"):
-#                     # sftp files if they end in .csv
-#                     sftp.put(adirondackfiles, preserve_mtime=True)
-#                 # delete original files from our server
-#                 os.remove(adirondackfiles)
-#             # close sftp connection
-#             sftp.close()
-#     except Exception, e:
-#         SUBJECT = 'ADIRONDACK UPLOAD failed'
-#         BODY = 'Unable to PUT .csv files to adirondack
-#         server.\n\n{0}'.format(str(e))
-#         sendmail(
-#             settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
-#             BODY, SUBJECT
-#         )
+def sftp_upload(upload_file):
+    print("In File Upload")
+    print(upload_file)
+    # by adding cnopts, I'm authorizing the program to ignore the
+    # host key and just continue
+    cnopts = pysftp.CnOpts()
+    cnopts.hostkeys = None # ignore known host key checking
+    # sFTP connection information for Adironcack
+    XTRNL_CONNECTION = {
+        'host': settings.ADIRONDACK_HOST,
+        'username': settings.ADIRONDACK_USER,
+        'password': settings.ADIRONDACK_PASS,
+        'port': settings.ADIRONDACK_PORT,
+        'cnopts': cnopts
+    }
 
-def get_all_file_paths(directory):
-    # initializing empty file paths list
-    file_paths = []
+    # set local path {/data2/www/data/adirondack/}
+    source_dir = ('{0}'.format(settings.ADIRONDACK_JPG_OUTPUT))
+    # get list of files and set local path and filenames
+    # variable == /data2/www/data/adirondack/{filename.zip}
+    directory = os.listdir(source_dir)
 
-    # crawling through directory and subdirectories
-    for root, directories, files in os.walk(directory):
-        for filename in files:
-            # join the two strings in order to form the full filepath.
-            filepath = os.path.join(root, filename)
-            file_paths.append(filepath)
-
-            # returning all file paths
-    return file_paths
+    try:
+        print("Make Connection")
+        with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
+            # change directory
+            print("Change Directory at SFTP Site")
+            # sftp.chdir("prod/in/studentphotos/")
+            sftp.chdir("test/in/")
+            sftp.put(upload_file, preserve_mtime=True)
+            # delete original files from our server
+            # os.remove(adirondackfiles)
+            # close sftp connection
+            sftp.close()
+    except Exception, e:
+        SUBJECT = 'ADIRONDACK UPLOAD failed'
+        BODY = 'Unable to PUT .zip file to adirondack server.\n\n{0}'.format(str(e))
+        # sendmail(
+        #     settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
+        #     BODY, SUBJECT
+        # )
+        print(BODY)
 
 
 def main():
@@ -203,17 +189,15 @@ def main():
                 for row in retID:
                     LENEL_PICTURE_ARG = row[0]
                     # print("Query = " + LENEL_PICTURE_QUERY)
-                    print("ARG = " + LENEL_PICTURE_ARG)
+                    # print("ARG = " + LENEL_PICTURE_ARG)
                     try:
                         # query blob data form the authors table
                         conn = pyodbc.connect(MSSQL_LENEL_EARL)
-                        # print("Execute photo query")
                         result = conn.execute(LENEL_PICTURE_QUERY.format(LENEL_PICTURE_ARG))
 
                         for row1 in result:
                             photo = row1[0]
                             filename = str(LENEL_PICTURE_ARG) + ".jpg"
-                            # print(filename)
                             # write blob data into a file
                             write_file(photo, filepath + "/" + filename)
                         result.close()
@@ -231,23 +215,25 @@ def main():
             except Exception as e:
                 print("Error getting photo " + e.message)
 
-            if os.path.exists(filepath + "adirondack_photos.zip"):
-               os.remove(filepath + "adirondack_photos.zip")
-            print(filepath)
+            if os.path.exists(filepath + "carthage_studentphotos.zip"):
+               os.remove(filepath + "carthage_studentphotos.zip")
+            # print(filepath)
 
-            shutil.make_archive("adirondack_photos", 'zip', filepath)
-            shutil.move("adirondack_photos.zip", filepath)
+            shutil.make_archive("carthage_studentphotos", 'zip', filepath)
+            shutil.move("carthage_studentphotos.zip", filepath)
 
             # send file to SFTP Site..
-
+            sftp_upload(filepath + "carthage_studentphotos.zip")
 
     except Exception as e:
 
-        fn_write_error("Error in adirondack buildcsv.py, Error = " + e.message)
+        # fn_write_error("Error in adirondack buildcsv.py, Error = " + e.message)
         SUBJECT = '[adirondack Application] Error'
         BODY = "Error in adirondack buildcsv.py, Error = " + e.message
-        sendmail(settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
-            BODY, SUBJECT)
+        # sendmail(settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
+        #     BODY, SUBJECT)
+        print(SUBJECT, BODY)
+
 
 if __name__ == "__main__":
     args = parser.parse_args()
