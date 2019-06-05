@@ -91,10 +91,9 @@ def write_file(data, filename):
         f.write(data)
 
 
-
-
 # def sftp_upload():
-#     # by adding cnopts, I'm authorizing the program to ignore the host key and just continue
+#     # by adding cnopts, I'm authorizing the program to ignore the
+#     host key and just continue
 #     cnopts = pysftp.CnOpts()
 #     cnopts.hostkeys = None # ignore known host key checking
 #     # sFTP connection information for Adironcack
@@ -128,7 +127,8 @@ def write_file(data, filename):
 #             sftp.close()
 #     except Exception, e:
 #         SUBJECT = 'ADIRONDACK UPLOAD failed'
-#         BODY = 'Unable to PUT .csv files to adirondack server.\n\n{0}'.format(str(e))
+#         BODY = 'Unable to PUT .csv files to adirondack
+#         server.\n\n{0}'.format(str(e))
 #         sendmail(
 #             settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
 #             BODY, SUBJECT
@@ -153,9 +153,9 @@ def main():
 
     ##########################################################################
     # development server (bng), you would execute:
-    # ==> python buildcsv.py --database=train --test
+    # ==> python student_pictures.py --database=train --test
     # production server (psm), you would execute:
-    # ==> python buildcsv.py --database=cars
+    # ==> python student_pictures.py --database=cars
     # without the --test argument
     ##########################################################################
 
@@ -167,14 +167,7 @@ def main():
     datetimestr = time.strftime("%Y%m%d%H%M%S")
     # print(datetimestr)
 
-    # Defines file names and directory location
-    adirondackdata = ('{0}carthage_students.txt'.format(
-         settings.ADIRONDACK_JPG_OUTPUT))
-
-    # set archive directory
-    archived_destination = ('{0}carthage_users-{1}.txt'.format(
-        settings.ADIRONDACK_JPG_ARCHIVED, datetimestr
-        ))
+    filepath = settings.ADIRONDACK_JPG_OUTPUT
 
     try:
         # set global variable
@@ -199,7 +192,6 @@ def main():
             SUBJECT = '[adirondack Application] failed'
             BODY = "SQL Query returned no data."
             print(SUBJECT)
-
             # sendmail(
             #     settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
             #     BODY, SUBJECT
@@ -207,13 +199,6 @@ def main():
         else:
             print("Query 1 successful")
             try:
-                # connection = pyodbc.connect(MSSQL_LENEL_EARL)
-                # sql = "SELECT uid, name FROM sysusers ORDER BY name"
-                # res = connection.execute(sql)
-                # for row in res:
-                #     print(row)
-                # connection.close()
-                # res.close()
 
                 for row in retID:
                     LENEL_PICTURE_ARG = row[0]
@@ -222,70 +207,36 @@ def main():
                     try:
                         # query blob data form the authors table
                         conn = pyodbc.connect(MSSQL_LENEL_EARL)
-                        # cursor = conn.cursor()
-                        print("Execute photo query")
+                        # print("Execute photo query")
                         result = conn.execute(LENEL_PICTURE_QUERY.format(LENEL_PICTURE_ARG))
 
                         for row1 in result:
-                            print(row1[0])  # this should be the ID
-                            print(row1[1])  # first name
-                            print(row1[2])  # last name
-                            photo = row1[3]
-                            filename = row1[0] + ".jpg"
-                            print(filename)
+                            photo = row1[0]
+                            filename = str(LENEL_PICTURE_ARG) + ".jpg"
+                            # print(filename)
                             # write blob data into a file
-                            print("Write to file")
-                            write_file(photo, settings.ADIRONDACK_JPG_OUTPUT + "/" + filename)
+                            write_file(photo, filepath + "/" + filename)
                         result.close()
 
+                    except ValueError:
+                        print("Value Error getting photo")
+                    except TypeError:
+                        print("Type Error getting photo")
                     except Exception as e:
-                        # print(e.__str__())
-                        print("Error getting photo " + e.message)
+                        if e.__class__ == 'pyodbc.DataError':
+                            pass
                     finally:
-                        # cursor.close()
                         conn.close()
 
             except Exception as e:
                 print("Error getting photo " + e.message)
-            # finally:
-            #     connection.close()
 
-            # ###############################################
-            # # Write all files to a single zip
-            # # path to folder which needs to be zipped
-            # directory = './python_files'
-            #
-            # # calling function to get all file paths in the directory
-            # file_paths = get_all_file_paths(directory)
-            #
-            # # printing the list of all files to be zipped
-            # # print('Following files will be zipped:')
-            # for file_name in file_paths:
-            #     print(file_name)
-            #
-            #     # writing files to a zipfile
-            # with ZipFile('my_python_files.zip', 'w') as zip:
-            #     # writing each file one by one
-            #     for file in file_paths:
-            #         zip.write(file)
-            #
-            # print('All files zipped successfully!')
+            if os.path.exists(filepath + "adirondack_photos.zip"):
+               os.remove(filepath + "adirondack_photos.zip")
+            print(filepath)
 
-
-            # # ================================================
-            # # READING A ZIP FILE
-            # # specifying the zip file name
-            # file_name = "carthage_studentphotos.zip"
-            #
-            # # opening the zip file in READ mode
-            # with ZipFile(file_name, 'r') as zip:
-            # # printing all the contents of the zip file
-            # zip.printdir()
-            #
-            # # extracting all the files
-            # print('Extracting all the files now...')
-            # zip.extractall()
-            # print('Done!')
+            shutil.make_archive("adirondack_photos", 'zip', filepath)
+            shutil.move("adirondack_photos.zip", filepath)
 
             # send file to SFTP Site..
 
