@@ -3,6 +3,7 @@
 import os
 import sys
 import csv
+import pysftp
 import time
 from time import strftime
 from datetime import datetime
@@ -99,49 +100,44 @@ def encode_rows_to_utf8(rows):
             fn_write_error("Error in encoded_rows routine " + e.message)
     return encoded_rows
 
-# def sftp_upload():
-#     # by adding cnopts, I'm authorizing the program to ignore the host key and just continue
-#     cnopts = pysftp.CnOpts()
-#     cnopts.hostkeys = None # ignore known host key checking
-#     # sFTP connection information for Adironcack
-#     XTRNL_CONNECTION = {
-#         'host':settings.ADIRONDACK_HOST,
-#         'username':settings.ADIRONDACK_USER,
-#         'password':settings.ADIRONDACK_PASS,
-#         'port':settings.ADIRONDACKY_PORT,
-#         'cnopts':cnopts
-#     }
-#     # set local path {/data2/www/data/adirondack/}
-#     source_dir = ('{0}'.format(settings.ADIRONDACK_CSV_OUTPUT))
-#     # get list of files and set local path and filenames
-#     # variable == /data2/www/data/adirondack/{filename.csv}
-#     directory = os.listdir(source_dir)
-#     # sFTP PUT moves the COURSES.csv, USERS.csv, ENROLLMENT.csv files
-#     # to the adirondack server
-#     try:
-#         with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
-#             # change directory
-#             sftp.chdir("upload/")
-#             # loop through files in list
-#             for listfile in directory:
-#                 adirondackfiles = source_dir + listfile
-#                 if adirondackfiles.endswith(".csv"):
-#                     # sftp files if they end in .csv
-#                     sftp.put(adirondackfiles, preserve_mtime=True)
-#                 # delete original files from our server
-#                 os.remove(adirondackfiles)
-#             # close sftp connection
-#             sftp.close()
-#     except Exception, e:
-#         SUBJECT = 'ADIRONDACK UPLOAD failed'
-#         BODY = 'Unable to PUT .csv files to adirondack server.\n\n{0}'.format(str(e))
-#         sendmail(
-#             settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
-#             BODY, SUBJECT
-#         )
-
-
-
+def sftp_upload(upload_filename):
+    print("In File Upload")
+    # by adding cnopts, I'm authorizing the program to ignore the
+    # host key and just continue
+    cnopts = pysftp.CnOpts()
+    cnopts.hostkeys = None # ignore known host key checking
+    # sFTP connection information for Adironcack
+    XTRNL_CONNECTION = {
+        'host': settings.ADIRONDACK_HOST,
+        'username': settings.ADIRONDACK_USER,
+        'password': settings.ADIRONDACK_PASS,
+        'port': settings.ADIRONDACK_PORT,
+        'cnopts': cnopts
+    }
+    # set local path {/data2/www/data/adirondack/}
+    source_dir = ('{0}'.format(settings.ADIRONDACK_TXT_OUTPUT))
+    directory = os.listdir(source_dir)
+    # print(directory)
+    try:
+        print("Make Connection")
+        with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
+            # change directory
+            print("Change Directory at SFTP Site")
+            sftp.chdir("test/in/")
+            print(upload_filename)
+            sftp.put(upload_filename, preserve_mtime=True)
+                # delete original files from our server
+                # os.remove(adirondackfiles)
+            # close sftp connection
+            sftp.close()
+    except Exception, e:
+        SUBJECT = 'ADIRONDACK UPLOAD failed'
+        BODY = 'Unable to PUT .txt file to adirondack server.\n\n{0}'.format(str(e))
+        # sendmail(
+        #     settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
+        #     BODY, SUBJECT
+        # )
+        print(BODY)
 
 def main():
 
@@ -153,25 +149,12 @@ def main():
     # without the --test argument
     ##########################################################################
 
-    # set date and time to be added to the filename
-    datestr = datetime.now().strftime("%Y%m%d")
-    print(datestr)
-
-    # set date and time to be added to the archive filename
-    datetimestr = time.strftime("%Y%m%d%H%M%S")
-    print(datetimestr)
-
     # Defines file names and directory location
     adirondackdata = ('{0}carthage_students.txt'.format(
-         settings.ADIRONDACK_CSV_OUTPUT))
-
-    # set archive directory
-    archived_destination = ('{0}carthage_users-{1}.txt'.format(
-        settings.ADIRONDACK_CSV_ARCHIVED, datetimestr
-        ))
+         settings.ADIRONDACK_TXT_OUTPUT))
 
     try:
-        print("try")
+        # print("try")
         # set global variable
         global EARL
         # determines which database is being called from the command line
@@ -184,28 +167,12 @@ def main():
             # below but the argument parser should have taken
             # care of this scenario and we will never arrive here.
             EARL = None
-        #
-        #     # # Archive
-        #     # Check to see if file exists, if not send Email
-        #     if os.path.isfile(adirondackdata) != True:
-        #         # there was no file found on the server
-        #         SUBJECT = '[adirondack Application] failed'
-        #         BODY = "There was no .csv output file to move."
-        #         sendmail(
-        #             settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
-        #             BODY, SUBJECT
-        #         )
-        #         fn_write_error("There was no .csv output file to move.")
-        #     else:
-        #         print("Archive test")
-        #         # rename and move the file to the archive directory
-        #         # shutil.copy(adirondackdata, archived_destination)
-
         #--------------------------
-        # Create the csv file
+        # Create the txt file
         # Write header row
-        # with open(adirondackdata, 'w') as file_out:
-        with open("carthage_students.txt", 'w') as file_out:
+        # print(adirondackdata)
+        with open(adirondackdata, 'w') as file_out:
+        # with open("carthage_students.txt", 'w') as file_out:
             csvWriter = csv.writer(file_out, delimiter='|')
             csvWriter.writerow(
                 ["STUDENT_NUMBER", "FIRST_NAME", "MIDDLE_NAME",
@@ -260,8 +227,6 @@ def main():
                  "CONTACT3_COUNTRY", "TERM", "RACECODE"])
         file_out.close()
 
-        #         # Query CX and start loop through records
-        #
         # print(ADIRONDACK_QUERY)
         engine = get_engine(EARL)  # do_sql calls get engine
         data_result = engine.execute(ADIRONDACK_QUERY)
@@ -271,25 +236,22 @@ def main():
             SUBJECT = '[adirondack Application] failed'
             BODY = "SQL Query returned no data."
             print(SUBJECT)
-
             # sendmail(
             #     settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
             #     BODY, SUBJECT
             # )
         else:
             print("Query successful")
-            # with open(adirondackdata, 'a') as file_out:
-            with open("carthage_students.txt", 'a') as file_out:
+            with open(adirondackdata, 'a') as file_out:
+            # with open("carthage_students.txt", 'a') as file_out:
                 csvWriter = csv.writer(file_out, delimiter='|')
                 encoded_rows = encode_rows_to_utf8(ret)
                 for row in encoded_rows:
                     csvWriter.writerow(row)
             file_out.close()
 
-#         local_file_name = settings.ADIRONDACK_CSV_OUTPUT + 'users.csv'
-
-        # send file to SFTP Site..
-
+            # send file to SFTP Site..
+            sftp_upload(adirondackdata)
 
     except Exception as e:
 
