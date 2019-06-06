@@ -4,13 +4,6 @@ import os
 import sys
 import csv
 import pysftp
-import time
-from time import strftime
-from datetime import datetime
-import awscli
-# import botocore
-# import boto3
-# from botocore.exceptions import ClientError
 import argparse
 import shutil
 import logging
@@ -114,10 +107,6 @@ def sftp_upload(upload_filename):
         'port': settings.ADIRONDACK_PORT,
         'cnopts': cnopts
     }
-    # set local path {/data2/www/data/adirondack/}
-    source_dir = ('{0}'.format(settings.ADIRONDACK_TXT_OUTPUT))
-    directory = os.listdir(source_dir)
-    # print(directory)
     try:
         print("Make Connection")
         with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
