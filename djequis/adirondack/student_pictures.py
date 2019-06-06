@@ -4,9 +4,6 @@ import os
 import sys
 import pysftp
 import pyodbc
-import time
-from time import strftime
-from datetime import datetime
 import argparse
 import shutil
 import logging
@@ -107,12 +104,6 @@ def sftp_upload(upload_file):
         'cnopts': cnopts
     }
 
-    # set local path {/data2/www/data/adirondack/}
-    source_dir = ('{0}'.format(settings.ADIRONDACK_JPG_OUTPUT))
-    # get list of files and set local path and filenames
-    # variable == /data2/www/data/adirondack/{filename.zip}
-    directory = os.listdir(source_dir)
-
     try:
         print("Make Connection")
         with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
@@ -121,8 +112,6 @@ def sftp_upload(upload_file):
             # sftp.chdir("prod/in/studentphotos/")
             sftp.chdir("test/in/")
             sftp.put(upload_file, preserve_mtime=True)
-            # delete original files from our server
-            # os.remove(adirondackfiles)
             # close sftp connection
             sftp.close()
     except Exception, e:
@@ -144,14 +133,6 @@ def main():
     # ==> python student_pictures.py --database=cars
     # without the --test argument
     ##########################################################################
-
-    # set date and time to be added to the filename
-    datestr = datetime.now().strftime("%Y%m%d")
-    # print(datestr)
-
-    # set date and time to be added to the archive filename
-    datetimestr = time.strftime("%Y%m%d%H%M%S")
-    # print(datetimestr)
 
     filepath = settings.ADIRONDACK_JPG_OUTPUT
 
@@ -215,15 +196,25 @@ def main():
             except Exception as e:
                 print("Error getting photo " + e.message)
 
+            # Remove previous file
             if os.path.exists(filepath + "carthage_studentphotos.zip"):
-               os.remove(filepath + "carthage_studentphotos.zip")
+                os.remove(filepath + "carthage_studentphotos.zip")
             # print(filepath)
 
+            # Create zip file
             shutil.make_archive("carthage_studentphotos", 'zip', filepath)
             shutil.move("carthage_studentphotos.zip", filepath)
 
+            # Clean up - remove .jpgs
+            filelist = os.listdir(filepath)
+            for filename in filelist:
+                if filename.endswith('.jpg'):
+                     # print(filepath+filename)
+                     os.remove(filepath+filename)
+
+
             # send file to SFTP Site..
-            sftp_upload(filepath + "carthage_studentphotos.zip")
+            # sftp_upload(filepath + "carthage_studentphotos.zip")
 
     except Exception as e:
 
