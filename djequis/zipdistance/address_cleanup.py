@@ -122,60 +122,82 @@ def main():
         # establish database connection
         engine = get_engine(EARL)
 
+        #  -------------------------------------------------------
+        # 1. Query the database
+        #  -------------------------------------------------------
+        qval_sql = '''select id_rec.id, 
+                trim(id_rec.addr_line1)||' '||trim(nvl(id_rec.addr_line2,
+        		''))||' '||trim(nvl(id_rec.addr_line3,'')) street, 
+        		id_rec.city, id_rec.st, id_rec.zip
+                from id_rec 
+                limit 10'''
+        # print(qval_sql)
+        sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
 
-        # -------------------------------------------------------
-        # Send the CSV via the API to collect the geographic data
-        # -------------------------------------------------------
+        #  -------------------------------------------------------
+        # 2. write results to a csv
+        #  -------------------------------------------------------
+
+        if sql_val is not None:
+            rows = sql_val.fetchall()
+            with open('CXAddresses.csv', 'w') as CXOutput:
+                csvWriter = csv.writer(CXOutput)
+
+                for row in rows:
+                    # print(row)
+                    v_id = row[0]
+                    x = row[1]
+                    rslt = fn_fix_unit(row[1])
+                    v_street = rslt[0]
+                    v_unit = rslt[1]
+                    v_city = row[2]
+                    v_state = row[3]
+                    v_zip = row[4]
+                    # csvWriter.writerow(v_id, v_fullmane, v_street, v_city, v_state, v_zip)
+                    # print('CX Address = ' + str(v_id) + ", " + v_street + ", " +
+                    #       v_unit + ", " + v_city + ', ' + v_state + ', ' +
+                    #       v_zip)
+                    csvWriter.writerow(row)
+            CXOutput.close()
+        #  -------------------------------------------------------
+        # 3. Send the csv to Geocode
+        #  -------------------------------------------------------
         url = 'https://geocoding.geo.census.gov/geocoder/geographies/addressbatch?form'
         payload = {'benchmark': 'Public_AR_Current',
                    'vintage': 'Current_Current'}
-        files = {'addressFile': ('Addresses.csv', open('Addresses.csv', 'rb'), 'text/csv')}
+        files = {'addressFile': ('CXAddresses.csv', open('CXAddresses.csv', 'rb'), 'text/csv')}
         r = requests.post(url, files=files, data=payload)
 
         results = str(r.text)
         results = results.replace('"', '')
         results = results.split('\n')
-        # print(results)
+        print(results)
+
+        #  -------------------------------------------------------
+        # 4. Write the results to second csv
+        #  -------------------------------------------------------
         with open('geocodeOutput.csv', 'w') as geocodeOutput:
             w = csv.writer(geocodeOutput, delimiter=',', quotechar='"',
                            quoting=csv.QUOTE_MINIMAL)
             w.writerows([c.strip() for c in r.split(',')] for r in results)
+        geocodeOutput.close()
+
+        #  -------------------------------------------------------
+        # 5. Read the new csv
+        #  -------------------------------------------------------
+        
+        #  -------------------------------------------------------
+        # 6. Update CX as needed
+        #  -------------------------------------------------------
+
+
+        # -------------------------------------------------------
+        # Send the CSV via the API to collect the geographic data
+        # -------------------------------------------------------
 
         # -------------------------------------------------------
         # Read the return Census CSV for update of our data
         # -------------------------------------------------------
-
-        qval_sql = '''select id_rec.id, id_rec.fullname, 
-        		trim(id_rec.addr_line1)||' '||trim(nvl(id_rec.addr_line2,
-        		''))||' '||trim(nvl(id_rec.addr_line3,'')) street, 
-        		id_rec.city, id_rec.st, id_rec.zip, profile_rec.res_st, 
-        		profile_rec.res_cty, profile_rec.birth_date
-                from id_rec 
-                join profile_rec on id_rec.id = profile_rec.id
-                limit 100'''
-
-        # print(qval_sql)
-
-        sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
-
-        if sql_val is not None:
-            rows = sql_val.fetchall()
-            for row in rows:
-                v_id = row[0]
-                # v_street = row[2]
-                # v_street = str(row[2].split(', ')[0])
-
-                # Need something to screen out apt or lot numbers
-                # Not used in geocode
-                rslt = fn_fix_unit(row[2])
-                v_street = rslt[0]
-                v_unit = rslt[1]
-                v_city = row[3]
-                v_state = row[4]
-                v_zip = row[5]
-                v_bdate = row[8]
-                print('CX Address = ' + str(
-                    v_street) + ", " + v_city + ', ' + v_state + ' ' + v_zip)
 
                 # print("ID = " + row[0])
                 # if row[0] == '':
