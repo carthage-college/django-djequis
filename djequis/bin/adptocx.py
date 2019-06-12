@@ -2,6 +2,7 @@ import os
 import sys
 import pysftp
 import csv
+import warnings
 from datetime import datetime
 import codecs
 import time
@@ -73,6 +74,10 @@ parser.add_argument(
     help="database name.",
     dest="database"
 )
+
+# This is a hack to get rid of a warning message paramico, cryptography
+warnings.filterwarnings(action='ignore',module='.*paramiko.*')
+
 
 #sFTP fetch (GET) downloads the file from ADP file from server
 def file_download():
@@ -181,7 +186,8 @@ def main():
         # execute sftp code that needs to be executed in production only
         #################################################################
         # if not test:
-            # file_download()
+        #     file_download()
+
 
         #################################################################
         # STEP 1--

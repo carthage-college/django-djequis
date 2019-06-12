@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-import csv
 import pysftp
+import pyodbc
 import argparse
 import shutil
 import logging
 from logging.handlers import SMTPHandler
-
+# importing required modules
+from zipfile import ZipFile
 # django settings for shell environment
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 
@@ -24,7 +25,10 @@ from djzbar.utils.informix import get_engine
 from djtools.fields import TODAY
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
+from djzbar.settings import MSSQL_LENEL_EARL
 from adirondack_sql import ADIRONDACK_QUERY
+from picture_sql import PICTURE_ID_QUERY
+from picture_sql import LENEL_PICTURE_QUERY
 
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
@@ -41,7 +45,7 @@ DEBUG = settings.INFORMIX_DEBUG
 
 # set up command-line options
 desc = """
-    Collect adirondack data for import
+    Collect adirondack pictures for import
 """
 parser = argparse.ArgumentParser(description=desc)
 
@@ -79,22 +83,14 @@ def fn_clear_logger():
     logging.shutdown()
     return("Clear Logger")
 
-def encode_rows_to_utf8(rows):
-    encoded_rows = []
-    for row in rows:
-        try:
-            encoded_row = []
-            for value in row:
-                if isinstance(value, basestring):
-                    value = value.decode('cp1252').encode("utf-8")
-                encoded_row.append(value)
-            encoded_rows.append(encoded_row)
-        except Exception as e:
-            fn_write_error("Error in encoded_rows routine " + e.message)
-    return encoded_rows
+def write_file(data, filename):
+    with open(filename, 'wb') as f:
+        f.write(data)
 
-def sftp_upload(upload_filename):
+
+def sftp_upload(upload_file):
     print("In File Upload")
+    print(upload_file)
     # by adding cnopts, I'm authorizing the program to ignore the
     # host key and just continue
     cnopts = pysftp.CnOpts()
@@ -107,43 +103,40 @@ def sftp_upload(upload_filename):
         'port': settings.ADIRONDACK_PORT,
         'cnopts': cnopts
     }
+
     try:
         print("Make Connection")
         with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
             # change directory
             print("Change Directory at SFTP Site")
+            # sftp.chdir("prod/in/studentphotos/")
             sftp.chdir("test/in/")
-            print(upload_filename)
-            sftp.put(upload_filename, preserve_mtime=True)
-                # delete original files from our server
-                # os.remove(adirondackfiles)
+            sftp.put(upload_file, preserve_mtime=True)
             # close sftp connection
             sftp.close()
     except Exception, e:
         SUBJECT = 'ADIRONDACK UPLOAD failed'
-        BODY = 'Unable to PUT .txt file to adirondack server.\n\n{0}'.format(str(e))
+        BODY = 'Unable to PUT .zip file to adirondack server.\n\n{0}'.format(str(e))
         # sendmail(
         #     settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
         #     BODY, SUBJECT
         # )
         print(BODY)
 
+
 def main():
 
     ##########################################################################
     # development server (bng), you would execute:
-    # ==> python buildcsv.py --database=train --test
+    # ==> python student_pictures.py --database=train --test
     # production server (psm), you would execute:
-    # ==> python buildcsv.py --database=cars
+    # ==> python student_pictures.py --database=cars
     # without the --test argument
     ##########################################################################
 
-    # Defines file names and directory location
-    adirondackdata = ('{0}carthage_students.txt'.format(
-         settings.ADIRONDACK_TXT_OUTPUT))
+    filepath = settings.ADIRONDACK_JPG_OUTPUT
 
     try:
-        # print("try")
         # set global variable
         global EARL
         # determines which database is being called from the command line
@@ -156,72 +149,13 @@ def main():
             # below but the argument parser should have taken
             # care of this scenario and we will never arrive here.
             EARL = None
-        #--------------------------
-        # Create the txt file
-        # Write header row
-        # print(adirondackdata)
-        with open(adirondackdata, 'w') as file_out:
-        # with open("carthage_students.txt", 'w') as file_out:
-            csvWriter = csv.writer(file_out, delimiter='|')
-            csvWriter.writerow(
-                ["STUDENT_NUMBER", "FIRST_NAME", "MIDDLE_NAME",
-                 "LAST_NAME", "DATE_OF_BIRTH", "GENDER",
-                 "IDENTIFIED_GENDER",  "PREFERRED_NAME",
-                 "PERSON_TYPE", "PRIVACY_INDICATOR",  "ADDITIONAL_ID1",
-                 "ADDITIONAL_ID2",
-                 "CLASS_STATUS", "STUDENT_STATUS", "CLASS_YEAR", "MAJOR",
-                 "CREDITS_SEMESTER",
-                 "CREDITS_CUMULATIVE", "GPA", "MOBILE_PHONE",
-                 "MOBILE_PHONE_CARRIER", "OPT_OUT_OF_TEXT",
-                 "CAMPUS_EMAIL", "PERSONAL_EMAIL", "PHOTO_FILE_NAME",
-                 "PERM_PO_BOX",
-                 "PERM_PO_BOX_COMBO", "ADMIT_TERM", "STUDENT_ATHLETE",
-                 "ETHNICITY", "ADDRESS1_TYPE", "ADDRESS1_STREET_LINE_1",
-                 "ADDRESS1_STREET_LINE_2", "ADDRESS1_STREET_LINE_3",
-                 "ADDRESS1_STREET_LINE_4", "ADDRESS1_CITY",
-                 "ADDRESS1_STATE_NAME", "ADDRESS1_ZIP", "ADDRESS1_COUNTRY",
-                 "ADDRESS1_PHONE",
-                 "ADDRESS2_TYPE", "ADDRESS2_STREET_LINE_1",
-                 "ADDRESS2_STREET_LINE_2", "ADDRESS2_STREET_LINE_3",
-                 "ADDRESS2_STREET_LINE_4", "ADDRESS2_CITY",
-                 "ADDRESS2_STATE_NAME", "ADDRESS2_ZIP", "ADDRESS2_COUNTRY",
-                 "ADDRESS2_PHONE",
-                 "ADDRESS3_TYPE", "ADDRESS3_STREET_LINE_1",
-                 "ADDRESS3_STREET_LINE_2", "ADDRESS3_STREET_LINE_3",
-                 "ADDRESS3_STREET_LINE_4", "ADDRESS3_CITY",
-                 "ADDRESS3_STATE_NAME", "ADDRESS3_ZIP", "ADDRESS3_COUNTRY",
-                 "ADDRESS3_PHONE",
-                 "CONTACT1_TYPE", "CONTACT1_NAME",
-                 "CONTACT1_RELATIONSHIP",
-                 "CONTACT1_HOME_PHONE",
-                 "CONTACT1_WORK_PHONE",
-                 "CONTACT1_MOBILE_PHONE",
-                 "CONTACT1_EMAIL",
-                 "CONTACT1_STREET",
-                 "CONTACT1_STREET2",
-                 "CONTACT1_CITY",
-                 "CONTACT1_STATE",
-                 "CONTACT1_ZIP",
-                 "CONTACT1_COUNTRY",
-                 "CONTACT2_TYPE", "CONTACT2_NAME",
-                 "CONTACT2_RELATIONSHIP", "CONTACT2_HOME_PHONE",
-                 "CONTACT2_WORK_PHONE", "CONTACT2_MOBILE_PHONE",
-                 "CONTACT2_EMAIL", "CONTACT2_STREET", "CONTACT2_STREET2",
-                 "CONTACT2_CITY", "CONTACT2_STATE", "CONTACT2_ZIP",
-                 "CONTACT2_COUNTRY", "CONTACT3_TYPE", "CONTACT3_NAME",
-                 "CONTACT3_RELATIONSHIP", "CONTACT3_HOME_PHONE",
-                 "CONTACT3_WORK_PHONE", "CONTACT3_MOBILE_PHONE",
-                 "CONTACT3_EMAIL", "CONTACT3_STREET", "CONTACT3_STREET2",
-                 "CONTACT3_CITY", "CONTACT3_STATE", "CONTACT3_ZIP",
-                 "CONTACT3_COUNTRY", "TERM", "RACECODE"])
-        file_out.close()
 
-        # print(ADIRONDACK_QUERY)
+        # print(PICTURE_ID_QUERY)
         engine = get_engine(EARL)  # do_sql calls get engine
-        data_result = engine.execute(ADIRONDACK_QUERY)
+        data_result = engine.execute(PICTURE_ID_QUERY)
 
-        ret = list(data_result.fetchall())
-        if ret is None:
+        retID = list(data_result.fetchall())
+        if retID is None:
             SUBJECT = '[adirondack Application] failed'
             BODY = "SQL Query returned no data."
             print(SUBJECT)
@@ -230,25 +164,67 @@ def main():
             #     BODY, SUBJECT
             # )
         else:
-            print("Query successful")
-            with open(adirondackdata, 'a') as file_out:
-            # with open("carthage_students.txt", 'a') as file_out:
-                csvWriter = csv.writer(file_out, delimiter='|')
-                encoded_rows = encode_rows_to_utf8(ret)
-                for row in encoded_rows:
-                    csvWriter.writerow(row)
-            file_out.close()
+            print("Query 1 successful")
+            try:
+
+                for row in retID:
+                    LENEL_PICTURE_ARG = row[0]
+                    # print("Query = " + LENEL_PICTURE_QUERY)
+                    # print("ARG = " + LENEL_PICTURE_ARG)
+                    try:
+                        # query blob data form the authors table
+                        conn = pyodbc.connect(MSSQL_LENEL_EARL)
+                        result = conn.execute(LENEL_PICTURE_QUERY.format(LENEL_PICTURE_ARG))
+
+                        for row1 in result:
+                            photo = row1[0]
+                            filename = str(LENEL_PICTURE_ARG) + ".jpg"
+                            # write blob data into a file
+                            write_file(photo, filepath + "/" + filename)
+                        result.close()
+
+                    except ValueError:
+                        print("Value Error getting photo")
+                    except TypeError:
+                        print("Type Error getting photo")
+                    except Exception as e:
+                        if e.__class__ == 'pyodbc.DataError':
+                            pass
+                    finally:
+                        conn.close()
+
+            except Exception as e:
+                print("Error getting photo " + e.message)
+
+            # Remove previous file
+            if os.path.exists(filepath + "carthage_studentphotos.zip"):
+                os.remove(filepath + "carthage_studentphotos.zip")
+            # print(filepath)
+
+            # Create zip file
+            shutil.make_archive("carthage_studentphotos", 'zip', filepath)
+            shutil.move("carthage_studentphotos.zip", filepath)
+
+            # Clean up - remove .jpgs
+            filelist = os.listdir(filepath)
+            for filename in filelist:
+                if filename.endswith('.jpg'):
+                     # print(filepath+filename)
+                     os.remove(filepath+filename)
+
 
             # send file to SFTP Site..
-            sftp_upload(adirondackdata)
+            # sftp_upload(filepath + "carthage_studentphotos.zip")
 
     except Exception as e:
 
-        fn_write_error("Error in adirondack buildcsv.py, Error = " + e.message)
+        # fn_write_error("Error in adirondack buildcsv.py, Error = " + e.message)
         SUBJECT = '[adirondack Application] Error'
         BODY = "Error in adirondack buildcsv.py, Error = " + e.message
-        sendmail(settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
-            BODY, SUBJECT)
+        # sendmail(settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
+        #     BODY, SUBJECT)
+        print(SUBJECT, BODY)
+
 
 if __name__ == "__main__":
     args = parser.parse_args()
