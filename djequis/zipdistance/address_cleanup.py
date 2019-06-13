@@ -5,6 +5,8 @@ import csv
 import argparse
 import string
 import json
+import time
+from datetime import datetime, timedelta
 from math import sin, cos, sqrt, atan2, radians
 
 
@@ -65,6 +67,25 @@ parser.add_argument(
     help="database name.",
     dest="database"
 )
+
+
+def update_id(addr1, addr2,  addr3, city, state, zp, id, engine):
+    idrec_sql = "UPDATE id_rec SET addr_line1 = ?, addr_line2 = ?, " \
+                "addr_line3 = ?, city = ?, st = ?, zip = ?, " \
+                "WHERE id = ?"
+    idrec_args = (addr1, addr2,  addr3, city, state, zp,  id)
+    print(idrec_sql, idrec_args)
+    engine.execute(idrec_sql, idrec_args)
+
+
+def update_profile(state,  city, id, engine):
+    # this will add the proper county and state codes
+    profile_sql = "UPDATE profile_rec SET res_st = ?, res_cty = ? " \
+                  "WHERE id = ?"
+    # profile_args = (str(row[15]), str(row[16]), row[0])
+    profile_args = (state, city, id)
+    print(profile_sql, profile_args)
+    engine.execute(profile_sql, profile_args)
 
 
 def fn_fix_unit(addr):
@@ -130,8 +151,9 @@ def main():
         		''))||' '||trim(nvl(id_rec.addr_line3,'')) street, 
         		id_rec.city, id_rec.st, id_rec.zip
                 from id_rec 
-                limit 10'''
+                limit 3'''
         # print(qval_sql)
+        # NOTE:  Max batch is 10,000 records
         sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
 
         #  -------------------------------------------------------
@@ -162,6 +184,8 @@ def main():
         #  -------------------------------------------------------
         # 3. Send the csv to Geocode
         #  -------------------------------------------------------
+        sendtime = datetime.now()
+        print("Time of send = " + time.strftime("%Y%m%d%H%M%S"))
         url = 'https://geocoding.geo.census.gov/geocoder/geographies/addressbatch?form'
         payload = {'benchmark': 'Public_AR_Current',
                    'vintage': 'Current_Current'}
@@ -171,7 +195,12 @@ def main():
         results = str(r.text)
         results = results.replace('"', '')
         results = results.split('\n')
-        print(results)
+        print("Time of return = " + time.strftime("%Y%m%d%H%M%S"))
+        returntime = datetime.now()
+        diff = returntime - sendtime
+        print("Elapsed time: " + str(diff))
+
+        # print(results)
 
         #  -------------------------------------------------------
         # 4. Write the results to second csv
@@ -185,70 +214,81 @@ def main():
         #  -------------------------------------------------------
         # 5. Read the new csv
         #  -------------------------------------------------------
-        
+        with open('geocodeOutput.csv', 'r') as data:
+            read_csv = csv.reader(data, delimiter=',')
+            for row_count, row in enumerate(read_csv):
+                print("\n" + "Row count = " + str(row_count + 1))
+                print("ID = " + row[0])
+                if row[0] == '':
+                    # could essentially do nothing
+                    print("NO Record at row " + str(row_count + 1))
+                elif row[5] == 'No_Match':
+                    print("Match = " + row[5])
+                    original_address = row[1] + ", " + row[2] + ", " + row[
+                        3] + ", " + row[4]
+                    print("Original Address = " + original_address)
+                    print("FIPS State and Zip Undetermined")
+
+                elif row[6] == "Non_Exact":
+                    print("Match = " + row[5] + " " + row[6])
+                    original_address = row[1] + ", " + row[2] + ", " + row[
+                        3] + ", " + row[4]
+                    print("Original Address = " + original_address)
+                    correct_address = row[7] + ", " + row[8] + ", " + row[
+                        9] + ", " + row[10]
+                    print("Partial Match = " + correct_address)
+                    coordinates = str(row[12] + ", " + str(row[11]))
+                    print("Latitude and Longitude = " + str(coordinates))
+                    FIPS = str(row[15]) + "-" + str(row[16])
+                    print("FIPS State and Zip = " + FIPS)
+                    print("Distance from Carthage = " + str(
+                        fn_calc_distance(row[11], row[12])))
+
+                    # update_id(str(row[7]), '', '', str(row[8]), str(row[9]),
+                    #           str(row[10]), str(row[0]), engine)
+                    #
+                    # update_profile(str(row[15]), str(row[16]), row[0], engine)
+
+                else:
+                    print("Match = " + row[5] + " " + row[6])
+                    original_address = row[1] + ", " + row[2] + ", " + row[
+                        3] + ", " + row[4]
+                    print(original_address)
+                    correct_address = row[7] + ", " + row[8] + ", " + row[
+                        9] + ", " + row[10]
+                    print(correct_address)
+                    coordinates = str(row[12] + ", " + str(row[11]))
+                    print("Latitude and Longitude = " + str(coordinates))
+                    FIPS = str(row[15]) + "-" + str(row[16])
+                    print("FIPS State and Zip = " + FIPS)
+                    print("Distance from Carthage = " + str(
+                        fn_calc_distance(row[11], row[12])))
+
+                    # def update_id(addr1, addr2, addr3, city, state, zp, id):
+
+                    #           str(row[10]), str(row[0]), engine)
+                    # update_profile(str(row[15]), str(row[16]), row[0], engine)
+
         #  -------------------------------------------------------
         # 6. Update CX as needed
         #  -------------------------------------------------------
+        # update_profile(str(row[15]), str(row[16]), row[0])
+        #
+        # profile_sql = "UPDATE profile_rec SET res_st = ?, res_cty = ?
+        # WHERE id = ?"
+        # profile_args = (str(row[15]), str(row[16]), row[0])
+        # # print(profile_sql, profile_args)
+        # engine.execute(profile_sql, profile_args)
+
+        # Question remains as to what else we will update
+        # Will we correct address in ID rec?
+        # Do we care about addresses in AA rec for this purpose?
 
 
-        # -------------------------------------------------------
-        # Send the CSV via the API to collect the geographic data
-        # -------------------------------------------------------
-
-        # -------------------------------------------------------
-        # Read the return Census CSV for update of our data
-        # -------------------------------------------------------
-
-                # print("ID = " + row[0])
-                # if row[0] == '':
-                #     # could essentially do nothing
-                #     print("NO Record at row " + str(row_count + 1))
-                # elif row[5] == 'No_Match':
-                #     print("Match = " + row[5])
-                #     original_address = row[1] + ", " + row[2] + ", " + row[3] + ", " + row[4]
-                #     print("Original Address = " + original_address)
-                #     print("FIPS State and Zip Undetermined")
-                #
-                # elif row[6] == "Non_Exact":
-                #     print("Match = " + row[5] + " " + row[6])
-                #     original_address = row[1] + ", " + row[2] + ", " + row[3] + ", " + row[4]
-                #     print("Original Address = " + original_address)
-                #     correct_address = row[7] + ", " + row[8] + ", " + row[9] + ", " + row[10]
-                #     print("Partial Match = " + correct_address)
-                #     coordinates = str(row[12] + ", " + str(row[11]))
-                #     print("Latitude and Longitude = " + str(coordinates))
-                #     FIPS = str(row[15]) + "-" + str(row[16])
-                #     print("FIPS State and Zip = " + FIPS)
-                #     print("Distance from Carthage = " + str(fn_calc_distance(row[11],row[12])))
-                #
-                # else:
-                #     print("Match = " + row[5] + " " + row[6])
-                #     original_address = row[1] + ", " + row[2] + ", " + row[3] + ", " + row[4]
-                #     print(original_address)
-                #     correct_address = row[7] + ", " + row[8] + ", " + row[9] + ", " + row[10]
-                #     print(correct_address)
-                #     coordinates = str(row[12] + ", " + str(row[11]))
-                #     print("Latitude and Longitude = " + str(coordinates))
-                #     FIPS = str(row[15]) + "-" + str(row[16])
-                #     print("FIPS State and Zip = " + FIPS)
-                #     print("Distance from Carthage = " + str(fn_calc_distance(row[11],row[12])))
-                #
-                #     # Return file is also a csv, so no JSON
-                #     # Loop through csv, update tables as needed
-                #
 
 
-                # -------------------------------------------------------
-                # Finally, update the particular CX tables
-                # -------------------------------------------------------
-                # profile_sql = "UPDATE profile_rec SET res_st = ?, res_cty = ? WHERE id = ?"
-                # profile_args = (str(row[15]), str(row[16]), row[0])
-                # # print(profile_sql, profile_args)
-                # engine.execute(profile_sql, profile_args)
 
-                # Question remains as to what else we will update
-                # Will we correct address in ID rec?
-                # Do we care about addresses in AA rec for this purpose?
+
 
     except Exception as e:
         # fn_write_error("Error in zip_distance.py for zip, Error = " + e.message)
