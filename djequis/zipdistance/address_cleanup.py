@@ -77,9 +77,9 @@ def update_id(addr1, addr2,  addr3, city, state, zp, id, engine):
                 "cass_cert_date = TODAY " \
                 "WHERE id = ?"
     idrec_args = (addr1, addr2,  addr3, city, state, zp,  id)
-    print(idrec_sql, idrec_args)
+    # print(idrec_sql, idrec_args)
     # print(engine)
-    engine.execute(idrec_sql, idrec_args)
+    # engine.execute(idrec_sql, idrec_args)
 
 
 
@@ -91,8 +91,8 @@ def update_profile(state,  city, id, engine):
                   "WHERE id = ?"
     # profile_args = (str(row[15]), str(row[16]), row[0])
     profile_args = (state, city, id)
-    print(profile_sql, profile_args)
-    engine.execute(profile_sql, profile_args)
+    # print(profile_sql, profile_args)
+    # engine.execute(profile_sql, profile_args)
 
 
 def fn_fix_unit(addr):
@@ -153,6 +153,8 @@ def main():
 
         #  -------------------------------------------------------
         # 1. Query the database
+        # 10,000 record batch is the maximum.   It would return typically in
+        # around 20 minutes.  First test, 24:36
         #  -------------------------------------------------------
         # Use the cass_cert_date to mark records that have been validated
         qval_sql = '''select id_rec.id, 
@@ -235,6 +237,11 @@ def main():
                     original_address = ''
                     # could essentially do nothing
                     # print("NO Record at row " + str(row_count + 1))
+                if str(row).find('--BadAddr--') > 0:
+                    original_address = str(row)
+                    raise ValueError("Bad Address: " + original_address)
+                    # could essentially do nothing
+                    # print("NO Record at row " + str(row_count + 1))
                 elif row[5] == 'No_Match':
                     # print("Match = " + row[5])
                     original_address = row[1] + ", " + row[2] + ", " + row[
@@ -246,65 +253,54 @@ def main():
                     # print("Match = " + row[5] + " " + row[6])
                     original_address = row[1] + ", " + row[2] + ", " + row[
                         3] + ", " + row[4]
-                    print("Original Address = " + original_address)
+                    # print("Original Address = " + original_address)
                     correct_address = row[7] + ", " + row[8] + ", " + row[
                         9] + ", " + row[10]
-                    print("Partial Match = " + correct_address)
-                    coordinates = str(row[12] + ", " + str(row[11]))
+                    # print("Partial Match = " + correct_address)
+                    # coordinates = str(row[12] + ", " + str(row[11]))
                     # print("Latitude and Longitude = " + str(coordinates))
                     FIPS = str(row[15]) + "-" + str(row[16])
                     # print("FIPS State and Zip = " + FIPS)
                     # print("Distance from Carthage = " + str(
                     #     fn_calc_distance(row[11], row[12])))
 
-                    update_id(str(row[7]), '', '', str(row[8]), str(row[9]),
-                              str(row[10]), str(row[0]), engine)
-
-                    update_profile(str(row[15]), str(row[16]), row[0], engine)
+                    # update_id(str(row[7]), '', '', str(row[8]), str(row[9]),
+                    #           str(row[10]), str(row[0]), engine)
+                    #
+                    # update_profile(str(row[15]), str(row[16]), row[0], engine)
 
                 else:
                     # print("Match = " + row[5] + " " + row[6])
                     original_address = row[1] + ", " + row[2] + ", " + row[
                         3] + ", " + row[4]
-                    print(original_address)
+                    # print(original_address)
                     correct_address = row[7] + ", " + row[8] + ", " + row[
                         9] + ", " + row[10]
-                    print(correct_address)
-                    coordinates = str(row[12] + ", " + str(row[11]))
+                    # print(correct_address)
+                    # coordinates = str(row[12] + ", " + str(row[11]))
                     # print("Latitude and Longitude = " + str(coordinates))
                     FIPS = str(row[15]) + "-" + str(row[16])
                     # print("FIPS State and Zip = " + FIPS)
                     # print("Distance from Carthage = " + str(
                     #     fn_calc_distance(row[11], row[12])))
 
-                    update_id(str(row[7]), '', '', str(row[8]), str(row[9]),
-                              str(row[10]), str(row[0]), engine)
+                    #  -------------------------------------------------------
+                    # 6. Update CX as needed
+                    #  -------------------------------------------------------
+                    # update_id(str(row[7]), '', '', str(row[8]), str(row[9]),
+                    #           str(row[10]), str(row[0]), engine)
+                    #
+                    # update_profile(str(row[15]), str(row[16]), row[0], engine)
 
-                    update_profile(str(row[15]), str(row[16]), row[0], engine)
-
-        #  -------------------------------------------------------
-        # 6. Update CX as needed
-        #  -------------------------------------------------------
-        # update_profile(str(row[15]), str(row[16]), row[0])
-        #
-        # profile_sql = "UPDATE profile_rec SET res_st = ?, res_cty = ?
-        # WHERE id = ?"
-        # profile_args = (str(row[15]), str(row[16]), row[0])
-        # # print(profile_sql, profile_args)
-        # engine.execute(profile_sql, profile_args)
 
         # Question remains as to what else we will update
         # Will we correct address in ID rec?
         # Do we care about addresses in AA rec for this purpose?
 
-
-
-
-
-
-
+    except ValueError as e:
+        print(e.args)
+        pass
     except Exception as e:
-        # fn_write_error("Error in zip_distance.py for zip, Error = " + e.message)
         print("Error = " + e.message)
         # finally:
         #     logging.shutdown()
