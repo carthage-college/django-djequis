@@ -203,6 +203,10 @@ def main():
                           where id = {0}'''.format(carthid)
             print(q_validate_stuserv_rec)
 
+            if action == 'A':
+                print("Add")
+            else:
+                print("Remove")
 
 
 
