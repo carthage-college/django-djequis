@@ -2,6 +2,7 @@ import os
 import sys
 import pysftp
 import csv
+import codecs
 import warnings
 from datetime import datetime
 import codecs
@@ -190,14 +191,194 @@ def main():
         # execute sftp code that needs to be executed in production only
         #################################################################
         # if not test:
-        file_download()
+        # file_download()
 
         #################################################################
         # STEP 1--
         # Read files and write out differences
         #################################################################
+        cxview = "adptocxview.csv"
 
-        # Need to delete the differences file to start fresh
+        csv.register_dialect('myDialect',
+                             quoting=csv.QUOTE_ALL,
+                             skipinitialspace=True)
+        with open(cxview, 'wb') as file_out:
+            # Write header row
+            csvWriter = csv.writer(file_out, dialect='myDialect')
+            csvWriter.writerow(
+                ["File Number","Carthage ID #","Last Name","First Name",
+                 "Middle Name","Salutation","Payroll Name","Preferred Name",
+                 "Birth Date","Gender","Marital Status Code","Race Code",
+                 "Race Description","Ethnicity","Ethnicity/Race ID Method",
+                 "Personal Contact: Personal Email",
+                 "Primary Address: Address Line 1",
+                 "Primary Address: Address Line 2",
+                 "Primary Address: Address Line 3","Primary Address: City",
+                 "Primary Address: State / Territory Code",
+                 "Primary Address: State / Territory Description",
+                 "Primary Address: Zip / Postal Code",
+                 "Primary Address: County","Primary Address: Country",
+                 "Primary Address: Country Code",
+                 "Primary Address: Use as Legal / Preferred Address",
+                 "Personal Contact: Home Phone",
+                 "Personal Contact: Personal Mobile",
+                 "Work Phone","Work Contact: Work Phone",
+                 "Work Contact: Work Email",
+                 "Work Contact: Use Work Email for Notification",
+                 "Legal / Preferred Address: Address Line 1",
+                 "Legal / Preferred Address: Address Line 2",
+                 "Legal / Preferred Address: Address Line 3",
+                 "Legal / Preferred Address: City",
+                 "Legal / Preferred Address: State / Territory Code",
+                 "Legal / Preferred Address: State / Territory Description",
+                 "Legal / Preferred Address: Zip / Postal Code",
+                 "Legal / Preferred Address: County",
+                 "Legal / Preferred Address: Country",
+                 "Legal / Preferred Address: Country Code",
+                 "Tax ID (SSN)","Hire Date","Hire Date/Rehire Date",
+                 "Rehire Date","Position Start Date","Position Effective Date",
+                 "Position Effective End Date","Termination Date",
+                 "Position Status","Status Effective Date",
+                 "Status Effective End Date","Adjusted Service Date",
+                 "Archived Employee","Position ID","Primary Position",
+                 "Payroll Company Code","Payroll Company Name","CIP Code",
+                 "Worker Category Code","Worker Category Description",
+                 "Job Title Code","Job Title Description",
+                 "Home Cost Number Code","Home Cost Number Description",
+                 "Job Class Code","Job Class Description","Job Description",
+                 "Job Function Code","Job Function Description","Room Number",
+                 "Location Code","Location Description",
+                 "Leave of Absence Start Date","Leave of Absence Return Date",
+                 "Home Department Code","Home Department Description",
+                 "Supervisor ID","Supervisor First Name",
+                 "Supervisor Last Name","Business Unit Code",
+                 "Business Unit Description","Reports To Name",
+                 "Reports To Position ID","Reports To Associate ID",
+                 "Associate ID","This is a Management position",
+                 "Supervisor Position","Directory Job Title"])
+        file_out.close()
+
+        cx_view_sql = '''SELECT
+            file_no, carthage_id, lastname, firstname, middlename, salutation, fullname, 
+            pref_name, to_char(birth_date, '%m/%d/%Y') birth_date, 
+            CASE 
+                WHEN gender = 'F' THEN 'Female'
+                WHEN gender = 'M' THEN 'Male'
+                ELSE ''
+                END as gender,
+            marital_status, 
+            CASE 
+                WHEN race = 'WH' THEN '1' 
+                WHEN race = 'BL' THEN '2' 
+                WHEN race = 'AS' THEN '4' 
+                WHEN race = 'AM' THEN '5' 
+                WHEN race = 'AP' THEN '6' 
+                WHEN race = 'MU' THEN '9' 
+                ELSE ''
+                END as RaceCode,
+            race_descr, 
+            CASE 
+                when hispanic = 'Y' THEN 'Hispanic or Latino'
+                when hispanic = 'N' THEN 'Not Hispanic or Latino'
+                ELSE ''
+                END
+            hispanic, 
+            race_id_method, personal_email, primary_addr_line1, primary_addr_line2, 
+            primary_addr_line3, primary_addr_city, primary_addr_st, primary_addr_state, 
+            primary_addr_zip, primary_addr_county, primary_addr_country, 
+            primary_addr_country_code, 
+            CASE 
+                when primary_addr_as_legal = 'Y' THEN 'Yes'
+                when primary_addr_as_legal = 'N' THEN 'No'
+                ELSE ''
+                END
+            primary_addr_as_legal, 
+            CASE
+                WHEN trim(home_phone) != '' 
+                THEN '('||SUBSTR(home_phone, 1, 3)||') '||SUBSTR(home_phone, 5, 3)||'-'||SUBSTR(home_phone, 9, 4)
+                ELSE '' 
+                END home_phone, 
+            CASE
+                WHEN trim(cell_phone) != '' 
+                THEN '('||SUBSTR(cell_phone, 1, 3)||') '||SUBSTR(cell_phone, 5, 3)||'-'||SUBSTR(cell_phone, 9, 4)
+                ELSE '' 
+                END cell_phone, 
+            CASE
+                WHEN trim(work_phone) != '' 
+                THEN '('||SUBSTR(work_phone, 1, 3)||') '||SUBSTR(work_phone, 5, 3)||'-'||SUBSTR(work_phone, 9, 4)
+                ELSE '' 
+                END work_phone, 
+            CASE
+                WHEN trim(work_contact_phone) != '' 
+                THEN '('||SUBSTR(work_contact_phone, 1, 3)||') '||SUBSTR(work_contact_phone, 5, 3)||'-'||SUBSTR(work_contact_phone, 9, 4)
+                ELSE '' 
+                END work_contact_phone, 
+            work_contact_email, 
+            CASE WHEN work_contact_notification = 'Y' THEN 'Yes'
+    		    ELSE 'No'
+		        END work_contact_notification,		
+		    legal_addr_line1, legal_addr_line2, 
+            legal_addr_line3, legal_addr_city, legal_addr_st, legal_addr_state, 
+            legal_addr_zip, legal_addr_county, legal_addr_country, 
+            legal_addr_country_code, ssn, 
+            to_char(hire_date, '%m/%d/%Y') hire_date, 
+            to_char(hire_rehire_date, '%m/%d/%Y') hire_rehire_date, 
+            to_char(rehire_date, '%m/%d/%Y') rehire_date, 
+            to_char(position_start_date, '%m/%d/%Y') position_start_date, 
+            to_char(position_effective_date, '%m/%d/%Y') position_effective_date, 
+            to_char(position_effective_end_date, '%m/%d/%Y') position_effective_end_date, 
+            to_char(termination_date, '%m/%d/%Y') terimination_date, 
+            position_status, 
+            to_char(status_effective_date, '%m/%d/%Y') status_effective_date, 
+            to_char(status_effective_end_date, '%m/%d/%Y') status_effective_end_date, 
+            to_char(adjusted_service_date, '%m/%d/%Y') adjusted_service_date, 
+            archived_employee, 
+            position_id, primary_position, payroll_company_code, payroll_company_name, 
+            cip_code, worker_category_code, worker_category_descr, job_title_code, 
+            job_title_descr, home_cost_number_code, home_cost_number_descr, 
+            job_class_code, job_class_descr, job_descr, job_function_code, 
+            job_function_descr, room, bldg, bldg_name, 
+            to_char(leave_of_absence_start_date, '%m/%d/%Y') leave_of_absence_start_date, 
+            to_char(leave_of_absence_return_date, '%m/%d/%Y') leave_of_absence_return_date, 
+            home_depart_num_code, home_depart_num_descr, 
+            supervisor_id, supervisor_firstname, supervisor_lastname, 
+            business_unit_code, business_unit_descr, reports_to_name, 
+            reports_to_position_id, reports_to_associate_id, employee_associate_id, 
+            management_position, supervisor_flag, long_title
+        FROM
+        cc_adp_rec
+        where date_stamp in
+            (select datestamp from
+                (select file_no, carthage_id, fullname, job_title_code, position_status, 
+                payroll_company_code||"-"||left(home_depart_num_code,3)||"-"||business_unit_code||"-"||job_title_code as pcn_aggr,
+                hire_date, position_effective_date, termination_date, worker_category_code,  
+                job_function_code, payroll_company_code, home_depart_num_code, 
+                business_unit_code, 
+                max(date_stamp) as datestamp
+                from cc_adp_rec
+                where carthage_id = 1100004
+                group by file_no, carthage_id, job_title_code, position_status, fullname,
+                hire_date, position_effective_date, worker_category_code,  
+                job_function_code, payroll_company_code,  
+                business_unit_code, home_depart_num_code, 
+                termination_date
+                order by fullname, position_effective_date desc
+                ))
+        '''
+
+        data_result = engine.execute(cx_view_sql)
+
+        ret = list(data_result.fetchall())
+
+        with open(cxview, 'a') as file_out:
+            # with open("carthage_students.txt", 'a') as file_out:
+            csvWriter = csv.writer(file_out, delimiter=',', dialect='myDialect')
+            # encoded_rows = encode_rows_to_utf8(ret)
+            for row in ret:
+                csvWriter.writerow(row)
+        file_out.close()
+
+# Need to delete the differences file to start fresh
         if os.path.isfile(adp_diff_file):
             os.remove(adp_diff_file)
 
@@ -425,14 +606,14 @@ def main():
                     datetime.now())
                     # print(q_cc_adp_rec)
                     # print(cc_adp_args)
-                    engine.execute(q_cc_adp_rec, cc_adp_args)
-                    ccadpcount =+ 1
+                    # engine.execute(q_cc_adp_rec, cc_adp_args)
+                    # ccadpcount =+ 1
                     # scr.write(q_cc_adp_rec + '\n' + str(cc_adp_args) + '\n');
                     # fn_write_log("Inserted data into cc_adp_rec table for "
                     #              + row["payroll_name"] + " ID = "
                     #              + row["carth_id"]);
 
-                    ccadpcount = ccadpcount + 1
+                    # ccadpcount = ccadpcount + 1
                 except Exception as e:
                     fn_write_error("Error in adptcx.py while inserting into"
                                    " cc_adp_rec.  Error = " + e.message)
@@ -441,48 +622,48 @@ def main():
 
 
 
-            # set destination directory for which the sql file
-            # will be archived to
-            archived_destination = ('{0}apdtocx_output-{1}.sql'.format(
-                settings.ADP_CSV_ARCHIVED, datetimestr
-            ))
-            # set name for the sqloutput file
-            sqloutput = ('{0}/apdtocx_output.sql'.format(os.getcwd()))
-            # Check to see if sql file exists, if not send Email
-            if os.path.isfile("apdtocx_output.sql") != True:
-                # there was no file found on the server
-                SUBJECT = '[APD To CX Application] failed'
-                BODY = "There was no .sql output file to move."
-                # sendmail(
-                #     settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
-                #     BODY, SUBJECT
-                # )
-                fn_write_log("There was no .sql output file to move.")
-            else:
-                # rename and move the file to the archive directory
-                shutil.move(sqloutput, archived_destination)
+            # # set destination directory for which the sql file
+            # # will be archived to
+            # archived_destination = ('{0}apdtocx_output-{1}.sql'.format(
+            #     settings.ADP_CSV_ARCHIVED, datetimestr
+            # ))
+            # # set name for the sqloutput file
+            # sqloutput = ('{0}/apdtocx_output.sql'.format(os.getcwd()))
+            # # Check to see if sql file exists, if not send Email
+            # if os.path.isfile("apdtocx_output.sql") != True:
+            #     # there was no file found on the server
+            #     SUBJECT = '[APD To CX Application] failed'
+            #     BODY = "There was no .sql output file to move."
+            #     # sendmail(
+            #     #     settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
+            #     #     BODY, SUBJECT
+            #     # )
+            #     fn_write_log("There was no .sql output file to move.")
+            # else:
+            #     # rename and move the file to the archive directory
+            #     shutil.move(sqloutput, archived_destination)
 
             ##################################################################
             # The last step - move last to archive, rename new file to _last
             ##################################################################
-            if not test:
-
-                adptocx_archive = ('{0}adptocxlast_{1}.csv'.format(settings.ADP_CSV_ARCHIVED,datetimestr))
-                shutil.move(last_adp_file, adptocx_archive)
-
-                adptocx_rename = ('{0}ADPtoCXLast.csv'.format(settings.ADP_CSV_OUTPUT))
-                shutil.move(new_adp_file, adptocx_rename)
+            # if not test:
+            #
+            #     adptocx_archive = ('{0}adptocxlast_{1}.csv'.format(settings.ADP_CSV_ARCHIVED,datetimestr))
+            #     shutil.move(last_adp_file, adptocx_archive)
+            #
+            #     adptocx_rename = ('{0}ADPtoCXLast.csv'.format(settings.ADP_CSV_OUTPUT))
+            #     shutil.move(new_adp_file, adptocx_rename)
 
             print("---------------------------------------------------------")
             print("ADP Count = " + str(adpcount))
-            print("CCADP Count = " + str(ccadpcount))
-            print("ID Count = " + str(idcount))
-            print("CVID Count = " + str(cvidcount))
-            print("Email Count = " + str(emailcount))
-            print("CELL Count = " + str(phonecount))
-            print("Job Count = " + str(jobcount))
-            print("Profile Count = " + str(profilecount))
-            print("Job2 Count = " + str(secondjobcount))
+            # print("CCADP Count = " + str(ccadpcount))
+            # print("ID Count = " + str(idcount))
+            # print("CVID Count = " + str(cvidcount))
+            # print("Email Count = " + str(emailcount))
+            # print("CELL Count = " + str(phonecount))
+            # print("Job Count = " + str(jobcount))
+            # print("Profile Count = " + str(profilecount))
+            # print("Job2 Count = " + str(secondjobcount))
 
     except Exception as e:
         fn_write_error("Error in cc_adp_rec.py, Error = " + e.message)
