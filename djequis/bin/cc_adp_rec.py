@@ -191,7 +191,7 @@ def main():
         # execute sftp code that needs to be executed in production only
         #################################################################
         # if not test:
-        # file_download()
+        file_download()
 
         #################################################################
         # STEP 1--
@@ -276,7 +276,15 @@ def main():
                 WHEN race = 'MU' THEN '9' 
                 ELSE ''
                 END as RaceCode,
-            race_descr, 
+            CASE 
+                    WHEN race = 'WH' THEN 'White' 
+                    WHEN race = 'BL' THEN 'Black or African American' 
+                    WHEN race = 'AS' THEN 'Asian' 
+                    WHEN race = 'AM' THEN 'American Indian or Alaska Native' 
+                    WHEN race = 'AP' THEN 'Native Hawaiian or Other Pacific Islander' 
+                    WHEN race = 'MU' THEN 'Two or more races' 
+                    ELSE ''
+                    END as race_descr,             
             CASE 
                 when hispanic = 'Y' THEN 'Hispanic or Latino'
                 when hispanic = 'N' THEN 'Not Hispanic or Latino'
@@ -314,8 +322,10 @@ def main():
                 ELSE '' 
                 END work_contact_phone, 
             work_contact_email, 
-            CASE WHEN work_contact_notification = 'Y' THEN 'Yes'
-    		    ELSE 'No'
+        	CASE 
+	        	WHEN work_contact_notification = 'Y' THEN 'Yes'
+		        WHEN work_contact_notification = 'N' THEN 'No'
+		        ELSE ''
 		        END work_contact_notification,		
 		    legal_addr_line1, legal_addr_line2, 
             legal_addr_line3, legal_addr_city, legal_addr_st, legal_addr_state, 
@@ -337,7 +347,22 @@ def main():
             cip_code, worker_category_code, worker_category_descr, job_title_code, 
             job_title_descr, home_cost_number_code, home_cost_number_descr, 
             job_class_code, job_class_descr, job_descr, job_function_code, 
-            job_function_descr, room, bldg, bldg_name, 
+            job_function_descr, room, bldg, 
+           	CASE 
+                WHEN bldg = '1' THEN 'Lentz Hall'
+                WHEN bldg = '2' THEN 'Clausen Center'
+                WHEN bldg = '3' THEN 'Straz Center'
+                WHEN bldg = '4' THEN 'Hedberg Library'
+                WHEN bldg = '5' THEN 'Johnson Arts Center'
+                WHEN bldg = '6' THEN 'Todd Wehr Center'
+                WHEN bldg = '7' THEN 'Tarble Athletic & Recreation Center'
+                WHEN bldg = '11' THEN 'Madrigrano Hall'
+                WHEN bldg = '13' THEN 'Tarble Hall'
+                WHEN bldg = '15' THEN 'Siebert Chapel'
+                WHEN bldg = '16' THEN 'Arena'
+                ELSE ''
+                END
+            bldg_name, 
             to_char(leave_of_absence_start_date, '%m/%d/%Y') leave_of_absence_start_date, 
             to_char(leave_of_absence_return_date, '%m/%d/%Y') leave_of_absence_return_date, 
             home_depart_num_code, home_depart_num_descr, 
@@ -356,7 +381,6 @@ def main():
                 business_unit_code, 
                 max(date_stamp) as datestamp
                 from cc_adp_rec
-                where carthage_id = 1100004
                 group by file_no, carthage_id, job_title_code, position_status, fullname,
                 hire_date, position_effective_date, worker_category_code,  
                 job_function_code, payroll_company_code,  
@@ -366,11 +390,12 @@ def main():
                 ))
         '''
 
+        print(last_adp_file)
         data_result = engine.execute(cx_view_sql)
 
         ret = list(data_result.fetchall())
 
-        with open(cxview, 'a') as file_out:
+        with open(last_adp_file, 'a') as file_out:
             # with open("carthage_students.txt", 'a') as file_out:
             csvWriter = csv.writer(file_out, delimiter=',', dialect='myDialect')
             # encoded_rows = encode_rows_to_utf8(ret)
