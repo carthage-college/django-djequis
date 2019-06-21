@@ -229,6 +229,7 @@ FROM
 			ON A.yr = S.yr
 			AND A.sess = S.sess
 			AND A.subsess = ''
+			AND A.sess IN ('RA','RC')
 			AND A.end_date > TODAY - 1
 			) 
 			TRM ON TRM.id = PER.id
