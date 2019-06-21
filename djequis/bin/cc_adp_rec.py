@@ -98,6 +98,7 @@ def file_download():
     # in local directory.
     ##########################################################################
     with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
+        print("Enter download")
         try:
             print('Connection Established')
             sftp.chdir("adp/")
@@ -191,11 +192,14 @@ def main():
         # execute sftp code that needs to be executed in production only
         #################################################################
         # if not test:
+        print("Down load file")
         file_download()
+        print("file downloaded")
 
         #################################################################
         # STEP 1--
-        # Read files and write out differences
+        # Get the most recent rows from the cc_adp_rec table and write them
+        # to a csv file to locate Read files and write out differences
         #################################################################
         cxview = "adptocxview.csv"
 
@@ -258,152 +262,164 @@ def main():
                  "Supervisor Position","Directory Job Title"])
         file_out.close()
 
-        cx_view_sql = '''SELECT
-            file_no, carthage_id, lastname, firstname, middlename, salutation, fullname, 
-            pref_name, to_char(birth_date, '%m/%d/%Y') birth_date, 
-            CASE 
-                WHEN gender = 'F' THEN 'Female'
-                WHEN gender = 'M' THEN 'Male'
-                ELSE ''
-                END as gender,
-            marital_status, 
-            CASE 
-                WHEN race = 'WH' THEN '1' 
-                WHEN race = 'BL' THEN '2' 
-                WHEN race = 'AS' THEN '4' 
-                WHEN race = 'AM' THEN '5' 
-                WHEN race = 'AP' THEN '6' 
-                WHEN race = 'MU' THEN '9' 
-                ELSE ''
-                END as RaceCode,
-            CASE 
-                    WHEN race = 'WH' THEN 'White' 
-                    WHEN race = 'BL' THEN 'Black or African American' 
-                    WHEN race = 'AS' THEN 'Asian' 
-                    WHEN race = 'AM' THEN 'American Indian or Alaska Native' 
-                    WHEN race = 'AP' THEN 'Native Hawaiian or Other Pacific Islander' 
-                    WHEN race = 'MU' THEN 'Two or more races' 
-                    ELSE ''
-                    END as race_descr,             
-            CASE 
-                when hispanic = 'Y' THEN 'Hispanic or Latino'
-                when hispanic = 'N' THEN 'Not Hispanic or Latino'
-                ELSE ''
-                END
-            hispanic, 
-            race_id_method, personal_email, primary_addr_line1, primary_addr_line2, 
-            primary_addr_line3, primary_addr_city, primary_addr_st, primary_addr_state, 
-            primary_addr_zip, primary_addr_county, primary_addr_country, 
-            primary_addr_country_code, 
-            CASE 
-                when primary_addr_as_legal = 'Y' THEN 'Yes'
-                when primary_addr_as_legal = 'N' THEN 'No'
-                ELSE ''
-                END
-            primary_addr_as_legal, 
-            CASE
-                WHEN trim(home_phone) != '' 
-                THEN '('||SUBSTR(home_phone, 1, 3)||') '||SUBSTR(home_phone, 5, 3)||'-'||SUBSTR(home_phone, 9, 4)
-                ELSE '' 
-                END home_phone, 
-            CASE
-                WHEN trim(cell_phone) != '' 
-                THEN '('||SUBSTR(cell_phone, 1, 3)||') '||SUBSTR(cell_phone, 5, 3)||'-'||SUBSTR(cell_phone, 9, 4)
-                ELSE '' 
-                END cell_phone, 
-            CASE
-                WHEN trim(work_phone) != '' 
-                THEN '('||SUBSTR(work_phone, 1, 3)||') '||SUBSTR(work_phone, 5, 3)||'-'||SUBSTR(work_phone, 9, 4)
-                ELSE '' 
-                END work_phone, 
-            CASE
-                WHEN trim(work_contact_phone) != '' 
-                THEN '('||SUBSTR(work_contact_phone, 1, 3)||') '||SUBSTR(work_contact_phone, 5, 3)||'-'||SUBSTR(work_contact_phone, 9, 4)
-                ELSE '' 
-                END work_contact_phone, 
-            work_contact_email, 
-        	CASE 
-	        	WHEN work_contact_notification = 'Y' THEN 'Yes'
-		        WHEN work_contact_notification = 'N' THEN 'No'
-		        ELSE ''
-		        END work_contact_notification,		
-		    legal_addr_line1, legal_addr_line2, 
-            legal_addr_line3, legal_addr_city, legal_addr_st, legal_addr_state, 
-            legal_addr_zip, legal_addr_county, legal_addr_country, 
-            legal_addr_country_code, ssn, 
-            to_char(hire_date, '%m/%d/%Y') hire_date, 
-            to_char(hire_rehire_date, '%m/%d/%Y') hire_rehire_date, 
-            to_char(rehire_date, '%m/%d/%Y') rehire_date, 
-            to_char(position_start_date, '%m/%d/%Y') position_start_date, 
-            to_char(position_effective_date, '%m/%d/%Y') position_effective_date, 
-            to_char(position_effective_end_date, '%m/%d/%Y') position_effective_end_date, 
-            to_char(termination_date, '%m/%d/%Y') terimination_date, 
-            position_status, 
-            to_char(status_effective_date, '%m/%d/%Y') status_effective_date, 
-            to_char(status_effective_end_date, '%m/%d/%Y') status_effective_end_date, 
-            to_char(adjusted_service_date, '%m/%d/%Y') adjusted_service_date, 
-            archived_employee, 
-            position_id, primary_position, payroll_company_code, payroll_company_name, 
-            cip_code, worker_category_code, worker_category_descr, job_title_code, 
-            job_title_descr, home_cost_number_code, home_cost_number_descr, 
-            job_class_code, job_class_descr, job_descr, job_function_code, 
-            job_function_descr, room, bldg, 
-           	CASE 
-                WHEN bldg = '1' THEN 'Lentz Hall'
-                WHEN bldg = '2' THEN 'Clausen Center'
-                WHEN bldg = '3' THEN 'Straz Center'
-                WHEN bldg = '4' THEN 'Hedberg Library'
-                WHEN bldg = '5' THEN 'Johnson Arts Center'
-                WHEN bldg = '6' THEN 'Todd Wehr Center'
-                WHEN bldg = '7' THEN 'Tarble Athletic & Recreation Center'
-                WHEN bldg = '11' THEN 'Madrigrano Hall'
-                WHEN bldg = '13' THEN 'Tarble Hall'
-                WHEN bldg = '15' THEN 'Siebert Chapel'
-                WHEN bldg = '16' THEN 'Arena'
-                ELSE ''
-                END
-            bldg_name, 
-            to_char(leave_of_absence_start_date, '%m/%d/%Y') leave_of_absence_start_date, 
-            to_char(leave_of_absence_return_date, '%m/%d/%Y') leave_of_absence_return_date, 
-            home_depart_num_code, home_depart_num_descr, 
-            supervisor_id, supervisor_firstname, supervisor_lastname, 
-            business_unit_code, business_unit_descr, reports_to_name, 
-            reports_to_position_id, reports_to_associate_id, employee_associate_id, 
-            management_position, supervisor_flag, long_title
-        FROM
-        cc_adp_rec
-        where date_stamp in
-            (select datestamp from
-                (select file_no, carthage_id, fullname, job_title_code, position_status, 
-                payroll_company_code||"-"||left(home_depart_num_code,3)||"-"||business_unit_code||"-"||job_title_code as pcn_aggr,
-                hire_date, position_effective_date, termination_date, worker_category_code,  
-                job_function_code, payroll_company_code, home_depart_num_code, 
-                business_unit_code, 
-                max(date_stamp) as datestamp
-                from cc_adp_rec
-                group by file_no, carthage_id, job_title_code, position_status, fullname,
-                hire_date, position_effective_date, worker_category_code,  
-                job_function_code, payroll_company_code,  
-                business_unit_code, home_depart_num_code, 
-                termination_date
-                order by fullname, position_effective_date desc
-                ))
-        '''
+        # # This select statement should only return the most recent records
+        # # But it must be formatted to precisely match the adp file for
+        # # row by row comparison
+        # cx_view_sql = '''SELECT
+        #     file_no, carthage_id, lastname, firstname, middlename, salutation,
+        #     fullname, pref_name, to_char(birth_date, '%m/%d/%Y') birth_date,
+        #     CASE
+        #         WHEN gender = 'F' THEN 'Female'
+        #         WHEN gender = 'M' THEN 'Male'
+        #         ELSE ''
+        #         END as gender,
+        #     marital_status,
+        #     CASE
+        #         WHEN race = 'WH' THEN '1'
+        #         WHEN race = 'BL' THEN '2'
+        #         WHEN race = 'AS' THEN '4'
+        #         WHEN race = 'AM' THEN '5'
+        #         WHEN race = 'AP' THEN '6'
+        #         WHEN race = 'MU' THEN '9'
+        #         ELSE ''
+        #         END as RaceCode,
+        #     CASE
+        #             WHEN race = 'WH'
+        #                 THEN 'White'
+        #             WHEN race = 'BL'
+        #                 THEN 'Black or African American'
+        #             WHEN race = 'AS'
+        #                 THEN 'Asian'
+        #             WHEN race = 'AM'
+        #                 THEN 'American Indian or Alaska Native'
+        #             WHEN race = 'AP'
+        #                 THEN 'Native Hawaiian or Other Pacific Islander'
+        #             WHEN race = 'MU'
+        #                 THEN 'Two or more races'
+        #             ELSE ''
+        #             END as race_descr,
+        #     CASE
+        #         when hispanic = 'Y' THEN 'Hispanic or Latino'
+        #         when hispanic = 'N' THEN 'Not Hispanic or Latino'
+        #         ELSE ''
+        #         END
+        #     hispanic,
+        #     race_id_method, personal_email, primary_addr_line1,
+        #     primary_addr_line2, primary_addr_line3, primary_addr_city,
+        #     primary_addr_st, primary_addr_state, primary_addr_zip,
+        #     primary_addr_county, primary_addr_country,
+        #     primary_addr_country_code,
+        #     CASE
+        #         when primary_addr_as_legal = 'Y' THEN 'Yes'
+        #         when primary_addr_as_legal = 'N' THEN 'No'
+        #         ELSE ''
+        #         END
+        #     primary_addr_as_legal,
+        #     CASE
+        #         WHEN trim(home_phone) != ''
+        #         THEN '('||SUBSTR(home_phone, 1, 3)||') '||SUBSTR(home_phone, 5, 3)||'-'||SUBSTR(home_phone, 9, 4)
+        #         ELSE ''
+        #         END home_phone,
+        #     CASE
+        #         WHEN trim(cell_phone) != ''
+        #         THEN '('||SUBSTR(cell_phone, 1, 3)||') '||SUBSTR(cell_phone, 5, 3)||'-'||SUBSTR(cell_phone, 9, 4)
+        #         ELSE ''
+        #         END cell_phone,
+        #     CASE
+        #         WHEN trim(work_phone) != ''
+        #         THEN '('||SUBSTR(work_phone, 1, 3)||') '||SUBSTR(work_phone, 5, 3)||'-'||SUBSTR(work_phone, 9, 4)
+        #         ELSE ''
+        #         END work_phone,
+        #     CASE
+        #         WHEN trim(work_contact_phone) != ''
+        #         THEN '('||SUBSTR(work_contact_phone, 1, 3)||') '||SUBSTR(work_contact_phone, 5, 3)||'-'||SUBSTR(work_contact_phone, 9, 4)
+        #         ELSE ''
+        #         END work_contact_phone,
+        #     work_contact_email,
+        # 	CASE
+	    #     	WHEN work_contact_notification = 'Y' THEN 'Yes'
+		#         WHEN work_contact_notification = 'N' THEN 'No'
+		#         ELSE ''
+		#         END work_contact_notification,
+		#     legal_addr_line1, legal_addr_line2,
+        #     legal_addr_line3, legal_addr_city, legal_addr_st, legal_addr_state,
+        #     legal_addr_zip, legal_addr_county, legal_addr_country,
+        #     legal_addr_country_code, ssn,
+        #     to_char(hire_date, '%m/%d/%Y') hire_date,
+        #     to_char(hire_rehire_date, '%m/%d/%Y') hire_rehire_date,
+        #     to_char(rehire_date, '%m/%d/%Y') rehire_date,
+        #     to_char(position_start_date, '%m/%d/%Y') position_start_date,
+        #     to_char(position_effective_date, '%m/%d/%Y') position_effective_date,
+        #     to_char(position_effective_end_date, '%m/%d/%Y') position_effective_end_date,
+        #     to_char(termination_date, '%m/%d/%Y') terimination_date,
+        #     position_status,
+        #     to_char(status_effective_date, '%m/%d/%Y') status_effective_date,
+        #     to_char(status_effective_end_date, '%m/%d/%Y') status_effective_end_date,
+        #     to_char(adjusted_service_date, '%m/%d/%Y') adjusted_service_date,
+        #     archived_employee,
+        #     position_id, primary_position, payroll_company_code,
+        #     payroll_company_name, cip_code, worker_category_code,
+        #     worker_category_descr, job_title_code, job_title_descr,
+        #     home_cost_number_code, home_cost_number_descr,
+        #     job_class_code, job_class_descr, job_descr, job_function_code,
+        #     job_function_descr, room, bldg,
+        #    	CASE
+        #         WHEN bldg = '1' THEN 'Lentz Hall'
+        #         WHEN bldg = '2' THEN 'Clausen Center'
+        #         WHEN bldg = '3' THEN 'Straz Center'
+        #         WHEN bldg = '4' THEN 'Hedberg Library'
+        #         WHEN bldg = '5' THEN 'Johnson Arts Center'
+        #         WHEN bldg = '6' THEN 'Todd Wehr Center'
+        #         WHEN bldg = '7' THEN 'Tarble Athletic & Recreation Center'
+        #         WHEN bldg = '11' THEN 'Madrigrano Hall'
+        #         WHEN bldg = '13' THEN 'Tarble Hall'
+        #         WHEN bldg = '15' THEN 'Siebert Chapel'
+        #         WHEN bldg = '16' THEN 'Arena'
+        #         ELSE ''
+        #         END
+        #     bldg_name,
+        #     to_char(leave_of_absence_start_date, '%m/%d/%Y') leave_of_absence_start_date,
+        #     to_char(leave_of_absence_return_date, '%m/%d/%Y') leave_of_absence_return_date,
+        #     home_depart_num_code, home_depart_num_descr,
+        #     supervisor_id, supervisor_firstname, supervisor_lastname,
+        #     business_unit_code, business_unit_descr, reports_to_name,
+        #     reports_to_position_id, reports_to_associate_id, employee_associate_id,
+        #     management_position, supervisor_flag, long_title
+        # FROM
+        # cc_adp_rec
+        # where (termination_date > TODAY - 30 or termination_date is null)
+	    # AND date_stamp in
+        #     (select datestamp from
+        #         (select file_no, carthage_id, fullname, job_title_code, position_status,
+        #         payroll_company_code||"-"||left(home_depart_num_code,3)||"-"||business_unit_code||"-"||job_title_code as pcn_aggr,
+        #         hire_date, position_effective_date, termination_date,
+        #         worker_category_code,  job_function_code, payroll_company_code,
+        #         home_depart_num_code, business_unit_code,
+        #         max(date_stamp) as datestamp
+        #         from cc_adp_rec
+        #         group by file_no, carthage_id, job_title_code, position_status,
+        #         fullname, hire_date, position_effective_date,
+        #         worker_category_code, job_function_code, payroll_company_code,
+        #         business_unit_code, home_depart_num_code,
+        #         termination_date
+        #         order by fullname, position_effective_date desc
+        #         ))
+        # '''
 
-        print(last_adp_file)
-        data_result = engine.execute(cx_view_sql)
+        # print(last_adp_file)
+        # data_result = engine.execute(cx_view_sql)
+        #
+        # ret = list(data_result.fetchall())
+        #
+        # with open(last_adp_file, 'a') as file_out:
+        #     # with open("carthage_students.txt", 'a') as file_out:
+        #     csvWriter = csv.writer(file_out, delimiter=',', dialect='myDialect')
+        #     # encoded_rows = encode_rows_to_utf8(ret)
+        #     for row in ret:
+        #         csvWriter.writerow(row)
+        # file_out.close()
 
-        ret = list(data_result.fetchall())
-
-        with open(last_adp_file, 'a') as file_out:
-            # with open("carthage_students.txt", 'a') as file_out:
-            csvWriter = csv.writer(file_out, delimiter=',', dialect='myDialect')
-            # encoded_rows = encode_rows_to_utf8(ret)
-            for row in ret:
-                csvWriter.writerow(row)
-        file_out.close()
-
-# Need to delete the differences file to start fresh
+        # Need to delete the differences file to start fresh
         if os.path.isfile(adp_diff_file):
             os.remove(adp_diff_file)
 
@@ -529,6 +545,11 @@ def main():
                 # Write entire row to cc_adp_rec table
                 ##############################################################
 
+                # Make sure we are not inserting the same record with no
+                # change in cx.
+
+
+
                 try:
                     q_cc_adp_rec = ("INSERT INTO cc_adp_rec (file_no, \
                     carthage_id, lastname, firstname, middlename, \
@@ -631,7 +652,7 @@ def main():
                     datetime.now())
                     # print(q_cc_adp_rec)
                     # print(cc_adp_args)
-                    # engine.execute(q_cc_adp_rec, cc_adp_args)
+                    engine.execute(q_cc_adp_rec, cc_adp_args)
                     # ccadpcount =+ 1
                     # scr.write(q_cc_adp_rec + '\n' + str(cc_adp_args) + '\n');
                     # fn_write_log("Inserted data into cc_adp_rec table for "
@@ -647,37 +668,37 @@ def main():
 
 
 
-            # # set destination directory for which the sql file
-            # # will be archived to
-            # archived_destination = ('{0}apdtocx_output-{1}.sql'.format(
-            #     settings.ADP_CSV_ARCHIVED, datetimestr
-            # ))
-            # # set name for the sqloutput file
-            # sqloutput = ('{0}/apdtocx_output.sql'.format(os.getcwd()))
-            # # Check to see if sql file exists, if not send Email
-            # if os.path.isfile("apdtocx_output.sql") != True:
-            #     # there was no file found on the server
-            #     SUBJECT = '[APD To CX Application] failed'
-            #     BODY = "There was no .sql output file to move."
-            #     # sendmail(
-            #     #     settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
-            #     #     BODY, SUBJECT
-            #     # )
-            #     fn_write_log("There was no .sql output file to move.")
-            # else:
-            #     # rename and move the file to the archive directory
-            #     shutil.move(sqloutput, archived_destination)
+            # set destination directory for which the sql file
+            # will be archived to
+            archived_destination = ('{0}apdtocx_output-{1}.sql'.format(
+                settings.ADP_CSV_ARCHIVED, datetimestr
+            ))
+            # set name for the sqloutput file
+            sqloutput = ('{0}/apdtocx_output.sql'.format(os.getcwd()))
+            # Check to see if sql file exists, if not send Email
+            if os.path.isfile("apdtocx_output.sql") != True:
+                # there was no file found on the server
+                SUBJECT = '[APD To CX Application] failed'
+                BODY = "There was no .sql output file to move."
+                # sendmail(
+                #     settings.ADP_TO_EMAIL,settings.ADP_FROM_EMAIL,
+                #     BODY, SUBJECT
+                # )
+                fn_write_log("There was no .sql output file to move.")
+            else:
+                # rename and move the file to the archive directory
+                shutil.move(sqloutput, archived_destination)
 
             ##################################################################
             # The last step - move last to archive, rename new file to _last
             ##################################################################
-            # if not test:
-            #
-            #     adptocx_archive = ('{0}adptocxlast_{1}.csv'.format(settings.ADP_CSV_ARCHIVED,datetimestr))
-            #     shutil.move(last_adp_file, adptocx_archive)
-            #
-            #     adptocx_rename = ('{0}ADPtoCXLast.csv'.format(settings.ADP_CSV_OUTPUT))
-            #     shutil.move(new_adp_file, adptocx_rename)
+            if not test:
+
+                adptocx_archive = ('{0}adptocxlast_{1}.csv'.format(settings.ADP_CSV_ARCHIVED,datetimestr))
+                shutil.move(last_adp_file, adptocx_archive)
+
+                adptocx_rename = ('{0}ADPtoCXLast.csv'.format(settings.ADP_CSV_OUTPUT))
+                shutil.move(new_adp_file, adptocx_rename)
 
             print("---------------------------------------------------------")
             print("ADP Count = " + str(adpcount))
