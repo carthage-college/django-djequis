@@ -127,6 +127,27 @@ def file_download():
         # fn_write_error("Error in adptocx.py, adptocx.csv not found ",
     sftp.close()
 
+def getUTC():
+    # If we use the API, we need this value to construct a hash value
+    # All we need is the following
+    # Current date and time
+    curtime = datetime.datetime.now()
+    print("Current date and time = " + str(curtime))
+
+    # Format properly
+    fmtnow = curtime.strftime('%a %b %d %H:%M:%S %Y')
+    # print("fmtnow = " + fmtnowb)
+
+    # convert to a struct time
+    structnow = time.strptime(fmtnow)
+    # print("structnow = " + str(structnow))
+
+    # Calculate seconds from GMT zero hour
+    utcts = calendar.timegm(structnow)
+    print("Seconds from UTC Zero hour = " + str(utcts))
+
+    # hashval = utcts + secretkey
+    return utcts
 
 
 def main():
@@ -160,6 +181,10 @@ def main():
     # Read the csv file
     #---------------------------------------------
     print('try')
+
+    if os.path.exists("dorm_damage.csv"):
+        os.remove("dorm_damage.csv")
+
     try:
         with open("misc_charges.txt", 'r') as f:
             print('Open')
@@ -174,6 +199,7 @@ def main():
                 term_code = row[3]
                 description = row[4]
                 account = row[5]
+
 
                 with open("dorm_damage.csv", 'a') as out:
                     out.write(billing_date.strip() + ',' + description + ',' +
