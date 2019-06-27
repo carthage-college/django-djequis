@@ -127,6 +127,27 @@ def file_download():
         # fn_write_error("Error in adptocx.py, adptocx.csv not found ",
     sftp.close()
 
+def getUTC():
+    # If we use the API, we need this value to construct a hash value
+    # All we need is the following
+    # Current date and time
+    curtime = datetime.datetime.now()
+    print("Current date and time = " + str(curtime))
+
+    # Format properly
+    fmtnow = curtime.strftime('%a %b %d %H:%M:%S %Y')
+    # print("fmtnow = " + fmtnowb)
+
+    # convert to a struct time
+    structnow = time.strptime(fmtnow)
+    # print("structnow = " + str(structnow))
+
+    # Calculate seconds from GMT zero hour
+    utcts = calendar.timegm(structnow)
+    print("Seconds from UTC Zero hour = " + str(utcts))
+
+    # hashval = utcts + secretkey
+    return utcts
 
 
 def main():
@@ -203,27 +224,43 @@ def main():
                           where id = {0}'''.format(carthid)
             print(q_validate_stuserv_rec)
 
+            # NOTE ABOUT WITHDRAWALS!!!!
+            # Per Amber, the only things that get changed when a student withdraws
+            # are setting the rsv_stat to "W' and the bill_code to "NOCH"
             if action == 'A':
                 print("Add")
+                rsvstat = 'R'
+                billcode = "STD"
             else:
                 print("Remove")
+                rsvstat = 'W'
+                billcode = "NOCH"
 
-
-
+            # Insert if no record exists, update else
             q_insert_stuserv_rec = '''
                           INSERT INTO stu_serv_rec (id, sess, yr, rsv_stat, 
                           intend_hsg, campus, bldg, room, no_per_room, add_date, 
                           bill_code, hous_wd_date)
                           VALUES (?,?,?,?,?,?,?,?,?,?,?)'''
             q_insert_stuserv_args = (
-                carthid, term, yr, 'R', 'R', 'MAIN', building, room, occupants,
-                startdate, 'STD', enddate)
+                carthid, term, yr, rsvstat, 'R', 'MAIN', building, room, occupants,
+                startdate, billcode, enddate)
             print(q_insert_stuserv_rec)
             print(q_insert_stuserv_args)
         #     # engine.execute(q_insert_stuserv_rec, q_insert_stuserv_args)
         #
         #     filepath = settings.ADIRONDACK_CSV_OUTPUT
 
+            # q_update_stuserv_rec = '''
+            #               UPDATE stu_serv_rec set  rsv_stat = ?,
+            #               intend_hsg = ?, campus = ?, bldg = ?, room = ?,
+            #               no_per_room = ?, add_date = ?, bill_code = ?,
+            #               hous_wd_date = ?)
+            #               where id = ? and sess = ? and yr = ?'''
+            # q_update_stuserv_args = (rsvstat, 'MAIN', building, room, occupants,
+            #     startdate, billcode, enddate, carthid, term, yr, 'R')
+            # print(q_update_stuserv_rec)
+            # print(q_update_stuserv_args)
 
 
     # except Exception as e:
