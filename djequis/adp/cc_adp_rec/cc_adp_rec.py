@@ -6,7 +6,7 @@ import codecs
 import warnings
 from datetime import datetime
 import time
-from time import strftime, strptime
+from time import strftime
 import argparse
 import shutil
 import logging
@@ -25,7 +25,6 @@ django.setup()
 
 # django settings for script
 from django.conf import settings
-from django.db import connections
 
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
@@ -34,8 +33,8 @@ os.environ['INFORMIXDIR'] = settings.INFORMIXDIR
 os.environ['ODBCINI'] = settings.ODBCINI
 os.environ['ONCONFIG'] = settings.ONCONFIG
 os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
-os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
-os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
+# os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
+# os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import get_engine
@@ -48,17 +47,18 @@ from djzbar.settings import INFORMIX_EARL_PROD
 from djtools.fields import TODAY
 
 # Imports for additional modules and functions written as part of this project
-from djequis.adp.idrec import fn_process_idrec
-from djequis.adp.aarec import fn_archive_address, fn_insert_aa, \
-    fn_update_aa, fn_end_date_aa, fn_set_email, fn_set_cell_phone, \
-    fn_set_schl_rec
-from djequis.adp.cvidrec import fn_process_cvid
-from djequis.adp.jobrec import fn_process_job
+# from djequis.adp.idrec import fn_process_idrec
+# from djequis.adp.aarec \
+#     import fn_archive_address, fn_insert_aafn_insert_aa, \
+#     fn_update_aa, fn_end_date_aa, fn_set_email, fn_set_cell_phone, \
+#     fn_set_schl_rec
+# from djequis.adp.cvidrec import fn_process_cvid
+# from djequis.adp.jobrec import fn_process_job
 from djequis.adp.utilities import fn_validate_field, fn_format_phone, \
     fn_write_log, fn_write_error, fn_clear_logger
-from djequis.adp.profilerec import fn_process_profile_rec
+# from djequis.adp.profilerec import fn_process_profile_rec
 from djequis.adp.adp_ftp import file_download
-from djequis.adp.secondjob import fn_process_second_job
+# from djequis.adp.secondjob import fn_process_second_job
 
 # normally set as 'debug" in SETTINGS
 DEBUG = settings.INFORMIX_DEBUG
@@ -146,19 +146,19 @@ def main():
     ##########################################################################
 
     # set date and time to be added to the filename
-    datetimestr = time.strftime("%Y%m%d%H%M%S")
+    # datetimestr = time.strftime("%Y%m%d%H%M%S")
 
     # set local directory for which the common app file will be downloaded to
-    # source_dir = ('{0}'.format(
-    #     settings.ADP_CSV_OUTPUT
-    # ))
-    #
+    source_dir = ('{0}'.format(
+        settings.ADP_CSV_OUTPUT
+    ))
+
     # # Defines file names and directory location
-    new_adp_file = "ADPtoCX.csv"
-    # new_adp_file = ('{0}ADPtoCX.csv'.format(
-    #     settings.ADP_CSV_OUTPUT
-    # ))
-    #
+    # new_adp_file = "ADPtoCX.csv"
+    new_adp_file = ('{0}ADPtoCX.csv'.format(
+        settings.ADP_CSV_OUTPUT
+    ))
+
     last_adp_file = "adptocxview.csv"
     # last_adp_file = ('{0}ADPtoCXLast.csv'.format(
     #     settings.ADP_CSV_OUTPUT
@@ -200,10 +200,10 @@ def main():
         # Pull the file from the ADP FTP site
         # execute sftp code that needs to be executed in production only
         #################################################################
-        # if not test:
-        # print("Down load file")
-        file_download()
-        # print("file downloaded")
+        if not test:
+            # print("Down load file")
+            file_download()
+            # print("file downloaded")
 
         #################################################################
         # STEP 1--
@@ -226,7 +226,6 @@ def main():
         # with open(new_adp_file, 'r') as f:
             d_reader = csv.DictReader(f, delimiter=',')
             for row in d_reader:
-                # print(row)
                 # print(row["File Number"])
                 WRITE_ROW_REFORMATTED(row)
         f.close()
@@ -240,7 +239,6 @@ def main():
         WRITE_ADP_HEADER("adptocxview.csv")
         # print(last_adp_file)
         data_result = engine.execute(CX_VIEW_SQL)
-        # data_result = engine.execute(cx_view_sql)
         ret = list(data_result.fetchall())
         print("SQL Successful")
 
@@ -253,17 +251,7 @@ def main():
                 csvWriter.writerow(row)
         file_out.close()
 
-        # Need to delete the differences file to start fresh
-        # if os.path.isfile(adp_diff_file):
-        #     os.remove(adp_diff_file)
-
-                # print(q_cc_adp_rec)
-                # print(cc_adp_args)
-
         # xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-        # xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-        # xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
         # Read in both files and compare
         # the codecs function prevents the header from ADP getting
         # into the comparison - needed because of extra characters in header
@@ -278,26 +266,17 @@ def main():
             # returns additions or changes in new but not in original
             bigb = set(newfile) - set(oldfile)
 
-            # Write differences to output file
-            # with open(adp_diff_file, 'wb') as file_out:
-        #         # Write header row
-
             with open(adp_diff_file, 'a') as file_out:
                 for line_no, line in enumerate(bigb):
                     # print(line)
                     # x = line.split(',')
                     file_out.write(line)
-                    # print('File = ' + x[0] + ', ID = ' + x[
-                    #     1] + ', First = ' + x[3] + ', Last = ' + x[6])
-        #
+
             # close the files
             t1.close()
             t2.close()
             file_out.close()
 
-        # scr.write('-----------------------------------------------------\n')
-        # scr.write('-- CREATES APPLICATION FROM APD TO CX DATA \n')
-        # scr.write('-----------------------------------------------------\n')
         #################################################################
         # STEP 4--
         # Open differences file and start loop through records
