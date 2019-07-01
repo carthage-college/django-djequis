@@ -15,7 +15,6 @@ import shutil
 import logging
 from logging.handlers import SMTPHandler
 
-
 # django settings for script
 from django.conf import settings
 
@@ -40,7 +39,6 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
-
 def fn_convert_date(date):
     # print(date)
     if date != "":
@@ -50,6 +48,7 @@ def fn_convert_date(date):
         retdate = ''
     # print(str(date) + ',' + str(retdate))
     return retdate
+
 
 def fn_informx_date(date):
     if date != "":
@@ -86,8 +85,6 @@ def fn_format_phone(phone):
     except Exception as e:
         fn_write_error("Error in Utilities.py - fn_format_phone.  Error = "
                        + e.message)
-
-
 
 
 def WRITE_HEADER(filename):
@@ -132,8 +129,6 @@ def WRITE_HEADER(filename):
              "reports_to_assoc_id", "employee_assoc_id",
              "management_position", "supervisor_flag", "long_title"])
         file_out.close()
-
-
 
 
 def WRITE_ADP_HEADER(filename):
@@ -195,7 +190,6 @@ def WRITE_ADP_HEADER(filename):
              "Associate ID", "This is a Management position",
              "Supervisor Position", "Directory Job Title"])
     file_out.close()
-
 
 
 def WRITE_ROW_REFORMATTED(row):
