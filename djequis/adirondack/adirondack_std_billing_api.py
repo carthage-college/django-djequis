@@ -86,7 +86,8 @@ def main():
             "Key="+sec_key+"&" \
             "utcts="+str(utcts)+"&" \
             "h="+hash_object.hexdigest()+"&" \
-            "AccountCode=STD"
+            "AccountCode=CMTR,ABRD,NOCH,UNDE,OFF,RABD,RFDB,RFPB,RFOD,RFOS," \
+                    RFQU,RFT2,CCHI,STD,RFSG,RFTR,RFTD,RFTS,RFAP"
       print("URL = " + url)
 
       # url = "https://carthage.datacenter.adirondacksolutions.com/
