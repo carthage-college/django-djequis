@@ -54,7 +54,7 @@ def fn_write_misc_header():
 
 def fn_write_billing_header():
     print("Write Header")
-    with open('room_output.csv', 'wb') as room_output:
+    with open(settings.ADIRONDACK_ROOM_FEES, 'wb') as room_output:
         csvWriter = csv.writer(room_output)
         csvWriter.writerow(["STUDENTNUMBER","ITEMDATE","AMOUNT","TIMEFRAME",
                             "TIMEFRAMENUMERICCODE","BILLDESCRIPTION",
