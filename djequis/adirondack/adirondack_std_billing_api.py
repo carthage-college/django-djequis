@@ -3,9 +3,45 @@ import time
 import datetime
 import hashlib
 import json
+import os
 import requests
 import csv
 
+# django settings for shell environment
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
+
+# prime django
+import django
+django.setup()
+
+# django settings for script
+from django.conf import settings
+from django.db import connections
+from djequis.core.utils import sendmail
+from djzbar.utils.informix import get_engine
+from djtools.fields import TODAY
+from djzbar.settings import INFORMIX_EARL_TEST
+from djzbar.settings import INFORMIX_EARL_PROD
+from adirondack_sql import ADIRONDACK_QUERY
+from adirondack_utilities import fn_write_error, fn_write_billing_header
+
+# informix environment
+os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
+os.environ['DBSERVERNAME'] = settings.DBSERVERNAME
+os.environ['INFORMIXDIR'] = settings.INFORMIXDIR
+os.environ['ODBCINI'] = settings.ODBCINI
+os.environ['ONCONFIG'] = settings.ONCONFIG
+os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
+os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
+os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
+
+# normally set as 'debug" in SETTINGS
+DEBUG = settings.INFORMIX_DEBUG
+
+# set up command-line options
+desc = """
+    Collect adirondack data ASCII Post
+"""
 
 
 print("x")
@@ -24,22 +60,9 @@ def encode_rows_to_utf8(rows):
             fn_write_error("Error in encoded_rows routine " + e.message)
     return encoded_rows
 
-def write_header():
-    print("Write Header")
-    with open('room_output.csv', 'wb') as room_output:
-        csvWriter = csv.writer(room_output)
-        csvWriter.writerow(["STUDENTNUMBER","ITEMDATE","AMOUNT","TIMEFRAME",
-                            "TIMEFRAMENUMERICCODE","BILLDESCRIPTION",
-                            "ACCOUNT","ACCOUNT_DISPLAY_NAME","EFFECTIVEDATE",
-                            "EXPORTED","EXPORTTIMESTAMP","BILLEXPORTDATE",
-                            "TERMEXPORTSTARTDATE","ITEMTYPE","ASSIGNMENTID",
-                            "DININGPLANID","STUDENTBILLINGINTERNALID",
-                            "USERNAME","ADDITIONALID1"])
-
 
 def main():
 
-    print("Main")
     try:
       # Time in GMT
       # GMT Zero hour is 1/1/70
@@ -68,8 +91,7 @@ def main():
       #Calculate seconds from GMT zero hour
       utcts = calendar.timegm(c)
       print("Seconds from UTC Zero hour = " + str(utcts))
-      sec_key = 'jP8yWR9WZar5vEtb6EZnqsYs'
-      hashstring = str(utcts) + sec_key
+      hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
       print("Hashstring = " + hashstring)
 
       # mystring = 'Enter String to hash'
@@ -83,20 +105,11 @@ def main():
       url = "https://carthage.datacenter.adirondacksolutions.com/" \
             "carthage_thd_test_support/apis/thd_api.cfc?" \
             "method=studentBILLING&" \
-            "Key="+sec_key+"&" \
+            "Key="+settings.ADIRONDACK_API_SECRET+"&" \
             "utcts="+str(utcts)+"&" \
             "h="+hash_object.hexdigest()+"&" \
-            "AccountCode=CMTR,ABRD,NOCH,UNDE,OFF,RABD,RFDB,RFPB,RFOD,RFOS," \
-                    RFQU,RFT2,CCHI,STD,RFSG,RFTR,RFTD,RFTS,RFAP"
+            "AccountCode=CMTR,ABRD,NOCH,UNDE,OFF,RABD,RFDB,RFPB,RFOD,RFOS,RFQU,RFT2,CCHI,STD,RFSG,RFTR,RFTD,RFTS,RFAP"
       print("URL = " + url)
-
-      # url = "https://carthage.datacenter.adirondacksolutions.com/
-      # carthage_thd_test_support/apis/thd_api.cfc?method=studentBILLING&
-      # Key=jP8yWR9WZar5vEtb6EZnqsYs&
-      # utcts=1562154563&
-      # h=8e2e60889cfe4606a144ec597bbc7638&
-      # AccountCode=STD"
-      # print("URL = " + url)
 
       response = requests.get(url)
       x = json.loads(response.content)
@@ -105,12 +118,11 @@ def main():
       if not x['DATA']:
           print("No match")
       else:
-          write_header()
+          fn_write_billing_header()
           print("Start Loop")
-          with open('room_output.csv', 'ab') as room_output:
+          with open(settings.ADIRONDACK_ROOM_FEES, 'ab') as room_output:
               for i in x['DATA']:
                   print(i[0])
-
                   csvWriter = csv.writer(room_output, quoting=csv.QUOTE_NONNUMERIC)
                   csvWriter.writerow([i[0] + ',' + i[1] + ',' + str(i[2]) + ','
                   + str(i[3]) + ',' + i[4] + ',' + i[5] + ','
