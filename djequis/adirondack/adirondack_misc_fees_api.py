@@ -1,56 +1,88 @@
+import os
+import sys
 import calendar
 import time
 import datetime
+import codecs
+# import argparse
 import hashlib
 import json
 import requests
 import csv
+import logging
+from logging.handlers import SMTPHandler
+
+
+# django settings for shell environment
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
+
+# prime django
+import django
+django.setup()
+
+# django settings for script
+from django.conf import settings
+from django.db import connections
+from djequis.core.utils import sendmail
+from djzbar.utils.informix import get_engine
+from djtools.fields import TODAY
+from djzbar.settings import INFORMIX_EARL_TEST
+from djzbar.settings import INFORMIX_EARL_PROD
+from adirondack_sql import ADIRONDACK_QUERY
+from adirondack_utilities import fn_write_error, fn_write_misc_header
+
+# informix environment
+os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
+os.environ['DBSERVERNAME'] = settings.DBSERVERNAME
+os.environ['INFORMIXDIR'] = settings.INFORMIXDIR
+os.environ['ODBCINI'] = settings.ODBCINI
+os.environ['ONCONFIG'] = settings.ONCONFIG
+os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
+os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
+os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
+
+# normally set as 'debug" in SETTINGS
+DEBUG = settings.INFORMIX_DEBUG
+
+# set up command-line options
+desc = """
+    Collect adirondack data ASCII Post
+"""
+# parser = argparse.ArgumentParser(description=desc)
+
+# Test with this then remove, use the standard logging mechanism
+logger = logging.getLogger(__name__)
+
+# parser.add_argument(
+#     "--test",
+#     action='store_true',
+#     help="Dry run?",
+#     dest="test"
+# )
+# parser.add_argument(
+#     "-d", "--database",
+#     help="database name.",
+#     dest="database"
+# )
 
 
 
-print("x")
-
-def encode_rows_to_utf8(rows):
-    encoded_rows = []
-    for row in rows:
-        try:
-            encoded_row = []
-            for value in row:
-                if isinstance(value, basestring):
-                    value = value.decode('cp1252').encode("utf-8")
-                encoded_row.append(value)
-            encoded_rows.append(encoded_row)
-        except Exception as e:
-            fn_write_error("Error in encoded_rows routine " + e.message)
-    return encoded_rows
-
-def write_header():
-    print("Write Header")
-    with open('ascii_room_damages.csv', 'wb') as room_output:
-        csvWriter = csv.writer(room_output)
-        csvWriter.writerow(["ITEM_DATE","BILL_DESCRIPTION","ACCOUNT_NUMBER",
-                            "AMOUNT","STUDENT_ID","TOT_CODE","BILL_CODE",
-                            "TERM"])
-
-
-# Marietta needs date, description,account number, amount, ID, totcode,
-# billcode, term
 
 
 def main():
-
-    print("Main")
     try:
       # Time in GMT
       # GMT Zero hour is 1/1/70
       x = 'Thu Jan 01 00:00:00 1970'
       # print("Zero hour = " + x)
+
       # Convert to a stucture format
       y = time.strptime(x)
       # print("Y = " + str(y))
+
       #Calculate seconds from GMT zero hour
       z = calendar.timegm(y)
-      print("Zero hour in seconds = " + str(z))
+      # print("Zero hour in seconds = " + str(z))
 
       # All we need is the following
       # Current date and time
@@ -67,15 +99,14 @@ def main():
 
       #Calculate seconds from GMT zero hour
       utcts = calendar.timegm(c)
-      print("Seconds from UTC Zero hour = " + str(utcts))
-      sec_key = 'jP8yWR9WZar5vEtb6EZnqsYs'
-      hashstring = str(utcts) + sec_key
-      print("Hashstring = " + hashstring)
+      # print("Seconds from UTC Zero hour = " + str(utcts))
 
-      # mystring = 'Enter String to hash'
+      hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
+      # print("Hashstring = " + hashstring)
+
       # Assumes the default UTF-8
       hash_object = hashlib.md5(hashstring.encode())
-      print(hash_object.hexdigest())
+      # print(hash_object.hexdigest())
 
       # sendtime = datetime.now()
       # print("Time of send = " + time.strftime("%Y%m%d%H%M%S"))
@@ -83,18 +114,10 @@ def main():
       url = "https://carthage.datacenter.adirondacksolutions.com/" \
             "carthage_thd_test_support/apis/thd_api.cfc?" \
             "method=studentBILLING&" \
-            "Key="+sec_key+"&" \
+            "Key="+settings.ADIRONDACK_API_SECRET+"&" \
             "utcts="+str(utcts)+"&" \
             "h="+hash_object.hexdigest()+"&" \
             "AccountCode=2010,2011,2031,2040"
-      print("URL = " + url)
-
-      # url = "https://carthage.datacenter.adirondacksolutions.com/
-      # carthage_thd_test_support/apis/thd_api.cfc?method=studentBILLING&
-      # Key=jP8yWR9WZar5vEtb6EZnqsYs&
-      # utcts=1562154563&
-      # h=8e2e60889cfe4606a144ec597bbc7638&
-      # AccountCode=STD"
       # print("URL = " + url)
 
       response = requests.get(url)
@@ -104,43 +127,30 @@ def main():
       if not x['DATA']:
           print("No match")
       else:
-          write_header()
+          fn_write_misc_header()
           print("Start Loop")
-          with open('ascii_room_damages.csv', 'ab') as fee_output:
+          # with open('ascii_room_damages.csv', 'ab') as fee_output:
+
+          with codecs.open(settings.ADIRONDACK_ROOM_DAMAGES, 'ab',
+                           encoding='utf-8-sig') as fee_output:
+
               for i in x['DATA']:
-                  print(i[0])
+                  # print(i[0])
 
-                  # Marietta needs date, description,account number, amount, ID, totcode, billcode, term
-                  print("itemdate = " + i[1])
-                  print("descr = " + i[5])
-                  print("account number = 1-003-10041")
-                  print("amount = " + str(i[2]))
-                  print("ID = " + str(i[0]))
-                  print("totcode = S/A")
-                  print("billcode = " + i[6])
-                  print("term = " + i[4])
+                  # Marietta needs date, description,account number, amount,
+                  # ID, totcode, billcode, term
+                  rec = str([i[1] + "," + i[5] + ",1-003-10041" + "," +
+                             str(i[2]) + "," + str(i[0]) + "," + "S/A" + "," +
+                             i[6] + "," + i[4]])
 
-                  print(i[1] + "," + i[5] + ",1-003-10041" + "," +
-                        str(i[2]) + "," + str(i[0]) + "," + "S/A" + "," +
-                        i[6] + "," + i[4])
+                  print("Rec = " + rec)
+
 
                   csvWriter = csv.writer(fee_output,
                                          quoting=csv.QUOTE_NONNUMERIC)
-                  csvWriter.writerow([i[1] + "," + i[5] + ",1-003-10041" + "," +
-                        str(i[2]) + "," + str(i[0]) + "," + "S/A" + "," +
+                  csvWriter.writerow([i[1] + "," + i[5] + ",1-003-10041" + ","
+                        + str(i[2]) + "," + str(i[0]) + "," + "S/A" + "," +
                         i[6] + "," + i[4]])
-
-                  # csvWriter = csv.writer(fee_output, quoting=csv.QUOTE_NONNUMERIC)
-                  # csvWriter.writerow([i[0] + ',' + i[1] + ',' + str(i[2]) + ','
-                  # + str(i[3]) + ',' + i[4] + ',' + i[5] + ','
-                  # + i[6] + ',' + i[7] + ',' + i[8] + ','
-                  # + str(i[9]) + ',' + str(i[0]) + ','
-                  # + str(i[11]) + ',' + str(i[12]) + ','
-                  # + str(i[13]) + ',' + str(i[14]) + ','
-                  # + str(i[15]) + ',' + str(i[16]) + ','
-                  # + str(i[17]) + ',' + str(i[18])
-                  #         ])
-
 
     except Exception as e:
           print("Error in adirondack_misc_fees_api.py- Main:  " + e.message)
@@ -148,21 +158,20 @@ def main():
           #                + e.message)
 
 if __name__ == "__main__":
-    main()
-#     args = parser.parse_args()
-#     test = args.test
-#     database = args.database
-#
+    # args = parser.parse_args()
+    # test = args.test
+    # database = args.database
+
 # if not database:
 #     print "mandatory option missing: database name\n"
 #     parser.print_help()
 #     exit(-1)
 # else:
 #     database = database.lower()
-#
+
 # if database != 'cars' and database != 'train' and database != 'sandbox':
 #     print "database must be: 'cars' or 'train' or 'sandbox'\n"
 #     parser.print_help()
 #     exit(-1)
-#
-# sys.exit(main())
+
+    sys.exit(main())
