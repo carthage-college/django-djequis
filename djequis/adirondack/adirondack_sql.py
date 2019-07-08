@@ -173,10 +173,8 @@ FROM
 		    AND (PR.CL != 'UP')
 		    AND (PR.lv_date IS NULL)
 		    AND (PR.deg_grant_date IS NULL)
-		
 	 	 ) rnk_prog
 	WHERE row_num = 1 
-		
 	) PER
 
 	INNER JOIN	id_rec		IR	ON	PER.id			=	IR.id
@@ -223,21 +221,19 @@ FROM
 			FROM id_rec id	
 			) SPORT ON SPORT.id = PER.id		 
 							    			
-	JOIN (SELECT S.id, S.prog, S.sess, S.YR 
-		FROM STU_ACAD_REC S
-		JOIN acad_cal_rec A
-			ON A.yr = S.yr
-			AND A.sess = S.sess
-			AND A.subsess = ''
-			AND A.sess IN ('RA','RC')
-			AND A.end_date > TODAY - 1
+	JOIN (	select distinct id, sess, yr
+		from stu_serv_rec
+		where sess in ('RA','RC')
+			AND sess||YR in (select sess||yr from acad_cal_rec 
+				where end_date > TODAY -1
+			and sess in ('RA','RC'))
 			) 
 			TRM ON TRM.id = PER.id
 
 	INNER JOIN	cvid_rec CV	ON	PER.id = CV.cx_id
 	INNER JOIN	cl_table CL	ON	PER.cl = CL.cl
 	LEFT JOIN major_table MAJ1	ON	PER.major1 = MAJ1.major
-	INNER JOIN adm_rec ADM	ON	PER.id = ADM.id
+	inner JOIN adm_rec ADM	ON	PER.id = ADM.id
 		AND ADM.prog = PER.prog
 		AND	ADM.primary_app	=	'Y'
 	INNER JOIN	profile_rec	PRO	ON	PER.id = PRO.id
@@ -282,5 +278,6 @@ FROM
 		WHERE aa = 'ICE' 
 		AND (end_date IS NULL OR end_date >= TODAY)) EMER
 		ON EMER.id = PER.id
+
 
 '''
