@@ -240,7 +240,7 @@ def main():
             file_out.close()
 
             # send file to SFTP Site..
-            sftp_upload(adirondackdata)
+            # sftp_upload(adirondackdata)
 
     except Exception as e:
 
