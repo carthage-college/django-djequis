@@ -181,7 +181,7 @@ def main():
     # Read the csv file
     #---------------------------------------------
     with open("roomassignments.txt", 'r') as f:
-        d_reader = csv.reader(f, delimiter='|')
+        d_reader = csv.reader(f, delimiter=',')
         for row in d_reader:
             # print(row)
             # print('--------------------------------------------------')
