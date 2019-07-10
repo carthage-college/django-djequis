@@ -45,8 +45,6 @@ desc = """
 """
 
 
-print("x")
-
 def encode_rows_to_utf8(rows):
     encoded_rows = []
     for row in rows:
@@ -87,9 +85,9 @@ def main():
 
       #Calculate seconds from GMT zero hour
       utcts = calendar.timegm(c)
-      print("Seconds from UTC Zero hour = " + str(utcts))
+      # print("Seconds from UTC Zero hour = " + str(utcts))
       hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
-      print("Hashstring = " + hashstring)
+      # print("Hashstring = " + hashstring)
 
       # Assumes the default UTF-8
       hash_object = hashlib.md5(hashstring.encode())
@@ -104,11 +102,14 @@ def main():
             "Key="+settings.ADIRONDACK_API_SECRET+"&" \
             "utcts="+str(utcts)+"&" \
             "h="+hash_object.hexdigest()+"&" \
-            "TimeFrameNumericCode=" + "RA 2019" + "&" \
-            "CurrentFuture=-1" + "&" \
-            "HallCode=OAKS1"
-      print("URL = " + url)
+            "TimeFrameNumericCode=" + "RA 2019"
+            # + "&" \
+            # "CurrentFuture=-1"
+            # + "&"
+            # "HallCode=DEN,JOH,OAKS1,OAKS2,OAKS3,OAKS4,OAKS5,OAKS6,MADR,SWE," \
+            #     "TAR,TOWR,UN,OFF,ABRD,CMTR,''"
 
+      # print("URL = " + url)
 
       response = requests.get(url)
       x = json.loads(response.content)
@@ -121,23 +122,53 @@ def main():
           print("Start Loop")
           with open(settings.ADIRONDACK_ROOM_ASSIGNMENTS, 'ab') as room_output:
               for i in x['DATA']:
-                  csvWriter = csv.writer(room_output, quoting=csv.QUOTE_NONNUMERIC)
-                  csvWriter.writerow([str(i[0]) + ',' + i[1] + ',' + (i[2]) + ','
-                  + str(i[3]) + ',' + i[4] + ',' + str(i[5]) + ','
-                  + i[6] + ',' + str(i[7]) + ',' + i[8] + ','
-                  + str(i[9]) + ',' + str(i[0]) + ','
-                  + str(i[11]) + ',' + str(i[12]) + ','
-                  + str(i[13]) + ',' + str(i[14]) + ','
-                  + str(i[15]) + ',' + str(i[16]) + ','
-                  + str(i[17]) + ',' + str(i[18]) + ','
-                  + str(i[19]) + ',' + str(i[20]) + ','
-                  + str(i[21]) + ',' + str(i[22])
-                                      ])
-          SUBJECT = 'Housing Miscellaneous Fees'
-          BODY = 'There are housing fees to process via ASCII post'
-          sendmail(settings.ADIRONDACK_TO_EMAIL, settings.ADIRONDACK_FROM_EMAIL,
-               BODY, SUBJECT
-           )
+                  rec = []
+                  rec.append(i[0])
+                  rec.append(i[1])
+                  rec.append(i[2])
+                  rec.append(i[3])
+                  rec.append(i[4])
+                  rec.append(i[5])
+                  rec.append(i[6])
+                  rec.append(i[7])
+                  rec.append(i[8])
+                  rec.append(i[9])
+                  rec.append(i[10])
+                  rec.append(i[11])
+                  rec.append(i[12])
+                  rec.append(i[13])
+                  rec.append(i[14])
+                  rec.append(i[15])
+                  rec.append(i[16])
+                  rec.append(i[17])
+                  rec.append(i[18])
+                  rec.append(i[19])
+                  rec.append(i[20])
+                  rec.append(i[21])
+                  rec.append(i[22])
+
+                  # print("Rec = " + str(rec))
+                  csvWriter = csv.writer(room_output,
+                                         quoting=csv.QUOTE_NONE)
+                  csvWriter.writerow(rec)
+
+                  # csvWriter = csv.writer(room_output, quoting=csv.QUOTE_NONNUMERIC)
+                  # csvWriter.writerow([str(i[0]) + ',' + i[1] + ',' + (i[2]) + ','
+                  # + str(i[3]) + ',' + i[4] + ',' + str(i[5]) + ','
+                  # + i[6] + ',' + str(i[7]) + ',' + i[8] + ','
+                  # + str(i[9]) + ',' + str(i[0]) + ','
+                  # + str(i[11]) + ',' + str(i[12]) + ','
+                  # + str(i[13]) + ',' + str(i[14]) + ','
+                  # + str(i[15]) + ',' + str(i[16]) + ','
+                  # + str(i[17]) + ',' + str(i[18]) + ','
+                  # + str(i[19]) + ',' + str(i[20]) + ','
+                  # + str(i[21]) + ',' + str(i[22])
+                  #                     ])
+
+          # Validate if the stu_serv_rec exists first                            ])
+          # update stu_serv_rec id, sess, yr, rxv_stat, intend_hsg, campus, bldg, room, bill_code
+
+
     except Exception as e:
           print("Error in adirondack_room_assignments_api.py- Main:  " + e.message)
           # fn_write_error("Error in adirondack_std_billing_api.py - Main: "
