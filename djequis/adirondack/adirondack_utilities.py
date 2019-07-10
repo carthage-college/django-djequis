@@ -10,8 +10,9 @@ from time import strftime, strptime
 import smtplib
 
 # Here are the email package modules we'll need
-from email.mime.image import MIMEImage
+# from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 # import argparse
 import logging
@@ -102,29 +103,44 @@ def fn_write_error(msg):
     fn_clear_logger()
     return("Error logged")
 
-def sendmail(to, frum, body, subject, debug=False):
 
+def sendmail(to, frum, body, subject, debug=False):
     # Create the message
-    file = "r"
     msg = MIMEMultipart('alternative')
-    msg['To'] = ','.join(to)
-    msg['From'] = email.utils.formataddr(('DJ Equis', frum))
+    msg['To'] = to
+    msg['From'] = frum
     msg['Subject'] = subject
     # Open the files in binary mode.  Let the MIMEImage class automatically
     # guess the specific image type.
-    fp = open(settings.ADIRONDACK_ROOM_ASSIGNMENTS,  'rb')
-    txt = MIMEText(fp.read(), _subtype=subtype)
+
+    # maintype, subtype = ctype.split("/", 1)
+
+    fp = open(settings.ADIRONDACK_ROOM_DAMAGES,  'rb')
+    # attachment = MIMEText(fp.read(), _subtype=subtype)
+    attachment = MIMEText(fp.read())
+    # print(str(attachment))
+    # txt = MIMEText(fp.read())
     fp.close()
-    msg.attach(txt)
+    msg.attach(str(attachment))
+
+    print("ready to send")
 
     server = smtplib.SMTP('localhost')
     # show communication with the server
-    if debug:
-        server.set_debuglevel(True)
+    # if debug:
+    #     server.set_debuglevel(True)
     try:
+        print(frum)
+        # print(to)
+        # print(msg)
+        # print(msg.as_string())
         server.sendmail(frum, to, msg.as_string())
+
     finally:
-        server.quit()
+        print("Done")
+    #     server.quit()
+
+
 
 def fn_write_log(msg):
     # create console handler and set level to info
