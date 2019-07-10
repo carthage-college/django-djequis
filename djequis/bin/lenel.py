@@ -18,7 +18,7 @@ sql = """
     AND
         emp.ssno = '#LMS_students.host_id#'
 """
-#sql = "SELECT uid, name FROM sysusers ORDER BY name"
+# sql = "SELECT uid, name FROM sysusers ORDER BY name"
 
 result = connection.execute(sql)
 

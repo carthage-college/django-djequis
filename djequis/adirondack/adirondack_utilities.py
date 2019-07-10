@@ -5,6 +5,14 @@ from datetime import date
 import codecs
 import time
 from time import strftime, strptime
+
+# Import smtplib for the actual sending function
+import smtplib
+
+# Here are the email package modules we'll need
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
+
 # import argparse
 import logging
 from logging.handlers import SMTPHandler
@@ -64,6 +72,17 @@ def fn_write_billing_header():
                             "DININGPLANID","STUDENTBILLINGINTERNALID",
                             "USERNAME","ADDITIONALID1"])
 
+
+def fn_write_assignment_header():
+    print("Write Header")
+    with open(settings.ADIRONDACK_ROOM_ASSIGNMENTS, 'wb') as room_output:
+        csvWriter = csv.writer(room_output)
+        csvWriter.writerow(["STUDENTNUMBER","HALLNAME","HALLCODE","FLOOR",
+        "ROOMNUMBER","BED","ROOM_TYPE","OCCUPANCY","ROOMUSAGE",
+        "TIMEFRAMENUMERICCODE","CHECKIN","CHECKEDINDATE","CHECKOUT",
+        "CHECKEDOUTDATE","PO_BOX","PO_BOX_COMBO","CANCELED","CANCELDATE",
+        "CANCELNOTE","CANCELREASON","GHOST","POSTED","ROOMASSIGNMENTID"])
+
 #########################################################
 # Common functions to handle logger messages and errors
 #########################################################
@@ -82,6 +101,30 @@ def fn_write_error(msg):
     logger.removeHandler(handler)
     fn_clear_logger()
     return("Error logged")
+
+def sendmail(to, frum, body, subject, debug=False):
+
+    # Create the message
+    file = "r"
+    msg = MIMEMultipart('alternative')
+    msg['To'] = ','.join(to)
+    msg['From'] = email.utils.formataddr(('DJ Equis', frum))
+    msg['Subject'] = subject
+    # Open the files in binary mode.  Let the MIMEImage class automatically
+    # guess the specific image type.
+    fp = open(settings.ADIRONDACK_ROOM_ASSIGNMENTS,  'rb')
+    txt = MIMEText(fp.read(), _subtype=subtype)
+    fp.close()
+    msg.attach(txt)
+
+    server = smtplib.SMTP('localhost')
+    # show communication with the server
+    if debug:
+        server.set_debuglevel(True)
+    try:
+        server.sendmail(frum, to, msg.as_string())
+    finally:
+        server.quit()
 
 def fn_write_log(msg):
     # create console handler and set level to info
