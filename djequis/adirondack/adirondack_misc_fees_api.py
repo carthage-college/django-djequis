@@ -23,13 +23,13 @@ django.setup()
 # django settings for script
 from django.conf import settings
 from django.db import connections
-from djequis.core.utils import sendmail
+# from djequis.core.utils import sendmail
 from djzbar.utils.informix import get_engine
 from djtools.fields import TODAY
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 from adirondack_sql import ADIRONDACK_QUERY
-from adirondack_utilities import fn_write_error, fn_write_misc_header
+from adirondack_utilities import fn_write_error, fn_write_misc_header, sendmail
 
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
@@ -135,22 +135,29 @@ def main():
                            encoding='utf-8-sig') as fee_output:
 
               for i in x['DATA']:
-                  # print(i[0])
-
                   # Marietta needs date, description,account number, amount,
                   # ID, totcode, billcode, term
-                  rec = str([i[1] + "," + i[5] + ",1-003-10041" + "," +
-                             str(i[2]) + "," + str(i[0]) + "," + "S/A" + "," +
-                             i[6] + "," + i[4]])
+                  rec = []
+                  rec.append(i[1])
+                  rec.append(i[5])
+                  rec.append("1-003-10041")
+                  rec.append(i[2])
+                  rec.append(i[0])
+                  rec.append("S/A")
+                  rec.append(i[6])
+                  rec.append(i[4])
 
-                  print("Rec = " + rec)
-
-
+                  # print("Rec = " + str(rec))
                   csvWriter = csv.writer(fee_output,
-                                         quoting=csv.QUOTE_NONNUMERIC)
-                  csvWriter.writerow([i[1] + "," + i[5] + ",1-003-10041" + ","
-                        + str(i[2]) + "," + str(i[0]) + "," + "S/A" + "," +
-                        i[6] + "," + i[4]])
+                                         quoting=csv.QUOTE_NONE)
+                  csvWriter.writerow(rec)
+
+          print("File created, send")
+          SUBJECT = 'Housing Miscellaneous Fees'
+          BODY = 'There are housing fees to process via ASCII post'
+          sendmail(settings.ADIRONDACK_TO_EMAIL, settings.ADIRONDACK_FROM_EMAIL,
+                 BODY, SUBJECT
+                 )
 
     except Exception as e:
           print("Error in adirondack_misc_fees_api.py- Main:  " + e.message)
