@@ -11,8 +11,11 @@ import smtplib
 
 # Here are the email package modules we'll need
 # from email.mime.image import MIMEImage
+import mimetypes
 from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
+from email import encoders
 
 # import argparse
 import logging
@@ -106,38 +109,40 @@ def fn_write_error(msg):
 
 def sendmail(to, frum, body, subject, debug=False):
     # Create the message
-    msg = MIMEMultipart('alternative')
-    msg['To'] = to
+    msg = MIMEMultipart()
+
+    # email to addresses may come as list
+    msg['To'] = ','.join(to)
     msg['From'] = frum
     msg['Subject'] = subject
-    # Open the files in binary mode.  Let the MIMEImage class automatically
-    # guess the specific image type.
 
-    # maintype, subtype = ctype.split("/", 1)
-
-    fp = open(settings.ADIRONDACK_ROOM_DAMAGES,  'rb')
-    # attachment = MIMEText(fp.read(), _subtype=subtype)
-    attachment = MIMEText(fp.read())
-    # print(str(attachment))
-    # txt = MIMEText(fp.read())
-    fp.close()
-    msg.attach(str(attachment))
-
-    print("ready to send")
-
+    msg.attach(MIMEText(body, 'csv'))
+    filename = settings.ADIRONDACK_ROOM_DAMAGES
+    # print(filename)
+    attachment = open(settings.ADIRONDACK_ROOM_DAMAGES, 'rb')
+    fil = MIMEBase('application', 'octet-stream')
+    fil.set_payload((attachment).read())
+    encoders.encode_base64(fil)
+    fil.add_header('Content-Disposition', "attachment; filename = %s" % filename)
+    msg.attach(fil)
+    # print("attach OK")
+    text = msg.as_string()
+    # print(text)
+    # print("ready to send")
     server = smtplib.SMTP('localhost')
     # show communication with the server
     # if debug:
     #     server.set_debuglevel(True)
     try:
-        print(frum)
-        # print(to)
-        # print(msg)
-        # print(msg.as_string())
-        server.sendmail(frum, to, msg.as_string())
+        print(msg['To'])
+        print(msg['From'])
+        server.sendmail(msg['From'], msg['to'], text)
+
+        # server.sendmail(msg['From'], msg['To'], msg.as_string())
 
     finally:
-        print("Done")
+        server.quit()
+        # print("Done")
     #     server.quit()
 
 
