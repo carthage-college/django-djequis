@@ -87,6 +87,19 @@ def fn_write_assignment_header():
         "CHECKEDOUTDATE","PO_BOX","PO_BOX_COMBO","CANCELED","CANCELDATE",
         "CANCELNOTE","CANCELREASON","GHOST","POSTED","ROOMASSIGNMENTID"])
 
+def fn_write_application_header():
+    print("Write Header")
+    with open(settings.ADIRONDACK_APPLICATONS, 'wb') as output:
+        csvWriter = csv.writer(output)
+        csvWriter.writerow(["STUDENTNUMBER","APPLICATIONTYPENAME",
+                            "APP_RECEIVED","APP_COMPLETE",
+                            "TIMEFRAMENUMERICCODE","ELECTRONIC_SIG_TS",
+                            "CONTRACT_RECEIVED","APP_CANCELED","DEPOSIT",
+                            "DEPOSIT_AMOUNT","DEPOSIT_RECEIVED",
+                            "PAYVENDORCONFIRMATION","UNDERAGE",
+                            "UNDERAGE_ELECTRONIC_SIG_TS","INSURANCE_INTENT"
+                            ])
+
 #########################################################
 # Common functions to handle logger messages and errors
 #########################################################
