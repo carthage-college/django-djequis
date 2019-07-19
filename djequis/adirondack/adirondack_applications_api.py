@@ -24,7 +24,7 @@ from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 from adirondack_sql import ADIRONDACK_QUERY
 from adirondack_utilities import fn_write_error, fn_write_billing_header,\
-    fn_write_assignment_header, fn_write_application_header
+    fn_write_assignment_header, fn_write_application_header, fn_get_utcts
 
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
@@ -63,29 +63,8 @@ def encode_rows_to_utf8(rows):
 def main():
 
     try:
-      # GMT Zero hour is 1/1/70
-      x = 'Thu Jan 01 00:00:00 1970'
-
-      # Convert to a stucture format
-      y = time.strptime(x)
-
-      #Calculate seconds from GMT zero hour
-      z = calendar.timegm(y)
-      # print("Zero hour in seconds = " + str(z))
-
-      # Current date and time
-      a = datetime.datetime.now()
-
-      # Format properly
-      b = a.strftime('%a %b %d %H:%M:%S %Y')
-
-      # convert to a struct time
-      c = time.strptime(b)
-      # print("C = " + str(b))
-
-      #Calculate seconds from GMT zero hour
-      utcts = calendar.timegm(c)
-      # print("Seconds from UTC Zero hour = " + str(utcts))
+           
+      utcts = fn_get_utcts()
       hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
       # print("Hashstring = " + hashstring)
 
