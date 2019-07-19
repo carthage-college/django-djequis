@@ -29,7 +29,8 @@ from djtools.fields import TODAY
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 from adirondack_sql import ADIRONDACK_QUERY
-from adirondack_utilities import fn_write_error, fn_write_misc_header, sendmail
+from adirondack_utilities import fn_write_error, fn_write_misc_header, \
+    sendmail, fn_get_utcts
 
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
@@ -69,36 +70,7 @@ logger = logging.getLogger(__name__)
 
 def main():
     try:
-        # Time in GMT
-        # GMT Zero hour is 1/1/70
-        x = 'Thu Jan 01 00:00:00 1970'
-        # print("Zero hour = " + x)
-
-        # Convert to a stucture format
-        y = time.strptime(x)
-        # print("Y = " + str(y))
-
-        # Calculate seconds from GMT zero hour
-        z = calendar.timegm(y)
-        # print("Zero hour in seconds = " + str(z))
-
-        # All we need is the following
-        # Current date and time
-        a = datetime.datetime.now()
-        # print("Current date and time = " + str(a))
-
-        # Format properly
-        b = a.strftime('%a %b %d %H:%M:%S %Y')
-        # print("B = " + b)
-
-        # convert to a struct time
-        c = time.strptime(b)
-        # print("C = " + str(b))
-
-        # Calculate seconds from GMT zero hour
-        utcts = calendar.timegm(c)
-        # print("Seconds from UTC Zero hour = " + str(utcts))
-
+        utcts = fn_get_utcts()
         hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
         # print("Hashstring = " + hashstring)
 
