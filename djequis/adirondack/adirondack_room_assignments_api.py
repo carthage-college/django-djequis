@@ -161,10 +161,7 @@ def main():
                     startdate = i[11]
                     enddate = i[13]
                     billcode = get_bill_code(carthid)
-                    billcode = 'STD'
-
-
-
+                    # billcode = 'STD'
 
                     rec = []
                     rec.append(i[0])
@@ -209,32 +206,50 @@ def main():
                                   where yr = {2}
                                   and sess  = "{1}"
                                   and id = {0}'''.format(carthid, sess, year)
-                    print(q_validate_stuserv_rec)
+                    # print(q_validate_stuserv_rec)
 
                     ret = do_sql(q_validate_stuserv_rec, key=DEBUG, earl=EARL)
                     if ret is not None:
-                        print("Record found " + carthid)
-                        q_update_stuserv_rec = '''
-                                      UPDATE stu_serv_rec set  rsv_stat = ?,
-                                      intend_hsg = ?, campus = ?, bldg = 
-                                      ?, room = ?,
-                                      no_per_room = ?, add_date = ?, 
-                                      bill_code = ?,
-                                      hous_wd_date = ?)
-                                      where id = ? and sess = ? and yr = ?'''
-                        q_update_stuserv_args = ('R', 'R', "Main", bldg, room,
-                            occupants,
-                            startdate, billcode, enddate, carthid, sess,
-                            year, 'R')
-                        # print(q_update_stuserv_rec)
-                        print(q_update_stuserv_args)
-
+                        if billcode > 0:
+                            print("Record found " + carthid)
+                            q_update_stuserv_rec = '''
+                                          UPDATE stu_serv_rec set  rsv_stat = ?,
+                                          intend_hsg = ?, campus = ?, bldg = 
+                                          ?, room = ?,
+                                          no_per_room = ?, add_date = ?, 
+                                          bill_code = ?,
+                                          hous_wd_date = ?)
+                                          where id = ? and sess = ? and yr = ?'''
+                            q_update_stuserv_args = ('R', 'R', "Main", bldg, room,
+                                occupants,
+                                startdate, billcode, enddate, carthid, sess,
+                                year)
+                            print(q_update_stuserv_rec)
+                            print(q_update_stuserv_args)
+                        else:
+                            print("Bill code not found")
                     #     # go ahead and update
                     else:
                         print("Record not found")
-                    #     #insert
+                        # Insert if no record exists, update else
+                        if billcode > 0:
+                            q_insert_stuserv_rec = '''
+                                    INSERT INTO stu_serv_rec (id, sess, yr, rsv_stat,
+                                    intend_hsg, campus, bldg, room, no_per_room,
+                                    add_date,
+                                    bill_code, hous_wd_date)
+                                    VALUES (?,?,?,?,?,?,?,?,?,?,?)'''
+                            q_insert_stuserv_args = (
+                                  carthid, term, yr, rsvstat, 'R', 'MAIN', bldg,
+                                  room, occupants,
+                                  startdate, billcode, enddate)
+                            print(q_insert_stuserv_rec)
+                            print(q_insert_stuserv_args)
+                            # engine.execute(q_insert_stuserv_rec,
+                            # q_insert_stuserv_args)
             
-
+                        else:
+                            print("Bill code not found")
 
 
                 # NOTE ABOUT WITHDRAWALS!!!!
@@ -250,20 +265,7 @@ def main():
                 #     rsvstat = 'W'
                 #     billcode = "NOCH"
 
-                # # Insert if no record exists, update else
-                # q_insert_stuserv_rec = '''
-                #         INSERT INTO stu_serv_rec (id, sess, yr, rsv_stat,
-                #         intend_hsg, campus, bldg, room, no_per_room,
-                #         add_date,
-                #         bill_code, hous_wd_date)
-                #         VALUES (?,?,?,?,?,?,?,?,?,?,?)'''
-                # q_insert_stuserv_args = (
-                #       carthid, term, yr, rsvstat, 'R', 'MAIN', building,
-                #       room, occupants,
-                #       startdate, billcode, enddate)
-                # print(q_insert_stuserv_rec)
-                # print(q_insert_stuserv_args)
-                # # engine.execute(q_insert_stuserv_rec, q_insert_stuserv_args)
+
 
                 # filepath = settings.ADIRONDACK_CSV_OUTPUT
 
