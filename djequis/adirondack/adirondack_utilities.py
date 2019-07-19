@@ -1,9 +1,12 @@
 import csv
 import datetime
-from datetime import datetime
+import calendar
+# from datetime import datetime
 from datetime import date
 import codecs
 import time
+import hashlib
+
 from time import strftime, strptime
 
 # Import smtplib for the actual sending function
@@ -158,6 +161,25 @@ def sendmail(to, frum, body, subject, debug=False):
         # print("Done")
     #     server.quit()
 
+def fn_get_utcts():
+    # GMT Zero hour is 1/1/70
+    x = 'Thu Jan 01 00:00:00 1970'
+    # Convert to a stucture format
+    y = time.strptime(x)
+    # Calculate seconds from GMT zero hour
+    # z = calendar.timegm(y)
+    # print("Zero hour in seconds = " + str(z))
+    # Current date and time
+    a = datetime.datetime.now()
+    # Format properly
+    b = a.strftime('%a %b %d %H:%M:%S %Y')
+    # convert to a struct time
+    c = time.strptime(b)
+    # print("C = " + str(b))
+    # Calculate seconds from GMT zero hour
+    utcts = calendar.timegm(c)
+    # print("Seconds from UTC Zero hour = " + str(utcts))
+    return utcts
 
 
 def fn_write_log(msg):
