@@ -16,32 +16,13 @@ django.setup()
 
 # django settings for script
 from django.conf import settings
-from django.db import connections
 from djequis.core.utils import sendmail
-from djzbar.utils.informix import get_engine
-from djtools.fields import TODAY
-from djzbar.settings import INFORMIX_EARL_TEST
-from djzbar.settings import INFORMIX_EARL_PROD
-from adirondack_sql import ADIRONDACK_QUERY
-from adirondack_utilities import fn_write_error, fn_write_billing_header,\
-    fn_write_assignment_header, fn_write_application_header, fn_get_utcts
-
-# informix environment
-os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
-os.environ['DBSERVERNAME'] = settings.DBSERVERNAME
-os.environ['INFORMIXDIR'] = settings.INFORMIXDIR
-os.environ['ODBCINI'] = settings.ODBCINI
-os.environ['ONCONFIG'] = settings.ONCONFIG
-os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
-os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
-os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
-
-# normally set as 'debug" in SETTINGS
-DEBUG = settings.INFORMIX_DEBUG
+from adirondack_utilities import fn_write_error, fn_write_application_header, \
+    fn_get_utcts
 
 # set up command-line options
 desc = """
-    Collect adirondack data ASCII Post
+    Collect adirondack data from applications for housing
 """
 
 
@@ -63,7 +44,7 @@ def encode_rows_to_utf8(rows):
 def main():
 
     try:
-           
+
       utcts = fn_get_utcts()
       hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
       # print("Hashstring = " + hashstring)
@@ -132,7 +113,6 @@ def main():
           # Validate if the stu_serv_rec exists first                            ])
           # update stu_serv_rec id, sess, yr, rxv_stat, intend_hsg, campus, bldg, room, bill_code
 
-
     except Exception as e:
           print("Error in adirondack_applicationss_api.py- Main:  " + e.message)
           # fn_write_error("Error in adirondack_std_billing_api.py - Main: "
@@ -142,18 +122,4 @@ if __name__ == "__main__":
     main()
 #     args = parser.parse_args()
 #     test = args.test
-#     database = args.database
-#
-# if not database:
-#     print "mandatory option missing: database name\n"
-#     parser.print_help()
-#     exit(-1)
-# else:
-#     database = database.lower()
-#
-# if database != 'cars' and database != 'train' and database != 'sandbox':
-#     print "database must be: 'cars' or 'train' or 'sandbox'\n"
-#     parser.print_help()
-#     exit(-1)
-#
 # sys.exit(main())
