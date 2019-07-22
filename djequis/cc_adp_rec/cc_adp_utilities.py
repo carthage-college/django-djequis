@@ -25,7 +25,7 @@ desc = """
 """
 
 # write out the .sql file
-scr = open("apdtocx_output.sql", "a")
+# scr = open("apdtocx_output.sql", "a")
 # set start_time in order to see how long script takes to execute
 start_time = time.time()
 
