@@ -63,6 +63,7 @@ def main():
             print("No data")
         else:
             # ASCII post does not take a header
+            os.remove(settings.ADIRONDACK_ROOM_DAMAGES)
             # fn_write_misc_header()
             # print("Start Loop")
             with codecs.open(settings.ADIRONDACK_ROOM_DAMAGES, 'ab',
