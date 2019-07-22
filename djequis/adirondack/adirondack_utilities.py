@@ -123,7 +123,7 @@ def fn_write_error(msg):
     return("Error logged")
 
 
-def sendmail(to, frum, body, subject, debug=False):
+def fn_sendmailfees(to, frum, body, subject, debug=False):
     # Create the message
     msg = MIMEMultipart()
 
