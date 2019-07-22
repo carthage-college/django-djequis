@@ -1,10 +1,8 @@
 import os
 import sys
-import calendar
 import time
 import datetime
 import codecs
-# import argparse
 import hashlib
 import json
 import requests
@@ -22,51 +20,16 @@ django.setup()
 
 # django settings for script
 from django.conf import settings
-from django.db import connections
-# from djequis.core.utils import sendmail
-from djzbar.utils.informix import get_engine
-from djtools.fields import TODAY
-from djzbar.settings import INFORMIX_EARL_TEST
-from djzbar.settings import INFORMIX_EARL_PROD
-from adirondack_sql import ADIRONDACK_QUERY
+from djequis.core.utils import sendmail
 from adirondack_utilities import fn_write_error, fn_write_misc_header, \
-    sendmail, fn_get_utcts
-
-# informix environment
-os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
-os.environ['DBSERVERNAME'] = settings.DBSERVERNAME
-os.environ['INFORMIXDIR'] = settings.INFORMIXDIR
-os.environ['ODBCINI'] = settings.ODBCINI
-os.environ['ONCONFIG'] = settings.ONCONFIG
-os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
-os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
-os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
-
-# normally set as 'debug" in SETTINGS
-DEBUG = settings.INFORMIX_DEBUG
+    fn_sendmailfees, fn_get_utcts
 
 # set up command-line options
 desc = """
-    Collect adirondack data ASCII Post
+    Collect adirondack fee data for ASCII Post
 """
-# parser = argparse.ArgumentParser(description=desc)
-
 # Test with this then remove, use the standard logging mechanism
 logger = logging.getLogger(__name__)
-
-
-# parser.add_argument(
-#     "--test",
-#     action='store_true',
-#     help="Dry run?",
-#     dest="test"
-# )
-# parser.add_argument(
-#     "-d", "--database",
-#     help="database name.",
-#     dest="database"
-# )
-
 
 def main():
     try:
@@ -102,8 +65,6 @@ def main():
             # ASCII post does not take a header
             # fn_write_misc_header()
             # print("Start Loop")
-            # with open('ascii_room_damages.csv', 'ab') as fee_output:
-
             with codecs.open(settings.ADIRONDACK_ROOM_DAMAGES, 'ab',
                              encoding='utf-8-sig') as fee_output:
 
@@ -128,32 +89,17 @@ def main():
             # print("File created, send")
             SUBJECT = 'Housing Miscellaneous Fees'
             BODY = 'There are housing fees to process via ASCII post'
-            sendmail(settings.ADIRONDACK_TO_EMAIL,
+            fn_sendmailfees(settings.ADIRONDACK_TO_EMAIL,
                      settings.ADIRONDACK_FROM_EMAIL,
                      BODY, SUBJECT
                      )
 
     except Exception as e:
         print("Error in adirondack_misc_fees_api.py- Main:  " + e.message)
-        # fn_write_error("Error in adirondack_std_billing_api.py - Main: "
-        #                + e.message)
+        fn_write_error("Error in adirondack_std_billing_api.py - Main: "
+                       + e.message)
 
 
 if __name__ == "__main__":
-    # args = parser.parse_args()
-    # test = args.test
-    # database = args.database
-
-    # if not database:
-    #     print "mandatory option missing: database name\n"
-    #     parser.print_help()
-    #     exit(-1)
-    # else:
-    #     database = database.lower()
-
-    # if database != 'cars' and database != 'train' and database != 'sandbox':
-    #     print "database must be: 'cars' or 'train' or 'sandbox'\n"
-    #     parser.print_help()
-    #     exit(-1)
 
     sys.exit(main())
