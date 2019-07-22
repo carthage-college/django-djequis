@@ -65,7 +65,7 @@ def main():
             # ASCII post does not take a header
             os.remove(settings.ADIRONDACK_ROOM_DAMAGES)
             # fn_write_misc_header()
-            # print("Start Loop")
+            # print("Start Loop")gi
             with codecs.open(settings.ADIRONDACK_ROOM_DAMAGES, 'ab',
                              encoding='utf-8-sig') as fee_output:
 
