@@ -21,7 +21,6 @@ from django.conf import settings
 from django.db import connections
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import get_engine
-# from djtools.fields import TODAY
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 from adirondack_sql import ADIRONDACK_QUERY
@@ -94,7 +93,6 @@ def encode_rows_to_utf8(rows):
     return encoded_rows
 
 def sftp_upload(upload_filename):
-    print("In File Upload")
     # by adding cnopts, I'm authorizing the program to ignore the
     # host key and just continue
     cnopts = pysftp.CnOpts()
@@ -108,13 +106,12 @@ def sftp_upload(upload_filename):
         'cnopts': cnopts
     }
     try:
-        print("Make Connection")
+        # print("Make Connection")
         with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
             # change directory
-            print("Change Directory at SFTP Site")
             sftp.chdir("test/in/")
             # sftp.chdir("prod/in/")
-            print(upload_filename)
+            # print(upload_filename)
             sftp.put(upload_filename, preserve_mtime=True)
                 # delete original files from our server
                 # os.remove(adirondackfiles)
@@ -123,10 +120,10 @@ def sftp_upload(upload_filename):
     except Exception, e:
         SUBJECT = 'ADIRONDACK UPLOAD failed'
         BODY = 'Unable to PUT .txt file to adirondack server.\n\n{0}'.format(str(e))
-        # sendmail(
-        #     settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
-        #     BODY, SUBJECT
-        # )
+        sendmail(
+            settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
+            BODY, SUBJECT
+        )
         print(BODY)
 
 def main():
@@ -226,9 +223,8 @@ def main():
                 BODY, SUBJECT
             )
         else:
-            print("Query successful")
+            # print("Query successful")
             with open(adirondackdata, 'a') as file_out:
-            # with open("carthage_students.txt", 'a') as file_out:
                 csvWriter = csv.writer(file_out, delimiter='|')
                 encoded_rows = encode_rows_to_utf8(ret)
                 for row in encoded_rows:
@@ -236,7 +232,7 @@ def main():
             file_out.close()
 
             # send file to SFTP Site..
-            # sftp_upload(adirondackdata)
+            sftp_upload(adirondackdata)
 
     except Exception as e:
 
