@@ -21,7 +21,7 @@ from django.conf import settings
 from django.db import connections
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import get_engine
-from djtools.fields import TODAY
+# from djtools.fields import TODAY
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 from adirondack_sql import ADIRONDACK_QUERY
@@ -113,6 +113,7 @@ def sftp_upload(upload_filename):
             # change directory
             print("Change Directory at SFTP Site")
             sftp.chdir("test/in/")
+            # sftp.chdir("prod/in/")
             print(upload_filename)
             sftp.put(upload_filename, preserve_mtime=True)
                 # delete original files from our server
@@ -131,11 +132,8 @@ def sftp_upload(upload_filename):
 def main():
 
     ##########################################################################
-    # development server (bng), you would execute:
     # ==> python buildcsv.py --database=train --test
-    # production server (psm), you would execute:
     # ==> python buildcsv.py --database=cars
-    # without the --test argument
     ##########################################################################
 
     # Defines file names and directory location
@@ -143,7 +141,6 @@ def main():
          settings.ADIRONDACK_TXT_OUTPUT))
 
     try:
-        # print("try")
         # set global variable
         global EARL
         # determines which database is being called from the command line
@@ -224,11 +221,10 @@ def main():
         if ret is None:
             SUBJECT = '[adirondack Application] failed'
             BODY = "SQL Query returned no data."
-            print(SUBJECT)
-            # sendmail(
-            #     settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
-            #     BODY, SUBJECT
-            # )
+            sendmail(
+                settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
+                BODY, SUBJECT
+            )
         else:
             print("Query successful")
             with open(adirondackdata, 'a') as file_out:
