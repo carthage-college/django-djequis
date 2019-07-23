@@ -3,15 +3,8 @@ import json
 import os
 import requests
 import csv
-
-# django settings for shell environment
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
-
 # prime django
 import django
-
-django.setup()
-
 # django settings for script
 from django.conf import settings
 from django.db import connections
@@ -24,6 +17,13 @@ from djzbar.settings import INFORMIX_EARL_PROD
 from adirondack_sql import ADIRONDACK_QUERY
 from adirondack_utilities import fn_write_error, fn_write_billing_header, \
     fn_write_assignment_header, fn_get_utcts
+
+# django settings for shell environment
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
+
+
+django.setup()
+
 
 #
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
@@ -103,12 +103,12 @@ def main():
         # elif database == 'sandbox':
         #     EARL = INFORMIX_EARL_SANDBOX
         # else:
-            # this will raise an error when we call get_engine()
-            # below but the argument parser should have taken
-            # care of this scenario and we will never arrive here.
-            # EARL = None
+        # this will raise an error when we call get_engine()
+        # below but the argument parser should have taken
+        # care of this scenario and we will never arrive here.
+        # EARL = None
         # establish database connection
-        engine = get_engine(EARL)
+        # engine = get_engine(EARL)
 
     # try:
         utcts = fn_get_utcts()
@@ -139,18 +139,24 @@ def main():
 
         # print("URL = " + url)
 
+        # NOTE # # NOTE # # NOTE # # NOTE # # NOTE # # NOTE # # NOTE #
+        # I could flip this, grab only the records of a bill for room and
+        #   board, and use that record to go and get the room assignment
+        # NOTE # # NOTE # # NOTE # # NOTE # # NOTE # # NOTE # # NOTE #
+
         response = requests.get(url)
         x = json.loads(response.content)
         # print(x)
-        y = (len(x['DATA'][0][0]))
+        # y = (len(x['DATA'][0][0]))
         if not x['DATA']:
             print("No match")
         else:
             fn_write_assignment_header()
+            z = encode_rows_to_utf8(x['DATA'])
             print("Start Loop")
             with open(settings.ADIRONDACK_ROOM_ASSIGNMENTS,
                       'ab') as room_output:
-                for i in x['DATA']:
+                for i in z:
                     carthid = i[0]
                     sess = i[9][:2]
                     year = i[9][-4:]
@@ -161,37 +167,9 @@ def main():
                     startdate = i[11]
                     enddate = i[13]
                     billcode = get_bill_code(carthid)
-                    # billcode = 'STD'
-
-                    rec = []
-                    rec.append(i[0])
-                    rec.append(i[1])
-                    rec.append(i[2])
-                    rec.append(i[3])
-                    rec.append(i[4])
-                    rec.append(i[5])
-                    rec.append(i[6])
-                    rec.append(i[7])
-                    rec.append(i[8])
-                    rec.append(i[9])
-                    rec.append(i[10])
-                    rec.append(i[11])
-                    rec.append(i[12])
-                    rec.append(i[13])
-                    rec.append(i[14])
-                    rec.append(i[15])
-                    rec.append(i[16])
-                    rec.append(i[17])
-                    rec.append(i[18])
-                    rec.append(i[19])
-                    rec.append(i[20])
-                    rec.append(i[21])
-                    rec.append(i[22])
-
-                    # print("Rec = " + str(rec))
                     csvWriter = csv.writer(room_output,
                                            quoting=csv.QUOTE_NONE)
-                    csvWriter.writerow(rec)
+                    csvWriter.writerow(i)
 
                     # Validate if the stu_serv_rec exists first
                     # ])
@@ -213,17 +191,16 @@ def main():
                         if billcode > 0:
                             print("Record found " + carthid)
                             q_update_stuserv_rec = '''
-                                          UPDATE stu_serv_rec set  rsv_stat = ?,
-                                          intend_hsg = ?, campus = ?, bldg = 
-                                          ?, room = ?,
-                                          no_per_room = ?, add_date = ?, 
-                                          bill_code = ?,
-                                          hous_wd_date = ?)
-                                          where id = ? and sess = ? and yr = ?'''
-                            q_update_stuserv_args = ('R', 'R', "Main", bldg, room,
-                                occupants,
-                                startdate, billcode, enddate, carthid, sess,
-                                year)
+                                UPDATE stu_serv_rec set  rsv_stat = ?,
+                                intend_hsg = ?, campus = ?, bldg = 
+                                ?, room = ?,
+                                no_per_room = ?, add_date = ?, 
+                                bill_code = ?,
+                                hous_wd_date = ?)
+                                where id = ? and sess = ? and yr = ?'''
+                            q_update_stuserv_args = ('R', 'R', "Main", bldg,
+                                    room, occupants, startdate, billcode,
+                                    enddate, carthid, sess, year)
                             print(q_update_stuserv_rec)
                             print(q_update_stuserv_args)
                         else:
@@ -234,15 +211,16 @@ def main():
                         # Insert if no record exists, update else
                         if billcode > 0:
                             q_insert_stuserv_rec = '''
-                                    INSERT INTO stu_serv_rec (id, sess, yr, rsv_stat,
-                                    intend_hsg, campus, bldg, room, no_per_room,
+                                    INSERT INTO stu_serv_rec (id, sess, yr, 
+                                    rsv_stat, intend_hsg, campus, bldg, room, 
+                                    no_per_room,
                                     add_date,
                                     bill_code, hous_wd_date)
                                     VALUES (?,?,?,?,?,?,?,?,?,?,?)'''
                             q_insert_stuserv_args = (
-                                  carthid, term, yr, rsvstat, 'R', 'MAIN', bldg,
-                                  room, occupants,
-                                  startdate, billcode, enddate)
+                                    carthid, term, yr, rsvstat, 'R', 'MAIN',
+                                    bldg, room, occupants,
+                                    startdate, billcode, enddate)
                             print(q_insert_stuserv_rec)
                             print(q_insert_stuserv_args)
                             # engine.execute(q_insert_stuserv_rec,
@@ -250,7 +228,6 @@ def main():
             
                         else:
                             print("Bill code not found")
-
 
                 # NOTE ABOUT WITHDRAWALS!!!!
                 # Per Amber, the only things that get changed when a student
@@ -265,14 +242,7 @@ def main():
                 #     rsvstat = 'W'
                 #     billcode = "NOCH"
 
-
-
                 # filepath = settings.ADIRONDACK_CSV_OUTPUT
-
-
-
-
-
 
     except Exception as e:
         print(
