@@ -6,14 +6,7 @@ import json
 import os
 import requests
 import csv
-
-# django settings for shell environment
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
-
-# prime django
 import django
-django.setup()
-
 # django settings for script
 from django.conf import settings
 from django.db import connections
@@ -24,6 +17,12 @@ from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 from adirondack_sql import ADIRONDACK_QUERY
 from adirondack_utilities import fn_write_error, fn_write_billing_header
+
+# django settings for shell environment
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
+
+# prime django
+django.setup()
 
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
@@ -127,7 +126,7 @@ def main():
                   csvWriter.writerow([i[0] + ',' + i[1] + ',' + str(i[2]) + ','
                   + str(i[3]) + ',' + i[4] + ',' + i[5] + ','
                   + i[6] + ',' + i[7] + ',' + i[8] + ','
-                  + str(i[9]) + ',' + str(i[0]) + ','
+                  + str(i[9]) + ',' + str(i[10]) + ','
                   + str(i[11]) + ',' + str(i[12]) + ','
                   + str(i[13]) + ',' + str(i[14]) + ','
                   + str(i[15]) + ',' + str(i[16]) + ','
