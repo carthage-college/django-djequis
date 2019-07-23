@@ -172,7 +172,6 @@ def main():
                     csvWriter.writerow(i)
 
                     # Validate if the stu_serv_rec exists first
-                    # ])
                     # update stu_serv_rec id, sess, yr, rxv_stat, intend_hsg,
                     # campus, bldg, room, bill_code
                     q_validate_stuserv_rec = '''
@@ -184,9 +183,10 @@ def main():
                                   where yr = {2}
                                   and sess  = "{1}"
                                   and id = {0}'''.format(carthid, sess, year)
-                    # print(q_validate_stuserv_rec)
+                    print(q_validate_stuserv_rec)
 
                     ret = do_sql(q_validate_stuserv_rec, key=DEBUG, earl=EARL)
+
                     if ret is not None:
                         if billcode > 0:
                             print("Record found " + carthid)
