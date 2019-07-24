@@ -60,7 +60,7 @@ def encode_rows_to_utf8(rows):
     return encoded_rows
 
 
-def get_bill_code(idnum):
+def get_bill_code(idnum, bldg):
     utcts = fn_get_utcts()
 
     hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
@@ -82,7 +82,14 @@ def get_bill_code(idnum):
     # y = (len(x['DATA'][0][0]))
     if not x['DATA']:
         print("No data")
-        billcode = 0
+        if bldg == 'CMTR':
+            billcode = 'CMTR'
+        elif bldg == 'OFF':
+            billcode = 'OFF'
+        elif bldg == 'ABRD':
+            billcode = 'ABRD'
+        else:
+            billcode = ''
         return billcode
     else:
         for i in x['DATA']:
@@ -123,21 +130,39 @@ def main():
         # sendtime = datetime.now()
         # print("Time of send = " + time.strftime("%Y%m%d%H%M%S"))
 
-        url = "https://carthage.datacenter.adirondacksolutions.com/" \
-              "carthage_thd_test_support/apis/thd_api.cfc?" \
-              "method=housingASSIGNMENTS&" \
-              "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
-              "utcts=" + str(utcts) + "&" \
-              "h=" + hash_object.hexdigest() + "&" \
-              "TimeFrameNumericCode=" + "RA 2019" + "&" \
-              "HallCode=" + 'SWE'
-        # + "&" \
-        # "CurrentFuture=-1"
-        # + "&"
-        # "HallCode=DEN,JOH,OAKS1,OAKS2,OAKS3,OAKS4,OAKS5,OAKS6,MADR,SWE," \
-        #     "TAR,TOWR,UN,OFF,ABRD,CMTR,''"
+        q_get_term = '''select trim(trim(sess)||' '||trim(TO_CHAR(yr))) session
+                        from acad_cal_rec
+                        where sess in ('RA','RC')
+                        and subsess = ''
+                        and first_reg_date < TODAY
+                        and charge_date > TODAY
+                         '''
+        ret = do_sql(q_get_term, key=DEBUG, earl=EARL)
+        if ret is not None:
+            row = ret.fetchone()
+            if row is not None:
+                session = row[0]
+                print("Session = " + session)
 
-        # print("URL = " + url)
+            url = "https://carthage.datacenter.adirondacksolutions.com/" \
+                  "carthage_thd_test_support/apis/thd_api.cfc?" \
+                  "method=housingASSIGNMENTS&" \
+                  "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
+                  "utcts=" + str(utcts) + "&" \
+                  "h=" + hash_object.hexdigest() + "&" \
+                  "TimeFrameNumericCode=" + session + "&" \
+                  "STUDENTNUMBER=" + "1539775,1475918,1435328,1501195,1561509,1496108,1408374,1478479"
+                  # "HallCode=" + 'SWE'
+                  # + "&" \
+                  # "CurrentFuture=-1"
+                  # + "&"
+                  # "HallCode=DEN,JOH,OAKS1,OAKS2,OAKS3,OAKS4,OAKS5,OAKS6,MADR,SWE," \
+                  #     "TAR,TOWR,UN,OFF,ABRD,CMTR,''"
+
+                  # print("URL = " + url)
+        else:
+            print("Term not found")
+
 
         # NOTE # # NOTE # # NOTE # # NOTE # # NOTE # # NOTE # # NOTE #
         # I could flip this, grab only the records of a bill for room and
@@ -166,11 +191,13 @@ def main():
                     occupants = i[7]
                     startdate = i[11]
                     enddate = i[13]
-                    billcode = get_bill_code(carthid)
+
+                    billcode = get_bill_code(carthid, str(bldg))
+
                     csvWriter = csv.writer(room_output,
                                            quoting=csv.QUOTE_NONE)
                     csvWriter.writerow(i)
-
+                    print(str(carthid) + ', ' + str(billcode) + ', ' + str(bldg) + str(room))
                     # Validate if the stu_serv_rec exists first
                     # update stu_serv_rec id, sess, yr, rxv_stat, intend_hsg,
                     # campus, bldg, room, bill_code
@@ -183,7 +210,7 @@ def main():
                                   where yr = {2}
                                   and sess  = "{1}"
                                   and id = {0}'''.format(carthid, sess, year)
-                    print(q_validate_stuserv_rec)
+                    # print(q_validate_stuserv_rec)
 
                     ret = do_sql(q_validate_stuserv_rec, key=DEBUG, earl=EARL)
 
