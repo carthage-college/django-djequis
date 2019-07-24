@@ -191,6 +191,10 @@ def main():
                     occupants = i[7]
                     startdate = i[11]
                     enddate = i[13]
+                    if i[16] == -1:
+                        intendhsg = 'C'
+                    else:
+                        intendhsg = 'R'
 
                     billcode = get_bill_code(carthid, str(bldg))
 
@@ -216,7 +220,21 @@ def main():
 
                     if ret is not None:
                         if billcode > 0:
+                            # compare rsv_stat, intend_hsg, bldg, room, billcode
+                            # Update only if something has changed
                             print("Record found " + carthid)
+
+                            row = ret.fetchone()
+                            if row is not None:
+                                RSVSTAT = row[3]
+                                INTHSG = row[4]
+                                BLDG = row[6]
+                                ROOM = row[7]
+                                BILLCODE = row[10]
+                                print(RSVSTAT,INTHSG,BLDG,ROOM,BILLCODE)
+                                # print("Session = " + session)
+
+
                             q_update_stuserv_rec = '''
                                 UPDATE stu_serv_rec set  rsv_stat = ?,
                                 intend_hsg = ?, campus = ?, bldg = 
@@ -225,7 +243,7 @@ def main():
                                 bill_code = ?,
                                 hous_wd_date = ?)
                                 where id = ? and sess = ? and yr = ?'''
-                            q_update_stuserv_args = ('R', 'R', "Main", bldg,
+                            q_update_stuserv_args = ('R', intendhsg, "Main", bldg,
                                     room, occupants, startdate, billcode,
                                     enddate, carthid, sess, year)
                             print(q_update_stuserv_rec)
