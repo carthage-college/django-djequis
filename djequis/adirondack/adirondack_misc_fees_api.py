@@ -42,8 +42,7 @@ def main():
         hash_object = hashlib.md5(hashstring.encode())
         # print(hash_object.hexdigest())
 
-        # sendtime = datetime.now()
-        # print("Time of send = " + time.strftime("%Y%m%d%H%M%S"))
+        datetimestr = time.strftime("%Y%m%d%H%M%S")
 
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
               "carthage_thd_test_support/apis/thd_api.cfc?" \
@@ -61,11 +60,15 @@ def main():
         if not x['DATA']:
             print("No data")
         else:
-            # ASCII post does not take a header
-            os.remove(settings.ADIRONDACK_ROOM_DAMAGES)
-            # fn_write_misc_header()
-            # print("Start Loop")gi
-            with codecs.open(settings.ADIRONDACK_ROOM_DAMAGES, 'ab',
+
+            fee_file = settings.ADIRONDACK_TXT_OUTPUT + \
+                       settings.ADIRONDACK_ROOM_FEES
+            fee_archive = settings.ADIRONDACK_ARCHIVED + datetimestr + '_' + \
+                          settings.ADIRONDACK_ROOM_FEES
+
+            os.rename(fee_file, fee_archive)
+
+            with codecs.open(fee_file, 'ab',
                              encoding='utf-8-sig') as fee_output:
 
                 for i in x['DATA']:
