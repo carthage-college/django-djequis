@@ -8,14 +8,8 @@ import argparse
 import shutil
 import logging
 from logging.handlers import SMTPHandler
-
-# django settings for shell environment
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
-
 # prime django
 import django
-django.setup()
-
 # django settings for script
 from django.conf import settings
 from django.db import connections
@@ -24,7 +18,15 @@ from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 from adirondack_sql import ADIRONDACK_QUERY
-from adirondack_utilities import fn_write_student_bio_header
+from adirondack_utilities import fn_write_student_bio_header, \
+    fn_encode_rows_to_utf8
+
+# django settings for shell environment
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
+
+django.setup()
+
+
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
 os.environ['DBSERVERNAME'] = settings.DBSERVERNAME
@@ -59,6 +61,7 @@ parser.add_argument(
     dest="database"
 )
 
+
 def fn_write_error(msg):
     # create error file handler and set level to error
     handler = logging.FileHandler(
@@ -72,31 +75,20 @@ def fn_write_error(msg):
     handler.close()
     logger.removeHandler(handler)
     fn_clear_logger()
-    return("Error logged")
+    return "Error logged"
+
 
 def fn_clear_logger():
     logging.shutdown()
-    return("Clear Logger")
+    return "Clear Logger"
 
-def encode_rows_to_utf8(rows):
-    encoded_rows = []
-    for row in rows:
-        try:
-            encoded_row = []
-            for value in row:
-                if isinstance(value, basestring):
-                    value = value.decode('cp1252').encode("utf-8")
-                encoded_row.append(value)
-            encoded_rows.append(encoded_row)
-        except Exception as e:
-            fn_write_error("Error in encoded_rows routine " + e.message)
-    return encoded_rows
+
 
 def sftp_upload(upload_filename):
     # by adding cnopts, I'm authorizing the program to ignore the
     # host key and just continue
     cnopts = pysftp.CnOpts()
-    cnopts.hostkeys = None # ignore known host key checking
+    cnopts.hostkeys = None  # ignore known host key checking
     # sFTP connection information for Adironcack
     XTRNL_CONNECTION = {
         'host': settings.ADIRONDACK_HOST,
@@ -113,21 +105,22 @@ def sftp_upload(upload_filename):
             sftp.chdir("prod/in/")
             # print(upload_filename)
             sftp.put(upload_filename, preserve_mtime=True)
-                # delete original files from our server
-                # os.remove(adirondackfiles)
+            # delete original files from our server
+            # os.remove(adirondackfiles)
             # close sftp connection
             sftp.close()
     except Exception, e:
         SUBJECT = 'ADIRONDACK UPLOAD failed'
-        BODY = 'Unable to PUT .txt file to adirondack server.\n\n{0}'.format(str(e))
+        BODY = 'Unable to PUT .txt file to adirondack server.\n\n{0}'.format(
+            str(e))
         sendmail(
-            settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
+            settings.ADIRONDACK_TO_EMAIL, settings.ADIRONDACK_FROM_EMAIL,
             BODY, SUBJECT
         )
         print(BODY)
 
-def main():
 
+def main():
     ##########################################################################
     # ==> python buildcsv.py --database=train --test
     # ==> python buildcsv.py --database=cars
@@ -135,7 +128,7 @@ def main():
 
     # Defines file names and directory location
     adirondackdata = ('{0}carthage_students.txt'.format(
-         settings.ADIRONDACK_TXT_OUTPUT))
+        settings.ADIRONDACK_TXT_OUTPUT))
 
     try:
         # set global variable
@@ -150,7 +143,7 @@ def main():
             # below but the argument parser should have taken
             # care of this scenario and we will never arrive here.
             EARL = None
-        #--------------------------
+        # --------------------------
         # Create the txt file
 
         engine = get_engine(EARL)  # do_sql calls get engine
@@ -161,7 +154,7 @@ def main():
             SUBJECT = '[adirondack Application] failed'
             BODY = "SQL Query returned no data."
             sendmail(
-                settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
+                settings.ADIRONDACK_TO_EMAIL, settings.ADIRONDACK_FROM_EMAIL,
                 BODY, SUBJECT
             )
         else:
@@ -169,7 +162,7 @@ def main():
             # print("Query successful")
             with open(adirondackdata, 'a') as file_out:
                 csvWriter = csv.writer(file_out, delimiter='|')
-                encoded_rows = encode_rows_to_utf8(ret)
+                encoded_rows = fn_encode_rows_to_utf8(ret)
                 for row in encoded_rows:
                     csvWriter.writerow(row)
             file_out.close()
@@ -181,9 +174,10 @@ def main():
 
         fn_write_error("Error in adirondack buildcsv.py, Error = " + e.message)
         SUBJECT = '[adirondack Application] Error'
-        BODY = "Error in adirondack buildcsv.py, Error = " + e.message
-        sendmail(settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
-            BODY, SUBJECT)
+        BODY = "Error in adirondack student_bio.py, Error = " + e.message
+        sendmail(settings.ADIRONDACK_TO_EMAIL, settings.ADIRONDACK_FROM_EMAIL,
+                 BODY, SUBJECT)
+
 
 if __name__ == "__main__":
     args = parser.parse_args()
