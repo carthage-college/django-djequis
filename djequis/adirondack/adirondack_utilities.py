@@ -91,7 +91,6 @@ def fn_write_assignment_header():
         "CANCELNOTE","CANCELREASON","GHOST","POSTED","ROOMASSIGNMENTID"])
 
 def fn_write_application_header():
-    print("Write Header")
     with open(settings.ADIRONDACK_APPLICATONS, 'wb') as output:
         csvWriter = csv.writer(output)
         csvWriter.writerow(["STUDENTNUMBER","APPLICATIONTYPENAME",
@@ -102,6 +101,68 @@ def fn_write_application_header():
                             "PAYVENDORCONFIRMATION","UNDERAGE",
                             "UNDERAGE_ELECTRONIC_SIG_TS","INSURANCE_INTENT"
                             ])
+
+
+def fn_write_student_bio_header():
+    adirondackdata = ('{0}carthage_students.txt'.format(
+        settings.ADIRONDACK_TXT_OUTPUT))
+
+    with open(adirondackdata, 'w') as file_out:
+        # with open("carthage_students.txt", 'w') as file_out:
+        csvWriter = csv.writer(file_out, delimiter='|')
+        csvWriter.writerow(
+            ["STUDENT_NUMBER", "FIRST_NAME", "MIDDLE_NAME",
+             "LAST_NAME", "DATE_OF_BIRTH", "GENDER",
+             "IDENTIFIED_GENDER", "PREFERRED_NAME",
+             "PERSON_TYPE", "PRIVACY_INDICATOR", "ADDITIONAL_ID1",
+             "ADDITIONAL_ID2",
+             "CLASS_STATUS", "STUDENT_STATUS", "CLASS_YEAR", "MAJOR",
+             "CREDITS_SEMESTER",
+             "CREDITS_CUMULATIVE", "GPA", "MOBILE_PHONE",
+             "MOBILE_PHONE_CARRIER", "OPT_OUT_OF_TEXT",
+             "CAMPUS_EMAIL", "PERSONAL_EMAIL", "PHOTO_FILE_NAME",
+             "PERM_PO_BOX",
+             "PERM_PO_BOX_COMBO", "ADMIT_TERM", "STUDENT_ATHLETE",
+             "ETHNICITY", "ADDRESS1_TYPE", "ADDRESS1_STREET_LINE_1",
+             "ADDRESS1_STREET_LINE_2", "ADDRESS1_STREET_LINE_3",
+             "ADDRESS1_STREET_LINE_4", "ADDRESS1_CITY",
+             "ADDRESS1_STATE_NAME", "ADDRESS1_ZIP", "ADDRESS1_COUNTRY",
+             "ADDRESS1_PHONE",
+             "ADDRESS2_TYPE", "ADDRESS2_STREET_LINE_1",
+             "ADDRESS2_STREET_LINE_2", "ADDRESS2_STREET_LINE_3",
+             "ADDRESS2_STREET_LINE_4", "ADDRESS2_CITY",
+             "ADDRESS2_STATE_NAME", "ADDRESS2_ZIP", "ADDRESS2_COUNTRY",
+             "ADDRESS2_PHONE",
+             "ADDRESS3_TYPE", "ADDRESS3_STREET_LINE_1",
+             "ADDRESS3_STREET_LINE_2", "ADDRESS3_STREET_LINE_3",
+             "ADDRESS3_STREET_LINE_4", "ADDRESS3_CITY",
+             "ADDRESS3_STATE_NAME", "ADDRESS3_ZIP", "ADDRESS3_COUNTRY",
+             "ADDRESS3_PHONE",
+             "CONTACT1_TYPE", "CONTACT1_NAME",
+             "CONTACT1_RELATIONSHIP",
+             "CONTACT1_HOME_PHONE",
+             "CONTACT1_WORK_PHONE",
+             "CONTACT1_MOBILE_PHONE",
+             "CONTACT1_EMAIL",
+             "CONTACT1_STREET",
+             "CONTACT1_STREET2",
+             "CONTACT1_CITY",
+             "CONTACT1_STATE",
+             "CONTACT1_ZIP",
+             "CONTACT1_COUNTRY",
+             "CONTACT2_TYPE", "CONTACT2_NAME",
+             "CONTACT2_RELATIONSHIP", "CONTACT2_HOME_PHONE",
+             "CONTACT2_WORK_PHONE", "CONTACT2_MOBILE_PHONE",
+             "CONTACT2_EMAIL", "CONTACT2_STREET", "CONTACT2_STREET2",
+             "CONTACT2_CITY", "CONTACT2_STATE", "CONTACT2_ZIP",
+             "CONTACT2_COUNTRY", "CONTACT3_TYPE", "CONTACT3_NAME",
+             "CONTACT3_RELATIONSHIP", "CONTACT3_HOME_PHONE",
+             "CONTACT3_WORK_PHONE", "CONTACT3_MOBILE_PHONE",
+             "CONTACT3_EMAIL", "CONTACT3_STREET", "CONTACT3_STREET2",
+             "CONTACT3_CITY", "CONTACT3_STATE", "CONTACT3_ZIP",
+             "CONTACT3_COUNTRY", "TERM", "RACECODE"])
+    file_out.close()
+
 
 #########################################################
 # Common functions to handle logger messages and errors
