@@ -1,8 +1,12 @@
 import hashlib
 import json
 import os
+import sys
+import time
+import datetime
 import requests
 import csv
+import argparse
 # prime django
 import django
 # django settings for script
@@ -12,11 +16,12 @@ from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djtools.fields import TODAY
+
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 from adirondack_sql import ADIRONDACK_QUERY
 from adirondack_utilities import fn_write_error, fn_write_billing_header, \
-    fn_write_assignment_header, fn_get_utcts
+    fn_write_assignment_header, fn_get_utcts, fn_encode_rows_to_utf8
 
 # django settings for shell environment
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
@@ -41,21 +46,19 @@ DEBUG = settings.INFORMIX_DEBUG
 desc = """
     Collect adirondack data ASCII Post
 """
+parser = argparse.ArgumentParser(description=desc)
 
-
-def encode_rows_to_utf8(rows):
-    encoded_rows = []
-    for row in rows:
-        try:
-            encoded_row = []
-            for value in row:
-                if isinstance(value, basestring):
-                    value = value.decode('cp1252').encode("utf-8")
-                encoded_row.append(value)
-            encoded_rows.append(encoded_row)
-        except Exception as e:
-            fn_write_error("Error in encoded_rows routine " + e.message)
-    return encoded_rows
+parser.add_argument(
+    "--test",
+    action='store_true',
+    help="Dry run?",
+    dest="test"
+)
+parser.add_argument(
+    "-d", "--database",
+    help="database name.",
+    dest="database"
+)
 
 
 def get_bill_code(idnum, bldg):
@@ -101,17 +104,16 @@ def main():
         global EARL
         # determines which database is being called from the command line
         # if database == 'cars':
-        #     EARL = INFORMIX_EARL_PROD
-        # if database == 'train':
-        EARL = INFORMIX_EARL_TEST
-        # elif database == 'sandbox':
-        #     EARL = INFORMIX_EARL_SANDBOX
-        # else:
-        # this will raise an error when we call get_engine()
+        # EARL = INFORMIX_EARL_PROD
+        if database == 'train':
+            EARL = INFORMIX_EARL_TEST
+        else:
+        # # this will raise an error when we call get_engine()
         # below but the argument parser should have taken
         # care of this scenario and we will never arrive here.
-        # EARL = None
+            EARL = None
         # establish database connection
+
         engine = get_engine(EARL)
 
         # try:
@@ -124,6 +126,7 @@ def main():
         hash_object = hashlib.md5(hashstring.encode())
         # print(hash_object.hexdigest())
         # print("Time of send = " + time.strftime("%Y%m%d%H%M%S"))
+        datetimestr = time.strftime("%Y%m%d%H%M%S")
 
         q_get_term = '''select trim(trim(sess)||' '||trim(TO_CHAR(yr))) session
                         from acad_cal_rec
@@ -171,13 +174,21 @@ def main():
                 if not x['DATA']:
                     print("No match")
                 else:
+                    room_file = settings.ADIRONDACK_TXT_OUTPUT + \
+                                settings.ADIRONDACK_ROOM_ASSIGNMENTS
+                    room_archive = settings.ADIRONDACK_ARCHIVED + datetimestr\
+                                  + '_' + settings.ADIRONDACK_ROOM_ASSIGNMENTS
+
+                    if os.path.exists(room_file):
+                        os.rename(room_file, room_archive)
+
                     # IF directly updating stu_serv_rec, writing csv may be
                     # redundant
                     fn_write_assignment_header()
-                    z = encode_rows_to_utf8(x['DATA'])
+                    z = fn_encode_rows_to_utf8(x['DATA'])
                     # print("Start Loop")
-                    with open(settings.ADIRONDACK_ROOM_ASSIGNMENTS,
-                              'ab') as room_output:
+
+                    with open(room_file, 'ab') as room_output:
                         for i in z:
                             carthid = i[0]
                             bldgname = i[1]
@@ -345,21 +356,21 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-#     args = parser.parse_args()
-#     test = args.test
-#     database = args.database
-#
-# if not database:
-#     print "mandatory option missing: database name\n"
-#     parser.print_help()
-#     exit(-1)
-# else:
-#     database = database.lower()
-#
-# if database != 'cars' and database != 'train' and database != 'sandbox':
-#     print "database must be: 'cars' or 'train' or 'sandbox'\n"
-#     parser.print_help()
-#     exit(-1)
-#
-# sys.exit(main())
+    args = parser.parse_args()
+    test = args.test
+    database = args.database
+
+    if not database:
+        print "mandatory option missing: database name\n"
+        parser.print_help()
+        exit(-1)
+    else:
+        database = database.lower()
+
+    if database != 'cars' and database != 'train' and database != 'sandbox':
+        print "database must be: 'cars' or 'train' or 'sandbox'\n"
+        parser.print_help()
+        exit(-1)
+
+    sys.exit(main())
+
