@@ -56,7 +56,6 @@ def fn_convert_date(date):
 
 
 def fn_write_misc_header():
-    print("Write Header")
     with codecs.open(settings.ADIRONDACK_ROOM_DAMAGES, 'wb',
                      encoding='utf-8-sig') as fee_output:
 
@@ -68,7 +67,6 @@ def fn_write_misc_header():
 
 
 def fn_write_billing_header():
-    print("Write Header")
     with open(settings.ADIRONDACK_ROOM_FEES, 'wb') as room_output:
         csvWriter = csv.writer(room_output)
         csvWriter.writerow(["STUDENTNUMBER","ITEMDATE","AMOUNT","TIMEFRAME",
@@ -81,7 +79,6 @@ def fn_write_billing_header():
 
 
 def fn_write_assignment_header():
-    print("Write Header")
     with open(settings.ADIRONDACK_ROOM_ASSIGNMENTS, 'wb') as room_output:
         csvWriter = csv.writer(room_output)
         csvWriter.writerow(["STUDENTNUMBER","HALLNAME","HALLCODE","FLOOR",
@@ -89,6 +86,7 @@ def fn_write_assignment_header():
         "TIMEFRAMENUMERICCODE","CHECKIN","CHECKEDINDATE","CHECKOUT",
         "CHECKEDOUTDATE","PO_BOX","PO_BOX_COMBO","CANCELED","CANCELDATE",
         "CANCELNOTE","CANCELREASON","GHOST","POSTED","ROOMASSIGNMENTID"])
+
 
 def fn_write_application_header():
     with open(settings.ADIRONDACK_APPLICATONS, 'wb') as output:
@@ -266,16 +264,3 @@ def fn_clear_logger():
     return("Clear Logger")
 
 
-# def sample_function(secret_parameter):
-#     logger = logging.getLogger(__name__)  # __name__=projectA.moduleB
-#     logger.debug("Going to perform magic with '%s'",  secret_parameter)
-#
-#     try:
-#         result = print(secret_parameter)
-#     except IndexError:
-#         logger.exception("OMG it happened again, someone please tell Laszlo")
-#     except:
-#         logger.info("Unexpected exception", exc_info=True)
-#         raise
-#     else:
-#         logger.info("Magic with '%s' resulted in '%s'", secret_parameter, result, stack_info=True)
