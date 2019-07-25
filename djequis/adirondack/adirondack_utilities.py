@@ -54,7 +54,7 @@ def fn_convert_date(ddate):
 
 
 def fn_write_misc_header():
-    with codecs.open(settings.ADIRONDACK_ROOM_DAMAGES, 'wb',
+    with codecs.open(settings.ADIRONDACK_ROOM_FEES, 'wb',
                      encoding='utf-8-sig') as fee_output:
         # with open('ascii_room_damages.csv', 'wb') as fee_output:
         csvWriter = csv.writer(fee_output)
@@ -163,6 +163,21 @@ def fn_write_student_bio_header():
     file_out.close()
 
 
+def fn_encode_rows_to_utf8(rows):
+    encoded_rows = []
+    for row in rows:
+        try:
+            encoded_row = []
+            for value in row:
+                if isinstance(value, basestring):
+                    value = value.decode('cp1252').encode("utf-8")
+                encoded_row.append(value)
+            encoded_rows.append(encoded_row)
+        except Exception as e:
+            fn_write_error("Error in encoded_rows routine " + e.message)
+    return encoded_rows
+
+
 #########################################################
 # Common functions to handle logger messages and errors
 #########################################################
@@ -193,9 +208,10 @@ def fn_sendmailfees(to, frum, body, subject):
     msg['Subject'] = subject
 
     msg.attach(MIMEText(body, 'csv'))
-    filename = settings.ADIRONDACK_ROOM_DAMAGES
+    filename = settings.ADIRONDACK_ROOM_FEES
     # print(filename)
-    attachment = open(settings.ADIRONDACK_ROOM_DAMAGES, 'rb')
+    attachment = open(settings.ADIRONDACK_TXT_OUTPUT +
+                       settings.ADIRONDACK_ROOM_FEES, 'rb')
     fil = MIMEBase('application', 'octet-stream')
     fil.set_payload(attachment.read())
     encoders.encode_base64(fil)
