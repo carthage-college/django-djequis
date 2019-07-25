@@ -1,14 +1,11 @@
 import csv
 import datetime
 import calendar
-# from datetime import datetime
 from datetime import date
 import codecs
 import time
 import hashlib
-
 from time import strftime, strptime
-
 # Import smtplib for the actual sending function
 import smtplib
 
@@ -40,13 +37,15 @@ desc = """
 
 # create logger
 logger = logging.getLogger(__name__)
+
+
 # logger.setLevel(logging.DEBUG)
 
 
-def fn_convert_date(date):
+def fn_convert_date(ddate):
     # print(date)
-    if date != "":
-        ndate = datetime.strptime(date, "%Y-%m-%d")
+    if ddate != "":
+        ndate = datetime.strptime(ddate, "%Y-%m-%d")
         retdate = datetime.strftime(ndate, "%m/%d/%Y")
     else:
         retdate = ''
@@ -54,50 +53,52 @@ def fn_convert_date(date):
     return retdate
 
 
-
 def fn_write_misc_header():
     with codecs.open(settings.ADIRONDACK_ROOM_DAMAGES, 'wb',
                      encoding='utf-8-sig') as fee_output:
-
-    # with open('ascii_room_damages.csv', 'wb') as fee_output:
+        # with open('ascii_room_damages.csv', 'wb') as fee_output:
         csvWriter = csv.writer(fee_output)
-        csvWriter.writerow(["ITEM_DATE","BILL_DESCRIPTION","ACCOUNT_NUMBER",
-                            "AMOUNT","STUDENT_ID","TOT_CODE","BILL_CODE",
+        csvWriter.writerow(["ITEM_DATE", "BILL_DESCRIPTION", "ACCOUNT_NUMBER",
+                            "AMOUNT", "STUDENT_ID", "TOT_CODE", "BILL_CODE",
                             "TERM"])
 
 
 def fn_write_billing_header():
     with open(settings.ADIRONDACK_ROOM_FEES, 'wb') as room_output:
         csvWriter = csv.writer(room_output)
-        csvWriter.writerow(["STUDENTNUMBER","ITEMDATE","AMOUNT","TIMEFRAME",
-                            "TIMEFRAMENUMERICCODE","BILLDESCRIPTION",
-                            "ACCOUNT","ACCOUNT_DISPLAY_NAME","EFFECTIVEDATE",
-                            "EXPORTED","EXPORTTIMESTAMP","BILLEXPORTDATE",
-                            "TERMEXPORTSTARTDATE","ITEMTYPE","ASSIGNMENTID",
-                            "DININGPLANID","STUDENTBILLINGINTERNALID",
-                            "USERNAME","ADDITIONALID1"])
+        csvWriter.writerow(["STUDENTNUMBER", "ITEMDATE", "AMOUNT", "TIMEFRAME",
+                            "TIMEFRAMENUMERICCODE", "BILLDESCRIPTION",
+                            "ACCOUNT", "ACCOUNT_DISPLAY_NAME", "EFFECTIVEDATE",
+                            "EXPORTED", "EXPORTTIMESTAMP", "BILLEXPORTDATE",
+                            "TERMEXPORTSTARTDATE", "ITEMTYPE", "ASSIGNMENTID",
+                            "DININGPLANID", "STUDENTBILLINGINTERNALID",
+                            "USERNAME", " ADDITIONALID1"])
 
 
 def fn_write_assignment_header():
     with open(settings.ADIRONDACK_ROOM_ASSIGNMENTS, 'wb') as room_output:
         csvWriter = csv.writer(room_output)
-        csvWriter.writerow(["STUDENTNUMBER","HALLNAME","HALLCODE","FLOOR",
-        "ROOMNUMBER","BED","ROOM_TYPE","OCCUPANCY","ROOMUSAGE",
-        "TIMEFRAMENUMERICCODE","CHECKIN","CHECKEDINDATE","CHECKOUT",
-        "CHECKEDOUTDATE","PO_BOX","PO_BOX_COMBO","CANCELED","CANCELDATE",
-        "CANCELNOTE","CANCELREASON","GHOST","POSTED","ROOMASSIGNMENTID"])
+        csvWriter.writerow(["STUDENTNUMBER", "HALLNAME", "HALLCODE", "FLOOR",
+                            "ROOMNUMBER", "BED", "ROOM_TYPE", "OCCUPANCY",
+                            "ROOMUSAGE",
+                            "TIMEFRAMENUMERICCODE", "CHECKIN", "CHECKEDINDATE",
+                            "CHECKOUT",
+                            "CHECKEDOUTDATE", "PO_BOX", "PO_BOX_COMBO",
+                            "CANCELED", "CANCELDATE",
+                            "CANCELNOTE", "CANCELREASON", "GHOST", "POSTED",
+                            "ROOMASSIGNMENTID"])
 
 
 def fn_write_application_header():
     with open(settings.ADIRONDACK_APPLICATONS, 'wb') as output:
         csvWriter = csv.writer(output)
-        csvWriter.writerow(["STUDENTNUMBER","APPLICATIONTYPENAME",
-                            "APP_RECEIVED","APP_COMPLETE",
-                            "TIMEFRAMENUMERICCODE","ELECTRONIC_SIG_TS",
-                            "CONTRACT_RECEIVED","APP_CANCELED","DEPOSIT",
-                            "DEPOSIT_AMOUNT","DEPOSIT_RECEIVED",
-                            "PAYVENDORCONFIRMATION","UNDERAGE",
-                            "UNDERAGE_ELECTRONIC_SIG_TS","INSURANCE_INTENT"
+        csvWriter.writerow(["STUDENTNUMBER", "APPLICATIONTYPENAME",
+                            "APP_RECEIVED", "APP_COMPLETE",
+                            "TIMEFRAMENUMERICCODE", "ELECTRONIC_SIG_TS",
+                            "CONTRACT_RECEIVED", "APP_CANCELED", "DEPOSIT",
+                            "DEPOSIT_AMOUNT", "DEPOSIT_RECEIVED",
+                            "PAYVENDORCONFIRMATION", "UNDERAGE",
+                            "UNDERAGE_ELECTRONIC_SIG_TS", "INSURANCE_INTENT"
                             ])
 
 
@@ -179,10 +180,10 @@ def fn_write_error(msg):
     handler.close()
     logger.removeHandler(handler)
     fn_clear_logger()
-    return("Error logged")
+    return "Error logged"
 
 
-def fn_sendmailfees(to, frum, body, subject, debug=False):
+def fn_sendmailfees(to, frum, body, subject):
     # Create the message
     msg = MIMEMultipart()
 
@@ -196,9 +197,10 @@ def fn_sendmailfees(to, frum, body, subject, debug=False):
     # print(filename)
     attachment = open(settings.ADIRONDACK_ROOM_DAMAGES, 'rb')
     fil = MIMEBase('application', 'octet-stream')
-    fil.set_payload((attachment).read())
+    fil.set_payload(attachment.read())
     encoders.encode_base64(fil)
-    fil.add_header('Content-Disposition', "attachment; filename = %s" % filename)
+    fil.add_header('Content-Disposition',
+                   "attachment; filename = %s" % filename)
     msg.attach(fil)
     # print("attach OK")
     text = msg.as_string()
@@ -220,14 +222,10 @@ def fn_sendmailfees(to, frum, body, subject, debug=False):
         # print("Done")
     #     server.quit()
 
+
 def fn_get_utcts():
     # GMT Zero hour is 1/1/70
-    x = 'Thu Jan 01 00:00:00 1970'
-    # Convert to a stucture format
-    y = time.strptime(x)
-    # Calculate seconds from GMT zero hour
-    # z = calendar.timegm(y)
-    # print("Zero hour in seconds = " + str(z))
+    # Zero hour in seconds = 0
     # Current date and time
     a = datetime.datetime.now()
     # Format properly
@@ -241,26 +239,6 @@ def fn_get_utcts():
     return utcts
 
 
-def fn_write_log(msg):
-    # create console handler and set level to info
-    # handler = logging.FileHandler(
-    #     '{0}apdtocx.log'.format(settings.LOG_FILEPATH))
-    # handler.setLevel(logging.INFO)
-    # formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(
-    # message)s',
-    #                               datefmt='%m/%d/%Y %I:%M:%S %p')
-    # handler.setFormatter(formatter)
-    # logger.addHandler(handler)
-    # logger.info(msg)
-    # handler.close()
-    # logger.removeHandler(handler)
-    # info_logger = logging.getLogger('info_logger')
-    # info_logger.info(msg)
-    # fn_clear_logger()
-    return("Message logged")
-
 def fn_clear_logger():
     logging.shutdown()
-    return("Clear Logger")
-
-
+    return "Clear Logger"
