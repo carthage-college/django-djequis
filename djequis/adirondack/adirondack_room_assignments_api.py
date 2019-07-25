@@ -24,7 +24,6 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 
 django.setup()
 
-
 #
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
 # informix environment
@@ -79,7 +78,6 @@ def get_bill_code(idnum, bldg):
     response = requests.get(url)
     x = json.loads(response.content)
     # print(x)
-    # y = (len(x['DATA'][0][0]))
     if not x['DATA']:
         print("No data")
         if bldg == 'CMTR':
@@ -119,15 +117,13 @@ def main():
 
     # try:
         utcts = fn_get_utcts()
-        # print(x)
         # print("Seconds from UTC Zero hour = " + str(utcts))
         hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
         # print("Hashstring = " + hashstring)
 
         # Assumes the default UTF-8
         hash_object = hashlib.md5(hashstring.encode())
-        print(hash_object.hexdigest())
-        # sendtime = datetime.now()
+        # print(hash_object.hexdigest())
         # print("Time of send = " + time.strftime("%Y%m%d%H%M%S"))
 
         q_get_term = '''select trim(trim(sess)||' '||trim(TO_CHAR(yr))) session
@@ -151,7 +147,8 @@ def main():
                   "utcts=" + str(utcts) + "&" \
                   "h=" + hash_object.hexdigest() + "&" \
                   "TimeFrameNumericCode=" + session + "&" \
-                  "STUDENTNUMBER=" + "1539775,1475918,1435328,1501195,1561509,1496108,1408374,1478479"
+                  "STUDENTNUMBER=" + "1535266"
+                  # "STUDENTNUMBER=" + "1539775,1475918,1435328,1501195,1561509,1496108,1408374,1478479"
                   # "HallCode=" + 'SWE'
                   # + "&" \
                   # "CurrentFuture=-1"
@@ -172,36 +169,78 @@ def main():
         response = requests.get(url)
         x = json.loads(response.content)
         # print(x)
-        # y = (len(x['DATA'][0][0]))
         if not x['DATA']:
             print("No match")
         else:
+            # IF directly updating stu_serv_rec, writing csv may be redundant
             fn_write_assignment_header()
             z = encode_rows_to_utf8(x['DATA'])
-            print("Start Loop")
+            # print("Start Loop")
             with open(settings.ADIRONDACK_ROOM_ASSIGNMENTS,
                       'ab') as room_output:
                 for i in z:
                     carthid = i[0]
+                    bldgname = i[1]
+                    bldg = i[2]
+                    floor = i[3]
+                    bed = i[5]
+                    room_type = i[6]
+                    occupancy = i[7]
+                    roomusage = i[8]
+                    timeframenumericcode = i[9]
+                    checkin = i[10]
+                    checkedindate = i[11]
+                    checkout = i[12]
+                    checkedoutdate = i[13]
+                    po_box = i[14]
+                    po_box_combo = i[15]
+                    canceled = i[16]
+                    canceldate = i[17]
+                    cancelnote = i[18]
+                    cancelreason = i[19]
+                    ghost = i[20]
+                    posted = i[21]
+                    roomassignmentid = i[22]
+
                     sess = i[9][:2]
                     year = i[9][-4:]
                     term = i[9]
-                    bldg = i[2]
-                    room = i[4]
                     occupants = i[7]
-                    startdate = i[11]
-                    enddate = i[13]
-                    if i[16] == -1:
-                        intendhsg = 'C'
-                    else:
-                        intendhsg = 'R'
 
                     billcode = get_bill_code(carthid, str(bldg))
+                    # Intenhsg can b R = Resident, O = Off-Campus, C = Commuter
+                    if bldg == 'CMTR':
+                        intendhsg = 'C'
+                        room = 'CMTR'
+                    elif bldg == 'OFF':
+                        intendhsg = 'O'
+                        room = 'OFF'
+                    elif bldg == 'ABRD':
+                        intendhsg = 'O'
+                        room = 'ABRD'
+                    else:
+                        intendhsg = 'R'
+                        room = i[4]
+
+                    # Use cancelation reason
+                    if cancelreason == 'Withdrawal':
+                        rsvstat = 'W'
+                    else:
+                        rsvstat = 'R'
+
 
                     csvWriter = csv.writer(room_output,
                                            quoting=csv.QUOTE_NONE)
-                    csvWriter.writerow(i)
-                    print(str(carthid) + ', ' + str(billcode) + ', ' + str(bldg) + str(room))
+                    # csvWriter.writerow(i)
+                    # Need to write translated fields if csv is to be created
+                    csvWriter.writerow([carthid, bldgname, bldg, floor, room,
+                                bed, room_type, occupancy, roomusage,
+                                timeframenumericcode, checkin, checkedindate,
+                                checkout, checkedoutdate, po_box, po_box_combo,
+                                canceled, canceldate, cancelnote, cancelreason,
+                                ghost, posted, roomassignmentid])
+                    print(str(carthid) + ', ' + str(billcode) + ', ' + str(bldg) + str(room)
+                          + str(room_type))
                     # Validate if the stu_serv_rec exists first
                     # update stu_serv_rec id, sess, yr, rxv_stat, intend_hsg,
                     # campus, bldg, room, bill_code
@@ -231,9 +270,15 @@ def main():
                                 BLDG = row[6]
                                 ROOM = row[7]
                                 BILLCODE = row[10]
-                                print(RSVSTAT,INTHSG,BLDG,ROOM,BILLCODE)
+                                print("Current Stu Serv Data = " + RSVSTAT,INTHSG,BLDG,ROOM,BILLCODE)
                                 # print("Session = " + session)
 
+                                if row[3] != rsvstat or row[4] != intendhsg \
+                                        or row[6] != bldg or row[7] != room \
+                                        or row[10] != billcode:
+                                    print("Need to update stu_serv_rec")
+                                else:
+                                    print("No change needed in stu_serv_rec")
 
                             q_update_stuserv_rec = '''
                                 UPDATE stu_serv_rec set  rsv_stat = ?,
@@ -243,10 +288,11 @@ def main():
                                 bill_code = ?,
                                 hous_wd_date = ?)
                                 where id = ? and sess = ? and yr = ?'''
-                            q_update_stuserv_args = ('R', intendhsg, "Main", bldg,
-                                    room, occupants, startdate, billcode,
-                                    enddate, carthid, sess, year)
-                            print(q_update_stuserv_rec)
+                            q_update_stuserv_args = (rsvstat, intendhsg,
+                                    "Main", bldg,
+                                    room, occupants, checkedindate, billcode,
+                                    checkedoutdate, carthid, sess, year)
+                            # print(q_update_stuserv_rec)
                             print(q_update_stuserv_args)
                         else:
                             print("Bill code not found")
@@ -265,7 +311,7 @@ def main():
                             q_insert_stuserv_args = (
                                     carthid, term, yr, rsvstat, 'R', 'MAIN',
                                     bldg, room, occupants,
-                                    startdate, billcode, enddate)
+                                    checkedindate, billcode, checkedoutdate)
                             print(q_insert_stuserv_rec)
                             print(q_insert_stuserv_args)
                             # engine.execute(q_insert_stuserv_rec,
