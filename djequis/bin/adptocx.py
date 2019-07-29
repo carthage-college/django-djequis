@@ -136,6 +136,22 @@ def main():
     # ==> python adptocx.py --database=cars
     # without the --test argument
     ##########################################################################
+    # set global variable
+    global EARL
+    # determines which database is being called from the command line
+    if database == 'cars':
+        EARL = INFORMIX_EARL_PROD
+    if database == 'train':
+        EARL = INFORMIX_EARL_TEST
+    elif database == 'sandbox':
+        EARL = INFORMIX_EARL_SANDBOX
+    else:
+        # this will raise an error when we call get_engine()
+        # below but the argument parser should have taken
+        # care of this scenario and we will never arrive here.
+        EARL = None
+    # establish database connection
+    engine = get_engine(EARL)
 
     # set date and time to be added to the filename
     datetimestr = time.strftime("%Y%m%d%H%M%S")
@@ -163,22 +179,7 @@ def main():
         os.remove(adp_diff_file)
 
     try:
-        # set global variable
-        global EARL
-        # determines which database is being called from the command line
-        # if database == 'cars':
-        #     EARL = INFORMIX_EARL_PROD
-        if database == 'train':
-            EARL = INFORMIX_EARL_TEST
-        elif database == 'sandbox':
-            EARL = INFORMIX_EARL_SANDBOX
-        else:
-        # this will raise an error when we call get_engine()
-        # below but the argument parser should have taken
-        # care of this scenario and we will never arrive here.
-            EARL = None
-        # establish database connection
-        engine = get_engine(EARL)
+
 
         #################################################################
         # STEP 0--
