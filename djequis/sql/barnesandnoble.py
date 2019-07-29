@@ -32,7 +32,7 @@ TMP_ACTV_SESS = '''
                 CASE 
                     WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('12/24/'|| TO_CHAR(acad_cal_rec.yr))
                     WHEN sess IN ("AG","AK","AM","GB","GC","RB","RC") THEN TRIM('05/25/' || TO_CHAR(acad_cal_rec.yr))
-                    WHEN sess IN ("AS","AT","GE","RE") THEN TRIM('08/31/' || TO_CHAR(acad_cal_rec.yr)) 
+                    WHEN sess IN ("AS","AT","GE","RE") THEN TRIM('07/30/' || TO_CHAR(acad_cal_rec.yr)) 
                                                        ELSE TRIM('08/1/' || TO_CHAR(acad_cal_rec.yr))
                 END AS eEndDate,
                 acad_cal_rec.end_date, acad_cal_rec.subsess, acad_cal_rec.prog
@@ -92,7 +92,7 @@ STU_ACAD_REC_100 = '''
                         CASE 
                             WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('12/24/'|| TO_CHAR(acad_cal_rec.yr))
                             WHEN sess IN ("AG","AK","AM","GB","GC","RB","RC") THEN TRIM('05/25/' || TO_CHAR(acad_cal_rec.yr))
-                            WHEN sess IN ("AS","AT","GE","RE") THEN TRIM('08/31/' || TO_CHAR(acad_cal_rec.yr))
+                            WHEN sess IN ("AS","AT","GE","RE") THEN TRIM('07/30/' || TO_CHAR(acad_cal_rec.yr))
                                                                ELSE TRIM('08/1/' || TO_CHAR(acad_cal_rec.yr))
                         END AS eEndDate,
                         acad_cal_rec.end_date, acad_cal_rec.subsess, acad_cal_rec.prog
@@ -172,7 +172,7 @@ STU_ACAD_REC_200 = '''
                         CASE 
                             WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('12/24/'|| TO_CHAR(acad_cal_rec.yr))
                             WHEN sess IN ("AG","AK","AM","GB","GC","RB","RC") THEN TRIM('05/25/' || TO_CHAR(acad_cal_rec.yr))
-                            WHEN sess IN ("AS","AT","GE","RE") THEN TRIM('08/31/' || TO_CHAR(acad_cal_rec.yr))
+                            WHEN sess IN ("AS","AT","GE","RE") THEN TRIM('07/30/' || TO_CHAR(acad_cal_rec.yr))
                                                                ELSE TRIM('08/1/' || TO_CHAR(acad_cal_rec.yr))
                         END AS eEndDate,
                         acad_cal_rec.end_date, acad_cal_rec.subsess, acad_cal_rec.prog
