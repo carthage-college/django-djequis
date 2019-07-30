@@ -237,6 +237,7 @@ def main():
                             # Use cancelation reason
                             if cancelreason == 'Withdrawal':
                                 rsvstat = 'W'
+                                billcode = 'NOCH'
                             else:
                                 rsvstat = 'R'
 
