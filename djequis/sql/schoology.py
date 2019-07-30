@@ -197,7 +197,9 @@ USERS = '''
        )
     AND	jenzprs_rec.host_id NOT IN 
 	(select ID from role_rec
-	where role = 'PREFF' and end_date is null)
+	where role = 'PREFF' and end_date is null
+		and MONTH(TODAY) NOT IN (6,7)
+    )
 	
        GROUP BY id_rec.lastname, id_rec.firstname, preferred_first_name,
        id_rec.middlename, name_prefix, username, email, UniqueID, schoology_id,
