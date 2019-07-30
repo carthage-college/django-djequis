@@ -239,7 +239,9 @@ ENROLLMENT = '''
     RIGHT(TRIM(jenzcrp_rec.term_code),4) NOT IN ('PRDV','PARA','KUSD')
 	AND to_number(jenzcrp_rec.host_id) NOT IN 
 	(select ID from role_rec
-	where role = 'PREFF' and end_date is null)
+	where role = 'PREFF' and end_date is null
+	and MONTH(TODAY) NOT IN (6,7)
+   )
 
     UNION ALL
 
