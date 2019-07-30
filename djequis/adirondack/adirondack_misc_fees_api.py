@@ -44,15 +44,18 @@ def main():
 
         datetimestr = time.strftime("%Y%m%d%H%M%S")
 
+        # Note.  Each account code must be a separate file for ASCII Post
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
               "carthage_thd_test_support/apis/thd_api.cfc?" \
               "method=studentBILLING&" \
               "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
               "utcts=" + str(utcts) + "&" \
               "h=" + hash_object.hexdigest() + "&" \
-              "AccountCode=2010," \
-              "2011,2031,2040"
-        # print("URL = " + url)
+              "AccountCode=2010"
+              # + "&" \
+              # "ExportCharges=-1"
+
+        print("URL = " + url)
 
         response = requests.get(url)
         x = json.loads(response.content)
@@ -76,7 +79,12 @@ def main():
                     # ID, totcode, billcode, term
                     rec = []
                     rec.append(i[1])
-                    rec.append(i[5])
+
+                    descr = str(i[5])
+                    descr = descr.translate(None, '!@#$%.,')
+                    print(descr)
+
+                    rec.append(descr)
                     rec.append("1-003-10041")
                     rec.append(i[2])
                     rec.append(i[0])
