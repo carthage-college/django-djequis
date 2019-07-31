@@ -1,4 +1,6 @@
 import os
+# import glob
+import shutil
 import sys
 import time
 import datetime
@@ -42,20 +44,34 @@ def main():
         hash_object = hashlib.md5(hashstring.encode())
         # print(hash_object.hexdigest())
 
-        datetimestr = time.strftime("%Y%m%d%H%M%S")
+        datetimestr = time.strftime("%Y%m%d")
+        timestr = time.strftime("%H%M")
+        # print(timestr)
 
         # Note.  Each account code must be a separate file for ASCII Post
+        # Only FINE Sample fine
+        # 2010  Improper Checkout
+        # 2011  Extended stay charge
+        # 2031   Recore
+        # 2040  Lockout fee
+        # All others are room charges not for ASCII post
+        # Should I  modularize the URL and make four calls?
+        # Or should I write four separate files by filtering the return in
+        # the loop?
+        # Since there is no header, the latter may work best
+        # Would need to delete all, write whatever comes back, test for
+        # existence of each and mail each
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
               "carthage_thd_test_support/apis/thd_api.cfc?" \
               "method=studentBILLING&" \
               "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
               "utcts=" + str(utcts) + "&" \
               "h=" + hash_object.hexdigest() + "&" \
-              "AccountCode=2010"
+              "AccountCode=2010,2040,2011,2031"
               # + "&" \
               # "ExportCharges=-1"
 
-        print("URL = " + url)
+        # print("URL = " + url)
 
         response = requests.get(url)
         x = json.loads(response.content)
@@ -64,40 +80,51 @@ def main():
             print("No data")
         else:
 
-            fee_file = settings.ADIRONDACK_TXT_OUTPUT + \
-                       settings.ADIRONDACK_ROOM_FEES
-            fee_archive = settings.ADIRONDACK_ARCHIVED + datetimestr + '_' + \
-                          settings.ADIRONDACK_ROOM_FEES
+            files = os.listdir(settings.ADIRONDACK_TXT_OUTPUT)
 
-            os.rename(fee_file, fee_archive)
+            for f in files:
+                if f.find('misc_housing') != -1:
+                    ext=f.find(".csv")
 
-            with codecs.open(fee_file, 'ab',
-                             encoding='utf-8-sig') as fee_output:
+                    # print("source = " + settings.ADIRONDACK_TXT_OUTPUT+f)
+                    # print("destintation = " + settings.ADIRONDACK_ARCHIVED+f[:ext] + "_" + timestr + f[ext:])
+                    shutil.move(settings.ADIRONDACK_TXT_OUTPUT+f,
+                                settings.ADIRONDACK_ARCHIVED+f[:ext] + "_" +
+                                timestr + f[ext:])
 
-                for i in x['DATA']:
-                    # Marietta needs date, description,account number, amount,
-                    # ID, totcode, billcode, term
-                    rec = []
-                    rec.append(i[1])
 
-                    descr = str(i[5])
-                    descr = descr.translate(None, '!@#$%.,')
-                    print(descr)
+            for i in x['DATA']:
+                # Marietta needs date, description,account number, amount,
+                # ID, totcode, billcode, term
+                rec = []
+                rec.append(i[1])
 
-                    rec.append(descr)
-                    rec.append("1-003-10041")
-                    rec.append(i[2])
-                    rec.append(i[0])
-                    rec.append("S/A")
-                    rec.append(i[6])
-                    rec.append(i[4])
+                descr = str(i[5])
+                descr = descr.translate(None, '!@#$%.,')
+                rec.append(descr.strip())
+                rec.append("1-003-10041")
+                rec.append(i[2])
+                rec.append(i[0])
+                rec.append("S/A")
+                totcode = i[6]
+                # print(totcode)
+                rec.append(totcode)
+                rec.append(i[4][:2] + i[4][5:])
 
-                    # print("Rec = " + str(rec))
+
+                fee_file = settings.ADIRONDACK_TXT_OUTPUT + totcode + "_" + \
+                           settings.ADIRONDACK_ROOM_FEES + datetimestr + ".csv"
+
+                # print(fee_file)
+                with codecs.open(fee_file, 'ab',
+                                 encoding='utf-8-sig') as fee_output:
+
                     csvWriter = csv.writer(fee_output,
-                                           quoting=csv.QUOTE_NONE)
+                                       quoting=csv.QUOTE_NONE)
                     csvWriter.writerow(rec)
+                fee_output.close()
 
-            # print("File created, send")
+            print("File created, send")
             SUBJECT = 'Housing Miscellaneous Fees'
             BODY = 'There are housing fees to process via ASCII post'
             fn_sendmailfees(settings.ADIRONDACK_TO_EMAIL,
