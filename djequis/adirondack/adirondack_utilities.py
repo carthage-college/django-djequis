@@ -1,3 +1,4 @@
+import os
 import csv
 import datetime
 import calendar
@@ -207,21 +208,28 @@ def fn_sendmailfees(to, frum, body, subject):
     msg['From'] = frum
     msg['Subject'] = subject
 
+    text=''
+    # This can be outside the file collection loop
     msg.attach(MIMEText(body, 'csv'))
-    filename = settings.ADIRONDACK_ROOM_FEES
-    # print(filename)
-    attachment = open(settings.ADIRONDACK_TXT_OUTPUT +
-                       settings.ADIRONDACK_ROOM_FEES, 'rb')
-    fil = MIMEBase('application', 'octet-stream')
-    fil.set_payload(attachment.read())
-    encoders.encode_base64(fil)
-    fil.add_header('Content-Disposition',
-                   "attachment; filename = %s" % filename)
-    msg.attach(fil)
-    # print("attach OK")
-    text = msg.as_string()
-    # print(text)
-    # print("ready to send")
+
+
+    files = os.listdir(settings.ADIRONDACK_TXT_OUTPUT)
+
+    # filenames = []
+    for f in files:
+        if f.find('misc_housing') != -1:
+            print(settings.ADIRONDACK_TXT_OUTPUT + f)
+            part = MIMEBase('application', "octet-stream")
+            part.set_payload(open(settings.ADIRONDACK_TXT_OUTPUT + f, "rb").read())
+            encoders.encode_base64(part)
+            part.add_header('Content-Disposition',
+                            'attachment; filename="%s"' % os.path.basename(f))
+            msg.attach(part)
+            text = msg.as_string()
+            # print(text)
+
+
+    print("ready to send")
     server = smtplib.SMTP('localhost')
     # show communication with the server
     # if debug:
@@ -234,9 +242,8 @@ def fn_sendmailfees(to, frum, body, subject):
         # server.sendmail(msg['From'], msg['To'], msg.as_string())
 
     finally:
-        server.quit()
-        # print("Done")
-    #     server.quit()
+        # server.quit()
+        print("Done")
 
 
 def fn_get_utcts():
