@@ -214,7 +214,8 @@ def main():
         remote_folder = settings.HANDSHAKE_S3_FOLDER
         key_name = remote_folder + '/' + object_name
 
-        print("Filename = " + local_file_name + ", Bucket = " + bucket_name + ", Key = " + key_name)
+        # print("Filename = " + local_file_name + ", Bucket = " + bucket_name
+        # + ", Key = " + key_name)
         client.upload_file(Filename=local_file_name, Bucket=bucket_name,
                            Key=key_name)
 
