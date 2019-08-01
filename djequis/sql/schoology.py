@@ -198,7 +198,7 @@ USERS = '''
     AND	jenzprs_rec.host_id NOT IN 
 	(select ID from role_rec
 	where role = 'PREFF' and end_date is null
-		and MONTH(TODAY) NOT IN (6,7)
+		and MONTH(TODAY) IN (6,7)
     )
 	
        GROUP BY id_rec.lastname, id_rec.firstname, preferred_first_name,
@@ -240,7 +240,7 @@ ENROLLMENT = '''
 	AND to_number(jenzcrp_rec.host_id) NOT IN 
 	(select ID from role_rec
 	where role = 'PREFF' and end_date is null
-	and MONTH(TODAY) NOT IN (6,7)
+	and MONTH(TODAY) IN (6,7)
    )
 
     UNION ALL
