@@ -145,7 +145,7 @@ FROM
 		 AND	PV.ID NOT IN 
 		(select ID from role_rec
 		where role = 'PREFF' and end_date is null
-		and MONTH(TODAY) NOT IN (6,7)) 
+		and MONTH(TODAY) IN (6,7)) 
 		
 		    ) rnk_prog
 	WHERE row_num = 1
