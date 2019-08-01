@@ -141,13 +141,13 @@ SELECT --Distinct
 	TRIM(TRIM(TRM.sess)||' '||TRIM(TO_CHAR(TRM.yr))) as TERM,
 	
 	--Custom fields
- 	PRO.race as RaceCode
+ 	PRO.race as RACECODE,
+ 	SPORT.DESCR AS SPORT,
+ 	GREEK.ORG AS GREEK_LIFE
 -- these will probably be manually populated 
 --	'' as preferred_pronoun,
 --	'' as Service_Emotional_Support_Animal,
---	'' as Greek_Affiliation 
 	
---select * 
 FROM
 	(
 	select * from
@@ -214,13 +214,24 @@ FROM
 				ON invl_table.invl=involve_rec.invl 
 				WHERE id=id.id 
 				AND invl_table.sanc_sport = 'Y' 
+				--Check this.  Do we need to use the term dates?
+				and involve_rec.end_date > TODAY
 				ORDER BY invl_table.txt)
 				)::lvarchar,'MULTISET{'), 'ROW'), '}'),"')",''), 
 				"('",''), ',',';'), "''","'")
 				DESCR
 			FROM id_rec id	
 			) SPORT ON SPORT.id = PER.id		 
-							    			
+
+
+	 LEFT JOIN (
+				select distinct id, org from involve_rec 
+			where ctgry = 'GREEK'
+			and beg_date > TODAY - 180
+			and (end_date > TODAY or end_date is null)
+			) GREEK 
+			on GREEK.id = PER.id  
+			
 	JOIN (	select distinct id, sess, yr
 		from stu_serv_rec
 		where sess in ('RA','RC')
@@ -278,6 +289,7 @@ FROM
 		WHERE aa = 'ICE' 
 		AND (end_date IS NULL OR end_date >= TODAY)) EMER
 		ON EMER.id = PER.id
+
 
 
 '''
