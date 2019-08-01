@@ -144,6 +144,7 @@ def main():
 
                 session = row[0]
                 print("Session = " + session)
+                #IMPORTANT! won't work if string has any spaces.  NO SPACES
 
                 url = "https://carthage.datacenter.adirondacksolutions.com/" \
                       "carthage_thd_test_support/apis/thd_api.cfc?" \
@@ -152,16 +153,19 @@ def main():
                       "utcts=" + str(utcts) + "&" \
                       "h=" + hash_object.hexdigest() + "&" \
                       "TimeFrameNumericCode=" + session + "&" \
-                      "STUDENTNUMBER=" + "1502156"
-                # "STUDENTNUMBER=" + "1539775,1475918,1435328,1501195,
-                # 1561509,1496108,1408374,1478479"
-                # "HallCode=" + 'SWE'
-                # + "&" \
-                # "CurrentFuture=-1"
-                # + "&"
-                # "HallCode=DEN,JOH,OAKS1,OAKS2,OAKS3,OAKS4,OAKS5,OAKS6,
-                # MADR,SWE," \
-                #     "TAR,TOWR,UN,OFF,ABRD,CMTR,''"
+                      "CurrentFuture=-1" + "&" \
+                      "PostAssignments=-1" + "&" \
+                      "Posted=0" + "&" \
+                      "STUDENTNUMBER=" + "1524290"
+
+                      # + "&" \
+                      # "HallCode=" + 'SWE'
+
+                      # DEFINITIONS
+                      # Posted: 0 returns only unposted, 1 returns posted
+                      # PostAssignments: -1 will mark the record as posted.
+                      # CurrentFuture: -1 returns only current and future
+                      # Cancelled: -1 is for cancelled, 0 for not cancelled
 
                 # print("URL = " + url)
 
@@ -172,7 +176,7 @@ def main():
                 x = json.loads(response.content)
                 # print(x)
                 if not x['DATA']:
-                    print("No match")
+                    print("No new data found")
                 else:
                     room_file = settings.ADIRONDACK_TXT_OUTPUT + \
                                 settings.ADIRONDACK_ROOM_ASSIGNMENTS
