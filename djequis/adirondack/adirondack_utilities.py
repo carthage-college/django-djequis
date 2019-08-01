@@ -160,7 +160,7 @@ def fn_write_student_bio_header():
              "CONTACT3_WORK_PHONE", "CONTACT3_MOBILE_PHONE",
              "CONTACT3_EMAIL", "CONTACT3_STREET", "CONTACT3_STREET2",
              "CONTACT3_CITY", "CONTACT3_STATE", "CONTACT3_ZIP",
-             "CONTACT3_COUNTRY", "TERM", "RACECODE"])
+             "CONTACT3_COUNTRY", "TERM", "RACECODE","SPORT","GREEK_LIFE"])
     file_out.close()
 
 
