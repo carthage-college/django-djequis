@@ -245,6 +245,10 @@ def main():
                             else:
                                 rsvstat = 'R'
 
+                            # This may be useful to determine which records
+                            # have been pulled and processed
+                            print("ROOMASSIGNMENTID = " + roomassignmentid)
+
                             csvWriter = csv.writer(room_output,
                                                    quoting=csv.QUOTE_NONE)
                             # csvWriter.writerow(i)
