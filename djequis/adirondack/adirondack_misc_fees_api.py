@@ -260,6 +260,42 @@ def main():
                     if int(bill_id) in the_list:
                         print("Item " + bill_id + " already in list")
                     else:
+                        print("Write to ASCII csv file")
+                        rec = []
+                        rec.append(i[1])
+                        descr = str(i[5])
+                        descr = descr.translate(None, '!@#$%.,')
+                        rec.append(descr.strip())
+                        rec.append("1-003-10041")
+                        rec.append(i[2])
+                        rec.append(stu_id)
+                        rec.append("S/A")
+                        rec.append(tot_code)
+                        rec.append(adir_term)
+
+                        fee_file = settings.ADIRONDACK_TXT_OUTPUT + totcode \
+                                   + "_" + settings.ADIRONDACK_ROOM_FEES \
+                                   + datetimestr + ".csv"
+
+                        # print(fee_file)
+                        with codecs.open(fee_file, 'ab',
+                                         encoding='utf-8-sig') as fee_output:
+                            csvWriter = csv.writer(fee_output,
+                                                   quoting=csv.QUOTE_NONE)
+                            csvWriter.writerow(rec)
+                        fee_output.close()
+
+                        print("File created, send")
+                        SUBJECT = 'Housing Miscellaneous Fees'
+                        BODY = 'There are housing fees to process via ASCII ' \
+                               'post'
+                        # fn_sendmailfees(settings.ADIRONDACK_TO_EMAIL,
+                        #                 settings.ADIRONDACK_FROM_EMAIL,
+                        #                 BODY, SUBJECT
+                        #                 )
+
+
+                        #Write record of item to PROCESSED list
                         print("Write item " + str(
                             i[16]) + " to current term file")
                         f = current_term + '_processed.csv'
@@ -276,15 +312,56 @@ def main():
                                                    quoting=csv.QUOTE_MINIMAL)
                             csvWriter.writerow(lin)
                         wffile.close()
-
                 else:
                     print(the_list)
                     # print("Match last term " + last_term)
                     if int(i[16]) in the_list:
                         print("Item " + str(i[16]) + " already in list")
                     else:
+
+                        print("Write to ASCII csv file")
+                        rec = []
+                        rec.append(i[1])
+                        descr = str(i[5])
+                        descr = descr.translate(None, '!@#$%.,')
+                        rec.append(descr.strip())
+                        rec.append("1-003-10041")
+                        rec.append(i[2])
+                        rec.append(stu_id)
+                        rec.append("S/A")
+                        rec.append(tot_code)
+                        rec.append(adir_term)
+
+                        fee_file = settings.ADIRONDACK_TXT_OUTPUT + totcode \
+                                   + "_" + settings.ADIRONDACK_ROOM_FEES \
+                                   + datetimestr + ".csv"
+
+                        # print(fee_file)
+                        with codecs.open(fee_file, 'ab',
+                                         encoding='utf-8-sig') as fee_output:
+                            csvWriter = csv.writer(fee_output,
+                                                   quoting=csv.QUOTE_NONE)
+                            csvWriter.writerow(rec)
+                        fee_output.close()
+
+                        print("File created, send")
+                        SUBJECT = 'Housing Miscellaneous Fees'
+                        BODY = 'There are housing fees to process via ASCII ' \
+                               'post'
+                        # fn_sendmailfees(settings.ADIRONDACK_TO_EMAIL,
+                        #                 settings.ADIRONDACK_FROM_EMAIL,
+                        #                 BODY, SUBJECT
+                        #                 )
+
+                        #Write record of item to PROCESSED list
                         print("Write item " + str(
                             i[16]) + " to last term file")
+                        with codecs.open(w, 'ab',
+                                         encoding='utf-8-sig') as wwfile:
+                            csvWriter = csv.writer(wwfile,
+                                                   quoting=csv.QUOTE_MINIMAL)
+                            csvWriter.writerow(lin)
+                        wffile.close()
 
 
                 # Marietta needs date, description,account number, amount,
