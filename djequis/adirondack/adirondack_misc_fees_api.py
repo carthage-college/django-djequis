@@ -57,6 +57,31 @@ desc = """
 logger = logging.getLogger(__name__)
 
 
+def fn_set_terms(last_term, current_term):
+    trmqry = '''select trim(sess)||yr as cur_term, acyr, 
+                        ROW_NUMBER () OVER () as rank
+                        from train:acad_cal_rec a
+                        where  yr = YEAR(TODAY)
+                        and (right(acyr,2) = RIGHT(TO_CHAR(YEAR(TODAY)),2) 
+                        or left(acyr, 2) = RIGHT(TO_CHAR(YEAR(TODAY)),2))  
+                        and sess in ('RC', 'RA')
+                        AND subsess = ''
+                        and prog = 'UNDG'
+                        order by beg_date asc
+                        '''
+    # print(trmqry)
+
+    ret = do_sql(trmqry, earl=EARL)
+
+    if ret is not None:
+        for row in ret:
+            if row[2] == '1':
+                last_term = row[0]
+            else:
+                current_term = row[0]
+
+    return [last_term, current_term]
+
 def main():
     # set global variable
     global EARL
@@ -154,44 +179,63 @@ def main():
             # I need a way to only compare exported items to fairly recent
             # posted items, or the list will get huge.
 
-            trmqry = '''select trim(sess)||yr as cur_term, acyr, 
-                      ROW_NUMBER () OVER () as rank
-                      from train:acad_cal_rec a
-                      where  yr = YEAR(TODAY)
-                      and (right(acyr,2) = RIGHT(TO_CHAR(YEAR(TODAY)),2) 
-                      or left(acyr, 2) = RIGHT(TO_CHAR(YEAR(TODAY)),2))  
-                      and sess in ('RC', 'RA')
-                      AND subsess = ''
-                      and prog = 'UNDG'
-                      order by beg_date asc
-                      '''
-            print(trmqry)
-            ret = do_sql(trmqry, earl=EARL)
 
-            if ret is not None:
-                for row in ret:
-                    if row[2] == '1':
-                        last_term = row[0]
-                        print("Last = " + last_term)
-                    else:
-                        current_term = row[0]
-                        print("current = " + current_term)
+            # ------------------------------------------
+            # Step 1 would be to build the list of items already written to
+            # a csv for the terms
+            # ------------------------------------------
 
-            # last_term = 'RC2019'
-            # current_term = 'RA2019'
+            last_term, current_term = fn_set_terms('', '')
+            # print("new last = " + last_term)
+            # print("new current = " + current_term)
 
+            cur_file = current_term + '_processed.csv'
+            last_file = last_term + '_processed.csv'
 
+            the_list = []
 
+            if os.path.isfile(cur_file):
+                # print ("Curfile exists")
+                f = current_term + '_processed.csv'
+                with open(f, 'r') as ffile:
+                    csvf = csv.reader(ffile)
+                    # File should have two columns, one for term and one for row
+                    # id from
+                    # Adirondack.
+                    for row in csvf:
+                        # term = row[0]
+                        assign_id = int(row[3].strip())
+                        the_list.append(assign_id)
+                ffile.close()
 
+            else:
+                print ("No file")
+                with open(cur_file, "w") as empty_csv:
+                    pass
 
-            # testlist = ['2', '968', '069']
-            # Temporary
-            f = open("Assignment_id_lst.txt", "r")
-            contents = f.read()
-            print(contents)
-            testlist = []
-            for row in contents:
-                testlist.append(row[0])
+            if os.path.isfile(last_file):
+                # print ("last_file exists")
+                l = last_term + '_processed.csv'
+                with open(l, 'r') as ffile:
+                    csvl = csv.reader(ffile)
+                    for row in csvl:
+                        # term = row[0]
+                        assign_id = int(row[3].strip())
+                        the_list.append(assign_id)
+                ffile.close()
+
+            else:
+                print ("No file")
+                with open(last_file, "w") as empty_csv:
+                    pass
+
+            print(the_list)
+
+            # ------------------------------------------
+            #  Step 2 would be to get the new charges from adirondack
+            #  this will be the API query
+            # ------------------------------------------
+
 
             for i in x['DATA']:
                 # --------------------
@@ -199,13 +243,49 @@ def main():
                 # Store a list of record ids from Adirondack for the term
                 # AFTER the csv has been successfully created
                 # Compare each new file's line ID
-                rec_id = str(i[16])
-                term = str(i[4])
-                print(term)
-                print("STUDENTBILLINGINTERNALID = " + rec_id)
-                if rec_id in testlist:
-                    print("Matched to list...")
-                # --------------------
+
+                adir_term = i[4][:2] + i[4][-4:]
+                bill_id = str(i[16])
+                stu_id = str(i[0])
+                tot_code = str(i[6])
+
+                print("Adirondack term to check = " + adir_term)
+                print("CX Current Term = " + current_term)
+
+                if current_term == adir_term:
+                    print("Match current term " + current_term)
+                    # here we look for a specific item
+
+                    print(the_list)
+                    if int(bill_id) in the_list:
+                        print("Item " + bill_id + " already in list")
+                    else:
+                        print("Write item " + str(
+                            i[16]) + " to current term file")
+                        f = current_term + '_processed.csv'
+                        lin = []
+                        lin.append(adir_term)
+                        lin.append(stu_id)
+                        lin.append(tot_code)
+                        lin.append(bill_id)
+                        print(lin)
+
+                        with codecs.open(f, 'ab',
+                                         encoding='utf-8-sig') as wffile:
+                            csvWriter = csv.writer(wffile,
+                                                   quoting=csv.QUOTE_MINIMAL)
+                            csvWriter.writerow(lin)
+                        wffile.close()
+
+                else:
+                    print(the_list)
+                    # print("Match last term " + last_term)
+                    if int(i[16]) in the_list:
+                        print("Item " + str(i[16]) + " already in list")
+                    else:
+                        print("Write item " + str(
+                            i[16]) + " to last term file")
+
 
                 # Marietta needs date, description,account number, amount,
                 # ID, totcode, billcode, term
@@ -213,39 +293,6 @@ def main():
                 print(item_date)
 
 
-                filter_date = datetime.now() - timedelta(days=90)
-                print(filter_date)
-                if item_date >= filter_date:
-                    print('OK')
-                    rec = []
-                    rec.append(i[1])
-                    descr = str(i[5])
-                    descr = descr.translate(None, '!@#$%.,')
-                    rec.append(descr.strip())
-                    rec.append("1-003-10041")
-                    rec.append(i[2])
-                    rec.append(i[0])
-                    rec.append("S/A")
-                    totcode = i[6]
-                    # print(totcode)
-                    rec.append(totcode)
-                    rec.append(i[4][:2] + i[4][5:])
-
-                    fee_file = settings.ADIRONDACK_TXT_OUTPUT + totcode \
-                               + "_" + settings.ADIRONDACK_ROOM_FEES \
-                               + datetimestr + ".csv"
-
-                    # print(fee_file)
-                    with codecs.open(fee_file, 'ab',
-                                     encoding='utf-8-sig') as fee_output:
-                        csvWriter = csv.writer(fee_output,
-                                               quoting=csv.QUOTE_MINIMAL)
-                        csvWriter.writerow(rec)
-                    fee_output.close()
-
-                    # Write to ID list - can store lists in archive
-                    # one file per term...
-                    # or write the id and the term to a single list file
 
 
                     # print("File created, send")
@@ -256,8 +303,8 @@ def main():
                     #                 BODY, SUBJECT
                     #                 )
 
-                else:
-                    print("OLD Don't process")
+                # else:
+                #     print("OLD Don't process")
 
     except Exception as e:
         print("Error in adirondack_misc_fees_api.py- Main:  " + e.message)
