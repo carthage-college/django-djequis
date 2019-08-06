@@ -18,6 +18,28 @@ from djequis.core.utils import sendmail
 from adirondack_utilities import fn_write_error, fn_write_misc_header, \
     fn_sendmailfees, fn_get_utcts
 
+
+from djzbar.utils.informix import do_sql
+from djzbar.utils.informix import get_engine
+from django.conf import settings
+from django.db import connections
+
+from djzbar.settings import INFORMIX_EARL_TEST
+from djzbar.settings import INFORMIX_EARL_PROD
+
+#
+os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
+# informix environment
+os.environ['DBSERVERNAME'] = settings.DBSERVERNAME
+os.environ['INFORMIXDIR'] = settings.INFORMIXDIR
+os.environ['ODBCINI'] = settings.ODBCINI
+os.environ['ONCONFIG'] = settings.ONCONFIG
+os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
+os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
+os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
+
+
+
 # django settings for shell environment
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 
@@ -36,6 +58,13 @@ logger = logging.getLogger(__name__)
 
 
 def main():
+    # set global variable
+    global EARL
+    # determines which database is being called from the command line
+    EARL = INFORMIX_EARL_TEST
+    # establish database connection
+    engine = get_engine(EARL)
+
     #Working Assumptions:
     # We will do a mass pull around April 20 when the returning students
     # have been assigned.
@@ -122,6 +151,39 @@ def main():
             # successfully created, read that file into a list and if
             # the new data pulls the same number, pass through
 
+            # I need a way to only compare exported items to fairly recent
+            # posted items, or the list will get huge.
+
+            trmqry = '''select trim(sess)||yr as cur_term, acyr, 
+                      ROW_NUMBER () OVER () as rank
+                      from train:acad_cal_rec a
+                      where  yr = YEAR(TODAY)
+                      and (right(acyr,2) = RIGHT(TO_CHAR(YEAR(TODAY)),2) 
+                      or left(acyr, 2) = RIGHT(TO_CHAR(YEAR(TODAY)),2))  
+                      and sess in ('RC', 'RA')
+                      AND subsess = ''
+                      and prog = 'UNDG'
+                      order by beg_date asc
+                      '''
+            print(trmqry)
+            ret = do_sql(trmqry, earl=EARL)
+
+            if ret is not None:
+                for row in ret:
+                    if row[2] == '1':
+                        last_term = row[0]
+                        print("Last = " + last_term)
+                    else:
+                        current_term = row[0]
+                        print("current = " + current_term)
+
+            # last_term = 'RC2019'
+            # current_term = 'RA2019'
+
+
+
+
+
             # testlist = ['2', '968', '069']
             # Temporary
             f = open("Assignment_id_lst.txt", "r")
@@ -132,36 +194,29 @@ def main():
                 testlist.append(row[0])
 
             for i in x['DATA']:
-                #--------------------
+                # --------------------
                 # Validation Option 1
+                # Store a list of record ids from Adirondack for the term
+                # AFTER the csv has been successfully created
+                # Compare each new file's line ID
                 rec_id = str(i[16])
+                term = str(i[4])
+                print(term)
                 print("STUDENTBILLINGINTERNALID = " + rec_id)
                 if rec_id in testlist:
                     print("Matched to list...")
-                #--------------------
-
+                # --------------------
 
                 # Marietta needs date, description,account number, amount,
                 # ID, totcode, billcode, term
-
                 item_date = datetime.strptime(i[1], '%m/%d/%Y')
                 print(item_date)
-
-                #--------------------
-                # Validation Option 2 uses EXPORTED flag, but is unreliable
-                print(i[9])
-                if i[9] == -1:
-                    print("File was previously exported")
-                else:
-                    print("File fresh")
-                #--------------------
 
 
                 filter_date = datetime.now() - timedelta(days=90)
                 print(filter_date)
                 if item_date >= filter_date:
                     print('OK')
-
                     rec = []
                     rec.append(i[1])
                     descr = str(i[5])
@@ -184,13 +239,18 @@ def main():
                     with codecs.open(fee_file, 'ab',
                                      encoding='utf-8-sig') as fee_output:
                         csvWriter = csv.writer(fee_output,
-                                               quoting=csv.QUOTE_NONE)
+                                               quoting=csv.QUOTE_MINIMAL)
                         csvWriter.writerow(rec)
                     fee_output.close()
 
-                    print("File created, send")
-                    SUBJECT = 'Housing Miscellaneous Fees'
-                    BODY = 'There are housing fees to process via ASCII post'
+                    # Write to ID list - can store lists in archive
+                    # one file per term...
+                    # or write the id and the term to a single list file
+
+
+                    # print("File created, send")
+                    # SUBJECT = 'Housing Miscellaneous Fees'
+                    # BODY = 'There are housing fees to process via ASCII post'
                     # fn_sendmailfees(settings.ADIRONDACK_TO_EMAIL,
                     #                 settings.ADIRONDACK_FROM_EMAIL,
                     #                 BODY, SUBJECT
