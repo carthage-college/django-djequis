@@ -180,9 +180,9 @@ def main():
                             photo = row1[0]
                             filename = str(LENEL_PICTURE_ARG) + ".jpg"
                             # write blob data into a file
-                            write_file(photo, filepath + "/" + filename)
+                            write_file(photo, filepath + filename)
                         result.close()
-
+                        conn.close()
                     except ValueError:
                         print("Value Error getting photo")
                     except TypeError:
@@ -190,30 +190,41 @@ def main():
                     except Exception as e:
                         if e.__class__ == 'pyodbc.DataError':
                             pass
-                    finally:
-                        conn.close()
-
+                print("Pictures Done")
             except Exception as e:
                 print("Error getting photo " + e.message)
 
             # Remove previous file
             if os.path.exists(filepath + "carthage_studentphotos.zip"):
                 os.remove(filepath + "carthage_studentphotos.zip")
-            # print(filepath)
 
             # Create zip file
+            # Can't create it in the Data directory
+            # Put it in source directory then move it
             shutil.make_archive("carthage_studentphotos", 'zip', filepath)
+            print("Zip created")
+            # Do I need to move it?
             shutil.move("carthage_studentphotos.zip", filepath)
+            # print("Move?")
+
 
             # Clean up - remove .jpgs
             filelist = os.listdir(filepath)
+            print(filelist)
             for filename in filelist:
-                if filename.endswith('.jpg'):
-                     # print(filepath+filename)
-                     os.remove(filepath+filename)
+                try:
+                    if filename.endswith('.jpg'):
+                         print(filepath + filename)
+                         os.remove(filepath + filename)
 
+                except Exception as e:
+                    print(e.message)
+                    print(e.__str__())
+
+            print("cleanup done")
 
             # send file to SFTP Site..
+            print(filepath + "carthage_studentphotos.zip")
             # sftp_upload(filepath + "carthage_studentphotos.zip")
 
     except Exception as e:
