@@ -92,10 +92,6 @@ def main():
                                            quoting=csv.QUOTE_NONNUMERIC)
                     csvWriter.writerow(i)
 
-            # Validate if the stu_serv_rec exists first
-            # ])
-            # update stu_serv_rec id, sess, yr, rxv_stat, intend_hsg,
-            # campus, bldg, room, bill_code
 
     except Exception as e:
         print("Error in adirondack_applicationss_api.py- Main:  " + e.message)
