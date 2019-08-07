@@ -136,16 +136,18 @@ def main():
             # Cleanup previous run CSV files
             files = os.listdir(settings.ADIRONDACK_TXT_OUTPUT)
             for f in files:
-                if f.find('misc_housing') != -1:
+                if f.find('misc_housingmisc_housing') != -1:
                     ext = f.find(".csv")
 
                     # print("source = " + settings.ADIRONDACK_TXT_OUTPUT+f)
-                    # print("destintation = " + settings.ADIRONDACK_ARCHIVED+
-                    # f[:ext]
+                    # print("destintation = " + settings
+                    # .ADIRONDACK_TXT_OUTPUT + "archive/"
+                    #                                 f[:ext] + "_" +
+                    #                                 timestr + f[ext:])
                     # + "_" + timestr + f[ext:])
                     shutil.move(settings.ADIRONDACK_TXT_OUTPUT + f,
-                                settings.ADIRONDACK_ARCHIVED + f[:ext] + "_" +
-                                timestr + f[ext:])
+                                settings.ADIRONDACK_TXT_OUTPUT + "archive/" +
+                                f[:ext] + "_" + timestr + f[ext:])
 
             # How to know if a record has already been processed to
             #    avoid duplicates?
@@ -167,8 +169,10 @@ def main():
             # print("new current = " + current_term)
 
             # Set up the file names for the duplicate check
-            cur_file = current_term + '_processed.csv'
-            last_file = last_term + '_processed.csv'
+            cur_file = settings.ADIRONDACK_TXT_OUTPUT + 'billing_logs/' + \
+                       current_term + '_processed.csv'
+            last_file = settings.ADIRONDACK_TXT_OUTPUT + 'billing_logs/' + \
+                        last_term + '_processed.csv'
             # print(cur_file)
             # print(last_file)
 
@@ -280,7 +284,6 @@ def main():
                         fee_output.close()
 
                         # Write record of item to PROCESSED list
-                        # NOTE--QUOTE_MINIMAL is because timestamp has a comma
                         print("Write item " + str(
                             i[16]) + " to current term file")
                         f = current_term + '_processed.csv'
@@ -289,6 +292,8 @@ def main():
                                          encoding='utf-8-sig') as wffile:
                             csvWriter = csv.writer(wffile,
                                                    quoting=csv.QUOTE_MINIMAL)
+                            # NOTE--QUOTE_MINIMAL is because timestamp has a
+                            # comma
                             csvWriter.writerow(i)
                         wffile.close()
 
@@ -296,6 +301,8 @@ def main():
                         SUBJECT = 'Housing Miscellaneous Fees'
                         BODY = 'There are housing fees to process via ASCII ' \
                                'post'
+                        # Can I place the file where Marietta can find it?
+                        # shutil.copy(source, dest_dir???)
                         # fn_sendmailfees(settings.ADIRONDACK_TO_EMAIL,
                         #                 settings.ADIRONDACK_FROM_EMAIL,
                         #                 BODY, SUBJECT
