@@ -100,6 +100,12 @@ def get_bill_code(idnum, bldg):
 
 def main():
     try:
+        # if JUNE or JULY
+        #     run only on certain days
+        # One big push for returning students
+        # second big push for freshmen
+        # Then run daily starting on...
+
         # set global variable
         global EARL
         # determines which database is being called from the command line
@@ -155,7 +161,7 @@ def main():
                       "TimeFrameNumericCode=" + session + "&" \
                       "CurrentFuture=-1" + "&" \
                       "PostAssignments=-1" + "&" \
-                      "Posted=0" + "&" \
+                      "Posted=1" + "&" \
                       "STUDENTNUMBER=" + "1524290"
 
                       # + "&" \
@@ -179,9 +185,12 @@ def main():
                     print("No new data found")
                 else:
                     room_file = settings.ADIRONDACK_TXT_OUTPUT + \
-                                settings.ADIRONDACK_ROOM_ASSIGNMENTS
-                    room_archive = settings.ADIRONDACK_ARCHIVED + datetimestr\
-                                  + '_' + settings.ADIRONDACK_ROOM_ASSIGNMENTS
+                                settings.ADIRONDACK_ROOM_ASSIGNMENTS + '.csv'
+                    # print(room_file)
+                    room_archive = settings.ADIRONDACK_ROOM_ARCHIVED + \
+                                   settings.ADIRONDACK_ROOM_ASSIGNMENTS + \
+                                   datetimestr + '.csv'
+                    # print(room_archive)
 
                     if os.path.exists(room_file):
                         os.rename(room_file, room_archive)
@@ -216,12 +225,10 @@ def main():
                             ghost = i[20]
                             posted = i[21]
                             roomassignmentid = i[22]
-
                             sess = i[9][:2]
                             year = i[9][-4:]
                             term = i[9]
                             occupants = i[7]
-
                             billcode = get_bill_code(carthid, str(bldg))
                             # Intenhsg can b R = Resident, O = Off-Campus,
                             # C = Commuter
@@ -247,7 +254,7 @@ def main():
 
                             # This may be useful to determine which records
                             # have been pulled and processed
-                            print("ROOMASSIGNMENTID = " + roomassignmentid)
+                            print("ROOMASSIGNMENTID = " + str(roomassignmentid))
 
                             csvWriter = csv.writer(room_output,
                                                    quoting=csv.QUOTE_NONE)
