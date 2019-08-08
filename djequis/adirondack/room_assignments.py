@@ -20,7 +20,7 @@ from djtools.fields import TODAY
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 from adirondack_sql import ADIRONDACK_QUERY
-from adirondack_utilities import fn_write_error, fn_write_billing_header, \
+from utilities import fn_write_error, fn_write_billing_header, \
     fn_write_assignment_header, fn_get_utcts, fn_encode_rows_to_utf8
 
 # django settings for shell environment
@@ -114,11 +114,11 @@ def main():
         if database == 'train':
             EARL = INFORMIX_EARL_TEST
         else:
-        # # this will raise an error when we call get_engine()
-        # below but the argument parser should have taken
-        # care of this scenario and we will never arrive here.
+            # # this will raise an error when we call get_engine()
+            # below but the argument parser should have taken
+            # care of this scenario and we will never arrive here.
             EARL = None
-        # establish database connection
+            # establish database connection
 
         engine = get_engine(EARL)
 
@@ -150,28 +150,27 @@ def main():
 
                 session = row[0]
                 print("Session = " + session)
-                #IMPORTANT! won't work if string has any spaces.  NO SPACES
+                # IMPORTANT! won't work if string has any spaces.  NO SPACES
 
                 url = "https://carthage.datacenter.adirondacksolutions.com/" \
-                      "carthage_thd_test_support/apis/thd_api.cfc?" \
-                      "method=housingASSIGNMENTS&" \
-                      "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
-                      "utcts=" + str(utcts) + "&" \
-                      "h=" + hash_object.hexdigest() + "&" \
-                      "TimeFrameNumericCode=" + session + "&" \
-                      "CurrentFuture=-1" + "&" \
-                      "PostAssignments=-1" + "&" \
-                      "Posted=1" + "&" \
-                      "STUDENTNUMBER=" + "1524290"
+                    "carthage_thd_test_support/apis/thd_api.cfc?" \
+                    "method=housingASSIGNMENTS&" \
+                    "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
+                    "utcts=" + str(utcts) + "&" \
+                    "h=" + hash_object.hexdigest() + "&" \
+                    "TimeFrameNumericCode=" + session + "&" \
+                    "CurrentFuture=-1" + "&" \
+                    "PostAssignments=-1" + "&" \
+                    "Posted=1" + "&" \
+                    "STUDENTNUMBER=" + "1524290"
+                    # + "&" \
+                    # "HallCode=" + 'SWE'
 
-                      # + "&" \
-                      # "HallCode=" + 'SWE'
-
-                      # DEFINITIONS
-                      # Posted: 0 returns only unposted, 1 returns posted
-                      # PostAssignments: -1 will mark the record as posted.
-                      # CurrentFuture: -1 returns only current and future
-                      # Cancelled: -1 is for cancelled, 0 for not cancelled
+                # DEFINITIONS
+                # Posted: 0 returns only unposted, 1 returns posted
+                # PostAssignments: -1 will mark the record as posted.
+                # CurrentFuture: -1 returns only current and future
+                # Cancelled: -1 is for cancelled, 0 for not cancelled
 
                 # print("URL = " + url)
 
@@ -188,8 +187,8 @@ def main():
                                 settings.ADIRONDACK_ROOM_ASSIGNMENTS + '.csv'
                     # print(room_file)
                     room_archive = settings.ADIRONDACK_ROOM_ARCHIVED + \
-                                   settings.ADIRONDACK_ROOM_ASSIGNMENTS + \
-                                   datetimestr + '.csv'
+                        settings.ADIRONDACK_ROOM_ASSIGNMENTS + \
+                        datetimestr + '.csv'
                     # print(room_archive)
 
                     if os.path.exists(room_file):
@@ -198,11 +197,11 @@ def main():
                     # IF directly updating stu_serv_rec, writing csv may be
                     # redundant
                     fn_write_assignment_header()
-                    z = fn_encode_rows_to_utf8(x['DATA'])
+                    room_data = fn_encode_rows_to_utf8(x['DATA'])
                     # print("Start Loop")
 
                     with open(room_file, 'ab') as room_output:
-                        for i in z:
+                        for i in room_data:
                             carthid = i[0]
                             bldgname = i[1]
                             bldg = i[2]
@@ -254,7 +253,8 @@ def main():
 
                             # This may be useful to determine which records
                             # have been pulled and processed
-                            print("ROOMASSIGNMENTID = " + str(roomassignmentid))
+                            print("ROOMASSIGNMENTID = "
+                                  + str(roomassignmentid))
 
                             csvWriter = csv.writer(room_output,
                                                    quoting=csv.QUOTE_NONE)
