@@ -5,7 +5,6 @@ import sys
 import csv
 import pysftp
 import argparse
-# import shutil
 import logging
 from logging.handlers import SMTPHandler
 # prime django
@@ -85,8 +84,7 @@ def fn_clear_logger():
 
 
 def sftp_upload(upload_filename):
-    # by adding cnopts, I'm authorizing the program to ignore the
-    # host key and just continue
+    # cnopts authorizes the program to ignore the host key
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None  # ignore known host key checking
     # sFTP connection information for Adironcack
@@ -105,8 +103,6 @@ def sftp_upload(upload_filename):
             sftp.chdir("prod/in/")
             # print(upload_filename)
             sftp.put(upload_filename, preserve_mtime=True)
-            # delete original files from our server
-            # os.remove(adirondackfiles)
             # close sftp connection
             sftp.close()
     except Exception, e:
@@ -121,10 +117,6 @@ def sftp_upload(upload_filename):
 
 
 def main():
-    ##########################################################################
-    # ==> python buildcsv.py --database=train --test
-    # ==> python buildcsv.py --database=cars
-    ##########################################################################
 
     # Defines file names and directory location
     adirondackdata = ('{0}carthage_students.txt'.format(
