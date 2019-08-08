@@ -5,7 +5,7 @@ import sys
 import csv
 import pysftp
 import argparse
-import shutil
+# import shutil
 import logging
 from logging.handlers import SMTPHandler
 # prime django
@@ -17,8 +17,9 @@ from djequis.core.utils import sendmail
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
+
 from adirondack_sql import ADIRONDACK_QUERY
-from adirondack_utilities import fn_write_student_bio_header, \
+from utilities import fn_write_student_bio_header, \
     fn_encode_rows_to_utf8
 
 # django settings for shell environment
@@ -83,7 +84,6 @@ def fn_clear_logger():
     return "Clear Logger"
 
 
-
 def sftp_upload(upload_filename):
     # by adding cnopts, I'm authorizing the program to ignore the
     # host key and just continue
@@ -117,7 +117,7 @@ def sftp_upload(upload_filename):
             settings.ADIRONDACK_TO_EMAIL, settings.ADIRONDACK_FROM_EMAIL,
             BODY, SUBJECT
         )
-        print(BODY)
+        fn_write_error(BODY)
 
 
 def main():
@@ -171,7 +171,6 @@ def main():
             sftp_upload(adirondackdata)
 
     except Exception as e:
-
         fn_write_error("Error in adirondack buildcsv.py, Error = " + e.message)
         SUBJECT = '[adirondack Application] Error'
         BODY = "Error in adirondack student_bio.py, Error = " + e.message
