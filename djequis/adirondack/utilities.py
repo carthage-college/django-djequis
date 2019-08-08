@@ -186,7 +186,7 @@ def fn_encode_rows_to_utf8(rows):
 def fn_write_error(msg):
     # create error file handler and set level to error
     handler = logging.FileHandler(
-        '{0}cc_apd_rec_error.log'.format(settings.LOG_FILEPATH))
+        '{0}adirondack_error.log'.format(settings.LOG_FILEPATH))
     handler.setLevel(logging.ERROR)
     formatter = logging.Formatter('%(asctime)s: %(levelname)s: %(message)s',
                                   datefmt='%m/%d/%Y %I:%M:%S %p')
