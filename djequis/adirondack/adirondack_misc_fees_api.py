@@ -1,5 +1,4 @@
 import os
-# import glob
 import shutil
 import sys
 import time
@@ -82,7 +81,15 @@ def main():
     # set global variable
     global EARL
     # determines which database is being called from the command line
-    EARL = INFORMIX_EARL_TEST
+    # if database == 'cars':
+    # EARL = INFORMIX_EARL_PROD
+    if database == 'train':
+        EARL = INFORMIX_EARL_TEST
+    else:
+        # # this will raise an error when we call get_engine()
+        # below but the argument parser should have taken
+        # care of this scenario and we will never arrive here.
+        EARL = None
     # establish database connection
     engine = get_engine(EARL)
 
