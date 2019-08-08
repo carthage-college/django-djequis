@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import os
 import shutil
 import sys
@@ -16,7 +18,8 @@ from logging.handlers import SMTPHandler
 from django.conf import settings
 from djequis.core.utils import sendmail
 from utilities import fn_write_error, fn_write_misc_header, \
-    fn_sendmailfees, fn_get_utcts, fn_write_billing_header
+    fn_sendmailfees, fn_get_utcts, fn_write_billing_header, \
+    fn_encode_rows_to_utf8
 
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
@@ -197,8 +200,8 @@ def main():
                 current_term + '_processed.csv'
             last_file = settings.ADIRONDACK_TXT_OUTPUT + 'billing_logs/' + \
                 last_term + '_processed.csv'
-            print(cur_file)
-            print(last_file)
+            # print(cur_file)
+            # print(last_file)
 
             # Initialize a list of record IDs
             the_list = []
@@ -214,17 +217,19 @@ def main():
                     # File should have at least columns for term row ID
                     next(ffile)
                     for row in csvf:
+                        print(row)
                         if row is not None:
                             assign_id = int(row[16].strip())
                             the_list.append(assign_id)
+                            print(the_list)
+
                 ffile.close()
+
+
             else:
                 print ("No file")
                 fn_write_billing_header(cur_file)
-                # with open(cur_file, "w") as empty_csv:
-                #     pass
 
-            print("Curfile read")
             # For extra insurance, include last term items in the list
             if os.path.isfile(last_file):
                 print ("last_file exists")
@@ -240,10 +245,8 @@ def main():
             else:
                 print ("No file")
                 fn_write_billing_header(last_file)
-                # with open(last_file, "w") as empty_csv:
-                #     pass
 
-            # List of processed rows
+            # List of previously processed rows
             print(the_list)
 
             # ------------------------------------------
@@ -257,7 +260,8 @@ def main():
             # 2011  Extended stay charge
             # 2031   Recore
             # 2040  Lockout fee
-            # All others are room charges not for ASCII post
+            # Room rental fees are not for ASCII post
+
 
             for i in x['DATA']:
                 # print(i)
@@ -299,7 +303,8 @@ def main():
                                    + "_" + settings.ADIRONDACK_ROOM_FEES \
                                    + datetimestr + ".csv"
 
-                        print(fee_file)
+                        # print(fee_file)
+
                         with codecs.open(fee_file, 'ab',
                                          encoding='utf-8-sig') as fee_output:
                             csvWriter = csv.writer(fee_output,
@@ -307,31 +312,20 @@ def main():
                             csvWriter.writerow(rec)
                         fee_output.close()
 
+
                         # Write record of item to PROCESSED list
-                        # print("Write item " + str(
-                        #     i[16]) + " to current term file")
+                        print("Write item " + str(
+                            i[16]) + " to current term file")
                         f = cur_file
                         # f = current_term + '_processed.csv'
-                        # print(i)
                         with codecs.open(f, 'ab',
                                          encoding='utf-8-sig') as wffile:
                             csvWriter = csv.writer(wffile,
                                                    quoting=csv.QUOTE_MINIMAL)
-                            # NOTE--QUOTE_MINIMAL is because timestamp has a
-                            # comma
                             csvWriter.writerow(i)
                         wffile.close()
 
-                        print("File created, send")
-                        SUBJECT = 'Housing Miscellaneous Fees'
-                        BODY = 'There are housing fees to process via ASCII ' \
-                               'post'
-                        # Can I place the file where Marietta can find it?
-                        # shutil.copy(source, dest_dir???)
-                        # fn_sendmailfees(settings.ADIRONDACK_TO_EMAIL,
-                        #                 settings.ADIRONDACK_FROM_EMAIL,
-                        #                 BODY, SUBJECT
-                        #                 )
+
 
                 else:
                     # In case of a charge from the previous term
@@ -359,6 +353,9 @@ def main():
                                    + datetimestr + ".csv"
 
                         print(fee_file)
+                        encoded_rows = encode_rows_to_utf8(rec)
+                        print(encoded_rows)
+
 
                         with codecs.open(fee_file, 'ab',
                                          encoding='utf-8-sig') as fee_output:
@@ -393,10 +390,10 @@ def main():
                 BODY = 'There are housing fees to process via ASCII ' \
                     'post'
                 print(BODY)
-                # fn_sendmailfees(settings.ADIRONDACK_TO_EMAIL,
-                #                 settings.ADIRONDACK_FROM_EMAIL,
-                #                 BODY, SUBJECT
-                #                 )
+                fn_sendmailfees(settings.ADIRONDACK_TO_EMAIL,
+                                settings.ADIRONDACK_FROM_EMAIL,
+                                BODY, SUBJECT
+                                )
 
         # Marietta needs date, description,account number, amount,
         # ID, tot_code, billcode, term
