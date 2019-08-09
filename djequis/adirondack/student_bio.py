@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
 import sys
@@ -6,12 +5,15 @@ import csv
 import pysftp
 import argparse
 import logging
-from logging.handlers import SMTPHandler
-# prime django
+
+# django settings for shell environment
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
+
 import django
+django.setup()
+
 # django settings for script
 from django.conf import settings
-from django.db import connections
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_TEST
@@ -20,12 +22,6 @@ from djzbar.settings import INFORMIX_EARL_PROD
 from adirondack_sql import ADIRONDACK_QUERY
 from utilities import fn_write_student_bio_header, \
     fn_encode_rows_to_utf8
-
-# django settings for shell environment
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
-
-django.setup()
-
 
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
@@ -36,9 +32,6 @@ os.environ['ONCONFIG'] = settings.ONCONFIG
 os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
-
-# normally set as 'debug" in SETTINGS
-DEBUG = settings.INFORMIX_DEBUG
 
 # set up command-line options
 desc = """
