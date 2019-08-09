@@ -145,7 +145,7 @@ def main():
         else:
             fn_write_student_bio_header()
             # print("Query successful")
-            with open(adirondackdata, 'a') as file_out:
+            with open(adirondackdata, 'w') as file_out:
                 csvWriter = csv.writer(file_out, delimiter='|')
                 encoded_rows = fn_encode_rows_to_utf8(ret)
                 for row in encoded_rows:

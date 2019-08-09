@@ -178,7 +178,6 @@ def fn_encode_rows_to_utf8(rows):
             fn_write_error("Error in encoded_rows routine " + e.message)
     return encoded_rows
 
-
 #########################################################
 # Common functions to handle logger messages and errors
 #########################################################
@@ -214,11 +213,10 @@ def fn_sendmailfees(to, frum, body, subject):
 
 
     files = os.listdir(settings.ADIRONDACK_TXT_OUTPUT)
-
     # filenames = []
     for f in files:
         if f.find('misc_housing') != -1:
-            print(settings.ADIRONDACK_TXT_OUTPUT + f)
+            # print(settings.ADIRONDACK_TXT_OUTPUT + f)
             part = MIMEBase('application', "octet-stream")
             part.set_payload(open(settings.ADIRONDACK_TXT_OUTPUT + f, "rb").read())
             encoders.encode_base64(part)
@@ -238,8 +236,6 @@ def fn_sendmailfees(to, frum, body, subject):
         print(msg['To'])
         print(msg['From'])
         server.sendmail(msg['From'], msg['to'], text)
-
-        # server.sendmail(msg['From'], msg['To'], msg.as_string())
 
     finally:
         # server.quit()
