@@ -6,23 +6,21 @@ import json
 import os
 import requests
 import csv
+
+# django settings for shell environment
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 import django
+django.setup()
+
 # django settings for script
 from django.conf import settings
-from django.db import connections
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import get_engine
 from djtools.fields import TODAY
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 from adirondack_sql import ADIRONDACK_QUERY
-from adirondack_utilities import fn_write_error, fn_write_billing_header
-
-# django settings for shell environment
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
-
-# prime django
-django.setup()
+from utilities import fn_write_error, fn_write_billing_header
 
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
@@ -34,14 +32,10 @@ os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
-# normally set as 'debug" in SETTINGS
-DEBUG = settings.INFORMIX_DEBUG
-
 # set up command-line options
 desc = """
     Collect adirondack data ASCII Post
 """
-
 
 print("x")
 
@@ -107,7 +101,8 @@ def main():
             "Key="+settings.ADIRONDACK_API_SECRET+"&" \
             "utcts="+str(utcts)+"&" \
             "h="+hash_object.hexdigest()+"&" \
-            "AccountCode=CMTR,ABRD,NOCH,UNDE,OFF,RABD,RFDB,RFPB,RFOD,RFOS,RFQU,RFT2,CCHI,STD,RFSG,RFTR,RFTD,RFTS,RFAP"
+            "AccountCode=CMTR,ABRD,NOCH,UNDE,OFF,RABD,RFDB,RFPB,RFOD,RFOS,RFQU,RFT2,CCHI,STD,RFSG,RFTR,RFTD,RFTS,RFAP" +"&" \
+            "STUDENTNUMBER=1431381"
       print("URL = " + url)
 
       response = requests.get(url)
@@ -117,9 +112,10 @@ def main():
       if not x['DATA']:
           print("No match")
       else:
-          fn_write_billing_header()
+          filename = settings.ADIRONDACK_ROOM_FEES + ".csv"
+          fn_write_billing_header(filename)
           print("Start Loop")
-          with open(settings.ADIRONDACK_ROOM_FEES, 'ab') as room_output:
+          with open(filename, 'ab') as room_output:
               for i in x['DATA']:
                   print(i[0])
                   csvWriter = csv.writer(room_output, quoting=csv.QUOTE_NONNUMERIC)
