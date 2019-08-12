@@ -36,6 +36,9 @@ os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
+# normally set as 'debug" in SETTINGS
+DEBUG = settings.INFORMIX_DEBUG
+
 # set up command-line options
 desc = """
     Collect adirondack data Room assignments for stu_serv_rec
@@ -136,6 +139,7 @@ def main():
                         and charge_date > TODAY
                          '''
         ret = do_sql(q_get_term, key=DEBUG, earl=EARL)
+        # ret = do_sql(q_get_term, earl=EARL)
         if ret is not None:
             row = ret.fetchone()
             if row is None:
@@ -284,6 +288,7 @@ def main():
                                                                  sess, year)
                             # print(q_validate_stuserv_rec)
 
+                            # ret = do_sql(q_validate_stuserv_rec, earl=EARL)
                             ret = do_sql(q_validate_stuserv_rec, key=DEBUG,
                                          earl=EARL)
 
