@@ -70,6 +70,37 @@ parser.add_argument(
 logger = logging.getLogger(__name__)
 
 
+def fn_check_cx_records(totcod,prd,jndate,stuid):
+    # This may or may not be completely accurate.  Need more scrutiny
+    billqry ='''select  SA.id, IR.fullname, ST.subs_no, 
+        SE.jrnl_date, ST.prd, ST.subs, STR.bal_code, ST.tot_code, SE.descr, 
+        SE.ctgry, STR.amt, ST.amt_inv_act, SA.stat 
+        from subtr_rec STR
+        left join subt_rec ST on STR.subs = ST.subs
+        and STR.subs_no = ST.subs_no 
+        and STR.tot_code = ST.tot_code
+        and STR.tot_prd = ST.prd
+        left join sube_rec SE on SE.subs = STR.subs
+        and SE.subs_no = STR.subs_no
+        and SE.sube_no = STR.ent_no
+        left join suba_rec SA on SA.subs = SE.subs
+        and SA.suba_no = SE.subs_no
+        left join id_rec IR on IR.id = SA.id
+        where STR.subs = 'S/A'
+        and STR.tot_code = "{0}"  
+        and STR.tot_prd = "{1}"  
+        and jrnl_date = "{2}"
+        and IR.id = {3}
+        '''.format(totcod, prd, jndate, stuid)
+    # print(billqry)
+    ret = do_sql(billqry, earl=EARL)
+    # print(ret)
+    if ret is None:
+        return 0
+    else:
+        return 1
+
+
 def fn_set_terms(last_term, current_term):
     trmqry = '''select trim(sess)||yr as cur_term, acyr, 
                         ROW_NUMBER () OVER () as rank
@@ -271,6 +302,9 @@ def main():
                 adir_term = i[4][:2] + i[4][-4:]
                 bill_id = str(i[16])
                 stu_id = str(i[0])
+                print(i[1])
+                item_date = i[1][-4:] + "-" + i[1][:2] + "-" + i[1][3:5]
+                print(item_date)
                 tot_code = str(i[6])
 
                 # print("Adirondack term to check = " + adir_term)
@@ -279,6 +313,14 @@ def main():
                 if current_term == adir_term:
                     print("Match current term " + current_term)
                     # here we look for a specific item
+
+                    x = fn_check_cx_records(tot_code, adir_term, item_date,
+                                            stu_id)
+                    print(x)
+                    if x == 0:
+                        print("Item is not in CX database")
+                    else:
+                        print("WARNING:  Matching item exist in CX database")
 
                     # print(the_list)
                     if int(bill_id) in the_list:
