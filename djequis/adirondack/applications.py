@@ -1,22 +1,22 @@
+import os
 import calendar
 import time
 import datetime
 import hashlib
 import json
-import os
 import requests
 import csv
-# prime django
-import django
-# django settings for script
-from django.conf import settings
-from djequis.core.utils import sendmail
-from adirondack_utilities import fn_write_error, fn_write_application_header, \
-    fn_get_utcts
 
 # django settings for shell environment
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
+import django
 django.setup()
+
+from django.conf import settings
+from djequis.core.utils import sendmail
+from utilities import fn_write_error, fn_write_application_header, \
+    fn_get_utcts
+
 
 # set up command-line options
 desc = """
@@ -53,15 +53,22 @@ def main():
         # sendtime = datetime.now()
         # print("Time of send = " + time.strftime("%Y%m%d%H%M%S"))
 
+        # Will need to build URL dynamically based on input from user
+        # Allow query by student ID
+        # Include term as variable
+        searchval_id = raw_input("Enter Carthage ID ")
+        print(searchval_id)
+        searchval_term = raw_input("Enter Term")
+        print(searchval_term)
+
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
             "carthage_thd_test_support/apis/thd_api.cfc?" \
             "method=housingAPPLICATIONS&" \
             "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
             "utcts=" + str(utcts) + "&" \
             "h=" + hash_object.hexdigest() + "&" \
-            "TimeFrameNumericCode=" + "RA 2019"
-        # + "&" \
-        # "studentNumber=-1"
+            "TimeFrameNumericCode=" + searchval_term + "&" \
+            "studentNumber=" + searchval_id
         # + "&"
         # "ApplicationTypeName= "
         # + "&"
