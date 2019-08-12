@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
 import shutil
@@ -13,8 +12,16 @@ import requests
 import csv
 import argparse
 import logging
+
+# ________________
+# Note to self, keep this here
+# django settings for shell environment
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 import django
-from logging.handlers import SMTPHandler
+
+django.setup()
+# ________________
+
 from django.conf import settings
 from djequis.core.utils import sendmail
 from utilities import fn_write_error, fn_write_misc_header, \
@@ -24,7 +31,6 @@ from utilities import fn_write_error, fn_write_misc_header, \
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from django.conf import settings
-from django.db import connections
 
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
@@ -38,14 +44,6 @@ os.environ['ONCONFIG'] = settings.ONCONFIG
 os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
-
-# django settings for shell environment
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
-
-# prime django
-django.setup()
-
-# django settings for script
 
 # set up command-line options
 desc = """

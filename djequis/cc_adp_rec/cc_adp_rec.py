@@ -129,17 +129,14 @@ def main():
     start_time = time.time()
 
     ##########################################################################
-    # development server (bng), you would execute:
     # ==> python cc_adp_rec.py --database=train --test
-    # production server (psm), you would execute:
     # ==> python cc_adp_rec.py --database=cars
-    # without the --test argument
     ##########################################################################
 
     # set date and time to be added to the filename
     # datetimestr = time.strftime("%Y%m%d%H%M%S")
 
-    # set local directory for which the common app file will be downloaded to
+    # set local directory for which the file will be downloaded to
     source_dir = ('{0}'.format(
         settings.ADP_CSV_OUTPUT
     ))
@@ -161,7 +158,6 @@ def main():
     # ))
     adptocx_reformatted = "ADPtoCX_Reformatted.csv"
 
-
     # First remove yesterdays file of updates
     if os.path.isfile(adp_diff_file):
         os.remove(adp_diff_file)
@@ -179,9 +175,9 @@ def main():
         elif database == 'sandbox':
             EARL = INFORMIX_EARL_SANDBOX
         else:
-        # this will raise an error when we call get_engine()
-        # below but the argument parser should have taken
-        # care of this scenario and we will never arrive here.
+            # this will raise an error when we call get_engine()
+            # below but the argument parser should have taken
+            # care of this scenario and we will never arrive here.
             EARL = None
         # establish database connection
         engine = get_engine(EARL)
@@ -211,6 +207,7 @@ def main():
         #################################################################
         print("Open New File")
 
+        print(new_adp_file)
         with codecs.open(new_adp_file, 'r',
                          encoding='utf-8-sig') as f:
 
@@ -242,7 +239,7 @@ def main():
                 csvWriter.writerow(row)
         file_out.close()
 
-        # xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        #################################################################
         # Read in both files and compare
         # the codecs function prevents the header from ADP getting
         # into the comparison - needed because of extra characters in header
@@ -290,21 +287,21 @@ def main():
 
                 elif row["file_number"] == "":
                     print("No ADP File Number for " + row['payroll_name'])
-                    fn_write_error("No ADP File Number for " + row['payroll_name'])
+                    fn_write_error("No ADP File Number for "
+                                   + row['payroll_name'])
                     SUBJECT = 'No ADP File Number'
                     BODY = "No ADP File Number for " + row['payroll_name']
                     # sendmail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
                     #          BODY, SUBJECT)
                 else:
 
-
-            ##############################################################
-                # STEP 4a--
-                # Make sure record is not already in cc_adp_rec
-                # Limitations on filtering the ADP report allow rare cases
-                # of identical rows in report.
-                ##############################################################
-                # try:
+                    #########################################################
+                    # STEP 4a--
+                    # Make sure record is not already in cc_adp_rec
+                    # Limitations on filtering the ADP report allow rare cases
+                    # of identical rows in report.
+                    #########################################################
+                    # try:
 
                     verifyqry = Q_CC_ADP_VERIFY(row)
                     # print(verifyqry)
@@ -319,16 +316,17 @@ def main():
                         else:
                             print("No Matching Record found - Insert")
 
-                            ######################################################
+                            #################################################
                             # STEP 4b--
                             # Write entire row to cc_adp_rec table
-                            ######################################################
+                            #################################################
                             try:
                                 INS_CC_ADP_REC(row, EARL)
                             except Exception as e:
-                            # fn_write_error("Error in adptcx.py while inserting
-                            #   into cc_adp_rec.  Error = " + e.message)
-                            #     continue
+                                # fn_write_error("Error in adptcx.py while
+                                #   inserting into cc_adp_rec.  Error = "
+                                #   + e.message)
+                                #     continue
                                 print("ERROR = " + e.message)
 
             f.close()
@@ -337,7 +335,8 @@ def main():
         print("Error in cc_adp_rec.py, Error = " + e.message)
         fn_write_error("Error in cc_adp_rec.py, Error = " + e.message)
         # sendmail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
-        #          "Error in cc_adp_rec.py, Error = " + e.message, "Error in cc_adp_rec.py")
+        #          "Error in cc_adp_rec.py, Error = " + e.message,
+        #          "Error in cc_adp_rec.py")
         print(e)
         # finally:
         #     logging.shutdown()
