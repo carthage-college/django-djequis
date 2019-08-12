@@ -68,7 +68,7 @@ STU_ACAD_REC_100 = '''
                 eEndDate, TO_CHAR(end_date, '%m/%d/%Y') AS end_date, subsess, prog
             FROM
                 (
-                    SELECT 
+                    SELECT
                         acad_cal_rec.acyr, TRIM(acad_cal_rec.sess) AS sess, acad_cal_rec.yr,
                         CASE
                             WHEN sess IN ("AA","AB","RA","GA") THEN 'Fall'
@@ -76,20 +76,20 @@ STU_ACAD_REC_100 = '''
                             WHEN sess IN ("AS","AT","GE","RE") THEN 'Summer'
                                                                ELSE 'Neutral'
                         END AS eTermGrp,
-                        CASE 
+                        CASE
                             WHEN today - mdy(1,1,year(today))+1 < mdy(4,26,year(today)) - mdy(1,1,year(today))+1 THEN 'Spring'
                             WHEN today - mdy(1,1,year(today))+1 < mdy(8,5,year(today))  - mdy(1,1,year(today))+1 THEN 'Summer'
                             WHEN today - mdy(1,1,year(today))+1 < mdy(12,3,year(today)) - mdy(1,1,year(today))+1 THEN 'Fall'
                             ELSE 'Spring'
                         END AS ePullGrp,
-                        CASE 
-                            WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('08/27/'|| TO_CHAR(acad_cal_rec.yr))
+                        CASE
+                            WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('8/11/'|| TO_CHAR(acad_cal_rec.yr))
                             WHEN sess IN ("AG","AK","AM","GB","GC","RB","RC") THEN TRIM('01/01/' || TO_CHAR(acad_cal_rec.yr))
                             WHEN sess IN ("AS","AT","GE","RE") THEN TRIM('05/26/' || TO_CHAR(acad_cal_rec.yr))
                                                                ELSE TRIM('08/01/' || TO_CHAR(acad_cal_rec.yr))
                         END AS eBegDate,
                         acad_cal_rec.beg_date,
-                        CASE 
+                        CASE
                             WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('12/24/'|| TO_CHAR(acad_cal_rec.yr))
                             WHEN sess IN ("AG","AK","AM","GB","GC","RB","RC") THEN TRIM('05/25/' || TO_CHAR(acad_cal_rec.yr))
                             WHEN sess IN ("AS","AT","GE","RE") THEN TRIM('07/30/' || TO_CHAR(acad_cal_rec.yr))
@@ -163,7 +163,7 @@ STU_ACAD_REC_200 = '''
                             ELSE 'Spring'
                         END AS ePullGrp,
                         CASE 
-                            WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('08/27/'|| TO_CHAR(acad_cal_rec.yr))
+                            WHEN sess IN ("AA","AB","RA","GA") THEN TRIM('8/11/'|| TO_CHAR(acad_cal_rec.yr))
                             WHEN sess IN ("AG","AK","AM","GB","GC","RB","RC") THEN TRIM('01/01/' || TO_CHAR(acad_cal_rec.yr))
                             WHEN sess IN ("AS","AT","GE","RE") THEN TRIM('05/26/' || TO_CHAR(acad_cal_rec.yr))
                                                                ELSE TRIM('08/01/' || TO_CHAR(acad_cal_rec.yr))
