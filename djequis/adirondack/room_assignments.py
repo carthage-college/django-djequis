@@ -7,11 +7,14 @@ import datetime
 import requests
 import csv
 import argparse
-# prime django
+
+# django settings for shell environment
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 import django
-# django settings for script
+django.setup()
+
 from django.conf import settings
-from django.db import connections
+# from django.db import connections
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
@@ -23,14 +26,8 @@ from adirondack_sql import ADIRONDACK_QUERY
 from utilities import fn_write_error, fn_write_billing_header, \
     fn_write_assignment_header, fn_get_utcts, fn_encode_rows_to_utf8
 
-# django settings for shell environment
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
-
-django.setup()
-
-#
-os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
 # informix environment
+os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
 os.environ['DBSERVERNAME'] = settings.DBSERVERNAME
 os.environ['INFORMIXDIR'] = settings.INFORMIXDIR
 os.environ['ODBCINI'] = settings.ODBCINI
@@ -39,12 +36,9 @@ os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
-# normally set as 'debug" in SETTINGS
-DEBUG = settings.INFORMIX_DEBUG
-
 # set up command-line options
 desc = """
-    Collect adirondack data ASCII Post
+    Collect adirondack data Room assignments for stu_serv_rec
 """
 parser = argparse.ArgumentParser(description=desc)
 
