@@ -104,7 +104,7 @@ def fn_check_cx_records(totcod,prd,jndate,stuid):
 def fn_set_terms(last_term, current_term):
     trmqry = '''select trim(sess)||yr as cur_term, acyr, 
                         ROW_NUMBER () OVER () as rank
-                        from train:acad_cal_rec a
+                        from acad_cal_rec a
                         where  yr = YEAR(TODAY)
                         and (right(acyr,2) = RIGHT(TO_CHAR(YEAR(TODAY)),2) 
                         or left(acyr, 2) = RIGHT(TO_CHAR(YEAR(TODAY)),2))  
