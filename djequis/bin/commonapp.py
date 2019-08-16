@@ -160,7 +160,8 @@ def main():
     # without the --test argument
     ###########################################################################
     # execute sftp code that needs to be executed in production only
-    if not test:
+    #if not test:
+    if test:
         file_download()
     # set date and time to be added to the filename
     datetimestr = time.strftime("%Y%m%d%H%M%S")
@@ -216,9 +217,9 @@ def main():
                         filename=('{0}carthage_applications.txt'.format(
                             settings.COMMONAPP_CSV_OUTPUT
                         ))
-                        scr.write('------------------------------------------------------------------------------------------------------------------\n')
-                        scr.write('-- CREATES APPLICATION FROM COMMON APPLICATION DATA \n')
-                        scr.write('------------------------------------------------------------------------------------------------------------------\n')
+                        scr.write('--------------------------------------------------------------------------------\n')
+                        scr.write('-- CREATES APPLICATION FROM COMMON APPLICATION DATA\n')
+                        scr.write('--------------------------------------------------------------------------------\n')
                         # open file
                         with open(filename, 'rb') as f:
                             reader = csv.DictReader(f, delimiter='|')
