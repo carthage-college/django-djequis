@@ -160,8 +160,7 @@ def main():
     # without the --test argument
     ###########################################################################
     # execute sftp code that needs to be executed in production only
-    #if not test:
-    if test:
+    if not test:
         file_download()
     # set date and time to be added to the filename
     datetimestr = time.strftime("%Y%m%d%H%M%S")
