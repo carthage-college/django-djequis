@@ -4,6 +4,7 @@ import os
 import sys
 import time
 import datetime
+from datetime import datetime
 import requests
 import csv
 import argparse
@@ -145,7 +146,6 @@ def main():
             if row is None:
                 print("Term not found")
             else:
-
                 session = row[0]
                 print("Session = " + session)
                 # IMPORTANT! won't work if string has any spaces.  NO SPACES
@@ -158,9 +158,10 @@ def main():
                     "h=" + hash_object.hexdigest() + "&" \
                     "TimeFrameNumericCode=" + session + "&" \
                     "CurrentFuture=-1" + "&" \
-                    "PostAssignments=-1" + "&" \
-                    "Posted=1" + "&" \
-                    "STUDENTNUMBER=" + "1524290"
+                    "STUDENTNUMBER=" + "1572122"
+
+                # "PostAssignments=-1" + "&" \
+                    # "Posted=1" + "&" \
                     # + "&" \
                     # "HallCode=" + 'SWE'
 
@@ -255,7 +256,7 @@ def main():
                                   + str(roomassignmentid))
 
                             csvWriter = csv.writer(room_output,
-                                                   quoting=csv.QUOTE_NONE)
+                                                   quoting=csv.QUOTE_NONNUMERIC)
                             # csvWriter.writerow(i)
                             # Need to write translated fields if csv is to
                             # be created
@@ -286,7 +287,7 @@ def main():
                                           and sess  = "{1}"
                                           and id = {0}'''.format(carthid,
                                                                  sess, year)
-                            # print(q_validate_stuserv_rec)
+                            print(q_validate_stuserv_rec)
 
                             # ret = do_sql(q_validate_stuserv_rec, earl=EARL)
                             ret = do_sql(q_validate_stuserv_rec, key=DEBUG,
@@ -313,6 +314,14 @@ def main():
                                             print("No change needed in "
                                                   "stu_serv_rec")
 
+                                    if checkedindate == None:
+                                        add_date = None
+                                    else:
+                                        d1 = datetime.strptime(checkedindate,
+                                                               "%B, "
+                                                               "%d %Y "
+                                                               "%H:%M:%S")
+                                        add_date = d1.strftime("%m-%d-%Y")
                                     q_update_stuserv_rec = '''
                                         UPDATE stu_serv_rec set  rsv_stat = ?,
                                         intend_hsg = ?, campus = ?, bldg = 
@@ -325,13 +334,13 @@ def main():
                                                              intendhsg,
                                                              "MAIN", bldg,
                                                              room, occupants,
-                                                             checkedindate,
+                                                             add_date,
                                                              billcode,
                                                              checkedoutdate,
                                                              carthid,
                                                              sess, year)
-                                    print(q_update_stuserv_rec)
-                                    print(q_update_stuserv_args)
+                                    # print(q_update_stuserv_rec)
+                                    # print(q_update_stuserv_args)
                                     engine.execute(q_update_stuserv_rec,
                                                    q_update_stuserv_args)
                                 else:
@@ -339,26 +348,37 @@ def main():
                             #     # go ahead and update
                             else:
                                 print("Record not found")
-                                # Insert if no record exists, update else
-                                if billcode > 0:
-                                    q_insert_stuserv_rec = '''
-                                            INSERT INTO stu_serv_rec (id, 
-                                            sess, yr, rsv_stat, intend_hsg, 
-                                            campus, bldg, room, no_per_room,
-                                            add_date,bill_code, hous_wd_date)
-                                            VALUES (?,?,?,?,?,?,?,?,?,?,?)'''
-                                    q_insert_stuserv_args = (
-                                        carthid, term, yr, rsvstat, 'R',
-                                        'MAIN', bldg, room, occupants,
-                                        checkedindate, billcode,
-                                        checkedoutdate)
-                                    print(q_insert_stuserv_rec)
-                                    print(q_insert_stuserv_args)
-                                    # engine.execute(q_insert_stuserv_rec,
-                                    # q_insert_stuserv_args)
 
-                                else:
-                                    print("Bill code not found")
+                                # body ="Student Service Record does not " \
+                                #      "exist.  Please inquire why."
+                                # subj="Adirondack - Stu_serv_rec missing"
+                                # sendmail("dsullivan@carthage.edu",
+                                #          "dsullivan@carthage.edu",body,subj)
+
+                                # Insert if no record exists, update else
+                                # Dave says stu_serv_rec should NOT be created
+                                # from Adirondack data.  Other offices need
+                                # to create the initial record
+                                # Need to send something to Marietta
+                                # if billcode > 0:
+                                #     q_insert_stuserv_rec = '''
+                                #             INSERT INTO stu_serv_rec (id,
+                                #             sess, yr, rsv_stat, intend_hsg,
+                                #             campus, bldg, room, no_per_room,
+                                #             add_date,bill_code, hous_wd_date)
+                                #             VALUES (?,?,?,?,?,?,?,?,?,?,?)'''
+                                #     q_insert_stuserv_args = (
+                                #         carthid, term, yr, rsvstat, 'R',
+                                #         'MAIN', bldg, room, occupants,
+                                #         checkedindate, billcode,
+                                #         checkedoutdate)
+                                #     print(q_insert_stuserv_rec)
+                                #     print(q_insert_stuserv_args)
+                                #     # engine.execute(q_insert_stuserv_rec,
+                                #     # q_insert_stuserv_args)
+
+                                # else:
+                                #     print("Bill code not found")
 
                 # filepath = settings.ADIRONDACK_CSV_OUTPUT
 
