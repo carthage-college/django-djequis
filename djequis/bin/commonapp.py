@@ -216,9 +216,9 @@ def main():
                         filename=('{0}carthage_applications.txt'.format(
                             settings.COMMONAPP_CSV_OUTPUT
                         ))
-                        scr.write('------------------------------------------------------------------------------------------------------------------\n')
-                        scr.write('-- CREATES APPLICATION FROM COMMON APPLICATION DATA \n')
-                        scr.write('------------------------------------------------------------------------------------------------------------------\n')
+                        scr.write('--------------------------------------------------------------------------------\n')
+                        scr.write('-- CREATES APPLICATION FROM COMMON APPLICATION DATA\n')
+                        scr.write('--------------------------------------------------------------------------------\n')
                         # open file
                         with open(filename, 'rb') as f:
                             reader = csv.DictReader(f, delimiter='|')
@@ -329,9 +329,9 @@ def main():
                                 # BEGIN - preferred phone for student
                                 ################################################
                                 if row["preferredPhone"] == 'Mobile':
-                                    if row["contactConsent"] == 'Y' or row["transferContactConsent"] == 'Y':
+                                    if row["contactConsent"] == 'Y':
                                         contactConsent = 'N'
-                                    elif row["contactConsent"] == 'N' or row["transferContactConsent"] == 'N':
+                                    elif row["contactConsent"] == 'N':
                                         contactConsent = 'Y'
                                     # preferred phone is a Mobile
                                     try:
@@ -350,9 +350,9 @@ def main():
                                 ################################################
                                 if row["alternatePhoneAvailable"] != '' and row["alternatePhoneAvailable"] != 'N':
                                     altType = 'CELL'
-                                    if row["contactConsent"] == 'Y' or row["transferContactConsent"] == 'Y':
+                                    if row["contactConsent"] == 'Y':
                                         contactConsent = 'N'
-                                    elif row["contactConsent"] == 'N' or row["transferContactConsent"] == 'N':
+                                    elif row["contactConsent"] == 'N':
                                         contactConsent = 'Y'
                                     if row["alternatePhoneAvailable"] == 'Home':
                                         altType = 'HOME'
@@ -381,11 +381,11 @@ def main():
                                 except Exception as err:
                                     logger.error(err, exc_info=True)
                                 # determine the type of studentStatus and set studentStatus and Hours Enrolled
-                                if row["studentStatus"] == 'Full Time' or row["transferStudentStatus"] == 'Full Time':
+                                if row["studentStatus"] == 'Full Time':
                                     studentStatus = 'TRAD'
                                     intendHoursEnrolled = 16
                                     app_TRAD_list.append(str(apptmp_no));
-                                elif row["studentStatus"] == 'Part Time' or row["transferStudentStatus"] == 'Part Time':
+                                elif row["studentStatus"] == 'Part Time':
                                     studentStatus = 'TRAD'
                                     intendHoursEnrolled = 16
                                     app_PTSM_list.append(str(apptmp_no));
@@ -397,14 +397,12 @@ def main():
                                 # Common App
                                 ###############################################
                                 """
-                                elif row["studentStatus"] == 'Part Time' or row["transferStudentStatus"] == 'Part Time':
+                                elif row["studentStatus"] == 'Part Time':
                                     studentStatus = 'PTSM'
                                     intendHoursEnrolled = 4
                                 """
                                 # fetch preferredStartTerm from Common App data ex.(Fall 2018, Spring 2018, J-Term 2018)
                                 preferredStartTerm = row["preferredStartTerm"]
-                                if len(row["transferPreferredStartTerm"]):
-                                    preferredStartTerm = row["transferPreferredStartTerm"]
                                 # spliting preferredStartTerm
                                 planArray = preferredStartTerm.split(' ')
                                 # set planEnrollYear to Year 
@@ -430,18 +428,10 @@ def main():
                                     transfer = 'Y'
                                 # replacing first part of Common App code for major
                                 major1 = row["major1"].replace("ADM-MAJOR-", "").strip()
-                                if len(row["transferMajor1"]):
-                                    major1 = row["transferMajor1"].replace("ADM-MAJOR-", "").strip()
                                 major2 = row["major2"].replace("ADM-MAJOR-", "").strip()
-                                if len(row["transferMajor2"]):
-                                    major2 = row["transferMajor2"].replace("ADM-MAJOR-", "").strip()
                                 major3 = row["major3"].replace("ADM-MAJOR-", "").strip()
-                                if len(row["transferMajor3"]):
-                                    major3 = row["transferMajor3"].replace("ADM-MAJOR-", "").strip()
                                 # replacing first part of Common App code for preferred residence
                                 hsgType = row["preferredResidence"].replace("ADM-HSG_TYPE-", "").strip()
-                                if len(row["transferPreferredResidence"]):
-                                    hsgType = row["transferPreferredResidence"].replace("ADM-HSG_TYPE-", "").strip()
                                 # set armedForcesStatus variables
                                 if row["armedForcesStatus"] == 'Currently_serving':
                                     armedForcesStatus = 'Y'
@@ -499,33 +489,21 @@ def main():
                                     emailaddr, prog, subprog, upd_date, act_choice, stuint_wt, jics_candidate, major, major2, major3, app_source, pref_name, felony,
                                     discipline, parnt_mtlstat, live_with, live_with_other, vet_ben, model_score, hsg_type)
                                     VALUES ({0}, "Y", "{1}", {2}, "{3}", "{4}", "{5}", TODAY, "0.00", "", "0", "", "{6}", "UNDG", "{7}", TODAY, "", "0", "N", "{8}",
-                                    "{9}", "{10}", "C", "{11}", "{12}", "{13}", "{14}", "{15}", "{16}", "{17}", 0, "{18}");
-                                    ''' .format(apptmp_no, planEnrollSession, planEnrollYear, intendHoursEnrolled, transfer, studentType, row["emailAddress"],
-                                                studentStatus, major1, major2, major3, row["preferredName"], row["criminalHistory"], row["schoolDiscipline"], parnt_mtlstat,
-                                                live_with, otherLivingSituation, armedForcesStatus, hsgType)
+                                    "{9}", "{10}", "C", "{11}", "{12}", "{13}", "{14}", "{15}", "{16}", 0, "{17}");
+                                    ''' .format(
+                                        apptmp_no, planEnrollSession, planEnrollYear, intendHoursEnrolled,
+                                        transfer, studentType, row["emailAddress"], studentStatus,
+                                        major1, major2, major3, row["preferredName"],
+                                        row["schoolDiscipline"], parnt_mtlstat,
+                                        live_with, otherLivingSituation, armedForcesStatus, hsgType
+                                    )
                                     scr.write(q_create_adm+'\n');
                                     logger.info("Inserted into app_admtmp_rec"+'\r\n');
                                     do_sql(q_create_adm, key=DEBUG, earl=EARL)
                                 except Exception as err:
                                     logger.error(err, exc_info=True)
-                                # if there is Criminal or Displinary reasons they will be added
-                                if row["criminalHistory"] != '' or row["schoolDiscipline"] != '':
-                                    if row["criminalHistory"] == 'Y':
-                                        try:
-                                            reasontxt = re.sub(ur'[\s\u0400-\u0527]+', ' ', row["criminalHistoryExplanation"]).decode('windows-1252').replace(u'\xa0', ' ').encode('utf-8')
-                                            resource = 'FELONY'
-                                            q_insertText = '''
-                                            INSERT INTO app_ectctmp_rec
-                                            (id, tick, add_date, resrc, stat, txt)
-                                            VALUES (?, ?, ?, ?, ?, ?);
-                                            '''
-                                            scr.write(q_insertText+'\n');
-                                            logger.info("Inserted into app_ectctmp_rec for criminal explanation"+'\r\n');
-                                            engine.execute(q_insertText,
-                                                [apptmp_no, "ADM", TODAY, resource, "C", reasontxt]
-                                            )
-                                        except Exception as err:
-                                            logger.error(err, exc_info=True)
+                                # if there is Displinary reasons they will be added
+                                if row["schoolDiscipline"] != '':
                                     if row["schoolDiscipline"] == 'Y':
                                         try:
                                             reasontxt = re.sub(ur'[\s\u0400-\u0527]+', ' ', row["disciplinaryViolationExplanation"]).decode('windows-1252').replace(u'\xa0', ' ').encode('utf-8')
@@ -626,107 +604,6 @@ def main():
                                             logger.error(err, exc_info=True)
                                 else:
                                     scr.write("--There were no other schools attended for this application."+'\n\n');
-                                ##############################################################
-                                # BEGIN - secondary school(s) attended for a transfer student
-                                ##############################################################
-                                if row["transferSecondarySchoolsAttendedNumber"] != '' and int(row["transferSecondarySchoolsAttendedNumber"]) > 0:
-                                    for schoolNumber in range(1, int(row["transferSecondarySchoolsAttendedNumber"])+1):
-                                        # check to see that there is a CeebCode coming from Common App
-                                        if row['transferSecondarySchool'+str(schoolNumber)+'CeebCode'] == '':
-                                            transferSecondarySchoolCeebCode = 0
-                                        else:
-                                            transferSecondarySchoolCeebCode = row['transferSecondarySchool'+str(schoolNumber)+'CeebCode']
-                                        if row['transferSecondarySchool'+str(schoolNumber)+'FromDate'] == '':
-                                            fromDate = ''
-                                        else: # formatting the fromDate
-                                            fromDate = datetime.datetime.strptime(row['transferSecondarySchool'+str(schoolNumber)+'FromDate'], '%m/%Y').strftime('%Y-%m-01')
-                                        if row['transferSecondarySchool'+str(schoolNumber)+'ToDate'] == '':
-                                            toDate = ''
-                                        else: # formatting the toDate
-                                            toDate = datetime.datetime.strptime(row['transferSecondarySchool'+str(schoolNumber)+'ToDate'], '%m/%Y').strftime('%Y-%m-01')
-                                        # creates edtmp record if there are any secondary schools for a transfer students
-                                        try:
-                                            q_create_transfer_other_school = '''
-                                            INSERT INTO app_edtmp_rec
-                                            (id, ceeb, fullname, city, st, grad_date, enr_date, dep_date, stu_id, sch_id, app_reltmp_no, rel_id, priority, zip, aa, ctgry, acad_trans)
-                                            VALUES ({0}, {1}, "{2}", "{3}", "{4}", "", TO_DATE("{5}", "%Y-%m-%d"), TO_DATE("{6}", "%Y-%m-%d"), 0, 0, 0, 0, 0, "{7}", "hs", "HS", "N");
-                                        ''' .format(apptmp_no, transferSecondarySchoolCeebCode,
-                                            row['transferSecondarySchool'+str(schoolNumber)+'CeebName'], row['transferSecondarySchool'+str(schoolNumber)+'City'],
-                                            row['transferSecondarySchool'+str(schoolNumber)+'State'], fromDate, toDate, row['transferSecondarySchool'+str(schoolNumber)+'Zip'])
-                                            scr.write(q_create_transfer_other_school+'\n\n');
-                                            scr.write("--Executing transfer other school qry"+'\n\n');
-                                            logger.info("Inserted into app_edtmp_rec for transfer student other school"+'\r\n');
-                                            do_sql(q_create_transfer_other_school, key=DEBUG, earl=EARL)
-                                        except Exception as err:
-                                            logger.error(err, exc_info=True)
-                                else:
-                                    scr.write('--There were no transfer secondary schools attended for this application.\n\n');
-                                """ # removed 9/18/2017
-                                ###############################################
-                                # BEGIN - college(s) attended for a student
-                                ###############################################
-                                if row["collegesAttendedNumber"] != '' and int(row["collegesAttendedNumber"]) > 0:
-                                    for schoolNumber in range(1, int(row["collegesAttendedNumber"])+1):
-                                        # check to see that there is a CeebCode coming from Common App
-                                        if row['college'+str(schoolNumber)+'CeebCode'] == '':
-                                            collegeCeebCode = 0
-                                        else:
-                                            collegeCeebCode = row['college'+str(schoolNumber)+'CeebCode']
-                                        # check to see if FromDate is empty if not set to From Date coming from Common App
-                                        if row['college'+str(schoolNumber)+'FromDate'] == '':
-                                            fromDate = ''
-                                        else: # formatting the fromDate
-                                            fromDate = datetime.datetime.strptime(row['college'+str(schoolNumber)+'FromDate'], '%m/%Y').strftime('%Y-%m-01')
-                                        if row['college'+str(schoolNumber)+'ToDate'] == '':
-                                            toDate = ''
-                                        else: # formatting the toDate
-                                            toDate = datetime.datetime.strptime(row['college'+str(schoolNumber)+'ToDate'], '%m/%Y').strftime('%Y-%m-01')
-                                        # creates edtmp record if there are any colleges attended
-                                        q_create_college_school = '''
-                                        INSERT INTO app_edtmp_rec
-                                        (id, ceeb, fullname, city, st, grad_date, enr_date, dep_date, stu_id, sch_id, app_reltmp_no, rel_id, priority, zip, aa, ctgry, acad_trans)
-                                        VALUES ({0}, {1}, "{2}", "{3}", "{4}", "", TO_DATE("{5}", "%Y-%m-%d"), TO_DATE("{6}", "%Y-%m-%d"), 0, 0, 0, 0, 0, "{7}", "ac", "COL", "N");
-                                    ''' .format(apptmp_no, collegeCeebCode, row['college'+str(schoolNumber)+'CeebName'], row['college'+str(schoolNumber)+'City'], row['college'+str(schoolNumber)+'State'],
-                                                fromDate, toDate, row['college'+str(schoolNumber)+'Zip'])
-                                        scr.write(q_create_college_school+'\n\n');
-                                        do_sql(q_create_college_school, key=DEBUG, earl=EARL)
-                                else:
-                                    scr.write('--There were no colleges attended for this application.\n\n');
-                                """
-                                ###############################################
-                                # BEGIN - college(s) attended for a
-                                # transfer student
-                                ###############################################
-                                if row["transferCollegesAttendedNumber"] != '' and int(row["transferCollegesAttendedNumber"]) > 0:
-                                    for schoolNumber in range(1, int(row["transferCollegesAttendedNumber"])+1):
-                                        # check to see that there is a CeebCode coming from Common App
-                                        if row['transferCollege'+str(schoolNumber)+'CeebCode'] == '':
-                                            transferCollegeCeebCode = 0
-                                        else:
-                                            transferCollegeCeebCode = row['transferCollege'+str(schoolNumber)+'CeebCode']
-                                        if row['transferCollege'+str(schoolNumber)+'FromDate'] == '':
-                                            fromDate = ''
-                                        else: # formatting the fromDate
-                                            fromDate = datetime.datetime.strptime(row['transferCollege'+str(schoolNumber)+'FromDate'], '%m/%Y').strftime('%Y-%m-01')
-                                        if row['transferCollege'+str(schoolNumber)+'ToDate'] == '':
-                                            toDate = ''
-                                        else: # formatting the toDate
-                                            toDate = datetime.datetime.strptime(row['transferCollege'+str(schoolNumber)+'ToDate'], '%m/%Y').strftime('%Y-%m-01')
-                                        # creates edtmp record if there are any colleges for a transfer student
-                                        try:
-                                            q_create_transfer_college_school = '''
-                                            INSERT INTO app_edtmp_rec
-                                            (id, ceeb, fullname, city, st, grad_date, enr_date, dep_date, stu_id, sch_id, app_reltmp_no, rel_id, priority, zip, aa, ctgry, acad_trans)
-                                            VALUES ({0}, {1}, "{2}", "{3}", "{4}", "", TO_DATE("{5}", "%Y-%m-%d"), TO_DATE("{6}", "%Y-%m-%d"), 0, 0, 0, 0, 0, "{7}", "ac", "COL", "N");
-                                        ''' .format(apptmp_no, transferCollegeCeebCode, row['transferCollege'+str(schoolNumber)+'CeebName'], row['transferCollege'+str(schoolNumber)+'City'],
-                                                    row['transferCollege'+str(schoolNumber)+'State'], fromDate, toDate, row['transferCollege'+str(schoolNumber)+'Zip'])
-                                            scr.write(q_create_transfer_college_school+'\n\n');
-                                            logger.info("Inserted into app_edtmp_rec for transfer student college"+'\r\n');
-                                            do_sql(q_create_transfer_college_school, key=DEBUG, earl=EARL)
-                                        except Exception as err:
-                                            logger.error(err, exc_info=True)
-                                else:
-                                    scr.write('--There were no transfercolleges attended for this application.\n\n');
                                 ###############################################
                                 # BEGIN - relatives attended Carthage
                                 ###############################################
@@ -734,8 +611,6 @@ def main():
                                     for relativeNumber in range (1, 5 +1):
                                         if row['relative'+str(relativeNumber)+'FirstName'] != '':
                                             relativeGradYear = row['relative'+str(relativeNumber)+'GradYear1']
-                                            if len(row['transferRelative'+str(relativeNumber)+'GradYear1']):
-                                                relativeGradYear = row['transferRelative'+str(relativeNumber)+'GradYear1']
                                             if relativeGradYear == '':
                                                 relativeGradYear = 0
                                             # creates reltmp record if there are any relatives
@@ -840,12 +715,10 @@ def main():
                                 ###############################################
                                 # BEGIN - activities
                                 ###############################################
-                                if row["activity1"] != '' or row["transferActivity1"] != '':
+                                if row["activity1"] != '':
                                     for activityNumber in range (1, 5 +1):
                                         # replacing first part of Common App code for activity
                                         activity = row['activity'+str(activityNumber)].replace("INTERESTS-INTEREST-", "")
-                                        if len(row['transferActivity'+str(activityNumber)].replace("INTERESTS-INTEREST-", "")):
-                                            activity = row['transferActivity'+str(activityNumber)].replace("INTERESTS-INTEREST-", "")
                                         if activity:
                                             # creates inttmp record if there are any activities
                                             try:
