@@ -176,9 +176,9 @@ def main():
                                                       "AccountCode=2010," \
                                                       "2040,2011,2031" \
               + "&" + "Exported=0" \
-              + "&" + "ExportCharges=-1"
+              + "&" + "ExportCharges=-1" \
+              + "&" + "STUDENTNUMBER=1572122"
         # \
-        #     + "&" + "STUDENTNUMBER=ASI000987654321"
 
         # DEFINIIONS
         # Exported: -1 exported will be included, 0 only non-exported
