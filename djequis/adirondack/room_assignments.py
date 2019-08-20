@@ -95,6 +95,20 @@ def get_bill_code(idnum, bldg):
             billcode = i[6]
             return billcode
 
+def fix_Bldg(bldg_code):
+    if bldg_code[:3] == 'OAK':
+        x = bldg_code.replace(" ", "")
+        l = len(bldg_code.strip())
+        b = bldg_code[l - 1:l]
+        z = x[:3]
+        bldg = z + b
+        # print(bldg)
+        return bldg
+    else:
+        return bldg_code
+
+
+
 
 def main():
     try:
@@ -154,7 +168,8 @@ def main():
                     "carthage_thd_test_support/apis/thd_api.cfc?" \
                     "method=housingASSIGNMENTS&" \
                     "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
-                    "utcts=" + str(utcts) + "&" \
+                    "utcts=" + \
+                    str(utcts) + "&" \
                     "h=" + hash_object.hexdigest() + "&" \
                     "TimeFrameNumericCode=" + session + "&" \
                     "CurrentFuture=-1" + "&" \
@@ -203,7 +218,7 @@ def main():
                         for i in room_data:
                             carthid = i[0]
                             bldgname = i[1]
-                            bldg = i[2]
+                            bldg = fix_Bldg(i[2])
                             floor = i[3]
                             bed = i[5]
                             room_type = i[6]
@@ -318,7 +333,11 @@ def main():
 
                                     row = ret.fetchone()
                                     if row is not None:
-
+                                        print(row[3] + "," + rsvstat)
+                                        print(row[4] + "," + intendhsg)
+                                        print(row[6] + "," + bldg)
+                                        print(row[7] + "," + room)
+                                        print(row[10] + "," + billcode)
                                         if row[3] != rsvstat \
                                                 or row[4] != intendhsg \
                                                 or row[6] != bldg \
@@ -326,31 +345,37 @@ def main():
                                                 or row[10] != billcode:
                                             print("Need to update "
                                                   "stu_serv_rec")
+                                            q_update_stuserv_rec = '''
+                                             UPDATE stu_serv_rec set  
+                                             rsv_stat = ?,
+                                             intend_hsg = ?, campus = ?, 
+                                             bldg = 
+                                             ?, room = ?,
+                                             no_per_room = ?, add_date = ?, 
+                                             bill_code = ?,
+                                             hous_wd_date = ?
+                                             where id = ? and sess = ? and 
+                                             yr = ?'''
+                                            q_update_stuserv_args = (rsvstat,
+                                                                 intendhsg,
+                                                                 "MAIN", bldg,
+                                                                 room,
+                                                                 occupants,
+                                                                 checkedindate,
+                                                                 billcode,
+                                                                 checkedoutdate,
+                                                                 carthid,
+                                                                 sess, year)
+                                            # print(q_update_stuserv_rec)
+                                            # print(q_update_stuserv_args)
+                                            engine.execute(q_update_stuserv_rec,
+                                                       q_update_stuserv_args)
+
                                         else:
                                             print("No change needed in "
                                                   "stu_serv_rec")
-
-                                    q_update_stuserv_rec = '''
-                                        UPDATE stu_serv_rec set  rsv_stat = ?,
-                                        intend_hsg = ?, campus = ?, bldg = 
-                                        ?, room = ?,
-                                        no_per_room = ?, add_date = ?, 
-                                        bill_code = ?,
-                                        hous_wd_date = ?
-                                        where id = ? and sess = ? and yr = ?'''
-                                    q_update_stuserv_args = (rsvstat,
-                                                             intendhsg,
-                                                             "MAIN", bldg,
-                                                             room, occupants,
-                                                             checkedindate,
-                                                             billcode,
-                                                             checkedoutdate,
-                                                             carthid,
-                                                             sess, year)
-                                    # print(q_update_stuserv_rec)
-                                    # print(q_update_stuserv_args)
-                                    engine.execute(q_update_stuserv_rec,
-                                                   q_update_stuserv_args)
+                                    else:
+                                        print("fetch retuned none")
                                 else:
                                     print("Bill code not found")
                             #     # go ahead and update
