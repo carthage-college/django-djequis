@@ -211,9 +211,25 @@ def main():
                             roomusage = i[8]
                             timeframenumericcode = i[9]
                             checkin = i[10]
-                            checkedindate = i[11]
+                            if i[11] == None:
+                                checkedindate = None
+                            else:
+                                d1 = datetime.strptime(i[11],
+                                                       "%B, "
+                                                       "%d %Y "
+                                                       "%H:%M:%S")
+                                checkedindate = d1.strftime("%m-%d-%Y")
+                            # print("ADD DATE + " + str(checkedindate))
                             checkout = i[12]
-                            checkedoutdate = i[13]
+                            if i[13] == None:
+                                checkedoutdate = None
+                            else:
+                                d1 = datetime.strptime(i[13],
+                                                       "%B, "
+                                                       "%d %Y "
+                                                       "%H:%M:%S")
+                                checkedoutdate = d1.strftime("%m-%d-%Y")
+                            # print("OUT DATE = " + str(checkedoutdate))
                             po_box = i[14]
                             po_box_combo = i[15]
                             canceled = i[16]
@@ -314,14 +330,6 @@ def main():
                                             print("No change needed in "
                                                   "stu_serv_rec")
 
-                                    if checkedindate == None:
-                                        add_date = None
-                                    else:
-                                        d1 = datetime.strptime(checkedindate,
-                                                               "%B, "
-                                                               "%d %Y "
-                                                               "%H:%M:%S")
-                                        add_date = d1.strftime("%m-%d-%Y")
                                     q_update_stuserv_rec = '''
                                         UPDATE stu_serv_rec set  rsv_stat = ?,
                                         intend_hsg = ?, campus = ?, bldg = 
@@ -334,7 +342,7 @@ def main():
                                                              intendhsg,
                                                              "MAIN", bldg,
                                                              room, occupants,
-                                                             add_date,
+                                                             checkedindate,
                                                              billcode,
                                                              checkedoutdate,
                                                              carthid,
@@ -349,11 +357,11 @@ def main():
                             else:
                                 print("Record not found")
 
-                                # body ="Student Service Record does not " \
-                                #      "exist.  Please inquire why."
-                                # subj="Adirondack - Stu_serv_rec missing"
-                                # sendmail("dsullivan@carthage.edu",
-                                #          "dsullivan@carthage.edu",body,subj)
+                                body ="Student Service Record does not " \
+                                     "exist.  Please inquire why."
+                                subj="Adirondack - Stu_serv_rec missing"
+                                sendmail("dsullivan@carthage.edu",
+                                         "dsullivan@carthage.edu",body,subj)
 
                                 # Insert if no record exists, update else
                                 # Dave says stu_serv_rec should NOT be created
