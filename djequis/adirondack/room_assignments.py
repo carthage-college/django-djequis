@@ -57,14 +57,36 @@ parser.add_argument(
     help="database name.",
     dest="database"
 )
+#
+# def fn_get_terms():
+#     trmqry = '''select  trim(sess)||yr as cur_term, acyr, RIGHT(TO_CHAR(YEAR(TODAY)),2)
+#                         from acad_cal_rec a
+#                         where  yr = YEAR(TODAY)
+#                         and (right(acyr,2) = RIGHT(TO_CHAR(YEAR(TODAY)),2)
+#                         or left(acyr, 2) = RIGHT(TO_CHAR(YEAR(TODAY)),2))
+#                         AND subsess = ''
+#                         and prog = 'UNDG'
+#                         and sess = CASE
+#                             WHEN MONTH(TODAY) > 6 THEN 'RA'
+#                             ELSE 'RC' END
+#                          '''
+#     # print(trmqry)
+#
+#     ret = do_sql(trmqry, earl=EARL)
+#
+#     if ret is not None:
+#         for row in ret:
+#             current_term = row[0]
+#
+#     return [current_term]
 
-
-def get_bill_code(idnum, bldg):
+def get_bill_code(idnum, bldg, session):
     utcts = fn_get_utcts()
 
     hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
 
     hash_object = hashlib.md5(hashstring.encode())
+    print(session)
     url = "https://carthage.datacenter.adirondacksolutions.com/" \
           "carthage_thd_test_support/apis/thd_api.cfc?" \
           "method=studentBILLING&" \
@@ -73,7 +95,11 @@ def get_bill_code(idnum, bldg):
           hash_object.hexdigest() + "&" + \
           "ItemType=Housing&" + \
           "STUDENTNUMBER=" + idnum + "&" + \
-          "TIMEFRAMENUMERICCODE=RA 2019"
+          "TIMEFRAMENUMERICCODE=" + session
+
+          #_______________________________
+         #Need to dynamically get the term - see the misc fee file
+          # _______________________________
 
     response = requests.get(url)
     x = json.loads(response.content)
@@ -109,7 +135,6 @@ def fix_Bldg(bldg_code):
 
 
 
-
 def main():
     try:
         # if JUNE or JULY
@@ -135,6 +160,7 @@ def main():
         engine = get_engine(EARL)
 
         # try:
+
         utcts = fn_get_utcts()
         # print("Seconds from UTC Zero hour = " + str(utcts))
         hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
@@ -173,7 +199,9 @@ def main():
                     "h=" + hash_object.hexdigest() + "&" \
                     "TimeFrameNumericCode=" + session + "&" \
                     "CurrentFuture=-1" + "&" \
-                    "STUDENTNUMBER=" + "1572122"
+                    "Ghost=-1"
+                    #   + "&" \
+                    # "STUDENTNUMBER=" + "1503859"
 
                 # "PostAssignments=-1" + "&" \
                     # "Posted=1" + "&" \
@@ -181,7 +209,9 @@ def main():
                     # "HallCode=" + 'SWE'
 
                 # DEFINITIONS
-                # Posted: 0 returns only unposted, 1 returns posted
+                # Posted: 0 returns only NEW unposted,
+                # 1 returns posted, as in out to our system
+                # 2 changed or cancelled
                 # PostAssignments: -1 will mark the record as posted.
                 # CurrentFuture: -1 returns only current and future
                 # Cancelled: -1 is for cancelled, 0 for not cancelled
@@ -212,10 +242,12 @@ def main():
                     # redundant
                     fn_write_assignment_header()
                     room_data = fn_encode_rows_to_utf8(x['DATA'])
-                    # print("Start Loop")
+                    print("Start Loop")
 
                     with open(room_file, 'ab') as room_output:
                         for i in room_data:
+                            print("______")
+                            print(i[0])
                             carthid = i[0]
                             bldgname = i[1]
                             bldg = fix_Bldg(i[2])
@@ -234,7 +266,7 @@ def main():
                                                        "%d %Y "
                                                        "%H:%M:%S")
                                 checkedindate = d1.strftime("%m-%d-%Y")
-                            # print("ADD DATE + " + str(checkedindate))
+                            # print("ADD DATE = " + str(checkedindate))
                             checkout = i[12]
                             if i[13] == None:
                                 checkedoutdate = None
@@ -258,7 +290,9 @@ def main():
                             year = i[9][-4:]
                             term = i[9]
                             occupants = i[7]
-                            billcode = get_bill_code(carthid, str(bldg))
+                            billcode = get_bill_code(carthid, str(bldg),
+                                                     session)
+                            print("Bill Code =  " + billcode)
                             # Intenhsg can b R = Resident, O = Off-Campus,
                             # C = Commuter
                             if bldg == 'CMTR':
@@ -333,11 +367,11 @@ def main():
 
                                     row = ret.fetchone()
                                     if row is not None:
-                                        print(row[3] + "," + rsvstat)
-                                        print(row[4] + "," + intendhsg)
-                                        print(row[6] + "," + bldg)
-                                        print(row[7] + "," + room)
-                                        print(row[10] + "," + billcode)
+                                        print(row[3] + "," + str(rsvstat))
+                                        print(row[4] + "," + str(intendhsg))
+                                        print(row[6] + "," + str(bldg))
+                                        print(row[7] + "," + str(room))
+                                        print(row[10] + "," + str(billcode))
                                         if row[3] != rsvstat \
                                                 or row[4] != intendhsg \
                                                 or row[6] != bldg \
@@ -368,8 +402,8 @@ def main():
                                                                  sess, year)
                                             # print(q_update_stuserv_rec)
                                             # print(q_update_stuserv_args)
-                                            engine.execute(q_update_stuserv_rec,
-                                                       q_update_stuserv_args)
+                                            # engine.execute(q_update_stuserv_rec,
+                                            #            q_update_stuserv_args)
 
                                         else:
                                             print("No change needed in "
