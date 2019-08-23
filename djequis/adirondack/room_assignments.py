@@ -80,26 +80,29 @@ parser.add_argument(
 #
 #     return [current_term]
 
-def fn_get_bill_code(idnum, bldg, session):
+def fn_get_bill_code(idnum, bldg, roomtype, session):
     utcts = fn_get_utcts()
 
     hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
 
     hash_object = hashlib.md5(hashstring.encode())
     print(session)
+    print(bldg)
+    print(idnum)
+    print(roomtype)
     url = "https://carthage.datacenter.adirondacksolutions.com/" \
           "carthage_thd_test_support/apis/thd_api.cfc?" \
           "method=studentBILLING&" \
           "Key=" + settings.ADIRONDACK_API_SECRET + "&" + "utcts=" + \
           str(utcts) + "&" + "h=" + \
           hash_object.hexdigest() + "&" + \
-          "ItemType=Housing&" + \
+          "ItemType=" + roomtype.strip() + "&" + \
           "STUDENTNUMBER=" + idnum + "&" + \
           "TIMEFRAMENUMERICCODE=" + session
-
           #_______________________________
          #Need to dynamically get the term - see the misc fee file
           # _______________________________
+    # print(url)
 
     response = requests.get(url)
     x = json.loads(response.content)
@@ -114,11 +117,13 @@ def fn_get_bill_code(idnum, bldg, session):
             billcode = 'ABRD'
         else:
             billcode = ''
+        print("Billcode found as " + billcode)
         return billcode
     else:
         for i in x['DATA']:
             print(i[6])
             billcode = i[6]
+            print("Billcode found as "  + billcode)
             return billcode
 
 def fn_fix_Bldg(bldg_code):
@@ -157,7 +162,7 @@ def fn_mark_posted(stu_id, hall_code, term):
               "Posted=0"
               # "RoomNumber=" + room_no + "&" \
               # + "&" \
-        # print(url)
+        print(url)
 
         # DEFINITIONS
         # Posted: 0 returns only NEW unposted,
@@ -247,7 +252,7 @@ def main():
                     "TimeFrameNumericCode=" + session + "&" \
                     "CurrentFuture=-1" + "&" \
                     "Ghost=0" + "&" \
-                    "STUDENTNUMBER=" + "1418252"
+                    "STUDENTNUMBER=" + "1535221,1561983"
 
                 # "PostAssignments=-1" + "&" \
                     # "Posted=1" + "&" \
@@ -296,7 +301,11 @@ def main():
                             print(i[0])
                             carthid = i[0]
                             bldgname = i[1]
+
+                            adir_hallcode = i[2]
                             bldg = fn_fix_Bldg(i[2])
+                            print("Adirondack Hall Code = " + adir_hallcode)
+
                             floor = i[3]
                             bed = i[5]
                             room_type = i[6]
@@ -337,7 +346,7 @@ def main():
                             term = i[9]
                             occupants = i[7]
                             billcode = fn_get_bill_code(carthid, str(bldg),
-                                                     session)
+                                                        room_type, session)
                             # print("Bill Code =  " + billcode)
                             # Intenhsg can b R = Resident, O = Off-Campus,
                             # C = Commuter
@@ -459,12 +468,12 @@ def main():
                                             engine.execute(q_update_stuserv_rec,
                                                         q_update_stuserv_args)
 
-                                            fn_mark_posted(carthid, bldg, term)
+                                            fn_mark_posted(carthid,adir_hallcode, term)
 
                                         else:
                                             print("No change needed in "
                                                   "stu_serv_rec")
-                                            fn_mark_posted(carthid, bldg, term)
+                                            fn_mark_posted(carthid, adir_hallcode, term)
 
                                     else:
                                         print("fetch retuned none - No "
