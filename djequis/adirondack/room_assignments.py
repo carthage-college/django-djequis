@@ -80,7 +80,7 @@ parser.add_argument(
 #
 #     return [current_term]
 
-def get_bill_code(idnum, bldg, session):
+def fn_get_bill_code(idnum, bldg, session):
     utcts = fn_get_utcts()
 
     hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
@@ -121,7 +121,7 @@ def get_bill_code(idnum, bldg, session):
             billcode = i[6]
             return billcode
 
-def fix_Bldg(bldg_code):
+def fn_fix_Bldg(bldg_code):
     if bldg_code[:3] == 'OAK':
         x = bldg_code.replace(" ", "")
         l = len(bldg_code.strip())
@@ -133,6 +133,47 @@ def fix_Bldg(bldg_code):
     else:
         return bldg_code
 
+def fn_mark_posted(stu_id, hall_code, term):
+    utcts = fn_get_utcts()
+    hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
+    hash_object = hashlib.md5(hashstring.encode())
+
+    print("In fn_mark_posted " + str(stu_id) + ", " + str(hall_code) + ", "
+          + term)
+    url = "https://carthage.datacenter.adirondacksolutions.com/" \
+          "carthage_thd_test_support/apis/thd_api.cfc?" \
+          "method=housingASSIGNMENTS&" \
+          "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
+          "utcts=" + \
+          str(utcts) + "&" \
+          "h=" + hash_object.hexdigest() + "&" \
+          "TimeFrameNumericCode=" + term + "&" \
+          "CurrentFuture=-1" + "&" \
+          "Ghost=0" + "&" \
+          "STUDENTNUMBER=" + stu_id + "&" \
+          "PostAssignments=-1" + "&" \
+          "HallCode=" + hall_code + "&" \
+          "Posted=0"
+          # "RoomNumber=" + room_no + "&" \
+          # + "&" \
+
+    print(url)
+    # DEFINITIONS
+    # Posted: 0 returns only NEW unposted,
+    #         1 returns posted, as in export out to our system
+    #         2 changed or cancelled
+    # PostAssignments: -1 will mark the record as posted.
+    # CurrentFuture: -1 returns only current and future
+    # Cancelled: -1 is for cancelled, 0 for not cancelled
+    # Setting Ghost to -1 prevents rooms with no student from returning
+    # print("URL = " + url)
+
+    response = requests.get(url)
+    x = json.loads(response.content)
+    print(x)
+    # if not x['DATA']:
+    #     print("No new data found")
+    # else:
 
 
 def main():
@@ -199,9 +240,8 @@ def main():
                     "h=" + hash_object.hexdigest() + "&" \
                     "TimeFrameNumericCode=" + session + "&" \
                     "CurrentFuture=-1" + "&" \
-                    "Ghost=-1"
-                    #   + "&" \
-                    # "STUDENTNUMBER=" + "1503859"
+                    "Ghost=0" + "&" \
+                    "STUDENTNUMBER=" + "1503859"
 
                 # "PostAssignments=-1" + "&" \
                     # "Posted=1" + "&" \
@@ -250,7 +290,7 @@ def main():
                             print(i[0])
                             carthid = i[0]
                             bldgname = i[1]
-                            bldg = fix_Bldg(i[2])
+                            bldg = fn_fix_Bldg(i[2])
                             floor = i[3]
                             bed = i[5]
                             room_type = i[6]
@@ -290,9 +330,9 @@ def main():
                             year = i[9][-4:]
                             term = i[9]
                             occupants = i[7]
-                            billcode = get_bill_code(carthid, str(bldg),
+                            billcode = fn_get_bill_code(carthid, str(bldg),
                                                      session)
-                            print("Bill Code =  " + billcode)
+                            # print("Bill Code =  " + billcode)
                             # Intenhsg can b R = Resident, O = Off-Campus,
                             # C = Commuter
                             if bldg == 'CMTR':
@@ -335,9 +375,9 @@ def main():
                                                 canceldate, cancelnote,
                                                 cancelreason, ghost, posted,
                                                 roomassignmentid])
-                            print(str(carthid) + ', ' + str(billcode) + ', '
-                                  + str(bldg) + str(room)
-                                  + str(room_type))
+                            # print(str(carthid) + ', ' + str(billcode) + ', '
+                            #       + str(bldg) + ', ' + str(room) + ', ' +
+                            #       + str(room_type))
                             # Validate if the stu_serv_rec exists first
                             # update stu_serv_rec id, sess, yr, rxv_stat,
                             # intend_hsg, campus, bldg, room, bill_code
@@ -352,7 +392,7 @@ def main():
                                           and sess  = "{1}"
                                           and id = {0}'''.format(carthid,
                                                                  sess, year)
-                            print(q_validate_stuserv_rec)
+                            # print(q_validate_stuserv_rec)
 
                             # ret = do_sql(q_validate_stuserv_rec, earl=EARL)
                             ret = do_sql(q_validate_stuserv_rec, key=DEBUG,
@@ -405,11 +445,17 @@ def main():
                                             # engine.execute(q_update_stuserv_rec,
                                             #            q_update_stuserv_args)
 
+                                            fn_mark_posted(carthid, bldg, term)
+
                                         else:
                                             print("No change needed in "
                                                   "stu_serv_rec")
+                                            fn_mark_posted(carthid, bldg, term)
+
                                     else:
                                         print("fetch retuned none")
+
+
                                 else:
                                     print("Bill code not found")
                             #     # go ahead and update
