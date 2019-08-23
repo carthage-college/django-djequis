@@ -138,44 +138,50 @@ def fn_mark_posted(stu_id, hall_code, term):
     hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
     hash_object = hashlib.md5(hashstring.encode())
 
-    print("In fn_mark_posted " + str(stu_id) + ", " + str(hall_code) + ", "
-          + term)
-    url = "https://carthage.datacenter.adirondacksolutions.com/" \
-          "carthage_thd_test_support/apis/thd_api.cfc?" \
-          "method=housingASSIGNMENTS&" \
-          "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
-          "utcts=" + \
-          str(utcts) + "&" \
-          "h=" + hash_object.hexdigest() + "&" \
-          "TimeFrameNumericCode=" + term + "&" \
-          "CurrentFuture=-1" + "&" \
-          "Ghost=0" + "&" \
-          "STUDENTNUMBER=" + stu_id + "&" \
-          "PostAssignments=-1" + "&" \
-          "HallCode=" + hall_code + "&" \
-          "Posted=0"
-          # "RoomNumber=" + room_no + "&" \
-          # + "&" \
+    try:
+        print("In fn_mark_posted " + str(stu_id) + ", " + str(hall_code) + ", "
+              + term)
+        url = "https://carthage.datacenter.adirondacksolutions.com/" \
+              "carthage_thd_test_support/apis/thd_api.cfc?" \
+              "method=housingASSIGNMENTS&" \
+              "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
+              "utcts=" + \
+              str(utcts) + "&" \
+              "h=" + hash_object.hexdigest() + "&" \
+              "TimeFrameNumericCode=" + term + "&" \
+              "CurrentFuture=-1" + "&" \
+              "Ghost=0" + "&" \
+              "STUDENTNUMBER=" + stu_id + "&" \
+              "PostAssignments=-1" + "&" \
+              "HallCode=" + hall_code + "&" \
+              "Posted=0"
+              # "RoomNumber=" + room_no + "&" \
+              # + "&" \
+        # print(url)
 
-    print(url)
-    # DEFINITIONS
-    # Posted: 0 returns only NEW unposted,
-    #         1 returns posted, as in export out to our system
-    #         2 changed or cancelled
-    # PostAssignments: -1 will mark the record as posted.
-    # CurrentFuture: -1 returns only current and future
-    # Cancelled: -1 is for cancelled, 0 for not cancelled
-    # Setting Ghost to -1 prevents rooms with no student from returning
-    # print("URL = " + url)
+        # DEFINITIONS
+        # Posted: 0 returns only NEW unposted,
+        #         1 returns posted, as in export out to our system
+        #         2 changed or cancelled
+        # PostAssignments: -1 will mark the record as posted.
+        # CurrentFuture: -1 returns only current and future
+        # Cancelled: -1 is for cancelled, 0 for not cancelled
+        # Setting Ghost to -1 prevents rooms with no student from returning
+        # print("URL = " + url)
 
-    response = requests.get(url)
-    x = json.loads(response.content)
-    print(x)
-    # if not x['DATA']:
-    #     print("No new data found")
-    # else:
+        response = requests.get(url)
+        x = json.loads(response.content)
+        # print(x)
+        if not x['DATA']:
+            print("Unable to mark record as posted - record not found")
+        else:
+            print("Record marked as posted")
 
-
+    except Exception as e:
+        print("Error in room_assignments_api.py- fn_mark_posted:  " +
+                e.message)
+        # fn_write_error("Error in room_assignments_api.py- fn_mark_posted:
+        # " + e.messagee)
 def main():
     try:
         # if JUNE or JULY
@@ -241,7 +247,7 @@ def main():
                     "TimeFrameNumericCode=" + session + "&" \
                     "CurrentFuture=-1" + "&" \
                     "Ghost=0" + "&" \
-                    "STUDENTNUMBER=" + "1503859"
+                    "STUDENTNUMBER=" + "1418252"
 
                 # "PostAssignments=-1" + "&" \
                     # "Posted=1" + "&" \
@@ -335,15 +341,23 @@ def main():
                             # print("Bill Code =  " + billcode)
                             # Intenhsg can b R = Resident, O = Off-Campus,
                             # C = Commuter
+                            # print(bldgname)
+                            # print(bldgname.find('_'))
+                            # print(bldgname[(bldgname.find('_')+1)-len(bldgname):])
+                            # print(len(bldgname))
+
                             if bldg == 'CMTR':
                                 intendhsg = 'C'
-                                room = 'CMTR'
+                                room = bldgname[(bldgname.find('_')+1)-len(bldgname):]
                             elif bldg == 'OFF':
                                 intendhsg = 'O'
-                                room = 'OFF'
+                                room = bldgname[(bldgname.find('_')+1)-len(bldgname):]
                             elif bldg == 'ABRD':
                                 intendhsg = 'O'
-                                room = 'ABRD'
+                                room = bldgname[(bldgname.find('_')+1)-len(bldgname):]
+                            elif bldg == 'UN':
+                                intendhsg = 'O'
+                                room = bldgname[(bldgname.find('_')+1)-len(bldgname):]
                             else:
                                 intendhsg = 'R'
                                 room = i[4]
@@ -392,7 +406,7 @@ def main():
                                           and sess  = "{1}"
                                           and id = {0}'''.format(carthid,
                                                                  sess, year)
-                            # print(q_validate_stuserv_rec)
+                            print(q_validate_stuserv_rec)
 
                             # ret = do_sql(q_validate_stuserv_rec, earl=EARL)
                             ret = do_sql(q_validate_stuserv_rec, key=DEBUG,
@@ -442,8 +456,8 @@ def main():
                                                                  sess, year)
                                             # print(q_update_stuserv_rec)
                                             # print(q_update_stuserv_args)
-                                            # engine.execute(q_update_stuserv_rec,
-                                            #            q_update_stuserv_args)
+                                            engine.execute(q_update_stuserv_rec,
+                                                        q_update_stuserv_args)
 
                                             fn_mark_posted(carthid, bldg, term)
 
@@ -453,7 +467,9 @@ def main():
                                             fn_mark_posted(carthid, bldg, term)
 
                                     else:
-                                        print("fetch retuned none")
+                                        print("fetch retuned none - No "
+                                              "stu_serv_rec for student "
+                                              + carthid + " for term " + term)
 
 
                                 else:
