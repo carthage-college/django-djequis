@@ -76,7 +76,7 @@ warnings.filterwarnings(action='ignore',module='.*paramiko.*')
 #sFTP fetch (GET) downloads the file from ADP file from server
 
 def file_download():
-    print("Get ADP File")
+    # print("Get ADP File")
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
     # cnopts.hostkeys = settings.ADP_HOSTKEY
@@ -96,10 +96,10 @@ def file_download():
             # directory listing
             remotepath = sftp.listdir()
             # Loop through remote path directory list
-            print("Remote Path = " + str(remotepath))
+            # print("Remote Path = " + str(remotepath))
             for filename in remotepath:
                 remotefile = filename
-                print("Remote File = " + str(remotefile))
+                # print("Remote File = " + str(remotefile))
                 # set local directory for which the ADP file will be
                 # downloaded to
                 local_dir = ('{0}'.format(
@@ -137,9 +137,9 @@ def main():
     # datetimestr = time.strftime("%Y%m%d%H%M%S")
 
     # set local directory for which the file will be downloaded to
-    source_dir = ('{0}'.format(
-        settings.ADP_CSV_OUTPUT
-    ))
+    # source_dir = ('{0}'.format(
+    #     settings.ADP_CSV_OUTPUT
+    # ))
 
     # # Defines file names and directory location
     # new_adp_file = "ADPtoCX.csv"
@@ -147,16 +147,19 @@ def main():
         settings.ADP_CSV_OUTPUT
     ))
 
-    last_adp_file = "adptocxview.csv"
+    this_dir = os.path.dirname(os.path.abspath(__file__))
+    print(this_dir)
+
+    last_adp_file = this_dir + "/adptocxview.csv"
     # last_adp_file = ('{0}ADPtoCXLast.csv'.format(
     #     settings.ADP_CSV_OUTPUT
     # ))
     #
-    adp_diff_file = "different.csv"
+    adp_diff_file = this_dir + "/different.csv"
     # adp_diff_file = ('{0}different.csv'.format(
     #     settings.ADP_CSV_OUTPUT
     # ))
-    adptocx_reformatted = "ADPtoCX_Reformatted.csv"
+    adptocx_reformatted = this_dir + "/ADPtoCX_Reformatted.csv"
 
     # First remove yesterdays file of updates
     if os.path.isfile(adp_diff_file):
@@ -205,9 +208,9 @@ def main():
         # Rewrite the ADP file formatted to match the CX constraints
         # on length and different coding and date format
         #################################################################
-        print("Open New File")
+        # print("Open New File")
 
-        print(new_adp_file)
+        # print(new_adp_file)
         with codecs.open(new_adp_file, 'r',
                          encoding='utf-8-sig') as f:
 
@@ -217,7 +220,7 @@ def main():
                 # print(row["File Number"])
                 WRITE_ROW_REFORMATTED(row)
         f.close()
-        print("Created Reformatted file")
+        # print("Created Reformatted file")
 
         #################################################################
         # STEP 3--
@@ -228,7 +231,7 @@ def main():
         # print(last_adp_file)
         data_result = engine.execute(CX_VIEW_SQL)
         ret = list(data_result.fetchall())
-        print("SQL Successful")
+        # print("SQL Successful")
 
         with open(last_adp_file, 'a') as file_out:
             # print("fill view file")
@@ -311,10 +314,8 @@ def main():
                     if sql_val is not None:
                         row1 = sql_val.fetchone()
                         # print(row1)
-                        if row1 is not None:
-                            print("Found Record - do not insert duplicate")
-                        else:
-                            print("No Matching Record found - Insert")
+                        if row1 is None:
+                            # print("No Matching Record found - Insert")
 
                             #################################################
                             # STEP 4b--
@@ -323,11 +324,13 @@ def main():
                             try:
                                 INS_CC_ADP_REC(row, EARL)
                             except Exception as e:
-                                # fn_write_error("Error in adptcx.py while
-                                #   inserting into cc_adp_rec.  Error = "
-                                #   + e.message)
-                                #     continue
-                                print("ERROR = " + e.message)
+                                fn_write_error("Error in adptcx.py while "
+                                               "inserting into cc_adp_rec.  "
+                                               "Error = " + e.message)
+                                continue
+                                # print("ERROR = " + e.message)
+                        # else:
+                            # print("Found Record - do not insert duplicate")
 
             f.close()
 
