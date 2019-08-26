@@ -8,13 +8,8 @@ from datetime import datetime
 import time
 from time import strftime
 import argparse
-import shutil
 import logging
 from logging.handlers import SMTPHandler
-
-from cc_adp_sql import CX_VIEW_SQL, Q_CC_ADP_VERIFY, INS_CC_ADP_REC
-from cc_adp_utilities import WRITE_ADP_HEADER, WRITE_HEADER, \
-    WRITE_ROW_REFORMATTED, fn_write_error, fn_write_log, fn_clear_logger
 
 # django settings for shell environment
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
@@ -33,8 +28,10 @@ os.environ['INFORMIXDIR'] = settings.INFORMIXDIR
 os.environ['ODBCINI'] = settings.ODBCINI
 os.environ['ONCONFIG'] = settings.ONCONFIG
 os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
-# os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
-# os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
+
+from cc_adp_sql import CX_VIEW_SQL, Q_CC_ADP_VERIFY, INS_CC_ADP_REC
+from cc_adp_utilities import WRITE_ADP_HEADER, WRITE_HEADER, \
+    WRITE_ROW_REFORMATTED, fn_write_error, fn_write_log, fn_clear_logger
 
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import get_engine
