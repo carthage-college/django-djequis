@@ -9,6 +9,12 @@ import requests
 import csv
 import argparse
 import django
+# ________________
+# Note to self, keep this here
+# django settings for shell environment
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
+django.setup()
+# ________________
 
 from django.conf import settings
 from djequis.core.utils import sendmail
@@ -20,12 +26,6 @@ from djzbar.settings import INFORMIX_EARL_PROD
 from adirondack_sql import ADIRONDACK_QUERY
 from utilities import fn_write_error, fn_write_billing_header, \
     fn_write_assignment_header, fn_get_utcts, fn_encode_rows_to_utf8
-# from django.db import connections
-
-django.setup()
-
-# django settings for shell environment
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
@@ -58,6 +58,7 @@ parser.add_argument(
     dest="database"
 )
 
+
 def fn_get_bill_code(idnum, bldg, roomtype, session):
     try:
         utcts = fn_get_utcts()
@@ -68,17 +69,17 @@ def fn_get_bill_code(idnum, bldg, roomtype, session):
         print(idnum)
         print(roomtype)
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
-              "carthage_thd_test_support/apis/thd_api.cfc?" \
-              "method=studentBILLING&" \
-              "Key=" + settings.ADIRONDACK_API_SECRET + "&" + "utcts=" + \
-              str(utcts) + "&" + "h=" + \
-              hash_object.hexdigest() + "&" + \
-              "ItemType=" + roomtype.strip() + "&" + \
-              "STUDENTNUMBER=" + idnum + "&" + \
-              "TIMEFRAMENUMERICCODE=" + session
-              #_______________________________
-             #Need to dynamically get the term - see the misc fee file
-              # _______________________________
+            "carthage_thd_test_support/apis/thd_api.cfc?" \
+            "method=studentBILLING&" \
+            "Key=" + settings.ADIRONDACK_API_SECRET + "&" + "utcts=" + \
+            str(utcts) + "&" + "h=" + \
+            hash_object.hexdigest() + "&" + \
+            "ItemType=" + roomtype.strip() + "&" + \
+            "STUDENTNUMBER=" + idnum + "&" + \
+            "TIMEFRAMENUMERICCODE=" + session
+        # _______________________________
+        # Need to dynamically get the term - see the misc fee file
+        # _______________________________
         # print(url)
 
         response = requests.get(url)
@@ -100,7 +101,7 @@ def fn_get_bill_code(idnum, bldg, roomtype, session):
             for i in x['DATA']:
                 print(i[6])
                 billcode = i[6]
-                print("Billcode found as "  + billcode)
+                print("Billcode found as " + billcode)
                 return billcode
     except Exception as e:
         print(
@@ -110,7 +111,7 @@ def fn_get_bill_code(idnum, bldg, roomtype, session):
                        "- fn_get_bill_code: " + e.message)
 
 
-def fn_fix_Bldg(bldg_code):
+def fn_fix_bldg(bldg_code):
     if bldg_code[:3] == 'OAK':
         x = bldg_code.replace(" ", "")
         l = len(bldg_code.strip())
@@ -131,21 +132,21 @@ def fn_mark_posted(stu_id, hall_code, term):
         print("In fn_mark_posted " + str(stu_id) + ", " + str(hall_code) + ", "
               + term)
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
-              "carthage_thd_test_support/apis/thd_api.cfc?" \
-              "method=housingASSIGNMENTS&" \
-              "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
-              "utcts=" + \
-              str(utcts) + "&" \
-              "h=" + hash_object.hexdigest() + "&" \
-              "TimeFrameNumericCode=" + term + "&" \
-              "CurrentFuture=-1" + "&" \
-              "Ghost=0" + "&" \
-              "STUDENTNUMBER=" + stu_id + "&" \
-              "PostAssignments=-1" + "&" \
-              "HallCode=" + hall_code + "&" \
-              "Posted=0"
-              # "RoomNumber=" + room_no + "&" \
-              # + "&" \
+            "carthage_thd_test_support/apis/thd_api.cfc?" \
+            "method=housingASSIGNMENTS&" \
+            "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
+            "utcts=" + \
+            str(utcts) + "&" \
+            "h=" + hash_object.hexdigest() + "&" \
+            "TimeFrameNumericCode=" + term + "&" \
+            "CurrentFuture=-1" + "&" \
+            "Ghost=0" + "&" \
+            "STUDENTNUMBER=" + stu_id + "&" \
+            "PostAssignments=-1" + "&" \
+            "HallCode=" + hall_code + "&" \
+            "Posted=0"
+        # "RoomNumber=" + room_no + "&" \
+        # + "&" \
         print(url)
 
         # DEFINITIONS
@@ -168,9 +169,11 @@ def fn_mark_posted(stu_id, hall_code, term):
 
     except Exception as e:
         print("Error in room_assignments_api.py- fn_mark_posted:  " +
-                e.message)
+              e.message)
         # fn_write_error("Error in room_assignments_api.py- fn_mark_posted:
         # " + e.messagee)
+
+
 def main():
     try:
         # if JUNE or JULY
@@ -240,9 +243,9 @@ def main():
 
                 # DO NOT MARK AS POSTED HERE - DO IT IN SECOND STEP
                 # "PostAssignments=-1" + "&" \
-                    # "Posted=1" + "&" \
-                    # + "&" \
-                    # "HallCode=" + 'SWE'
+                # "Posted=1" + "&" \
+                # + "&" \
+                # "HallCode=" + 'SWE'
 
                 # DEFINITIONS
                 # Posted: 0 returns only NEW unposted,
@@ -288,7 +291,7 @@ def main():
                             bldgname = i[1]
 
                             adir_hallcode = i[2]
-                            bldg = fn_fix_Bldg(i[2])
+                            bldg = fn_fix_bldg(i[2])
                             print("Adirondack Hall Code = " + adir_hallcode)
 
                             floor = i[3]
@@ -381,7 +384,8 @@ def main():
                                   + str(roomassignmentid))
 
                             csvWriter = csv.writer(room_output,
-                                                quoting=csv.QUOTE_NONNUMERIC)
+                                                   quoting=csv.QUOTE_NONNUMERIC
+                                                   )
                             # csvWriter.writerow(i)
                             # Need to write translated fields if csv is to
                             # be created
@@ -440,43 +444,45 @@ def main():
                                             print("Need to update "
                                                   "stu_serv_rec")
                                             q_update_stuserv_rec = '''
-                                             UPDATE stu_serv_rec set  
-                                             rsv_stat = ?,
-                                             intend_hsg = ?, campus = ?, 
-                                             bldg = 
-                                             ?, room = ?,
-                                             no_per_room = ?, add_date = ?, 
-                                             bill_code = ?,
-                                             hous_wd_date = ?
-                                             where id = ? and sess = ? and 
-                                             yr = ?'''
+                                            UPDATE stu_serv_rec set  
+                                            rsv_stat = ?,
+                                            intend_hsg = ?, campus = ?, 
+                                            bldg = 
+                                            ?, room = ?,
+                                            no_per_room = ?, add_date = ?, 
+                                            bill_code = ?,
+                                            hous_wd_date = ?
+                                            where id = ? and sess = ? and 
+                                            yr = ?'''
                                             q_update_stuserv_args = (rsvstat,
-                                                                 intendhsg,
-                                                                 "MAIN", bldg,
-                                                                 room,
-                                                                 occupants,
-                                                                 checkedindate,
-                                                                 billcode,
-                                                                 checkedoutdate,
-                                                                 carthid,
-                                                                 sess, year)
+                                                intendhsg,
+                                                "MAIN", bldg,
+                                                room,
+                                                occupants,
+                                                checkedindate,
+                                                billcode,
+                                                checkedoutdate,
+                                                carthid,
+                                                sess, year)
                                             # print(q_update_stuserv_rec)
                                             # print(q_update_stuserv_args)
-                                            engine.execute(q_update_stuserv_rec,
-                                                        q_update_stuserv_args)
+                                            engine.execute(
+                                                q_update_stuserv_rec,
+                                                q_update_stuserv_args)
 
-                                            fn_mark_posted(carthid,adir_hallcode, term)
+                                            fn_mark_posted(carthid,
+                                                           adir_hallcode, term)
 
                                         else:
                                             print("No change needed in "
                                                   "stu_serv_rec")
-                                            fn_mark_posted(carthid, adir_hallcode, term)
+                                            fn_mark_posted(carthid,
+                                                           adir_hallcode, term)
 
                                     else:
                                         print("fetch retuned none - No "
                                               "stu_serv_rec for student "
                                               + carthid + " for term " + term)
-
 
                                 else:
                                     print("Bill code not found")
@@ -484,11 +490,11 @@ def main():
                             else:
                                 print("Record not found")
 
-                                body ="Student Service Record does not " \
-                                     "exist.  Please inquire why."
-                                subj="Adirondack - Stu_serv_rec missing"
+                                body = "Student Service Record does not " \
+                                       "exist. Please inquire why."
+                                subj = "Adirondack - Stu_serv_rec missing"
                                 sendmail("dsullivan@carthage.edu",
-                                         "dsullivan@carthage.edu",body,subj)
+                                         "dsullivan@carthage.edu", body, subj)
 
                                 # Insert if no record exists, update else
                                 # Dave says stu_serv_rec should NOT be created
