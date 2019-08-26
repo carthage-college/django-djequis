@@ -12,13 +12,11 @@ import requests
 import csv
 import argparse
 import logging
-
+import django
 # ________________
 # Note to self, keep this here
 # django settings for shell environment
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
-import django
-
 django.setup()
 # ________________
 
@@ -92,7 +90,7 @@ def fn_check_cx_records(totcod,prd,jndate,stuid,amt):
         and jrnl_date = "{2}"
         and IR.id = {3}
         and STR.amt = {4}
-        '''.format(totcod, prd, jndate, stuid,amt)
+        '''.format(totcod, prd, jndate, stuid, amt)
     print(billqry)
     ret = do_sql(billqry, earl=EARL)
     # print(ret)
@@ -144,7 +142,7 @@ def main():
     # establish database connection
     # engine = get_engine(EARL)  #Not needed?
 
-    # Working Assumptions:
+    # Working Assumptions for housing assignments:
     # We will do a mass pull around April 20 when the returning students
     # have been assigned.
     # New Students will be assigned after that, but since Marietta only bills
@@ -153,6 +151,10 @@ def main():
     # So after April 20, we will just do daily updates.  Whatever she bills
     # on April 20 will then have to be tracked for new entries and for
     # room changes.   The process can run daily for the rest of the year
+
+    # Miscellaneous billing is separate.
+    # Check daily for all records for term.
+    # Once written to CSV
 
     try:
         utcts = fn_get_utcts()
@@ -229,7 +231,6 @@ def main():
             # a csv for the terms
             # ------------------------------------------
 
-
             # Set up the file names for the duplicate check
             cur_file = settings.ADIRONDACK_TXT_OUTPUT + 'billing_logs/' + \
                 current_term + '_processed.csv'
@@ -259,7 +260,6 @@ def main():
                             # print(the_list)
 
                 ffile.close()
-
 
             else:
                 print ("No file")
@@ -322,7 +322,7 @@ def main():
 
                     # Make sure this charge is not already in CX
                     x = fn_check_cx_records(tot_code, adir_term, item_date,
-                                            stu_id,amount)
+                                            stu_id, amount)
                     # print(x)
                     if x == 0:
                         print("Item is not in CX database")
@@ -350,8 +350,8 @@ def main():
                         rec.append(adir_term)
 
                         fee_file = settings.ADIRONDACK_TXT_OUTPUT + tot_code \
-                                   + "_" + settings.ADIRONDACK_ROOM_FEES \
-                                   + datetimestr + ".csv"
+                            + "_" + settings.ADIRONDACK_ROOM_FEES \
+                            + datetimestr + ".csv"
 
                         # print(fee_file)
 
@@ -398,13 +398,12 @@ def main():
                         rec.append(adir_term)
 
                         fee_file = settings.ADIRONDACK_TXT_OUTPUT + tot_code \
-                                   + "_" + settings.ADIRONDACK_ROOM_FEES \
-                                   + datetimestr + ".csv"
+                            + "_" + settings.ADIRONDACK_ROOM_FEES \
+                            + datetimestr + ".csv"
 
                         # print(fee_file)
                         encoded_rows = encode_rows_to_utf8(rec)
                         # print(encoded_rows)
-
 
                         with codecs.open(fee_file, 'ab',
                                          encoding='utf-8-sig') as fee_output:
@@ -437,15 +436,14 @@ def main():
             # Ideally, write ASCII file to Wilson into fin_post directory
             if csv_exists == True:
                 print("File created, send")
-                SUBJECT = 'Housing Miscellaneous Fees'
-                BODY = 'There are housing fees to process via ASCII ' \
+                subject = 'Housing Miscellaneous Fees'
+                body = 'There are housing fees to process via ASCII ' \
                     'post'
-                print(BODY)
+                print(body)
                 fn_sendmailfees(settings.ADIRONDACK_TO_EMAIL,
                                 settings.ADIRONDACK_FROM_EMAIL,
-                                BODY, SUBJECT
+                                body, subject
                                 )
-
 
     except Exception as e:
         print("Error in adirondack_misc_fees_api.py- Main:  " + e.message)
