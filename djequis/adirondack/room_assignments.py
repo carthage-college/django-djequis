@@ -57,23 +57,52 @@ parser.add_argument(
     help="database name.",
     dest="database"
 )
+#
+# def fn_get_terms():
+#     trmqry = '''select  trim(sess)||yr as cur_term, acyr, RIGHT(TO_CHAR(YEAR(TODAY)),2)
+#                         from acad_cal_rec a
+#                         where  yr = YEAR(TODAY)
+#                         and (right(acyr,2) = RIGHT(TO_CHAR(YEAR(TODAY)),2)
+#                         or left(acyr, 2) = RIGHT(TO_CHAR(YEAR(TODAY)),2))
+#                         AND subsess = ''
+#                         and prog = 'UNDG'
+#                         and sess = CASE
+#                             WHEN MONTH(TODAY) > 6 THEN 'RA'
+#                             ELSE 'RC' END
+#                          '''
+#     # print(trmqry)
+#
+#     ret = do_sql(trmqry, earl=EARL)
+#
+#     if ret is not None:
+#         for row in ret:
+#             current_term = row[0]
+#
+#     return [current_term]
 
-
-def get_bill_code(idnum, bldg):
+def fn_get_bill_code(idnum, bldg, roomtype, session):
     utcts = fn_get_utcts()
 
     hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
 
     hash_object = hashlib.md5(hashstring.encode())
+    print(session)
+    print(bldg)
+    print(idnum)
+    print(roomtype)
     url = "https://carthage.datacenter.adirondacksolutions.com/" \
           "carthage_thd_test_support/apis/thd_api.cfc?" \
           "method=studentBILLING&" \
           "Key=" + settings.ADIRONDACK_API_SECRET + "&" + "utcts=" + \
           str(utcts) + "&" + "h=" + \
           hash_object.hexdigest() + "&" + \
-          "ItemType=Housing&" + \
+          "ItemType=" + roomtype.strip() + "&" + \
           "STUDENTNUMBER=" + idnum + "&" + \
-          "TIMEFRAMENUMERICCODE=RA 2019"
+          "TIMEFRAMENUMERICCODE=" + session
+          #_______________________________
+         #Need to dynamically get the term - see the misc fee file
+          # _______________________________
+    # print(url)
 
     response = requests.get(url)
     x = json.loads(response.content)
@@ -88,14 +117,16 @@ def get_bill_code(idnum, bldg):
             billcode = 'ABRD'
         else:
             billcode = ''
+        print("Billcode found as " + billcode)
         return billcode
     else:
         for i in x['DATA']:
             print(i[6])
             billcode = i[6]
+            print("Billcode found as "  + billcode)
             return billcode
 
-def fix_Bldg(bldg_code):
+def fn_fix_Bldg(bldg_code):
     if bldg_code[:3] == 'OAK':
         x = bldg_code.replace(" ", "")
         l = len(bldg_code.strip())
@@ -107,9 +138,55 @@ def fix_Bldg(bldg_code):
     else:
         return bldg_code
 
+def fn_mark_posted(stu_id, hall_code, term):
+    utcts = fn_get_utcts()
+    hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
+    hash_object = hashlib.md5(hashstring.encode())
 
+    try:
+        print("In fn_mark_posted " + str(stu_id) + ", " + str(hall_code) + ", "
+              + term)
+        url = "https://carthage.datacenter.adirondacksolutions.com/" \
+              "carthage_thd_test_support/apis/thd_api.cfc?" \
+              "method=housingASSIGNMENTS&" \
+              "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
+              "utcts=" + \
+              str(utcts) + "&" \
+              "h=" + hash_object.hexdigest() + "&" \
+              "TimeFrameNumericCode=" + term + "&" \
+              "CurrentFuture=-1" + "&" \
+              "Ghost=0" + "&" \
+              "STUDENTNUMBER=" + stu_id + "&" \
+              "PostAssignments=-1" + "&" \
+              "HallCode=" + hall_code + "&" \
+              "Posted=0"
+              # "RoomNumber=" + room_no + "&" \
+              # + "&" \
+        print(url)
 
+        # DEFINITIONS
+        # Posted: 0 returns only NEW unposted,
+        #         1 returns posted, as in export out to our system
+        #         2 changed or cancelled
+        # PostAssignments: -1 will mark the record as posted.
+        # CurrentFuture: -1 returns only current and future
+        # Cancelled: -1 is for cancelled, 0 for not cancelled
+        # Setting Ghost to -1 prevents rooms with no student from returning
+        # print("URL = " + url)
 
+        response = requests.get(url)
+        x = json.loads(response.content)
+        # print(x)
+        if not x['DATA']:
+            print("Unable to mark record as posted - record not found")
+        else:
+            print("Record marked as posted")
+
+    except Exception as e:
+        print("Error in room_assignments_api.py- fn_mark_posted:  " +
+                e.message)
+        # fn_write_error("Error in room_assignments_api.py- fn_mark_posted:
+        # " + e.messagee)
 def main():
     try:
         # if JUNE or JULY
@@ -135,6 +212,7 @@ def main():
         engine = get_engine(EARL)
 
         # try:
+
         utcts = fn_get_utcts()
         # print("Seconds from UTC Zero hour = " + str(utcts))
         hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
@@ -173,7 +251,8 @@ def main():
                     "h=" + hash_object.hexdigest() + "&" \
                     "TimeFrameNumericCode=" + session + "&" \
                     "CurrentFuture=-1" + "&" \
-                    "STUDENTNUMBER=" + "1572122"
+                    "Ghost=0" + "&" \
+                    "STUDENTNUMBER=" + "1535221,1561983"
 
                 # "PostAssignments=-1" + "&" \
                     # "Posted=1" + "&" \
@@ -181,7 +260,9 @@ def main():
                     # "HallCode=" + 'SWE'
 
                 # DEFINITIONS
-                # Posted: 0 returns only unposted, 1 returns posted
+                # Posted: 0 returns only NEW unposted,
+                # 1 returns posted, as in out to our system
+                # 2 changed or cancelled
                 # PostAssignments: -1 will mark the record as posted.
                 # CurrentFuture: -1 returns only current and future
                 # Cancelled: -1 is for cancelled, 0 for not cancelled
@@ -212,13 +293,19 @@ def main():
                     # redundant
                     fn_write_assignment_header()
                     room_data = fn_encode_rows_to_utf8(x['DATA'])
-                    # print("Start Loop")
+                    print("Start Loop")
 
                     with open(room_file, 'ab') as room_output:
                         for i in room_data:
+                            print("______")
+                            print(i[0])
                             carthid = i[0]
                             bldgname = i[1]
-                            bldg = fix_Bldg(i[2])
+
+                            adir_hallcode = i[2]
+                            bldg = fn_fix_Bldg(i[2])
+                            print("Adirondack Hall Code = " + adir_hallcode)
+
                             floor = i[3]
                             bed = i[5]
                             room_type = i[6]
@@ -234,7 +321,7 @@ def main():
                                                        "%d %Y "
                                                        "%H:%M:%S")
                                 checkedindate = d1.strftime("%m-%d-%Y")
-                            # print("ADD DATE + " + str(checkedindate))
+                            # print("ADD DATE = " + str(checkedindate))
                             checkout = i[12]
                             if i[13] == None:
                                 checkedoutdate = None
@@ -258,18 +345,28 @@ def main():
                             year = i[9][-4:]
                             term = i[9]
                             occupants = i[7]
-                            billcode = get_bill_code(carthid, str(bldg))
+                            billcode = fn_get_bill_code(carthid, str(bldg),
+                                                        room_type, session)
+                            # print("Bill Code =  " + billcode)
                             # Intenhsg can b R = Resident, O = Off-Campus,
                             # C = Commuter
+                            # print(bldgname)
+                            # print(bldgname.find('_'))
+                            # print(bldgname[(bldgname.find('_')+1)-len(bldgname):])
+                            # print(len(bldgname))
+
                             if bldg == 'CMTR':
                                 intendhsg = 'C'
-                                room = 'CMTR'
+                                room = bldgname[(bldgname.find('_')+1)-len(bldgname):]
                             elif bldg == 'OFF':
                                 intendhsg = 'O'
-                                room = 'OFF'
+                                room = bldgname[(bldgname.find('_')+1)-len(bldgname):]
                             elif bldg == 'ABRD':
                                 intendhsg = 'O'
-                                room = 'ABRD'
+                                room = bldgname[(bldgname.find('_')+1)-len(bldgname):]
+                            elif bldg == 'UN':
+                                intendhsg = 'O'
+                                room = bldgname[(bldgname.find('_')+1)-len(bldgname):]
                             else:
                                 intendhsg = 'R'
                                 room = i[4]
@@ -301,9 +398,9 @@ def main():
                                                 canceldate, cancelnote,
                                                 cancelreason, ghost, posted,
                                                 roomassignmentid])
-                            print(str(carthid) + ', ' + str(billcode) + ', '
-                                  + str(bldg) + str(room)
-                                  + str(room_type))
+                            # print(str(carthid) + ', ' + str(billcode) + ', '
+                            #       + str(bldg) + ', ' + str(room) + ', ' +
+                            #       + str(room_type))
                             # Validate if the stu_serv_rec exists first
                             # update stu_serv_rec id, sess, yr, rxv_stat,
                             # intend_hsg, campus, bldg, room, bill_code
@@ -333,11 +430,11 @@ def main():
 
                                     row = ret.fetchone()
                                     if row is not None:
-                                        print(row[3] + "," + rsvstat)
-                                        print(row[4] + "," + intendhsg)
-                                        print(row[6] + "," + bldg)
-                                        print(row[7] + "," + room)
-                                        print(row[10] + "," + billcode)
+                                        print(row[3] + "," + str(rsvstat))
+                                        print(row[4] + "," + str(intendhsg))
+                                        print(row[6] + "," + str(bldg))
+                                        print(row[7] + "," + str(room))
+                                        print(row[10] + "," + str(billcode))
                                         if row[3] != rsvstat \
                                                 or row[4] != intendhsg \
                                                 or row[6] != bldg \
@@ -369,13 +466,21 @@ def main():
                                             # print(q_update_stuserv_rec)
                                             # print(q_update_stuserv_args)
                                             engine.execute(q_update_stuserv_rec,
-                                                       q_update_stuserv_args)
+                                                        q_update_stuserv_args)
+
+                                            fn_mark_posted(carthid,adir_hallcode, term)
 
                                         else:
                                             print("No change needed in "
                                                   "stu_serv_rec")
+                                            fn_mark_posted(carthid, adir_hallcode, term)
+
                                     else:
-                                        print("fetch retuned none")
+                                        print("fetch retuned none - No "
+                                              "stu_serv_rec for student "
+                                              + carthid + " for term " + term)
+
+
                                 else:
                                     print("Bill code not found")
                             #     # go ahead and update
