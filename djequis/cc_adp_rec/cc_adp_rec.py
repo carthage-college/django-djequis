@@ -161,7 +161,8 @@ def main():
     if os.path.isfile(adp_diff_file):
         os.remove(adp_diff_file)
     # Create new diff file with header
-    WRITE_HEADER(adp_diff_file)
+    # DON'T NEED HEADER
+    # WRITE_HEADER(adp_diff_file)
 
     try:
         # set global variable
@@ -213,7 +214,7 @@ def main():
             for row in d_reader:
                 WRITE_ROW_REFORMATTED(row)
         f.close()
-        # print("Created Reformatted file")
+        print("Created Reformatted file")
 
         #################################################################
         # STEP 3--
@@ -224,7 +225,7 @@ def main():
         # print(last_adp_file)
         data_result = engine.execute(CX_VIEW_SQL)
         ret = list(data_result.fetchall())
-        # print("SQL Successful")
+        print("SQL Successful")
 
         with open(last_adp_file, 'a') as file_out:
             csvWriter = csv.writer(file_out, delimiter=',',
@@ -244,7 +245,7 @@ def main():
 
             newfile = t1.readlines()
             oldfile = t2.readlines()
-            # print("Diff file created")
+            print("Diff file created")
             # This uses sets to compare the two files
             # returns additions or changes in new but not in original
             bigb = set(newfile) - set(oldfile)
@@ -270,6 +271,7 @@ def main():
 
                 # print('carthid = {0}, Fullname = {1}'.format(row["carth_id"],
                 #                                    row["payroll_name"]))
+                print('Birthdate = ' + row["birth_date"])
                 if row["carth_id"] == "":
                     SUBJECT = 'No Carthage ID'
                     BODY = "No Carthage ID for " + row['payroll_name']
