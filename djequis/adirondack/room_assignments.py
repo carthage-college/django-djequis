@@ -8,24 +8,24 @@ from datetime import datetime
 import requests
 import csv
 import argparse
-
-# django settings for shell environment
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 import django
-django.setup()
 
 from django.conf import settings
-# from django.db import connections
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djtools.fields import TODAY
-
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 from adirondack_sql import ADIRONDACK_QUERY
 from utilities import fn_write_error, fn_write_billing_header, \
     fn_write_assignment_header, fn_get_utcts, fn_encode_rows_to_utf8
+# from django.db import connections
+
+django.setup()
+
+# django settings for shell environment
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
@@ -57,74 +57,58 @@ parser.add_argument(
     help="database name.",
     dest="database"
 )
-#
-# def fn_get_terms():
-#     trmqry = '''select  trim(sess)||yr as cur_term, acyr, RIGHT(TO_CHAR(YEAR(TODAY)),2)
-#                         from acad_cal_rec a
-#                         where  yr = YEAR(TODAY)
-#                         and (right(acyr,2) = RIGHT(TO_CHAR(YEAR(TODAY)),2)
-#                         or left(acyr, 2) = RIGHT(TO_CHAR(YEAR(TODAY)),2))
-#                         AND subsess = ''
-#                         and prog = 'UNDG'
-#                         and sess = CASE
-#                             WHEN MONTH(TODAY) > 6 THEN 'RA'
-#                             ELSE 'RC' END
-#                          '''
-#     # print(trmqry)
-#
-#     ret = do_sql(trmqry, earl=EARL)
-#
-#     if ret is not None:
-#         for row in ret:
-#             current_term = row[0]
-#
-#     return [current_term]
 
 def fn_get_bill_code(idnum, bldg, roomtype, session):
-    utcts = fn_get_utcts()
+    try:
+        utcts = fn_get_utcts()
+        hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
+        hash_object = hashlib.md5(hashstring.encode())
+        print(session)
+        print(bldg)
+        print(idnum)
+        print(roomtype)
+        url = "https://carthage.datacenter.adirondacksolutions.com/" \
+              "carthage_thd_test_support/apis/thd_api.cfc?" \
+              "method=studentBILLING&" \
+              "Key=" + settings.ADIRONDACK_API_SECRET + "&" + "utcts=" + \
+              str(utcts) + "&" + "h=" + \
+              hash_object.hexdigest() + "&" + \
+              "ItemType=" + roomtype.strip() + "&" + \
+              "STUDENTNUMBER=" + idnum + "&" + \
+              "TIMEFRAMENUMERICCODE=" + session
+              #_______________________________
+             #Need to dynamically get the term - see the misc fee file
+              # _______________________________
+        # print(url)
 
-    hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
-
-    hash_object = hashlib.md5(hashstring.encode())
-    print(session)
-    print(bldg)
-    print(idnum)
-    print(roomtype)
-    url = "https://carthage.datacenter.adirondacksolutions.com/" \
-          "carthage_thd_test_support/apis/thd_api.cfc?" \
-          "method=studentBILLING&" \
-          "Key=" + settings.ADIRONDACK_API_SECRET + "&" + "utcts=" + \
-          str(utcts) + "&" + "h=" + \
-          hash_object.hexdigest() + "&" + \
-          "ItemType=" + roomtype.strip() + "&" + \
-          "STUDENTNUMBER=" + idnum + "&" + \
-          "TIMEFRAMENUMERICCODE=" + session
-          #_______________________________
-         #Need to dynamically get the term - see the misc fee file
-          # _______________________________
-    # print(url)
-
-    response = requests.get(url)
-    x = json.loads(response.content)
-    # print(x)
-    if not x['DATA']:
-        print("No data")
-        if bldg == 'CMTR':
-            billcode = 'CMTR'
-        elif bldg == 'OFF':
-            billcode = 'OFF'
-        elif bldg == 'ABRD':
-            billcode = 'ABRD'
-        else:
-            billcode = ''
-        print("Billcode found as " + billcode)
-        return billcode
-    else:
-        for i in x['DATA']:
-            print(i[6])
-            billcode = i[6]
-            print("Billcode found as "  + billcode)
+        response = requests.get(url)
+        x = json.loads(response.content)
+        # print(x)
+        if not x['DATA']:
+            print("No data")
+            if bldg == 'CMTR':
+                billcode = 'CMTR'
+            elif bldg == 'OFF':
+                billcode = 'OFF'
+            elif bldg == 'ABRD':
+                billcode = 'ABRD'
+            else:
+                billcode = ''
+            print("Billcode found as " + billcode)
             return billcode
+        else:
+            for i in x['DATA']:
+                print(i[6])
+                billcode = i[6]
+                print("Billcode found as "  + billcode)
+                return billcode
+    except Exception as e:
+        print(
+                "Error in adirondack_room_assignments_api.py- "
+                "fn_get_bill_code:  " + e.message)
+        fn_write_error("Error in adirondack_std_billing_api.py "
+                       "- fn_get_bill_code: " + e.message)
+
 
 def fn_fix_Bldg(bldg_code):
     if bldg_code[:3] == 'OAK':
@@ -139,11 +123,11 @@ def fn_fix_Bldg(bldg_code):
         return bldg_code
 
 def fn_mark_posted(stu_id, hall_code, term):
-    utcts = fn_get_utcts()
-    hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
-    hash_object = hashlib.md5(hashstring.encode())
-
     try:
+        utcts = fn_get_utcts()
+        hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
+        hash_object = hashlib.md5(hashstring.encode())
+
         print("In fn_mark_posted " + str(stu_id) + ", " + str(hall_code) + ", "
               + term)
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
@@ -252,8 +236,9 @@ def main():
                     "TimeFrameNumericCode=" + session + "&" \
                     "CurrentFuture=-1" + "&" \
                     "Ghost=0" + "&" \
-                    "STUDENTNUMBER=" + "1535221,1561983"
+                    "STUDENTNUMBER=" + "1491276"
 
+                # DO NOT MARK AS POSTED HERE - DO IT IN SECOND STEP
                 # "PostAssignments=-1" + "&" \
                     # "Posted=1" + "&" \
                     # + "&" \
@@ -352,21 +337,33 @@ def main():
                             # C = Commuter
                             # print(bldgname)
                             # print(bldgname.find('_'))
-                            # print(bldgname[(bldgname.find('_')+1)-len(bldgname):])
+                            # print(bldgname[(bldgname.find('_') + 1)
+                            #       - len(bldgname):])
                             # print(len(bldgname))
+
+                            # This if routine is needed because the adirondack
+                            # hall codes match to multiple descriptions and
+                            # hall descriptions have added qualifiers such as
+                            # FOFF, MOFF, UNF, LOCA that are not available
+                            # elsewhere using the API.  Have to parse it to
+                            # assign a generic room
 
                             if bldg == 'CMTR':
                                 intendhsg = 'C'
-                                room = bldgname[(bldgname.find('_')+1)-len(bldgname):]
+                                room = bldgname[(bldgname.find('_') + 1)
+                                                - len(bldgname):]
                             elif bldg == 'OFF':
                                 intendhsg = 'O'
-                                room = bldgname[(bldgname.find('_')+1)-len(bldgname):]
+                                room = bldgname[(bldgname.find('_') + 1)
+                                                - len(bldgname):]
                             elif bldg == 'ABRD':
                                 intendhsg = 'O'
-                                room = bldgname[(bldgname.find('_')+1)-len(bldgname):]
+                                room = bldgname[(bldgname.find('_') + 1)
+                                                - len(bldgname):]
                             elif bldg == 'UN':
                                 intendhsg = 'O'
-                                room = bldgname[(bldgname.find('_')+1)-len(bldgname):]
+                                room = bldgname[(bldgname.find('_') + 1)
+                                                - len(bldgname):]
                             else:
                                 intendhsg = 'R'
                                 room = i[4]
@@ -384,7 +381,7 @@ def main():
                                   + str(roomassignmentid))
 
                             csvWriter = csv.writer(room_output,
-                                                   quoting=csv.QUOTE_NONNUMERIC)
+                                                quoting=csv.QUOTE_NONNUMERIC)
                             # csvWriter.writerow(i)
                             # Need to write translated fields if csv is to
                             # be created
@@ -415,7 +412,7 @@ def main():
                                           and sess  = "{1}"
                                           and id = {0}'''.format(carthid,
                                                                  sess, year)
-                            print(q_validate_stuserv_rec)
+                            # print(q_validate_stuserv_rec)
 
                             # ret = do_sql(q_validate_stuserv_rec, earl=EARL)
                             ret = do_sql(q_validate_stuserv_rec, key=DEBUG,
