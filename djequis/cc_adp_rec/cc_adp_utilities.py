@@ -127,6 +127,7 @@ def WRITE_HEADER(filename):
 
 
 def WRITE_ADP_HEADER(filename):
+    # print(filename)
     csv.register_dialect('myDialect',
                          quoting=csv.QUOTE_ALL,
                          skipinitialspace=True)
@@ -188,7 +189,7 @@ def WRITE_ADP_HEADER(filename):
 
 
 def WRITE_ROW_REFORMATTED(row):
-    ADPtoCX_Reformatted = "ADPtoCX_Reformatted.csv"
+    ADPtoCX_Reformatted = settings.ADP_CSV_OUTPUT + "ADPtoCX_Reformatted.csv"
     try:
         # print(str(row[0]))
         # print('carthid = {0}, Fullname = {1}'.format(row["Carthage ID"],
