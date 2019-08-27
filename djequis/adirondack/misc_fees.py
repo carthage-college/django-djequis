@@ -12,13 +12,11 @@ import requests
 import csv
 import argparse
 import logging
-
+import django
 # ________________
 # Note to self, keep this here
 # django settings for shell environment
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
-import django
-
 django.setup()
 # ________________
 
@@ -70,10 +68,42 @@ parser.add_argument(
 logger = logging.getLogger(__name__)
 
 
+def fn_check_cx_records(totcod,prd,jndate,stuid,amt):
+    # This may or may not be completely accurate.  Need more scrutiny
+    billqry ='''select  SA.id, IR.fullname, ST.subs_no, 
+        SE.jrnl_date, ST.prd, ST.subs, STR.bal_code, ST.tot_code, SE.descr, 
+        SE.ctgry, STR.amt, ST.amt_inv_act, SA.stat 
+        from subtr_rec STR
+        left join subt_rec ST on STR.subs = ST.subs
+        and STR.subs_no = ST.subs_no 
+        and STR.tot_code = ST.tot_code
+        and STR.tot_prd = ST.prd
+        left join sube_rec SE on SE.subs = STR.subs
+        and SE.subs_no = STR.subs_no
+        and SE.sube_no = STR.ent_no
+        left join suba_rec SA on SA.subs = SE.subs
+        and SA.suba_no = SE.subs_no
+        left join id_rec IR on IR.id = SA.id
+        where STR.subs = 'S/A'
+        and STR.tot_code = "{0}"  
+        and STR.tot_prd = "{1}"  
+        and jrnl_date = "{2}"
+        and IR.id = {3}
+        and STR.amt = {4}
+        '''.format(totcod, prd, jndate, stuid, amt)
+    print(billqry)
+    ret = do_sql(billqry, earl=EARL)
+    # print(ret)
+    if ret is None:
+        return 0
+    else:
+        return 1
+
+
 def fn_set_terms(last_term, current_term):
     trmqry = '''select trim(sess)||yr as cur_term, acyr, 
                         ROW_NUMBER () OVER () as rank
-                        from train:acad_cal_rec a
+                        from acad_cal_rec a
                         where  yr = YEAR(TODAY)
                         and (right(acyr,2) = RIGHT(TO_CHAR(YEAR(TODAY)),2) 
                         or left(acyr, 2) = RIGHT(TO_CHAR(YEAR(TODAY)),2))  
@@ -112,7 +142,7 @@ def main():
     # establish database connection
     # engine = get_engine(EARL)  #Not needed?
 
-    # Working Assumptions:
+    # Working Assumptions for housing assignments:
     # We will do a mass pull around April 20 when the returning students
     # have been assigned.
     # New Students will be assigned after that, but since Marietta only bills
@@ -121,6 +151,10 @@ def main():
     # So after April 20, we will just do daily updates.  Whatever she bills
     # on April 20 will then have to be tracked for new entries and for
     # room changes.   The process can run daily for the rest of the year
+
+    # Miscellaneous billing is separate.
+    # Check daily for all records for term.
+    # Once written to CSV
 
     try:
         utcts = fn_get_utcts()
@@ -135,25 +169,33 @@ def main():
         timestr = time.strftime("%H%M")
         # print(timestr)
 
+        # Figure out what terms to limit to
+        last_term, current_term = fn_set_terms('', '')
+        # print("new last = " + last_term)
+        # print("new current = " + current_term)
+
+        # Terms in adirondack have a space between sess and year
+        print(current_term)
+        adirondack_term = current_term[:2] + " " + current_term[2:]
+        print(adirondack_term)
+
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
-              "carthage_thd_test_support/apis/thd_api.cfc?" \
-              "method=studentBILLING&" \
-              "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
-                                                        "utcts=" + str(
-            utcts) + "&" \
-                     "h=" + hash_object.hexdigest() + "&" \
-                                                      "AccountCode=2010," \
-                                                      "2040,2011,2031" \
-              + "&" + "Exported=0" \
-              + "&" + "ExportCharges=-1"
-        # \
-        #     + "&" + "STUDENTNUMBER=ASI000987654321"
+            "carthage_thd_test_support/apis/thd_api.cfc?" \
+            "method=studentBILLING&" \
+            "Key=" + settings.ADIRONDACK_API_SECRET \
+            + "&" + "utcts=" + str(utcts) \
+            + "&" + "h=" + hash_object.hexdigest() \
+            + "&" + "TIMEFRAMENUMERICCODE=" + adirondack_term \
+            + "&" + "AccountCode=2010,2040,2011,2031" \
+            + "&" + "Exported=-1" \
+            + "&" + "ExportCharges=-1" \
+            + "&" + "STUDENTNUMBER=1572122"
 
         # DEFINIIONS
         # Exported: -1 exported will be included, 0 only non-exported
         # ExportCharges: if -1 then charges will be marked as exported
 
-        # print("URL = " + url)
+        print("URL = " + url)
 
         response = requests.get(url)
         x = json.loads(response.content)
@@ -176,22 +218,18 @@ def main():
 
             # How to know if a record has already been processed to
             #    avoid duplicates?
-            # Use the STUDENTBILLINGINTERNALID number
-            #    Store the numbers in a txt file
-            #    read that file into a list and
-            #    if the new data pulls the same ID number, pass through
-            #    I need a way to only compare exported items to fairly recent
+            #    I need a way to only compare exported items to recent
             #    posted items, or the list will get huge.
+            # Use the STUDENTBILLINGINTERNALID number - uniquie row id for
+            #    each adirondack billing entry
+            #    Store the numbers in a txt file
+            #    Read that file into a list and
+            #    IF the new data pulls the same ID number, pass through
 
             # ------------------------------------------
             # Step 1 would be to build the list of items already written to
             # a csv for the terms
             # ------------------------------------------
-
-            # Figure out what terms to limit to
-            last_term, current_term = fn_set_terms('', '')
-            # print("new last = " + last_term)
-            # print("new current = " + current_term)
 
             # Set up the file names for the duplicate check
             cur_file = settings.ADIRONDACK_TXT_OUTPUT + 'billing_logs/' + \
@@ -215,14 +253,13 @@ def main():
                     # File should have at least columns for term row ID
                     next(ffile)
                     for row in csvf:
-                        print(row)
+                        # print(row)
                         if row is not None:
                             assign_id = int(row[16].strip())
                             the_list.append(assign_id)
-                            print(the_list)
+                            # print(the_list)
 
                 ffile.close()
-
 
             else:
                 print ("No file")
@@ -245,22 +282,22 @@ def main():
                 fn_write_billing_header(last_file)
 
             # List of previously processed rows
-            print(the_list)
+            # print(the_list)
 
             # ------------------------------------------
-            #  Step 2 would be to loop through the new charges from adirondack
-            #  in the API query
+            #  Step 2 would be to loop through the new charges returned
+            #  from adirondack in the API query
             # ------------------------------------------
 
             # Note.  Each account code must be a separate file for ASCII Post
-            # Only FINE Sample fine
             # 2010  Improper Checkout
             # 2011  Extended stay charge
             # 2031   Recore
             # 2040  Lockout fee
-            # Room rental fees are not for ASCII post
+            # Room rental fees are not for ASCII post and will not be
+            # calculated in Adirondack
 
-
+            # Adirondack dataset
             for i in x['DATA']:
                 # print(i)
                 # --------------------
@@ -269,8 +306,11 @@ def main():
 
                 # variables for readability
                 adir_term = i[4][:2] + i[4][-4:]
+                amount = i[2]
                 bill_id = str(i[16])
                 stu_id = str(i[0])
+                item_date = i[1][-4:] + "-" + i[1][:2] + "-" + i[1][3:5]
+                print(item_date)
                 tot_code = str(i[6])
 
                 # print("Adirondack term to check = " + adir_term)
@@ -280,10 +320,22 @@ def main():
                     print("Match current term " + current_term)
                     # here we look for a specific item
 
+                    # Make sure this charge is not already in CX
+                    x = fn_check_cx_records(tot_code, adir_term, item_date,
+                                            stu_id, amount)
+                    # print(x)
+                    if x == 0:
+                        print("Item is not in CX database")
+                    else:
+                        print("WARNING:  Matching item exist in CX database")
+
                     # print(the_list)
+                    # Make sure item was not pulled previously
                     if int(bill_id) in the_list:
                         print("Item " + bill_id + " already in list")
                     else:
+                        # Write the ASCII file and log the entry for
+                        # future reference
                         print("Write to ASCII csv file")
                         rec = []
                         rec.append(i[1])
@@ -298,8 +350,8 @@ def main():
                         rec.append(adir_term)
 
                         fee_file = settings.ADIRONDACK_TXT_OUTPUT + tot_code \
-                                   + "_" + settings.ADIRONDACK_ROOM_FEES \
-                                   + datetimestr + ".csv"
+                            + "_" + settings.ADIRONDACK_ROOM_FEES \
+                            + datetimestr + ".csv"
 
                         # print(fee_file)
 
@@ -324,10 +376,9 @@ def main():
                         wffile.close()
 
 
-
                 else:
                     # In case of a charge from the previous term
-                    print(the_list)
+                    # print(the_list)
                     # print("Match last term " + last_term)
                     if int(i[16]) in the_list:
                         print("Item " + str(i[16]) + " already in list")
@@ -347,13 +398,12 @@ def main():
                         rec.append(adir_term)
 
                         fee_file = settings.ADIRONDACK_TXT_OUTPUT + tot_code \
-                                   + "_" + settings.ADIRONDACK_ROOM_FEES \
-                                   + datetimestr + ".csv"
+                            + "_" + settings.ADIRONDACK_ROOM_FEES \
+                            + datetimestr + ".csv"
 
-                        print(fee_file)
+                        # print(fee_file)
                         encoded_rows = encode_rows_to_utf8(rec)
-                        print(encoded_rows)
-
+                        # print(encoded_rows)
 
                         with codecs.open(fee_file, 'ab',
                                          encoding='utf-8-sig') as fee_output:
@@ -382,32 +432,18 @@ def main():
                     # print("F = " + f)
                     csv_exists = True
 
+            # When all done, email csv file?
+            # Ideally, write ASCII file to Wilson into fin_post directory
             if csv_exists == True:
                 print("File created, send")
-                SUBJECT = 'Housing Miscellaneous Fees'
-                BODY = 'There are housing fees to process via ASCII ' \
+                subject = 'Housing Miscellaneous Fees'
+                body = 'There are housing fees to process via ASCII ' \
                     'post'
-                print(BODY)
+                print(body)
                 fn_sendmailfees(settings.ADIRONDACK_TO_EMAIL,
                                 settings.ADIRONDACK_FROM_EMAIL,
-                                BODY, SUBJECT
+                                body, subject
                                 )
-
-        # Marietta needs date, description,account number, amount,
-        # ID, tot_code, billcode, term
-        # item_date = datetime.strptime(i[1], '%m/%d/%Y')
-        # print(item_date)
-
-        # When all done, email csv file?
-        # Or notify and write file to a directory somewhere?
-        # Ideally, write to Wilson into fin_post directory
-        # print("File created, send")
-        # SUBJECT = 'Housing Miscellaneous Fees'
-        # BODY = 'There are housing fees to process via ASCII post'
-        # fn_sendmailfees(settings.ADIRONDACK_TO_EMAIL,
-        #                 settings.ADIRONDACK_FROM_EMAIL,
-        #                 BODY, SUBJECT
-        #                 )
 
     except Exception as e:
         print("Error in adirondack_misc_fees_api.py- Main:  " + e.message)
