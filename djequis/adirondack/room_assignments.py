@@ -80,7 +80,7 @@ def fn_get_bill_code(idnum, bldg, roomtype, session):
         # _______________________________
         # Need to dynamically get the term - see the misc fee file
         # _______________________________
-        # print(url)
+        print(url)
 
         response = requests.get(url)
         x = json.loads(response.content)
@@ -129,8 +129,8 @@ def fn_mark_posted(stu_id, hall_code, term):
         hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
         hash_object = hashlib.md5(hashstring.encode())
 
-        print("In fn_mark_posted " + str(stu_id) + ", " + str(hall_code) + ", "
-              + term)
+        # print("In fn_mark_posted " + str(stu_id) + ", " + str(hall_code) + ", "
+        #       + term)
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
             "carthage_thd_test_support/apis/thd_api.cfc?" \
             "method=housingASSIGNMENTS&" \
@@ -147,7 +147,7 @@ def fn_mark_posted(stu_id, hall_code, term):
             "Posted=0"
         # "RoomNumber=" + room_no + "&" \
         # + "&" \
-        print(url)
+        # print(url)
 
         # DEFINITIONS
         # Posted: 0 returns only NEW unposted,
@@ -239,7 +239,7 @@ def main():
                     "TimeFrameNumericCode=" + session + "&" \
                     "CurrentFuture=-1" + "&" \
                     "Ghost=0" + "&" \
-                    "STUDENTNUMBER=" + "1491276"
+                    "STUDENTNUMBER=" + "1499174,1495026"
 
                 # DO NOT MARK AS POSTED HERE - DO IT IN SECOND STEP
                 # "PostAssignments=-1" + "&" \
@@ -289,11 +289,9 @@ def main():
                             print(i[0])
                             carthid = i[0]
                             bldgname = i[1]
-
                             adir_hallcode = i[2]
                             bldg = fn_fix_bldg(i[2])
                             print("Adirondack Hall Code = " + adir_hallcode)
-
                             floor = i[3]
                             bed = i[5]
                             room_type = i[6]
@@ -464,8 +462,8 @@ def main():
                                                 checkedoutdate,
                                                 carthid,
                                                 sess, year)
-                                            # print(q_update_stuserv_rec)
-                                            # print(q_update_stuserv_args)
+                                            print(q_update_stuserv_rec)
+                                            print(q_update_stuserv_args)
                                             engine.execute(
                                                 q_update_stuserv_rec,
                                                 q_update_stuserv_args)
