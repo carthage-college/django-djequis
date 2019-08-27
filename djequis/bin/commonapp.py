@@ -146,7 +146,7 @@ def insertExam(id, ctgry, cmpl_date, score1, score2, score3, score4, score5, sco
                 score6
             )
             scr.write(q_exam+'\n');
-            logger.info("Inserted into app_examtmp_rec"+'\r\n');
+            logger.info("Inserted into app_examtmp_rec"+'\n');
             do_sql(q_exam, key=DEBUG, earl=EARL)
         except Exception as err:
             logger.error(err, exc_info=True)
@@ -248,7 +248,7 @@ def main():
                                     VALUES (TODAY, TO_CHAR(CURRENT, '%H%M'), "WEBA", "H", "{0}", "{1}", "{2}");
                                     ''' .format(temp_uuid, paymentMethod, waiverCode)
                                     scr.write(q_create_app+'\n');
-                                    logger.info("Inserted into apptmp_rec"+'\r\n');
+                                    logger.info("Inserted into apptmp_rec"+'\n');
                                     do_sql(q_create_app, key=DEBUG, earl=EARL)
                                 except Exception as err:
                                     logger.error(err, exc_info=True)
@@ -270,7 +270,7 @@ def main():
                                 scr.write('------------------------------------------------------------------------------------------------------------------\n')
                                 scr.write('-- START INSERT NEW STUDENT APPLICATION for: ' + row["firstName"] + ' ' + row["lastName"] + ' - ' + str(apptmp_no) +"\n")
                                 scr.write('------------------------------------------------------------------------------------------------------------------\n')
-                                logger.info('Begin Student Application: {0} {1} {2}'.format(str(apptmp_no), row["firstName"], row["lastName"])+"\r\n")
+                                logger.info('Begin Student Application: {0} {1} {2}'.format(str(apptmp_no), row["firstName"], row["lastName"])+"\n")
                                 # fetch id from app_voucher on mySQL dB (admissions)
                                 # insert into app_vouchers_users on mySQL dB
                                 if row["feeWaiverCode"] != '':
@@ -299,7 +299,7 @@ def main():
                                             VALUES ({0}, {1}, NOW())
                                             ''' .format(voucher_id, apptmp_no)
                                             scr.write(q_update_voucher+'\n');
-                                            logger.info("Inserted into app_voucher_users"+'\r\n');
+                                            logger.info("Inserted into app_voucher_users"+'\n');
                                             cursor.execute(q_update_voucher)
                                         except Exception as err:
                                             logger.error(err, exc_info=True)
@@ -316,7 +316,7 @@ def main():
                                             re.sub('\W+', ' ', row["permanentAddress2"]), row["permanentAddressCity"], row["permanentAddressState"], row["permanentAddressZip"],
                                             row["permanentAddressCountry"], row["preferredPhoneNumber"].replace('+1.', ''), row["ssn"], row["middleName"])
                                     scr.write(q_create_id+'\n');
-                                    logger.info("Inserted into app_idtmp_rec"+'\r\n');
+                                    logger.info("Inserted into app_idtmp_rec"+'\n');
                                     do_sql(q_create_id, key=DEBUG, earl=EARL)
                                 except Exception as err:
                                     logger.error(err, exc_info=True)
@@ -341,7 +341,7 @@ def main():
                                         VALUES ({0}, "CELL", TODAY, "{1}", "{2}");
                                         ''' .format(apptmp_no, row["preferredPhoneNumber"].replace('+1.', ''), row["contactConsent"])
                                         scr.write(q_insert_aa_cell+'\n');
-                                        logger.info("Inserted into app_aatmp_rec"+'\r\n');
+                                        logger.info("Inserted into app_aatmp_rec"+'\n');
                                         do_sql(q_insert_aa_cell, key=DEBUG, earl=EARL)
                                     except Exception as err:
                                         logger.error(err, exc_info=True)
@@ -364,7 +364,7 @@ def main():
                                         VALUES ({0}, "{1}", TODAY, "{2}", "{3}");
                                         ''' .format(apptmp_no, altType, row["alternatePhoneNumber"].replace('+1.', ''), row["contactConsent"])
                                         scr.write(q_insert_aa_cell+'\n');
-                                        logger.info("Inserted into app_aatmp_rec"+'\r\n');
+                                        logger.info("Inserted into app_aatmp_rec"+'\n');
                                         do_sql(q_insert_aa_cell, key=DEBUG, earl=EARL)
                                     except Exception as err:
                                         logger.error(err, exc_info=True)
@@ -376,7 +376,7 @@ def main():
                                     VALUES ({0}, "Y", "CART", TODAY);
                                     ''' .format(apptmp_no)
                                     scr.write(q_create_site+'\n');
-                                    logger.info("Inserted into app_sitetmp_rec"+'\r\n');
+                                    logger.info("Inserted into app_sitetmp_rec"+'\n');
                                     do_sql(q_create_site, key=DEBUG, earl=EARL)
                                 except Exception as err:
                                     logger.error(err, exc_info=True)
@@ -484,21 +484,32 @@ def main():
                                 # creates admtmp record
                                 try:
                                     q_create_adm = '''
-                                    INSERT INTO app_admtmp_rec
-                                    (id, primary_app, plan_enr_sess, plan_enr_yr, intend_hrs_enr, trnsfr, cl, add_date, parent_contr, enrstat, rank, wisconsin_coven,
-                                    emailaddr, prog, subprog, upd_date, act_choice, stuint_wt, jics_candidate, major, major2, major3, app_source, pref_name, felony,
-                                    discipline, parnt_mtlstat, live_with, live_with_other, vet_ben, model_score, hsg_type)
-                                    VALUES ({0}, "Y", "{1}", {2}, "{3}", "{4}", "{5}", TODAY, "0.00", "", "0", "", "{6}", "UNDG", "{7}", TODAY, "", "0", "N", "{8}",
-                                    "{9}", "{10}", "C", "{11}", "{12}", "{13}", "{14}", "{15}", "{16}", 0, "{17}");
-                                    ''' .format(
-                                        apptmp_no, planEnrollSession, planEnrollYear, intendHoursEnrolled,
-                                        transfer, studentType, row["emailAddress"], studentStatus,
+                                    INSERT INTO app_admtmp_rec (
+                                        id, primary_app, plan_enr_sess, plan_enr_yr,
+                                        intend_hrs_enr, trnsfr, cl, add_date,
+                                        parent_contr, enrstat, rank, wisconsin_coven,
+                                        emailaddr, prog, subprog, upd_date, act_choice,
+                                        stuint_wt, jics_candidate, major, major2, major3,
+                                        app_source, pref_name, discipline, parnt_mtlstat,
+                                        live_with, live_with_other, vet_ben, model_score,
+                                        hsg_type
+                                    ) VALUES (
+                                        {0}, "Y", "{1}", {2}, "{3}", "{4}", "{5}", TODAY,
+                                        "0.00", "", "0", "", "{6}", "UNDG", "{7}", TODAY,
+                                        "", "0", "N", "{8}", "{9}", "{10}", "C", "{11}",
+                                        "{12}", "{13}", "{14}", "{15}", "{16}", 0, "{17}"
+                                    );
+                                    '''.format(
+                                        apptmp_no, planEnrollSession, planEnrollYear,
+                                        intendHoursEnrolled, transfer, studentType,
+                                        row["emailAddress"], studentStatus,
                                         major1, major2, major3, row["preferredName"],
                                         row["schoolDiscipline"], parnt_mtlstat,
-                                        live_with, otherLivingSituation, armedForcesStatus, hsgType
+                                        live_with, otherLivingSituation, armedForcesStatus,
+                                        hsgType
                                     )
                                     scr.write(q_create_adm+'\n');
-                                    logger.info("Inserted into app_admtmp_rec"+'\r\n');
+                                    logger.info("Inserted into app_admtmp_rec"+'\n');
                                     do_sql(q_create_adm, key=DEBUG, earl=EARL)
                                 except Exception as err:
                                     logger.error(err, exc_info=True)
@@ -514,7 +525,7 @@ def main():
                                             VALUES (?, ?, ?, ?, ?, ?);
                                             '''
                                             scr.write(q_insertText+'\n');
-                                            logger.info("Inserted into app_ectctmp_rec for disciplinary explanation"+'\r\n');
+                                            logger.info("Inserted into app_ectctmp_rec for disciplinary explanation"+'\n');
                                             engine.execute(
                                                 q_insertText,
                                                 [apptmp_no, "ADM", TODAY, resource, "C", reasontxt]
@@ -534,7 +545,7 @@ def main():
                                         ''' .format(row["currentAddress1"], row["currentAddress2"], row["currentAddressCity"],
                                                     row["currentAddressState"], row["currentAddressZip"], row["currentAddressCountry"], apptmp_no)
                                         scr.write(q_insert_aa_mail);
-                                        logger.info("Inserted into app_aatmp_rec"+'\r\n');
+                                        logger.info("Inserted into app_aatmp_rec"+'\n');
                                         do_sql(q_insert_aa_mail, key=DEBUG, earl=EARL)
                                     except Exception as err:
                                         logger.error(err, exc_info=True)
@@ -566,7 +577,7 @@ def main():
                                                 entryDate, exitDate, row["schoolLookupZip"])
                                         scr.write(q_create_school);
                                         scr.write("--Executing create school qry"+'\n\n');
-                                        logger.info("Inserted into app_edtmp_rec"+'\r\n');
+                                        logger.info("Inserted into app_edtmp_rec"+'\n');
                                         do_sql(q_create_school, key=DEBUG, earl=EARL)
                                     except Exception as err:
                                         logger.error(err, exc_info=True)
@@ -598,7 +609,7 @@ def main():
                                                     row['secondarySchool'+str(schoolNumber)+'State'], fromDate, toDate, row['secondarySchool'+str(schoolNumber)+'Zip'])
                                             scr.write(q_create_other_school+'\n\n');
                                             scr.write("--Executing other school qry"+'\n\n');
-                                            logger.info("Inserted into app_edtmp_rec for other secondary school"+'\r\n');
+                                            logger.info("Inserted into app_edtmp_rec for other secondary school"+'\n');
                                             do_sql(q_create_other_school, key=DEBUG, earl=EARL)
                                         except Exception as err:
                                             logger.error(err, exc_info=True)
@@ -621,7 +632,7 @@ def main():
                                             ''' .format(apptmp_no, row['relative'+str(relativeNumber)+'FirstName'] + ' ' + row['relative'+str(relativeNumber)+'LastName'],
                                                 relativeGradYear)
                                                 scr.write(q_alumni+'\n\n');
-                                                logger.info("Inserted into app_reltmp_rec for Alumni"+'\r\n');
+                                                logger.info("Inserted into app_reltmp_rec for Alumni"+'\n');
                                                 do_sql(q_alumni, key=DEBUG, earl=EARL)
                                             except Exception as err:
                                                 logger.error(err, exc_info=True)
@@ -655,7 +666,7 @@ def main():
                                             ''' .format(apptmp_no, row['sibling'+str(siblingNumber)+'FirstName'] + ' ' + row['sibling'+str(siblingNumber)+'LastName'],
                                                 row['sibling'+str(siblingNumber)+'Age'], row['sibling'+str(siblingNumber)+'CollegeCeebName'], educationLevel[row['sibling'+str(siblingNumber)+'EducationLevel']])
                                                 scr.write(q_sibing_name+'\n\n');
-                                                logger.info("Inserted into app_reltmp_rec"+'\r\n');
+                                                logger.info("Inserted into app_reltmp_rec"+'\n');
                                                 do_sql(q_sibing_name, key=DEBUG, earl=EARL)
                                             except Exception as err:
                                                 logger.error(err, exc_info=True)
@@ -672,43 +683,76 @@ def main():
                                 # creates partmp record if there are any parents
                                 try:
                                     q_insert_partmp_rec = '''
-                                        INSERT INTO partmp_rec (id, app_no, f_first_name, f_last_name, f_addr_line1, f_addr_line2, f_city,
-                                        f_st, f_zip, f_ctry, f_college, f_deg_earn, f_title, f_suffix, f_email, f_phone, f_job, f_employer,
-                                        m_first_name, m_last_name, m_addr_line1, m_addr_line2, m_city, m_st, m_zip, m_ctry, m_college, m_deg_earn,
-                                        m_title, m_suffix, m_email, m_phone, m_job, m_employer, g_first_name, g_last_name, g_addr_line1, g_addr_line2,
-                                        g_city, g_st, g_zip, g_ctry, g_college, g_deg_earn, g_title, g_suffix, g_email, g_phone, g_job, g_employer)
-                                        VALUES (0, {0}, "{1}", "{2}", "{3}", "{4}", "{5}", "{6}", "{7}", "{8}", "{9}", "{10}", "{11}", "{12}", "{13}",
-                                        "{14}", "{15}", "{16}", "{17}", "{18}", "{19}", "{20}", "{21}", "{22}", "{23}", "{24}", "{25}", "{26}", "{27}",
-                                        "{28}", "{29}", "{30}", "{31}", "{32}", "{33}", "{34}", "{35}", "{36}", "{37}", "{38}", "{39}", "{40}", "{41}",
-                                        "{42}", "{43}", "{44}", "{45}", "{46}", "{47}", "{48}");
-                                    ''' .format(apptmp_no,
+                                    INSERT INTO partmp_rec (
+                                        id, app_no, f_first_name, f_last_name, f_addr_line1,
+                                        f_addr_line2, f_city, f_st, f_zip, f_ctry, f_college,
+                                        f_deg_earn, f_title, f_suffix, f_email, f_phone, f_job,
+                                        f_employer, m_first_name, m_last_name, m_addr_line1,
+                                        m_addr_line2, m_city, m_st, m_zip, m_ctry, m_college,
+                                        m_deg_earn, m_title, m_suffix, m_email, m_phone, m_job,
+                                        m_employer, g_first_name, g_last_name, g_addr_line1,
+                                        g_addr_line2, g_city, g_st, g_zip, g_ctry, g_college,
+                                        g_deg_earn, g_title, g_suffix, g_email, g_phone,
+                                        g_job, g_employer
+                                    ) VALUES (
+                                        0, {0}, "{1}", "{2}", "{3}", "{4}", "{5}", "{6}", "{7}",
+                                        "{8}", "{9}", "{10}", "{11}", "{12}", "{13}", "{14}",
+                                        "{15}", "{16}", "{17}", "{18}", "{19}", "{20}", "{21}",
+                                        "{22}", "{23}", "{24}", "{25}", "{26}", "{27}", "{28}",
+                                        "{29}", "{30}", "{31}", "{32}", "{33}", "{34}", "{35}",
+                                        "{36}", "{37}", "{38}", "{39}", "{40}", "{41}", "{42}",
+                                        "{43}", "{44}", "{45}", "{46}", "{47}", "{48}"
+                                    );'''.format(
+                                        apptmp_no,
                                         # father
-                                        row['parent'+str(fatherIndex)+'FirstName'], row['parent'+str(fatherIndex)+'LastName'],
-                                        row['parent'+str(fatherIndex)+'Address1'], row['parent'+str(fatherIndex)+'Address2'],
-                                        row['parent'+str(fatherIndex)+'AddressCity'], row['parent'+str(fatherIndex)+'AddressState'],
-                                        row['parent'+str(fatherIndex)+'AddressZip'], row['parent'+str(fatherIndex)+'AddressCountry'],
-                                        row['parent'+str(fatherIndex)+'College1NameCeebName'], row['parent'+str(fatherIndex)+'College1Degree1'],
-                                        row['parent'+str(fatherIndex)+'Title'], row['parent'+str(fatherIndex)+'Suffix'],
-                                        row['parent'+str(fatherIndex)+'Email'], row['parent'+str(fatherIndex)+'Phone'].replace('+1.', ''),
-                                        row['parent'+str(fatherIndex)+'Occupation'], row['parent'+str(fatherIndex)+'Employer'],
+                                        row['parent'+str(fatherIndex)+'FirstName'],
+                                        row['parent'+str(fatherIndex)+'LastName'],
+                                        row['parent'+str(fatherIndex)+'Address1'],
+                                        row['parent'+str(fatherIndex)+'Address2'],
+                                        row['parent'+str(fatherIndex)+'AddressCity'],
+                                        row['parent'+str(fatherIndex)+'AddressState'],
+                                        row['parent'+str(fatherIndex)+'AddressZip'],
+                                        row['parent'+str(fatherIndex)+'AddressCountry'],
+                                        row['parent'+str(fatherIndex)+'College1NameCeebName'],
+                                        row['parent'+str(fatherIndex)+'College1Degree1'],
+                                        row['parent'+str(fatherIndex)+'Title'],
+                                        row['parent'+str(fatherIndex)+'Suffix'],
+                                        row['parent'+str(fatherIndex)+'Email'],
+                                        row['parent'+str(fatherIndex)+'Phone'].replace('+1.', ''),
+                                        row['parent'+str(fatherIndex)+'Occupation'],
+                                        row['parent'+str(fatherIndex)+'Employer'],
                                         # mother
-                                        row['parent'+str(motherIndex)+'FirstName'], row['parent'+str(motherIndex)+'LastName'],
-                                        row['parent'+str(motherIndex)+'Address1'],  row['parent'+str(motherIndex)+'Address2'],
-                                        row['parent'+str(motherIndex)+'AddressCity'], row['parent'+str(motherIndex)+'AddressState'],
-                                        row['parent'+str(motherIndex)+'AddressZip'], row['parent'+str(motherIndex)+'AddressCountry'],
-                                        row['parent'+str(motherIndex)+'College1NameCeebName'], row['parent'+str(motherIndex)+'College1Degree1'],
-                                        row['parent'+str(motherIndex)+'Title'], row['parent'+str(motherIndex)+'Suffix'],
-                                        row['parent'+str(motherIndex)+'Email'], row['parent'+str(motherIndex)+'Phone'].replace('+1.', ''),
-                                        row['parent'+str(motherIndex)+'Occupation'], row['parent'+str(motherIndex)+'Employer'],
+                                        row['parent'+str(motherIndex)+'FirstName'],
+                                        row['parent'+str(motherIndex)+'LastName'],
+                                        row['parent'+str(motherIndex)+'Address1'],
+                                        row['parent'+str(motherIndex)+'Address2'],
+                                        row['parent'+str(motherIndex)+'AddressCity'],
+                                        row['parent'+str(motherIndex)+'AddressState'],
+                                        row['parent'+str(motherIndex)+'AddressZip'],
+                                        row['parent'+str(motherIndex)+'AddressCountry'],
+                                        row['parent'+str(motherIndex)+'College1NameCeebName'],
+                                        row['parent'+str(motherIndex)+'College1Degree1'],
+                                        row['parent'+str(motherIndex)+'Title'],
+                                        row['parent'+str(motherIndex)+'Suffix'],
+                                        row['parent'+str(motherIndex)+'Email'],
+                                        row['parent'+str(motherIndex)+'Phone'].replace('+1.', ''),
+                                        row['parent'+str(motherIndex)+'Occupation'],
+                                        row['parent'+str(motherIndex)+'Employer'],
                                         # legal guardian
-                                        row["legalGuardianFirstName"], row["legalGuardianLastName"], row["legalGuardianAddress1"],
-                                        row["legalGuardianAddress2"], row["legalGuardianAddressCity"], row["legalGuardianAddressState"],
-                                        row["legalGuardianAddressZip"], row["legalGuardianAddressCountry"], row["legalGuardianCollege1NameCeebName"],
-                                        row["legalGuardianCollege1Degree1"], row["legalGuardianTitle"], row["legalGuardianSuffix"],
-                                        row["legalGuardianEmail"], row["legalGuardianPhone"].replace('+1.', ''), row["legalGuardianOccupation"],
-                                        row["legalGuardianEmployer"])
+                                        row["legalGuardianFirstName"], row["legalGuardianLastName"],
+                                        row["legalGuardianAddress1"], row["legalGuardianAddress2"],
+                                        row["legalGuardianAddressCity"], row["legalGuardianAddressState"],
+                                        row["legalGuardianAddressZip"], row["legalGuardianAddressCountry"],
+                                        row["legalGuardianCollege1NameCeebName"],
+                                        row["legalGuardianCollege1Degree1"],
+                                        row["legalGuardianTitle"], row["legalGuardianSuffix"],
+                                        row["legalGuardianEmail"],
+                                        row["legalGuardianPhone"].replace('+1.', ''),
+                                        row["legalGuardianOccupation"],
+                                        row["legalGuardianEmployer"]
+                                    )
                                     scr.write(q_insert_partmp_rec+'\n');
-                                    logger.info("Inserted into partmp_rec"+'\r\n');
+                                    logger.info("Inserted into partmp_rec"+'\n');
                                     do_sql(q_insert_partmp_rec, key=DEBUG, earl=EARL)
                                 except Exception as err:
                                     logger.error(err, exc_info=True)
@@ -727,7 +771,7 @@ def main():
                                                 VALUES ({0}, 0, "{1}", "", "Y");
                                             ''' .format(apptmp_no, activity)
                                                 scr.write(insert_interests+'\n');
-                                                logger.info("Inserted into app_inttmp_rec"+'\r\n');
+                                                logger.info("Inserted into app_inttmp_rec"+'\n');
                                                 do_sql(insert_interests, key=DEBUG, earl=EARL)
                                             except Exception as err:
                                                 logger.error(err, exc_info=True)
@@ -774,7 +818,7 @@ def main():
                                             VALUES ({0}, "{1}");
                                             ''' .format(apptmp_no, eth_race)
                                             scr.write(insert_races+'\n');
-                                            logger.info("Inserted into app_mracetmp_rec"+'\r\n');
+                                            logger.info("Inserted into app_mracetmp_rec"+'\n');
                                             do_sql(insert_races, key=DEBUG, earl=EARL)
                                         except Exception as err:
                                             logger.error(err, exc_info=True)
@@ -813,7 +857,7 @@ def main():
                                     ''' .format(apptmp_no, dateOfBirth, row["sex"], row["birthCity"], row["birthState"], row["birthCountry"], row["citizenships"],
                                     ethnic_code, row["hispanicLatino"], religiousPreference, armedForcesStatus)
                                     scr.write(q_create_prof+'\n');
-                                    logger.info("Inserted into app_proftmp_rec"+'\r\n');
+                                    logger.info("Inserted into app_proftmp_rec"+'\n');
                                     do_sql(q_create_prof, key=DEBUG, earl=EARL)
                                 except Exception as err:
                                     logger.error(err, exc_info=True)
@@ -840,19 +884,19 @@ def main():
                                 scr.write('-------------------------------------------------------------------------------------------\n')
                                 scr.write('-- END INSERT NEW STUDENT APPLICATION for: ' + row["firstName"] + ' ' + row["lastName"] + "\n")
                                 scr.write('-------------------------------------------------------------------------------------------\n\n')
-                                logger.info('Complete Student Application: {0} {1} {2} {3}'.format(str(apptmp_no), row["firstName"], row["lastName"], studentStatus)+"\r\n")
+                                logger.info('Complete Student Application: {0} {1} {2} {3}'.format(str(apptmp_no), row["firstName"], row["lastName"], studentStatus)+"\n")
                             scr.write('-- STUDENT IDs:' + str(apptmp_no_list) +"\n")
                             apps_count = len(apptmp_no_list)
-                            logger.info('Number of Applications: {0}'.format(apps_count)+"\r\n")
+                            logger.info('Number of Applications: {0}'.format(apps_count)+"\n")
                             # Display current date 
                             print ('Date: {0}'.format(time.strftime("%A, %B %d %Y")))
                             print ('Number of Applications: {0}'.format(apps_count))
                             TRAD_count = len(app_TRAD_list)
                             print ('TRAD: {0}'.format(TRAD_count))
-                            logger.info('Number of TRAD Applicants: {0}'.format(TRAD_count)+"\r\n")
+                            logger.info('Number of TRAD Applicants: {0}'.format(TRAD_count)+"\n")
                             PTSM_count = len(app_PTSM_list)
                             print ('PTSM: {0}'.format(PTSM_count))
-                            logger.info('Number of PTSM Applicants: {0}'.format(PTSM_count)+"\r\n")
+                            logger.info('Number of PTSM Applicants: {0}'.format(PTSM_count)+"\n")
                             # output of how long it takes to run script
                             print("--- {0} seconds ---" .format((time.time() - start_time)))
                         # close file
