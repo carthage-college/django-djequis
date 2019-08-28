@@ -119,8 +119,6 @@ def file_download():
 
     sftp.close()
 
-# write out the .sql file
-# scr = open("apdtocx_output.sql", "a")
 
 def main():
     # set start_time in order to see how long script takes to execute
@@ -131,27 +129,13 @@ def main():
     # ==> python cc_adp_rec.py --database=cars
     ##########################################################################
 
-    # set date and time to be added to the filename
-    # datetimestr = time.strftime("%Y%m%d%H%M%S")
-
-    # set local directory for which the file will be downloaded to
-    # source_dir = ('{0}'.format(
-    #     settings.ADP_CSV_OUTPUT
-    # ))
-
     # # Defines file names and directory location
-    # new_adp_file = "ADPtoCX.csv"
     new_adp_file = settings.ADP_CSV_OUTPUT + "ADPtoCX.csv"
 
     last_adp_file = settings.ADP_CSV_OUTPUT + "adptocxview.csv"
-    # last_adp_file = ('{0}ADPtoCXLast.csv'.format(
-    #     settings.ADP_CSV_OUTPUT
-    # ))
-    #
+
     adp_diff_file = settings.ADP_CSV_OUTPUT + "different.csv"
-    # adp_diff_file = ('{0}different.csv'.format(
-    #     settings.ADP_CSV_OUTPUT
-    # ))
+
     adptocx_reformatted = settings.ADP_CSV_OUTPUT + "ADPtoCX_Reformatted.csv"
 
     # First remove yesterdays file of updates
@@ -222,7 +206,6 @@ def main():
         with open(last_adp_file, 'a') as file_out:
             csvWriter = csv.writer(file_out, delimiter=',',
                                    dialect='myDialect')
-            # encoded_rows = encode_rows_to_utf8(ret)
             for row in ret:
                 csvWriter.writerow(row)
         file_out.close()
