@@ -39,13 +39,10 @@ os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import get_engine
 from djzbar.utils.informix import do_sql
-
 from djzbar.settings import INFORMIX_EARL_SANDBOX
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
-
 from djtools.fields import TODAY
-
 from djequis.adp.utilities import fn_validate_field, fn_format_phone
 from djequis.adp.adp_ftp import file_download
 
@@ -189,7 +186,7 @@ def main():
         # with open(new_adp_file, 'r') as f:
             d_reader = csv.DictReader(f, delimiter=',')
             for row in d_reader:
-                WRITE_ROW_REFORMATTED(row)
+                WRITE_ROW_REFORMATTED(adptocx_reformatted, row)
         f.close()
         # print("Created Reformatted file")
 
