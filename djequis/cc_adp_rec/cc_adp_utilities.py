@@ -188,8 +188,7 @@ def WRITE_ADP_HEADER(filename):
     file_out.close()
 
 
-def WRITE_ROW_REFORMATTED(row):
-    ADPtoCX_Reformatted = settings.ADP_CSV_OUTPUT + "ADPtoCX_Reformatted.csv"
+def WRITE_ROW_REFORMATTED(filename, row):
     try:
         # print(str(row[0]))
         # print('carthid = {0}, Fullname = {1}'.format(row["Carthage ID"],
@@ -225,7 +224,7 @@ def WRITE_ROW_REFORMATTED(row):
         csv.register_dialect('myDialect',
                              quoting=csv.QUOTE_ALL,
                              skipinitialspace=True)
-        with open(ADPtoCX_Reformatted, 'a') as file_out:
+        with open(filename, 'a') as file_out:
             # Write header row to match the ADP file
             csvWriter = csv.writer(file_out, dialect='myDialect')
             csvWriter.writerow([
