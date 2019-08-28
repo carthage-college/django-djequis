@@ -59,7 +59,7 @@ parser.add_argument(
 )
 
 
-def fn_get_bill_code(idnum, bldg, roomtype, session):
+def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session):
     try:
         utcts = fn_get_utcts()
         hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
@@ -74,6 +74,7 @@ def fn_get_bill_code(idnum, bldg, roomtype, session):
             "Key=" + settings.ADIRONDACK_API_SECRET + "&" + "utcts=" + \
             str(utcts) + "&" + "h=" + \
             hash_object.hexdigest() + "&" + \
+            "ASSIGNMENTID=" + str(roomassignmentid) + "&" + \
             "ItemType=" + roomtype.strip() + "&" + \
             "STUDENTNUMBER=" + idnum + "&" + \
             "TIMEFRAMENUMERICCODE=" + session
@@ -332,7 +333,9 @@ def main():
                             term = i[9]
                             occupants = i[7]
                             billcode = fn_get_bill_code(carthid, str(bldg),
-                                                        room_type, session)
+                                                        room_type,
+                                                        roomassignmentid,
+                                                        session)
                             # print("Bill Code =  " + billcode)
                             # Intenhsg can b R = Resident, O = Off-Campus,
                             # C = Commuter
