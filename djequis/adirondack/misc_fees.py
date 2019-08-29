@@ -362,7 +362,6 @@ def main():
                             csvWriter.writerow(rec)
                         fee_output.close()
 
-
                         # Write record of item to PROCESSED list
                         print("Write item " + str(
                             i[16]) + " to current term file")
@@ -374,7 +373,6 @@ def main():
                                                    quoting=csv.QUOTE_MINIMAL)
                             csvWriter.writerow(i)
                         wffile.close()
-
 
                 else:
                     # In case of a charge from the previous term
