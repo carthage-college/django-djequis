@@ -153,7 +153,7 @@ def fn_mark_posted(stu_id, room_no, hall_code, term):
             "PostAssignments=-1" + "&" \
             "HallCode=" + hall_code + "&" \
             "Posted=0"
-        
+
 
         # "RoomNumber=" + room_no + "&" \
         # Room number won't work for off campus types - Room set to CMTR, ABRD
