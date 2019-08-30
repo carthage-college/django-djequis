@@ -21,6 +21,7 @@ from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djtools.fields import TODAY
+from djzbar.settings import INFORMIX_EARL_SANDBOX
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 from adirondack_sql import ADIRONDACK_QUERY
@@ -75,13 +76,14 @@ def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session):
             str(utcts) + "&" + "h=" + \
             hash_object.hexdigest() + "&" + \
             "ASSIGNMENTID=" + str(roomassignmentid) + "&" + \
-            "ItemType=" + roomtype.strip() + "&" + \
-            "STUDENTNUMBER=" + idnum + "&" + \
             "TIMEFRAMENUMERICCODE=" + session
-        # _______________________________
+
+        # "ItemType=" + roomtype.strip() + "&" + \
+        # __"STUDENTNUMBER=" + idnum + "&" + \
+        #             _____________________________
         # Need to dynamically get the term - see the misc fee file
         # _______________________________
-        print(url)
+        # print(url)
 
         response = requests.get(url)
         x = json.loads(response.content)
@@ -99,11 +101,15 @@ def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session):
             print("Billcode found as " + billcode)
             return billcode
         else:
-            for i in x['DATA']:
-                print(i[6])
-                billcode = i[6]
-                print("Billcode found as " + billcode)
-                return billcode
+            for rows in x['DATA']:
+                print(rows)
+                # print("ASSIGNMENTID = " + str(rows[14]))
+                # print("Room Assignment ID search = " + str(roomassignmentid))
+                if roomassignmentid == rows[14]:
+                    print(rows[6])
+                    billcode = rows[6]
+                    print("Billcode found as " + billcode)
+                    return billcode
     except Exception as e:
         print(
                 "Error in adirondack_room_assignments_api.py- "
@@ -124,14 +130,15 @@ def fn_fix_bldg(bldg_code):
     else:
         return bldg_code
 
-def fn_mark_posted(stu_id, hall_code, term):
+def fn_mark_posted(stu_id, room_no, hall_code, term):
     try:
         utcts = fn_get_utcts()
         hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
         hash_object = hashlib.md5(hashstring.encode())
 
-        # print("In fn_mark_posted " + str(stu_id) + ", " + str(hall_code) + ", "
-        #       + term)
+
+        print("In fn_mark_posted " + str(stu_id) + ", " + str(room_no) + ", "
+              + str(hall_code) + ", " + term)
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
             "carthage_thd_test_support/apis/thd_api.cfc?" \
             "method=housingASSIGNMENTS&" \
@@ -146,7 +153,11 @@ def fn_mark_posted(stu_id, hall_code, term):
             "PostAssignments=-1" + "&" \
             "HallCode=" + hall_code + "&" \
             "Posted=0"
+        
+
         # "RoomNumber=" + room_no + "&" \
+        # Room number won't work for off campus types - Room set to CMTR, ABRD
+        # etc. in CX.
         # + "&" \
         # print(url)
 
@@ -172,7 +183,7 @@ def fn_mark_posted(stu_id, hall_code, term):
         print("Error in room_assignments_api.py- fn_mark_posted:  " +
               e.message)
         # fn_write_error("Error in room_assignments_api.py- fn_mark_posted:
-        # " + e.messagee)
+        # " + e.message)
 
 
 def main():
@@ -190,6 +201,8 @@ def main():
         # EARL = INFORMIX_EARL_PROD
         if database == 'train':
             EARL = INFORMIX_EARL_TEST
+        elif database == 'sandbox':
+            EARL = INFORMIX_EARL_SANDBOX
         else:
             # # this will raise an error when we call get_engine()
             # below but the argument parser should have taken
@@ -240,7 +253,7 @@ def main():
                     "TimeFrameNumericCode=" + session + "&" \
                     "CurrentFuture=-1" + "&" \
                     "Ghost=0" + "&" \
-                    "STUDENTNUMBER=" + "1499174,1495026"
+                    "STUDENTNUMBER=" + "1480143"
 
                 # DO NOT MARK AS POSTED HERE - DO IT IN SECOND STEP
                 # "PostAssignments=-1" + "&" \
@@ -471,13 +484,13 @@ def main():
                                                 q_update_stuserv_rec,
                                                 q_update_stuserv_args)
 
-                                            fn_mark_posted(carthid,
+                                            fn_mark_posted(carthid, room,
                                                            adir_hallcode, term)
 
                                         else:
                                             print("No change needed in "
                                                   "stu_serv_rec")
-                                            fn_mark_posted(carthid,
+                                            fn_mark_posted(carthid, room,
                                                            adir_hallcode, term)
 
                                     else:
