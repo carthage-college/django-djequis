@@ -76,7 +76,12 @@ def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session):
             str(utcts) + "&" + "h=" + \
             hash_object.hexdigest() + "&" + \
             "ASSIGNMENTID=" + str(roomassignmentid) + "&" + \
-            "TIMEFRAMENUMERICCODE=" + session
+            "EXPORTED=0,-1"
+        # "TIMEFRAMENUMERICCODE=" + session
+
+        # As of 9/3/19, using the api to find a room by roomassignment
+        # ID requires me to set the EXPORTED flag to BOTH 0 and -1.
+        # Seems wrong.
 
         # "ItemType=" + roomtype.strip() + "&" + \
         # __"STUDENTNUMBER=" + idnum + "&" + \
@@ -147,19 +152,19 @@ def fn_mark_posted(stu_id, room_no, hall_code, term):
             str(utcts) + "&" \
             "h=" + hash_object.hexdigest() + "&" \
             "TimeFrameNumericCode=" + term + "&" \
+            "HallCode=" + hall_code + "&" \
             "CurrentFuture=-1" + "&" \
             "Ghost=0" + "&" \
+            "Posted=0" + "&" \
+            "RoomNumber=" + room_no + "&" \
             "STUDENTNUMBER=" + stu_id + "&" \
-            "PostAssignments=-1" + "&" \
-            "HallCode=" + hall_code + "&" \
-            "Posted=0"
+            "PostAssignments=-1"
 
 
-        # "RoomNumber=" + room_no + "&" \
         # Room number won't work for off campus types - Room set to CMTR, ABRD
         # etc. in CX.
         # + "&" \
-        # print(url)
+        print(url)
 
         # DEFINITIONS
         # Posted: 0 returns only NEW unposted,
@@ -253,7 +258,9 @@ def main():
                     "TimeFrameNumericCode=" + session + "&" \
                     "CurrentFuture=-1" + "&" \
                     "Ghost=0" + "&" \
-                    "STUDENTNUMBER=" + "1480143"
+                    "STUDENTNUMBER=" + "1435533"
+
+
 
                 # DO NOT MARK AS POSTED HERE - DO IT IN SECOND STEP
                 # "PostAssignments=-1" + "&" \
@@ -364,6 +371,12 @@ def main():
                             # FOFF, MOFF, UNF, LOCA that are not available
                             # elsewhere using the API.  Have to parse it to
                             # assign a generic room
+
+                            # For non residents, we have a generic room for
+                            # CX and a dummy room on the Adirondack side
+                            # So we need two variables, on for Adirondack and
+                            # one for CX.
+                            adr_room = i[4]
 
                             if bldg == 'CMTR':
                                 intendhsg = 'C'
@@ -484,13 +497,13 @@ def main():
                                                 q_update_stuserv_rec,
                                                 q_update_stuserv_args)
 
-                                            fn_mark_posted(carthid, room,
+                                            fn_mark_posted(carthid, adr_room,
                                                            adir_hallcode, term)
 
                                         else:
                                             print("No change needed in "
                                                   "stu_serv_rec")
-                                            fn_mark_posted(carthid, room,
+                                            fn_mark_posted(carthid, adr_room,
                                                            adir_hallcode, term)
 
                                     else:
