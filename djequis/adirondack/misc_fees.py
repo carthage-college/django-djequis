@@ -178,7 +178,6 @@ def main():
         print(current_term)
         adirondack_term = current_term[:2] + " " + current_term[2:]
         print(adirondack_term)
-
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
             "carthage_thd_test_support/apis/thd_api.cfc?" \
             "method=studentBILLING&" \
@@ -187,9 +186,10 @@ def main():
             + "&" + "h=" + hash_object.hexdigest() \
             + "&" + "TIMEFRAMENUMERICCODE=" + adirondack_term \
             + "&" + "AccountCode=2010,2040,2011,2031" \
-            + "&" + "Exported=-1" \
-            + "&" + "ExportCharges=-1" \
-            + "&" + "STUDENTNUMBER=1572122"
+            + "&" + "Exported=-1,0" \
+            + "&" + "ExportCharges=-1"
+
+            # + "&" + "STUDENTNUMBER=1572122"
 
         # DEFINIIONS
         # Exported: -1 exported will be included, 0 only non-exported
