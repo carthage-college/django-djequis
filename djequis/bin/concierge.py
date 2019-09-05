@@ -144,7 +144,7 @@ def main():
         # create .csv file
         csvfile = open(filename, "w");
         output = csv.writer(csvfile)
-        if rows is not None:
+        if rows:
             if key == 'STUDENTS':  # write header row for STUDENTS
                 output.writerow([
                     "Unit Code", "First Name", "Last Name", "Email Address",
