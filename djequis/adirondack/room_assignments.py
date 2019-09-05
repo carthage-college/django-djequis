@@ -193,11 +193,28 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term):
 
 def main():
     try:
-        # if JUNE or JULY
-        #     run only on certain days
-        # One big push for returning students
-        # second big push for freshmen
-        # Then run daily starting on...
+        #    Term will be RA+Current year
+        #  One big push for returning students May 1 for RC term
+        #    Only returning will be in the system, no need to screen out frosh
+        #  Push again June 30 and July 30  for RC term (will include frosh)
+        #  Aug 1 start automation for fall term
+        #  For spring RC+Nextyear push...third Wednesday in December
+        #  Stop automation for RC on last day of class - appr May 20
+        #  Automation could just take the current term
+        #  May 1, June 30, July 30 December  for upcoming term
+
+        # From Aug to Dec, grab all RA current year
+        # From Jan to May 1 grab all RC current year
+        # On MAY 1, grab all RA current year
+        # on June 30 grab all RA current year
+        # On third wednesday in December grab all RC Next
+        # On Next day in Dec, go back to RA Current
+        
+        # Only options are RC20xx and RA20xx, so I only need to determine
+        # which year to pass during each time frame.
+        # Question is, for spring housing, will both RA and RC need to be
+        # dealt with?
+
 
         # set global variable
         global EARL
@@ -249,7 +266,7 @@ def main():
                                 AND LEFT(ACYR,2) = RIGHT(TO_CHAR(YEAR(TODAY+1)),2)
                                 THEN
                                     'RC'||YEAR(TODAY + 1)
-                            --ACRY 2021 after Jan 1 until April 20
+                            --ACYR 2021 after Jan 1 until April 20
                             WHEN TODAY >= '01/01/'||YEAR(TODAY)
                                 AND TODAY < '04/20/'||YEAR(TODAY)
                                 AND LEFT(ACYR,2) = RIGHT(TO_CHAR(YEAR(TODAY)),2)
@@ -276,13 +293,16 @@ def main():
                     str(utcts) + "&" \
                     "h=" + hash_object.hexdigest() + "&" \
                     "TimeFrameNumericCode=" + session + "&" \
-                    "CurrentFuture=-1" + "&" \
-                    "Ghost=0" + "&" \
-                    "STUDENTNUMBER=" + "1527842"
+                    "Posted=0" + "&" \
+                    "HALLCODE=" + "SWE"
 
-                # DO NOT MARK AS POSTED HERE - DO IT IN SECOND STEP
+                # "STUDENTNUMBER=" + "1560943"
+                # "CurrentFuture=-1" + "&" \
+                #                      "Ghost=0" + "&" \
+
+                    # DO NOT MARK AS POSTED HERE - DO IT IN SECOND STEP
                 # "PostAssignments=-1" + "&" \
-                # "Posted=1" + "&" \
+
                 # + "&" \
                 # "HallCode=" + 'SWE'
 
