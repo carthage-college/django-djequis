@@ -91,7 +91,7 @@ def fn_check_cx_records(totcod,prd,jndate,stuid,amt):
         and IR.id = {3}
         and STR.amt = {4}
         '''.format(totcod, prd, jndate, stuid, amt)
-    print(billqry)
+    # print(billqry)
     ret = do_sql(billqry, earl=EARL)
     # print(ret)
     if ret is None:
@@ -307,6 +307,7 @@ def main():
                 # variables for readability
                 adir_term = i[4][:2] + i[4][-4:]
                 amount = i[2]
+                # May need to round the amount to 2 decimal places
                 bill_id = str(i[16])
                 stu_id = str(i[0])
                 item_date = i[1][-4:] + "-" + i[1][:2] + "-" + i[1][3:5]
@@ -343,6 +344,7 @@ def main():
                         descr = descr.translate(None, '!@#$%.,')
                         rec.append(descr.strip())
                         rec.append("1-003-10041")
+                        # Round this?
                         rec.append(i[2])
                         rec.append(stu_id)
                         rec.append("S/A")
@@ -389,6 +391,7 @@ def main():
                         descr = descr.translate(None, '!@#$%.,')
                         rec.append(descr.strip())
                         rec.append("1-003-10041")
+                        # Round this to two decimals
                         rec.append(i[2])
                         rec.append(stu_id)
                         rec.append("S/A")
