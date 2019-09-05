@@ -150,61 +150,79 @@ COURSES = '''
 # There are enrollments for individuals who are not currently staff or faculty.
 # If I filter to only users who were employed in the last year,
 # I find enrollment records without a matching user. 
-USERS = '''
-    SELECT
-    DISTINCT
-       id_rec.firstname, addree_rec.alt_name preferred_first_name,
-       id_rec.middlename, id_rec.lastname, '' name_prefix,
-       trim(jenzprs_rec.host_username) username, TRIM(jenzprs_rec.e_mail) EMAIL,
-       to_number(jenzprs_rec.host_id) UniqueID,
-       CASE WHEN title1.hrpay NOT IN ('VEN', 'DPW', 'BIW', 'FV2', 'SUM', 'GRD')
-           OR TLE.tle = 'Y'
-           THEN 'FAC' ELSE 'STU' END AS ROLE,
-       'Carthage College' school, jenzprs_rec.host_id schoology_id,
-       CASE NVL(title1.job_title,'x') WHEN 'x' then '' ELSE trim(title1.job_title) END||
-       CASE NVL(title2.job_title,'x') WHEN 'x' then '' ELSE '; '||trim(title2.job_title) END||
-       CASE NVL(title3.job_title,'x') WHEN 'x' then '' ELSE '; '||trim(title3.job_title) END
-       Position, '' pwd, '' gender, '' GradYr, '' additional_schools
-   FROM jenzprs_rec
-       LEFT JOIN jenzcst_rec
-       ON jenzprs_rec.host_id = jenzcst_rec.host_id
-       AND jenzcst_rec.status_code IN ('FAC', 'STF', 'STU', 'ADM')
-           JOIN id_rec ON id_rec.id =  jenzprs_rec.host_id
-           LEFT JOIN job_rec title1 ON title1.id = jenzprs_rec.host_id AND title1.title_rank = 1
-               AND (title1.end_date IS NULL OR title1.end_date > current) AND title1.job_title IS NOT NULL
-           LEFT JOIN job_rec title2 ON title2.id = jenzprs_rec.host_id AND title2.title_rank = 2
-               AND (title2.end_date is null or title2.end_date > current) AND title2.job_title IS NOT NULL
-           LEFT JOIN job_rec title3 ON title3.id = jenzprs_rec.host_id AND title3.title_rank = 3
-               AND (title3.end_date is null or title3.end_date > current) AND title3.job_title IS NOT NULL
-           LEFT JOIN job_rec title4 ON title4.id = jenzprs_rec.host_id AND title4.title_rank = 4
-               AND (title4.end_date is null or title4.end_date > current) AND title4.job_title IS NOT NULL
-           LEFT JOIN prog_enr_rec TLE
-               ON TLE.id = jenzprs_rec.host_id
-    		   AND TLE.acst in ('GOOD', 'GRAD')
-               AND TLE.tle = 'Y'
-           LEFT JOIN addree_rec ON addree_rec.prim_id = jenzprs_rec.host_id
-           AND addree_rec.style = 'N'
-   WHERE jenzprs_rec.host_id IN
-       (
-           SELECT to_number(host_id) as UID
-               FROM jenzcrp_rec
-           UNION ALL
-           select cx_id as UID
-               from provsndtl_rec
-               where subsys = 'MSTR'
-                   AND action = 'Active'
-                   AND roles NOT IN ('Contractor')
-       )
-    AND	jenzprs_rec.host_id NOT IN 
-	(select ID from role_rec
-	where role = 'PREFF' and end_date is null
-		and MONTH(TODAY) IN (6,7)
-    )
-	
-       GROUP BY id_rec.lastname, id_rec.firstname, preferred_first_name,
-       id_rec.middlename, name_prefix, username, email, UniqueID, schoology_id,
-       Position, title1.job_title, TLE.tle, title1.hrpay
-       ORDER BY id_rec.lastname ASC, id_rec.firstname ASC, role ASC;
+USERS = '''SELECT firstname, preferred_first_name, middlename, lastname, '' name_prefix,
+    username, EMAIL, UniqueID, ROLE, school, schoology_id, Position, 
+    '' pwd, '' gender, '' GradYr, '' additional_schools 
+FROM
+	(SELECT DISTINCT
+	    IR.firstname, ADR.alt_name preferred_first_name,
+	    IR.middlename, IR.lastname, 
+	    trim(JPR.host_username) username, TRIM(JPR.e_mail) EMAIL,
+	    to_number(JPR.host_id) UniqueID,
+	    CASE WHEN title1.hrpay NOT IN ('VEN', 'DPW', 'BIW', 'FV2', 'SUM', 'GRD')
+	        OR TLE.tle = 'Y'
+	        THEN 'FAC' ELSE 'STU' END AS ROLE,
+	    'Carthage College' school, JPR.host_id schoology_id,
+	    CASE NVL(title1.job_title,'x') WHEN 'x' THEN '' 
+			ELSE trim(title1.job_title) END||
+	    CASE NVL(title2.job_title,'x') WHEN 'x' THEN '' 
+	   		ELSE '; '||trim(title2.job_title) END||
+	    CASE NVL(title3.job_title,'x') WHEN 'x' THEN '' 
+	   		ELSE '; '||trim(title3.job_title) END
+	    Position, 
+	    row_number() OVER 
+	    (partition BY JC.host_id
+			ORDER BY
+				CASE 
+				WHEN status_code = 'FAC' THEN 1  
+				WHEN status_code = 'AMA' THEN 2  
+				WHEN status_code = 'AMO' THEN 3  
+				WHEN status_code = 'GLL' THEN 4  
+				WHEN status_code = 'FAA' THEN 5  
+				WHEN status_code = 'ADA' THEN 6  
+				WHEN status_code = 'ADV' THEN 7  
+				WHEN status_code = 'GLL' THEN 8  
+				WHEN status_code = 'STF' THEN 9  
+				WHEN status_code = 'FW0' THEN 10  
+				WHEN status_code = 'FWS' THEN 11
+				WHEN status_code = 'STU' THEN 12
+				ELSE 99 end
+		) as row_num
+	FROM jenzcst_rec JC
+	    LEFT JOIN jenzprs_rec JPR ON JPR.host_id = JC.host_id
+	    JOIN id_rec IR ON IR.id =  JC.host_id
+		LEFT JOIN job_rec title1 ON title1.id = JC.host_id 
+	       AND title1.title_rank = 1
+	       AND (title1.end_date IS NULL OR title1.end_date > current) 
+	       AND title1.job_title IS NOT NULL
+	    LEFT JOIN job_rec title2 ON title2.id = JC.host_id 
+	       AND title2.title_rank = 2
+	       AND (title2.end_date is null or title2.end_date > current) 
+	       AND title2.job_title IS NOT NULL
+	    LEFT JOIN job_rec title3 ON title3.id = JC.host_id 
+	       AND title3.title_rank = 3
+	       AND (title3.end_date is null or title3.end_date > current) 
+	       AND title3.job_title IS NOT NULL
+	    LEFT JOIN job_rec title4 ON title4.id = JC.host_id 
+	       AND title4.title_rank = 4
+	       AND (title4.end_date is null or title4.end_date > current) 
+	       AND title4.job_title IS NOT NULL
+	    LEFT JOIN prog_enr_rec TLE ON TLE.id = JC.host_id
+	       AND TLE.acst in ('GOOD', 'GRAD')
+	       AND TLE.tle = 'Y'
+	    LEFT JOIN addree_rec ADR ON ADR.prim_id = JC.host_id
+	       AND ADR.style = 'N' 
+	WHERE status_code not in ('PGR', 'ALM',  'PTR')
+	       AND	JC.host_id NOT IN 
+		   (
+		    SELECT ID FROM role_rec
+			WHERE role = 'PREFF' AND end_date IS NULL 
+			AND MONTH(TODAY) IN (6,7)
+	    	)  
+	--    and JC.host_id = 1508543
+	)
+WHERE row_num = 1
+ORDER BY lastname ASC, firstname ASC, role ASC;
 '''
 # fetch enrollment
 # This query should return all instructors and students enrolled in active courses

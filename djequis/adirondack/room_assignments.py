@@ -21,6 +21,7 @@ from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djtools.fields import TODAY
+from djzbar.settings import INFORMIX_EARL_SANDBOX
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 from adirondack_sql import ADIRONDACK_QUERY
@@ -59,7 +60,7 @@ parser.add_argument(
 )
 
 
-def fn_get_bill_code(idnum, bldg, roomtype, session):
+def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session):
     try:
         utcts = fn_get_utcts()
         hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
@@ -74,13 +75,20 @@ def fn_get_bill_code(idnum, bldg, roomtype, session):
             "Key=" + settings.ADIRONDACK_API_SECRET + "&" + "utcts=" + \
             str(utcts) + "&" + "h=" + \
             hash_object.hexdigest() + "&" + \
-            "ItemType=" + roomtype.strip() + "&" + \
-            "STUDENTNUMBER=" + idnum + "&" + \
-            "TIMEFRAMENUMERICCODE=" + session
-        # _______________________________
+            "ASSIGNMENTID=" + str(roomassignmentid) + "&" + \
+            "EXPORTED=0,-1"
+        # "TIMEFRAMENUMERICCODE=" + session
+
+        # As of 9/3/19, using the api to find a room by roomassignment
+        # ID requires me to set the EXPORTED flag to BOTH 0 and -1.
+        # Seems wrong.
+
+        # "ItemType=" + roomtype.strip() + "&" + \
+        # __"STUDENTNUMBER=" + idnum + "&" + \
+        #             _____________________________
         # Need to dynamically get the term - see the misc fee file
         # _______________________________
-        print(url)
+        # print(url)
 
         response = requests.get(url)
         x = json.loads(response.content)
@@ -98,11 +106,15 @@ def fn_get_bill_code(idnum, bldg, roomtype, session):
             print("Billcode found as " + billcode)
             return billcode
         else:
-            for i in x['DATA']:
-                print(i[6])
-                billcode = i[6]
-                print("Billcode found as " + billcode)
-                return billcode
+            for rows in x['DATA']:
+                print(rows)
+                # print("ASSIGNMENTID = " + str(rows[14]))
+                # print("Room Assignment ID search = " + str(roomassignmentid))
+                if roomassignmentid == rows[14]:
+                    print(rows[6])
+                    billcode = rows[6]
+                    print("Billcode found as " + billcode)
+                    return billcode
     except Exception as e:
         print(
                 "Error in adirondack_room_assignments_api.py- "
@@ -123,14 +135,15 @@ def fn_fix_bldg(bldg_code):
     else:
         return bldg_code
 
-def fn_mark_posted(stu_id, hall_code, term):
+def fn_mark_posted(stu_id, room_no, hall_code, term):
     try:
         utcts = fn_get_utcts()
         hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
         hash_object = hashlib.md5(hashstring.encode())
 
-        # print("In fn_mark_posted " + str(stu_id) + ", " + str(hall_code) + ", "
-        #       + term)
+
+        print("In fn_mark_posted " + str(stu_id) + ", " + str(room_no) + ", "
+              + str(hall_code) + ", " + term)
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
             "carthage_thd_test_support/apis/thd_api.cfc?" \
             "method=housingASSIGNMENTS&" \
@@ -139,15 +152,19 @@ def fn_mark_posted(stu_id, hall_code, term):
             str(utcts) + "&" \
             "h=" + hash_object.hexdigest() + "&" \
             "TimeFrameNumericCode=" + term + "&" \
+            "HallCode=" + hall_code + "&" \
             "CurrentFuture=-1" + "&" \
             "Ghost=0" + "&" \
+            "Posted=0" + "&" \
+            "RoomNumber=" + room_no + "&" \
             "STUDENTNUMBER=" + stu_id + "&" \
-            "PostAssignments=-1" + "&" \
-            "HallCode=" + hall_code + "&" \
-            "Posted=0"
-        # "RoomNumber=" + room_no + "&" \
+            "PostAssignments=-1"
+
+
+        # Room number won't work for off campus types - Room set to CMTR, ABRD
+        # etc. in CX.
         # + "&" \
-        # print(url)
+        print(url)
 
         # DEFINITIONS
         # Posted: 0 returns only NEW unposted,
@@ -171,7 +188,7 @@ def fn_mark_posted(stu_id, hall_code, term):
         print("Error in room_assignments_api.py- fn_mark_posted:  " +
               e.message)
         # fn_write_error("Error in room_assignments_api.py- fn_mark_posted:
-        # " + e.messagee)
+        # " + e.message)
 
 
 def main():
@@ -189,6 +206,8 @@ def main():
         # EARL = INFORMIX_EARL_PROD
         if database == 'train':
             EARL = INFORMIX_EARL_TEST
+        elif database == 'sandbox':
+            EARL = INFORMIX_EARL_SANDBOX
         else:
             # # this will raise an error when we call get_engine()
             # below but the argument parser should have taken
@@ -239,7 +258,9 @@ def main():
                     "TimeFrameNumericCode=" + session + "&" \
                     "CurrentFuture=-1" + "&" \
                     "Ghost=0" + "&" \
-                    "STUDENTNUMBER=" + "1499174,1495026"
+                    "STUDENTNUMBER=" + "1435533"
+
+
 
                 # DO NOT MARK AS POSTED HERE - DO IT IN SECOND STEP
                 # "PostAssignments=-1" + "&" \
@@ -332,7 +353,9 @@ def main():
                             term = i[9]
                             occupants = i[7]
                             billcode = fn_get_bill_code(carthid, str(bldg),
-                                                        room_type, session)
+                                                        room_type,
+                                                        roomassignmentid,
+                                                        session)
                             # print("Bill Code =  " + billcode)
                             # Intenhsg can b R = Resident, O = Off-Campus,
                             # C = Commuter
@@ -348,6 +371,12 @@ def main():
                             # FOFF, MOFF, UNF, LOCA that are not available
                             # elsewhere using the API.  Have to parse it to
                             # assign a generic room
+
+                            # For non residents, we have a generic room for
+                            # CX and a dummy room on the Adirondack side
+                            # So we need two variables, on for Adirondack and
+                            # one for CX.
+                            adr_room = i[4]
 
                             if bldg == 'CMTR':
                                 intendhsg = 'C'
@@ -468,13 +497,13 @@ def main():
                                                 q_update_stuserv_rec,
                                                 q_update_stuserv_args)
 
-                                            fn_mark_posted(carthid,
+                                            fn_mark_posted(carthid, adr_room,
                                                            adir_hallcode, term)
 
                                         else:
                                             print("No change needed in "
                                                   "stu_serv_rec")
-                                            fn_mark_posted(carthid,
+                                            fn_mark_posted(carthid, adr_room,
                                                            adir_hallcode, term)
 
                                     else:
