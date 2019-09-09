@@ -294,7 +294,7 @@ def main():
                     "h=" + hash_object.hexdigest() + "&" \
                     "TimeFrameNumericCode=" + session + "&" \
                     "Posted=0" + "&" \
-                    "HALLCODE=" + "SWE"
+                    "HALLCODE=" + "OAKS 3"
 
                 # "STUDENTNUMBER=" + "1560943"
                 # "CurrentFuture=-1" + "&" \
