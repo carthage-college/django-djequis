@@ -94,7 +94,7 @@ def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session):
         x = json.loads(response.content)
         # print(x)
         if not x['DATA']:
-            print("No data")
+            # print("No data")
             if bldg == 'CMTR':
                 billcode = 'CMTR'
             elif bldg == 'OFF':
@@ -107,7 +107,7 @@ def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session):
             return billcode
         else:
             for rows in x['DATA']:
-                print(rows)
+                # print(rows)
                 # print("ASSIGNMENTID = " + str(rows[14]))
                 # print("Room Assignment ID search = " + str(roomassignmentid))
                 if roomassignmentid == rows[14]:
@@ -135,15 +135,15 @@ def fn_fix_bldg(bldg_code):
     else:
         return bldg_code
 
-def fn_mark_posted(stu_id, room_no, hall_code, term):
+def fn_mark_room_posted(stu_id, room_no, hall_code, term):
     try:
         utcts = fn_get_utcts()
         hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
         hash_object = hashlib.md5(hashstring.encode())
 
 
-        print("In fn_mark_posted " + str(stu_id) + ", " + str(room_no) + ", "
-              + str(hall_code) + ", " + term)
+        # print("In fn_mark_room_posted " + str(stu_id) + ", " + str(room_no) + ", "
+        #       + str(hall_code) + ", " + term)
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
             "carthage_thd_test_support/apis/thd_api.cfc?" \
             "method=housingASSIGNMENTS&" \
@@ -164,7 +164,7 @@ def fn_mark_posted(stu_id, room_no, hall_code, term):
         # Room number won't work for off campus types - Room set to CMTR, ABRD
         # etc. in CX.
         # + "&" \
-        print(url)
+        # print(url)
 
         # DEFINITIONS
         # Posted: 0 returns only NEW unposted,
@@ -185,19 +185,36 @@ def fn_mark_posted(stu_id, room_no, hall_code, term):
             print("Record marked as posted")
 
     except Exception as e:
-        print("Error in room_assignments_api.py- fn_mark_posted:  " +
+        print("Error in room_assignments_api.py- fn_mark_room_posted:  " +
               e.message)
-        # fn_write_error("Error in room_assignments_api.py- fn_mark_posted:
+        # fn_write_error("Error in room_assignments_api.py- fn_mark_room_posted:
         # " + e.message)
 
 
 def main():
     try:
-        # if JUNE or JULY
-        #     run only on certain days
-        # One big push for returning students
-        # second big push for freshmen
-        # Then run daily starting on...
+        #    Term will be RA+Current year
+        #  One big push for returning students May 1 for RC term
+        #    Only returning will be in the system, no need to screen out frosh
+        #  Push again June 30 and July 30  for RC term (will include frosh)
+        #  Aug 1 start automation for fall term
+        #  For spring RC+Nextyear push...third Wednesday in December
+        #  Stop automation for RC on last day of class - appr May 20
+        #  Automation could just take the current term
+        #  May 1, June 30, July 30 December  for upcoming term
+
+        # From Aug to Dec, grab all RA current year
+        # From Jan to May 1 grab all RC current year
+        # On MAY 1, grab all RA current year
+        # on June 30 grab all RA current year
+        # On third wednesday in December grab all RC Next
+        # On Next day in Dec, go back to RA Current
+        
+        # Only options are RC20xx and RA20xx, so I only need to determine
+        # which year to pass during each time frame.
+        # Question is, for spring housing, will both RA and RC need to be
+        # dealt with?
+
 
         # set global variable
         global EARL
@@ -229,13 +246,33 @@ def main():
         # print(hash_object.hexdigest())
         # print("Time of send = " + time.strftime("%Y%m%d%H%M%S"))
         datetimestr = time.strftime("%Y%m%d%H%M%S")
-
-        q_get_term = '''select trim(trim(sess)||' '||trim(TO_CHAR(yr))) session
+        q_get_term = '''select distinct 
+                        trim(trim(sess)||' '||trim(TO_CHAR(yr))) session
                         from acad_cal_rec
                         where sess in ('RA','RC')
                         and subsess = ''
-                        and first_reg_date < TODAY
-                        and charge_date > TODAY
+                        and prog = 'UNDG'
+                        and trim(sess)||TO_CHAR(yr) = 
+                        CASE
+                            -- ACYR 1920 After April 20 until nov 20
+                            WHEN TODAY >= '04/20/'||YEAR(TODAY)
+                                AND TODAY < '11/20/'||YEAR(TODAY)
+                                AND LEFT(ACYR,2) = RIGHT(TO_CHAR(YEAR(TODAY)),2)
+                                THEN
+                                    'RA'||YEAR(TODAY)
+                            --ACYR 2021 after nov 20
+                            WHEN TODAY >= '11/20/'||YEAR(TODAY)
+                                AND TODAY < '/04/20/'||YEAR(TODAY)+1
+                                AND LEFT(ACYR,2) = RIGHT(TO_CHAR(YEAR(TODAY+1)),2)
+                                THEN
+                                    'RC'||YEAR(TODAY + 1)
+                            --ACYR 2021 after Jan 1 until April 20
+                            WHEN TODAY >= '01/01/'||YEAR(TODAY)
+                                AND TODAY < '04/20/'||YEAR(TODAY)
+                                AND LEFT(ACYR,2) = RIGHT(TO_CHAR(YEAR(TODAY)),2)
+                                THEN
+                                    'RC'||YEAR(TODAY)
+                            END
                          '''
         ret = do_sql(q_get_term, key=DEBUG, earl=EARL)
         # ret = do_sql(q_get_term, earl=EARL)
@@ -256,15 +293,16 @@ def main():
                     str(utcts) + "&" \
                     "h=" + hash_object.hexdigest() + "&" \
                     "TimeFrameNumericCode=" + session + "&" \
-                    "CurrentFuture=-1" + "&" \
-                    "Ghost=0" + "&" \
-                    "STUDENTNUMBER=" + "1435533"
+                    "Posted=0" + "&" \
+                    "HALLCODE=" + "OAKS 3"
 
+                # "STUDENTNUMBER=" + "1560943"
+                # "CurrentFuture=-1" + "&" \
+                #                      "Ghost=0" + "&" \
 
-
-                # DO NOT MARK AS POSTED HERE - DO IT IN SECOND STEP
+                    # DO NOT MARK AS POSTED HERE - DO IT IN SECOND STEP
                 # "PostAssignments=-1" + "&" \
-                # "Posted=1" + "&" \
+
                 # + "&" \
                 # "HallCode=" + 'SWE'
 
@@ -300,9 +338,9 @@ def main():
 
                     # IF directly updating stu_serv_rec, writing csv may be
                     # redundant
-                    fn_write_assignment_header()
+                    # fn_write_assignment_header()
                     room_data = fn_encode_rows_to_utf8(x['DATA'])
-                    print("Start Loop")
+                    # print("Start Loop")
 
                     with open(room_file, 'ab') as room_output:
                         for i in room_data:
@@ -371,12 +409,12 @@ def main():
                             # FOFF, MOFF, UNF, LOCA that are not available
                             # elsewhere using the API.  Have to parse it to
                             # assign a generic room
-
                             # For non residents, we have a generic room for
                             # CX and a dummy room on the Adirondack side
                             # So we need two variables, on for Adirondack and
                             # one for CX.
-                            adr_room = i[4]
+
+                            adir_room = i[4]
 
                             if bldg == 'CMTR':
                                 intendhsg = 'C'
@@ -491,19 +529,21 @@ def main():
                                                 checkedoutdate,
                                                 carthid,
                                                 sess, year)
-                                            print(q_update_stuserv_rec)
-                                            print(q_update_stuserv_args)
+                                            # print(q_update_stuserv_rec)
+                                            # print(q_update_stuserv_args)
                                             engine.execute(
                                                 q_update_stuserv_rec,
                                                 q_update_stuserv_args)
 
-                                            fn_mark_posted(carthid, adr_room,
+                                            fn_mark_room_posted(carthid,
+                                                           adir_room,
                                                            adir_hallcode, term)
 
                                         else:
                                             print("No change needed in "
                                                   "stu_serv_rec")
-                                            fn_mark_posted(carthid, adr_room,
+                                            fn_mark_room_posted(carthid,
+                                                           adir_room,
                                                            adir_hallcode, term)
 
                                     else:

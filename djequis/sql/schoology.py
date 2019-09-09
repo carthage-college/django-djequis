@@ -219,7 +219,6 @@ FROM
 			WHERE role = 'PREFF' AND end_date IS NULL 
 			AND MONTH(TODAY) IN (6,7)
 	    	)  
-	--    and JC.host_id = 1508543
 	)
 WHERE row_num = 1
 ORDER BY lastname ASC, firstname ASC, role ASC;
