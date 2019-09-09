@@ -306,7 +306,8 @@ def main():
 
                 # variables for readability
                 adir_term = i[4][:2] + i[4][-4:]
-                amount = i[2]
+                amount = '{:.2f}'.format(i[2])
+                print(amount)
                 # May need to round the amount to 2 decimal places
                 bill_id = str(i[16])
                 stu_id = str(i[0])
