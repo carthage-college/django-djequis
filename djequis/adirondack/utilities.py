@@ -1,8 +1,10 @@
 import os
 import csv
 import datetime
+import json
 import calendar
 from datetime import date
+import requests
 import codecs
 import time
 import hashlib
@@ -41,6 +43,172 @@ logger = logging.getLogger(__name__)
 
 
 # logger.setLevel(logging.DEBUG)
+
+
+
+def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session):
+    try:
+        utcts = fn_get_utcts()
+        hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
+        hash_object = hashlib.md5(hashstring.encode())
+        print(session)
+        print(bldg)
+        print(idnum)
+        print(roomtype)
+        url = "https://carthage.datacenter.adirondacksolutions.com/" \
+            "carthage_thd_test_support/apis/thd_api.cfc?" \
+            "method=studentBILLING&" \
+            "Key=" + settings.ADIRONDACK_API_SECRET + "&" + "utcts=" + \
+            str(utcts) + "&" + "h=" + \
+            hash_object.hexdigest() + "&" + \
+            "ASSIGNMENTID=" + str(roomassignmentid) + "&" + \
+            "EXPORTED=0,-1"
+        # "TIMEFRAMENUMERICCODE=" + session
+
+        # As of 9/3/19, using the api to find a room by roomassignment
+        # ID requires me to set the EXPORTED flag to BOTH 0 and -1.
+        # Seems wrong.
+
+        # "ItemType=" + roomtype.strip() + "&" + \
+        # __"STUDENTNUMBER=" + idnum + "&" + \
+        #             _____________________________
+        # Need to dynamically get the term - see the misc fee file
+        # _______________________________
+        # print(url)
+
+        response = requests.get(url)
+        x = json.loads(response.content)
+        # print(x)
+        if not x['DATA']:
+            # print("No data")
+            if bldg == 'CMTR':
+                billcode = 'CMTR'
+            elif bldg == 'OFF':
+                billcode = 'OFF'
+            elif bldg == 'ABRD':
+                billcode = 'ABRD'
+            else:
+                billcode = ''
+            print("Billcode found as " + billcode)
+            return billcode
+        else:
+            for rows in x['DATA']:
+                # print(rows)
+                # print("ASSIGNMENTID = " + str(rows[14]))
+                # print("Room Assignment ID search = " + str(roomassignmentid))
+                if roomassignmentid == rows[14]:
+                    print(rows[6])
+                    billcode = rows[6]
+                    print("Billcode found as " + billcode)
+                    return billcode
+    except Exception as e:
+        print(
+                "Error in utilities.py- "
+                "fn_get_bill_code:  " + e.message)
+        fn_write_error("Error in utilities.py "
+                       "- fn_get_bill_code: " + e.message)
+
+
+def fn_fix_bldg(bldg_code):
+    if bldg_code[:3] == 'OAK':
+        x = bldg_code.replace(" ", "")
+        l = len(bldg_code.strip())
+        b = bldg_code[l - 1:l]
+        z = x[:3]
+        bldg = z + b
+        # print(bldg)
+        return bldg
+    else:
+        return bldg_code
+
+
+def fn_translate_bldg_for_adirondack(bldg_code):
+    # Hall codes in Adirondack do not match CX, primarily OAKS
+    # Allow both versions of the OAKS options
+    switcher = {
+        "OAK1": "OAKS1",
+        "OAKS1": "OAKS1",
+        "OAK2": "OAKS 2",
+        "OAKS 2": "OAKS 2",
+        "OAK3": "OAKS 3",
+        "OAKS 3": "OAKS 3",
+        "OAK4": "OAKS 4",
+        "OAKS 4": "OAKS 4",
+        "OAK5": "OAKS 5",
+        "OAKS 5": "OAKS 5",
+        "OAK6": "OAKS 6",
+        "OAKS 6": "OAKS 6",
+        "DEN": "DEN",
+        "JOH": "JOH",
+        "MADR": "MADR",
+        "SWE": "SWE",
+        "TAR": "TAR",
+        "UN": "UN",
+        "ABRD": "ABRD",
+        "CMTR": "CMTR",
+        "OFF": "OFF",
+        "TOWR": "TOWR",
+        "WD": "WD"
+    }
+    return switcher.get(bldg_code, "Invalid Building")
+
+
+
+def fn_mark_room_posted(stu_id, room_no, hall_code, term):
+    try:
+        utcts = fn_get_utcts()
+        hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
+        hash_object = hashlib.md5(hashstring.encode())
+
+
+        # print("In fn_mark_room_posted " + str(stu_id) + ", " + str(room_no) + ", "
+        #       + str(hall_code) + ", " + term)
+        url = "https://carthage.datacenter.adirondacksolutions.com/" \
+            "carthage_thd_test_support/apis/thd_api.cfc?" \
+            "method=housingASSIGNMENTS&" \
+            "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
+            "utcts=" + \
+            str(utcts) + "&" \
+            "h=" + hash_object.hexdigest() + "&" \
+            "TimeFrameNumericCode=" + term + "&" \
+            "HallCode=" + hall_code + "&" \
+            "CurrentFuture=-1" + "&" \
+            "Ghost=0" + "&" \
+            "Posted=0" + "&" \
+            "RoomNumber=" + room_no + "&" \
+            "STUDENTNUMBER=" + stu_id + "&" \
+            "PostAssignments=-1"
+
+
+        # Room number won't work for off campus types - Room set to CMTR, ABRD
+        # etc. in CX.
+        # + "&" \
+        # print(url)
+
+        # DEFINITIONS
+        # Posted: 0 returns only NEW unposted,
+        #         1 returns posted, as in export out to our system
+        #         2 changed or cancelled
+        # PostAssignments: -1 will mark the record as posted.
+        # CurrentFuture: -1 returns only current and future
+        # Cancelled: -1 is for cancelled, 0 for not cancelled
+        # Setting Ghost to -1 prevents rooms with no student from returning
+        # print("URL = " + url)
+
+        response = requests.get(url)
+        x = json.loads(response.content)
+        # print(x)
+        if not x['DATA']:
+            print("Unable to mark record as posted - record not found")
+        else:
+            print("Record marked as posted")
+
+    except Exception as e:
+        print("Error in utilities.py- fn_mark_room_posted:  " +
+              e.message)
+        # fn_write_error("Error in utilities.py- fn_mark_room_posted:
+        # " + e.message)
+
 
 
 def fn_convert_date(ddate):
