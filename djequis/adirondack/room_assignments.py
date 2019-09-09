@@ -128,6 +128,10 @@ def main():
             session = raw_input("Enter target session (EX. RA 2019):  ")
             hall = fn_translate_bldg_for_adirondack(
                 raw_input("Enter Hall code: "))
+            posted = raw_input("Do you want unposted or posted records?  "
+                               "Enter 0 for unposted, 1 for posted, "
+                               "leave blank for both: ")
+            print(posted)
 
         elif run_mode == "auto":
 
@@ -140,8 +144,8 @@ def main():
                 else:
                     session = row[0]
                     hall = ''
+                    posted = 0
                 # IMPORTANT! won't work if string has any spaces.  NO SPACES
-
 
         print("Session = " + session)
         print("hall = " + hall)
@@ -154,7 +158,7 @@ def main():
             str(utcts) + "&" \
             "h=" + hash_object.hexdigest() + "&" \
             "TimeFrameNumericCode=" + session + "&" \
-            "Posted=0" + "&" \
+            "Posted=" + posted + "&" \
             "HALLCODE=" + hall
 
         print(url)
