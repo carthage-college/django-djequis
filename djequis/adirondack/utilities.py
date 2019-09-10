@@ -244,8 +244,8 @@ def fn_write_billing_header(file_name):
                             "USERNAME", " ADDITIONALID1"])
 
 
-def fn_write_assignment_header():
-    with open(settings.ADIRONDACK_ROOM_ASSIGNMENTS, 'wb') as room_output:
+def fn_write_assignment_header(file_name):
+    with open(file_name, 'wb') as room_output:
         csvWriter = csv.writer(room_output)
         csvWriter.writerow(["STUDENTNUMBER", "HALLNAME", "HALLCODE", "FLOOR",
                             "ROOMNUMBER", "BED", "ROOM_TYPE", "OCCUPANCY",
