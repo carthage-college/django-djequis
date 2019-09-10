@@ -187,15 +187,14 @@ def main():
             + "&" + "TIMEFRAMENUMERICCODE=" + adirondack_term \
             + "&" + "AccountCode=2010,2040,2011,2031" \
             + "&" + "Exported=-1,0" \
-            + "&" + "ExportCharges=-1"
-
-            # + "&" + "STUDENTNUMBER=1572122"
+            + "&" + "ExportCharges=-1" \
+            + "&" + "STUDENTNUMBER=1532881"
 
         # DEFINIIONS
         # Exported: -1 exported will be included, 0 only non-exported
         # ExportCharges: if -1 then charges will be marked as exported
 
-        print("URL = " + url)
+        # print("URL = " + url)
 
         response = requests.get(url)
         x = json.loads(response.content)
@@ -244,7 +243,7 @@ def main():
 
             # Make sure file for the current term has been created
             if os.path.isfile(cur_file):
-                print ("Curfile exists")
+                # print ("Curfile exists")
                 fst = cur_file
                 # f = current_term + '_processed.csv'
                 with open(fst, 'r') as ffile:
@@ -254,7 +253,8 @@ def main():
                     next(ffile)
                     for row in csvf:
                         # print(row)
-                        if row is not None:
+                        # This if statement traps for blank rows
+                        if not ''.join(row).strip():
                             assign_id = int(row[16].strip())
                             the_list.append(assign_id)
                             # print(the_list)
@@ -267,7 +267,7 @@ def main():
 
             # For extra insurance, include last term items in the list
             if os.path.isfile(last_file):
-                print ("last_file exists")
+                # print ("last_file exists")
                 lst = last_file
                 with open(lst, 'r') as lfile:
                     csvl = csv.reader(lfile)  # the [1:] skips header
@@ -299,27 +299,27 @@ def main():
 
             # Adirondack dataset
             for i in x['DATA']:
-                # print(i)
                 # --------------------
                 # As the csv is being created
                 # Compare each new file's line ID
 
                 # variables for readability
                 adir_term = i[4][:2] + i[4][-4:]
+
+                # Round the amount to 2 decimal places
                 amount = '{:.2f}'.format(i[2])
                 # print(amount)
-                # May need to round the amount to 2 decimal places
                 bill_id = str(i[16])
                 stu_id = str(i[0])
                 item_date = i[1][-4:] + "-" + i[1][:2] + "-" + i[1][3:5]
-                print(item_date)
+                # print(item_date)
                 tot_code = str(i[6])
 
                 # print("Adirondack term to check = " + adir_term)
                 # print("CX Current Term = " + current_term)
 
                 if current_term == adir_term:
-                    print("Match current term " + current_term)
+                    # print("Match current term " + current_term)
                     # here we look for a specific item
 
                     # Make sure this charge is not already in CX
@@ -338,15 +338,16 @@ def main():
                     else:
                         # Write the ASCII file and log the entry for
                         # future reference
-                        print("Write to ASCII csv file")
+                        # print("Write to ASCII csv file")
                         rec = []
                         rec.append(i[1])
-                        descr = str(i[5])
+                        # Limit to 26 characters just in case
+                        descr = str(i[5][:26])
                         descr = descr.translate(None, '!@#$%.,')
                         rec.append(descr.strip())
                         rec.append("1-003-10041")
                         # Round this?
-                        rec.append(i[2])
+                        rec.append('{:.2f}'.format(i[2]))
                         rec.append(stu_id)
                         rec.append("S/A")
                         rec.append(tot_code)
@@ -366,8 +367,8 @@ def main():
                         fee_output.close()
 
                         # Write record of item to PROCESSED list
-                        print("Write item " + str(
-                            i[16]) + " to current term file")
+                        # print("Write item " + str(
+                        #     i[16]) + " to current term file")
                         f = cur_file
                         # f = current_term + '_processed.csv'
                         with codecs.open(f, 'ab',
@@ -393,7 +394,7 @@ def main():
                         rec.append(descr.strip())
                         rec.append("1-003-10041")
                         # Round this to two decimals
-                        rec.append(i[2])
+                        rec.append('{:.2f}'.format(i[2]))
                         rec.append(stu_id)
                         rec.append("S/A")
                         rec.append(tot_code)
@@ -416,8 +417,8 @@ def main():
 
                         # Write record of item to PROCESSED list
                         # NOTE--QUOTE_MINIMAL is because timestamp has a comma
-                        print("Write item " + str(
-                            i[16]) + " to current term file")
+                        # print("Write item " + str(
+                        #     i[16]) + " to current term file")
                         f = cur_file
                         # f = current_term + '_processed.csv'
                         with codecs.open(f, 'ab',
