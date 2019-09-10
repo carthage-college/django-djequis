@@ -144,11 +144,11 @@ def main():
                 else:
                     session = row[0]
                     hall = ''
-                    posted = 0
+                    posted = '0'
                 # IMPORTANT! won't work if string has any spaces.  NO SPACES
 
-        print("Session = " + session)
-        print("hall = " + hall)
+        # print("Session = " + session)
+        # print("hall = " + str(hall))
 
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
             "carthage_thd_test_support/apis/thd_api.cfc?" \
@@ -160,13 +160,11 @@ def main():
             "TimeFrameNumericCode=" + session + "&" \
             "Posted=" + posted + "&" \
             "HALLCODE=" + hall
-
-        print(url)
-
-        # NOTE:  HALLCODE can be empty
-        # "STUDENTNUMBER=" + "1560943"
-        # "CurrentFuture=-1" + "&" \
-        #                      "Ghost=0" + "&" \
+            # "STUDENTNUMBER=" + "1560943"
+            # "CurrentFuture=-1" + "&" \
+            #                      "Ghost=0" + "&" \
+            # NOTE:  HALLCODE can be empty
+        # print(url)
 
             # DO NOT MARK AS POSTED HERE - DO IT IN SECOND STEP
         # "PostAssignments=-1" + "&" \
@@ -204,12 +202,10 @@ def main():
             if os.path.exists(room_file):
                 os.rename(room_file, room_archive)
 
-            # IF directly updating stu_serv_rec, writing csv may be
-            # redundant
-            # fn_write_assignment_header()
             room_data = fn_encode_rows_to_utf8(x['DATA'])
             # print("Start Loop")
-
+            # Write header
+            fn_write_assignment_header(room_file)
             with open(room_file, 'ab') as room_output:
                 for i in room_data:
                     print("______")
@@ -218,7 +214,7 @@ def main():
                     bldgname = i[1]
                     adir_hallcode = i[2]
                     bldg = fn_fix_bldg(i[2])
-                    print("Adirondack Hall Code = " + adir_hallcode)
+                    # print("Adirondack Hall Code = " + adir_hallcode)
                     floor = i[3]
                     bed = i[5]
                     room_type = i[6]
