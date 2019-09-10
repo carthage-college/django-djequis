@@ -1,4 +1,6 @@
 # Ignore data files in this directory
 *[.txt, .csv]
+# ignore folder
+obsolete/
 # Except this file
 !.gitignore
