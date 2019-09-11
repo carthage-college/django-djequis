@@ -187,8 +187,8 @@ def main():
             + "&" + "TIMEFRAMENUMERICCODE=" + adirondack_term \
             + "&" + "AccountCode=2010,2040,2011,2031" \
             + "&" + "Exported=-1,0" \
-            + "&" + "ExportCharges=-1" \
-            + "&" + "STUDENTNUMBER=1532881"
+            + "&" + "ExportCharges=-1"
+            # + "&" + "STUDENTNUMBER=1532881"
 
         # DEFINIIONS
         # Exported: -1 exported will be included, 0 only non-exported
