@@ -154,15 +154,15 @@ def fn_translate_bldg_for_adirondack(bldg_code):
 
 
 
-def fn_mark_room_posted(stu_id, room_no, hall_code, term):
+def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted):
     try:
         utcts = fn_get_utcts()
         hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
         hash_object = hashlib.md5(hashstring.encode())
 
 
-        # print("In fn_mark_room_posted " + str(stu_id) + ", " + str(room_no) + ", "
-        #       + str(hall_code) + ", " + term)
+        # print("In fn_mark_room_posted " + str(stu_id) + ", " + str(room_no)
+        # + ", " + str(hall_code) + ", " + term)
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
             "carthage_thd_test_support/apis/thd_api.cfc?" \
             "method=housingASSIGNMENTS&" \
@@ -172,18 +172,17 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term):
             "h=" + hash_object.hexdigest() + "&" \
             "TimeFrameNumericCode=" + term + "&" \
             "HallCode=" + hall_code + "&" \
-            "CurrentFuture=-1" + "&" \
             "Ghost=0" + "&" \
-            "Posted=0" + "&" \
+            "Posted=" + str(posted) + "&" \
             "RoomNumber=" + room_no + "&" \
             "STUDENTNUMBER=" + stu_id + "&" \
             "PostAssignments=-1"
 
-
-        # Room number won't work for off campus types - Room set to CMTR, ABRD
-        # etc. in CX.
-        # + "&" \
-        # print(url)
+            # "CurrentFuture=-1" + "&"
+            # Room number won't work for off campus types - Room set to CMTR,
+            # ABRD  etc. in CX.
+            # + "&" \
+        print(url)
 
         # DEFINITIONS
         # Posted: 0 returns only NEW unposted,
