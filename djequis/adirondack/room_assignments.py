@@ -4,7 +4,8 @@ import os
 import sys
 import time
 import datetime
-from datetime import datetime
+from datetime import datetime, timedelta
+from datetime import date
 import requests
 import csv
 import argparse
@@ -144,7 +145,7 @@ def main():
                 else:
                     session = row[0]
                     hall = ''
-                    posted = '0'
+                    posted = '0,2'
                 # IMPORTANT! won't work if string has any spaces.  NO SPACES
 
         # print("Session = " + session)
@@ -159,12 +160,12 @@ def main():
             "h=" + hash_object.hexdigest() + "&" \
             "TimeFrameNumericCode=" + session + "&" \
             "Posted=" + posted + "&" \
-            "HALLCODE=" + hall
-            # "STUDENTNUMBER=" + "1560943"
+            "HALLCODE=" + hall  + "&" \
+            "STUDENTNUMBER=" + "1512144,1431943"
             # "CurrentFuture=-1" + "&" \
             #                      "Ghost=0" + "&" \
             # NOTE:  HALLCODE can be empty
-        # print(url)
+        print(url)
 
             # DO NOT MARK AS POSTED HERE - DO IT IN SECOND STEP
         # "PostAssignments=-1" + "&" \
@@ -187,6 +188,9 @@ def main():
 
         response = requests.get(url)
         x = json.loads(response.content)
+        json_count = len(x['DATA'])
+        print(" ")
+        print("Records returned = " + str(json_count))
         # print(x)
         if not x['DATA']:
             print("No new data found")
@@ -208,6 +212,14 @@ def main():
             fn_write_assignment_header(room_file)
             with open(room_file, 'ab') as room_output:
                 for i in room_data:
+
+                    # Temp thoughts
+                    # If posted = 2 and cancelled = -1 then update that record
+                    # If posted = 2 and cancelled = 0, assume there is another
+                    # record with the correct data coming.  Do not process the
+                    # posted = 2 record
+
+
                     print("______")
                     print(i[0])
                     carthid = i[0]
@@ -221,34 +233,42 @@ def main():
                     occupancy = i[7]
                     roomusage = i[8]
                     timeframenumericcode = i[9]
+                    # Note: Checkout date is returning in the checkout
+                    # field from the API rather than checkoutdate field
                     checkin = i[10]
-                    if i[11] == None:
-                        checkedindate = None
-                    else:
-                        d1 = datetime.strptime(i[11],
-                                               "%B, "
-                                               "%d %Y "
-                                               "%H:%M:%S")
-                        checkedindate = d1.strftime("%m-%d-%Y")
-                    # print("ADD DATE = " + str(checkedindate))
+                    checkedindate = i[11]
+                    # if i[11] == None:
+                    #     checkedindate = None
+                    # else:
+                    #     d1 = datetime.strptime(i[11],
+                    #                            "%B, "
+                    #                            "%d %Y "
+                    #                            "%H:%M:%S")
+                    #     checkedindate = d1.strftime("%m-%d-%Y")
+                    print("ADD DATE = " + str(checkin))
                     checkout = i[12]
-                    if i[13] == None:
-                        checkedoutdate = None
-                    else:
-                        d1 = datetime.strptime(i[13],
-                                               "%B, "
-                                               "%d %Y "
-                                               "%H:%M:%S")
-                        checkedoutdate = d1.strftime("%m-%d-%Y")
-                    # print("OUT DATE = " + str(checkedoutdate))
+                    print("Checkout = " + str(checkout))
+                    checkedoutdate = i[13]
+                    # if i[13] == None:
+                    #     checkedoutdate = None
+                    # else:
+                    #     d1 = datetime.strptime(i[13],
+                    #                            "%B, "
+                    #                            "%d %Y "
+                    #                            "%H:%M:%S")
+                    #     checkedoutdate = d1.strftime("%m-%d-%Y")
+                    print("OUT DATE = " + str(checkout))
                     po_box = i[14]
                     po_box_combo = i[15]
                     canceled = i[16]
+                    print("Cancelled = " + str(canceled))
                     canceldate = i[17]
                     cancelnote = i[18]
                     cancelreason = i[19]
                     ghost = i[20]
+                    print("Ghost = " + str(ghost))
                     posted = i[21]
+                    print("Posted = " + str(posted))
                     roomassignmentid = i[22]
                     sess = i[9][:2]
                     year = i[9][-4:]
@@ -312,144 +332,176 @@ def main():
                     print("ROOMASSIGNMENTID = "
                           + str(roomassignmentid))
 
-                    csvWriter = csv.writer(room_output,
-                                           quoting=csv.QUOTE_NONNUMERIC
-                                           )
-                    # csvWriter.writerow(i)
-                    # Need to write translated fields if csv is to
-                    # be created
-                    csvWriter.writerow([carthid, bldgname, bldg,
-                                        floor, room, bed, room_type,
-                                        occupancy, roomusage,
-                                        timeframenumericcode, checkin,
-                                        checkedindate, checkout,
-                                        checkedoutdate, po_box,
-                                        po_box_combo, canceled,
-                                        canceldate, cancelnote,
-                                        cancelreason, ghost, posted,
-                                        roomassignmentid])
-                    # print(str(carthid) + ', ' + str(billcode) + ', '
-                    #       + str(bldg) + ', ' + str(room) + ', ' +
-                    #       + str(room_type))
-                    # Validate if the stu_serv_rec exists first
-                    # update stu_serv_rec id, sess, yr, rxv_stat,
-                    # intend_hsg, campus, bldg, room, bill_code
-                    q_validate_stuserv_rec = '''
-                                  select id, sess, yr, rsv_stat, 
-                                  intend_hsg, campus, bldg, room, 
-                                  no_per_room, 
-                                  add_date, 
-                                  bill_code, hous_wd_date 
-                                  from stu_serv_rec 
-                                  where yr = {2}
-                                  and sess  = "{1}"
-                                  and id = {0}'''.format(carthid,
-                                                         sess, year)
-                    # print(q_validate_stuserv_rec)
 
-                    ret = do_sql(q_validate_stuserv_rec, key=DEBUG,
-                                 earl=EARL)
+                    # Decide to process or not
+                    TDAY = date.today()-+ timedelta(days=7)
+                    cutdate = TDAY.strftime("%m/%d/%Y")
+                    print(cutdate)
+                    print(checkout)
 
-                    if ret is not None:
-                        if billcode > 0:
-                            # compare rsv_stat, intend_hsg, bldg, room,
-                            # billcode
-                            # Update only if something has changed
-                            print("Record found " + carthid)
+                    if posted == 2 and canceled == -1 and checkout > cutdate:
+                        print("Cancellation " + str(checkout))
+                        # In this case, the record will only update if there
+                        # is a change
+                        # PROCESS IT
+                        process = True
+                    elif posted == 2 and canceled == 0 and checkout > cutdate:
+                        print("Changed record " + str(checkout))
+                        # This is one record of two.  Ignore and process
+                        # the more recent which should have a checkout
+                        # in the future
+                        process = False
+                    elif posted == 0 and canceled == -1:
+                        print("This should not happen")
+                        process = False
+                    else:
+                        print("Process unposted record " + str(checkout))
+                        # PROCESS IT
+                        process = True
 
-                            row = ret.fetchone()
-                            if row is not None:
-                                print(row[3] + "," + str(rsvstat))
-                                print(row[4] + "," + str(intendhsg))
-                                print(row[6] + "," + str(bldg))
-                                print(row[7] + "," + str(room))
-                                print(row[10] + "," + str(billcode))
-                                if row[3] != rsvstat \
-                                        or row[4] != intendhsg \
-                                        or row[6] != bldg \
-                                        or row[7] != room \
-                                        or row[10] != billcode:
-                                    print("Need to update "
-                                          "stu_serv_rec")
-                                    q_update_stuserv_rec = '''
-                                    UPDATE stu_serv_rec set  
-                                    rsv_stat = ?,
-                                    intend_hsg = ?, campus = ?, 
-                                    bldg = 
-                                    ?, room = ?,
-                                    no_per_room = ?, add_date = ?, 
-                                    bill_code = ?,
-                                    hous_wd_date = ?
-                                    where id = ? and sess = ? and 
-                                    yr = ?'''
-                                    q_update_stuserv_args = (rsvstat,
-                                        intendhsg,
-                                        "MAIN", bldg,
-                                        room,
-                                        occupants,
-                                        checkedindate,
-                                        billcode,
-                                        checkedoutdate,
-                                        carthid,
-                                        sess, year)
-                                    # print(q_update_stuserv_rec)
-                                    # print(q_update_stuserv_args)
-                                    engine.execute(
-                                        q_update_stuserv_rec,
-                                        q_update_stuserv_args)
+                    print(process)
+                    if process == True:
+                        csvWriter = csv.writer(room_output,
+                                               quoting=csv.QUOTE_NONNUMERIC
+                                               )
+                        # csvWriter.writerow(i)
+                        # Need to write translated fields if csv is to
+                        # be created
+                        csvWriter.writerow([carthid, bldgname, bldg,
+                                            floor, room, bed, room_type,
+                                            occupancy, roomusage,
+                                            timeframenumericcode, checkin,
+                                            checkedindate, checkout,
+                                            checkedoutdate, po_box,
+                                            po_box_combo, canceled,
+                                            canceldate, cancelnote,
+                                            cancelreason, ghost, posted,
+                                            roomassignmentid])
+                        # print(str(carthid) + ', ' + str(billcode) + ', '
+                        #       + str(bldg) + ', ' + str(room) + ', ' +
+                        #       + str(room_type))
+                        # Validate if the stu_serv_rec exists first
+                        # update stu_serv_rec id, sess, yr, rxv_stat,
+                        # intend_hsg, campus, bldg, room, bill_code
+                        q_validate_stuserv_rec = '''
+                                      select id, sess, yr, rsv_stat, 
+                                      intend_hsg, campus, bldg, room, 
+                                      no_per_room, 
+                                      add_date, 
+                                      bill_code, hous_wd_date 
+                                      from stu_serv_rec 
+                                      where yr = {2}
+                                      and sess  = "{1}"
+                                      and id = {0}'''.format(carthid,
+                                                             sess, year)
+                        # print(q_validate_stuserv_rec)
 
-                                    fn_mark_room_posted(carthid,
-                                                   adir_room,
-                                                   adir_hallcode, term)
+                        ret = do_sql(q_validate_stuserv_rec, key=DEBUG,
+                                     earl=EARL)
+
+                        if ret is not None:
+                            if billcode > 0:
+                                # compare rsv_stat, intend_hsg, bldg, room,
+                                # billcode
+                                # Update only if something has changed
+                                print("Record found " + carthid)
+
+                                row = ret.fetchone()
+                                if row is not None:
+                                    print(row[3] + "," + str(rsvstat))
+                                    print(row[4] + "," + str(intendhsg))
+                                    print(row[6] + "," + str(bldg))
+                                    print(row[7] + "," + str(room))
+                                    print(row[10] + "," + str(billcode))
+                                    if row[3] != rsvstat \
+                                            or row[4] != intendhsg \
+                                            or row[6] != bldg \
+                                            or row[7] != room \
+                                            or row[10] != billcode:
+                                        print("Need to update "
+                                              "stu_serv_rec")
+                                        q_update_stuserv_rec = '''
+                                        UPDATE stu_serv_rec set  
+                                        rsv_stat = ?,
+                                        intend_hsg = ?, campus = ?, 
+                                        bldg = ?, room = ?,
+                                        bill_code = ?
+                                        where id = ? and sess = ? and 
+                                        yr = ?'''
+                                        q_update_stuserv_args = (rsvstat,
+                                            intendhsg,
+                                            "MAIN", bldg,
+                                            room,
+                                            billcode,
+                                            carthid,
+                                            sess, year)
+                                        # print(q_update_stuserv_rec)
+                                        # print(q_update_stuserv_args)
+                                        engine.execute(
+                                            q_update_stuserv_rec,
+                                            q_update_stuserv_args)
+
+                                        # fn_mark_room_posted(carthid,
+                                        #                adir_room, adir_hallcode,
+                                        #                     term, posted)
+
+                                    else:
+                                        print("No change needed in "
+                                              "stu_serv_rec")
+                                        # fn_mark_room_posted(carthid,
+                                        #                adir_room, adir_hallcode,
+                                        #                     term, posted)
 
                                 else:
-                                    print("No change needed in "
-                                          "stu_serv_rec")
-                                    fn_mark_room_posted(carthid,
-                                                   adir_room,
-                                                   adir_hallcode, term)
+                                    print("fetch retuned none - No "
+                                          "stu_serv_rec for student "
+                                          + carthid + " for term " + term)
+                                    body = "Student Service Record does not " \
+                                           "exist for " + carthid + " for term " \
+                                            + term + ".. Please inquire why."
+                                    subj = "Adirondack - Stu_serv_rec missing"
+                                    sendmail("dsullivan@carthage.edu",
+                                             "dsullivan@carthage.edu", body, subj)
 
                             else:
-                                print("fetch retuned none - No "
-                                      "stu_serv_rec for student "
-                                      + carthid + " for term " + term)
-
+                                print("Bill code not found")
+                        #     # go ahead and update
                         else:
-                            print("Bill code not found")
-                    #     # go ahead and update
+                            print("Record not found")
+
+                            body = "Student Service Record does not " \
+                                           "exist for " + carthid + " for term " \
+                                            + term + ".. Please inquire why."
+                            subj = "Adirondack - Stu_serv_rec missing"
+                            sendmail("dsullivan@carthage.edu",
+                                     "dsullivan@carthage.edu", body, subj)
+
+                            # Insert if no record exists, update else
+                            # Dave says stu_serv_rec should NOT be created
+                            # from Adirondack data.  Other offices need
+                            # to create the initial record
+                            # Need to send something to Marietta
+                            # if billcode > 0:
+                            #     q_insert_stuserv_rec = '''
+                            #             INSERT INTO stu_serv_rec (id,
+                            #             sess, yr, rsv_stat, intend_hsg,
+                            #             campus, bldg, room, no_per_room,
+                            #             add_date,bill_code, hous_wd_date)
+                            #             VALUES (?,?,?,?,?,?,?,?,?,?,?)'''
+                            #     q_insert_stuserv_args = (
+                            #         carthid, term, yr, rsvstat, 'R',
+                            #         'MAIN', bldg, room, occupants,
+                            #         checkedindate, billcode,
+                            #         checkedoutdate)
+                            #     print(q_insert_stuserv_rec)
+                            #     print(q_insert_stuserv_args)
+                            #     # engine.execute(q_insert_stuserv_rec,
+                            #     # q_insert_stuserv_args)
+
+                            # else:
+                            #     print("Bill code not found")
                     else:
-                        print("Record not found")
-
-                        body = "Student Service Record does not " \
-                               "exist. Please inquire why."
-                        subj = "Adirondack - Stu_serv_rec missing"
-                        sendmail("dsullivan@carthage.edu",
-                                 "dsullivan@carthage.edu", body, subj)
-
-                        # Insert if no record exists, update else
-                        # Dave says stu_serv_rec should NOT be created
-                        # from Adirondack data.  Other offices need
-                        # to create the initial record
-                        # Need to send something to Marietta
-                        # if billcode > 0:
-                        #     q_insert_stuserv_rec = '''
-                        #             INSERT INTO stu_serv_rec (id,
-                        #             sess, yr, rsv_stat, intend_hsg,
-                        #             campus, bldg, room, no_per_room,
-                        #             add_date,bill_code, hous_wd_date)
-                        #             VALUES (?,?,?,?,?,?,?,?,?,?,?)'''
-                        #     q_insert_stuserv_args = (
-                        #         carthid, term, yr, rsvstat, 'R',
-                        #         'MAIN', bldg, room, occupants,
-                        #         checkedindate, billcode,
-                        #         checkedoutdate)
-                        #     print(q_insert_stuserv_rec)
-                        #     print(q_insert_stuserv_args)
-                        #     # engine.execute(q_insert_stuserv_rec,
-                        #     # q_insert_stuserv_args)
-
-                        # else:
-                        #     print("Bill code not found")
+                        print("Not processed")
 
         # filepath = settings.ADIRONDACK_CSV_OUTPUT
 
