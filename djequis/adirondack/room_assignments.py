@@ -131,7 +131,7 @@ def main():
                 raw_input("Enter Hall code: "))
             posted = raw_input("Do you want unposted or posted records?  "
                                "Enter 0 for unposted, 1 for posted, "
-                               "leave blank for both: ")
+                               "2 for changed, 0,2 for both: ")
             print(posted)
 
         elif run_mode == "auto":
@@ -141,7 +141,10 @@ def main():
             if ret is not None:
                 row = ret.fetchone()
                 if row is None:
-                    print("Term not found")
+                    # print("Term not found")
+                    fn_write_error(
+                        "Error in room_assignments.py - Main: "
+                        + e.message)
                 else:
                     session = row[0]
                     hall = ''
@@ -160,12 +163,13 @@ def main():
             "h=" + hash_object.hexdigest() + "&" \
             "TimeFrameNumericCode=" + session + "&" \
             "Posted=" + posted + "&" \
-            "HALLCODE=" + hall  + "&" \
-            "STUDENTNUMBER=" + "1428374,1376420,1427332"
+            "HALLCODE=" + hall
+            # + "&" \
+            # "STUDENTNUMBER=" + "1496904"
             # "CurrentFuture=-1" + "&" \
             #                      "Ghost=0" + "&" \
             # NOTE:  HALLCODE can be empty
-        print(url)
+        # print(url)
 
             # DO NOT MARK AS POSTED HERE - DO IT IN SECOND STEP
         # "PostAssignments=-1" + "&" \
@@ -189,8 +193,7 @@ def main():
         response = requests.get(url)
         x = json.loads(response.content)
         json_count = len(x['DATA'])
-        print(" ")
-        print("Records returned = " + str(json_count))
+        # print("Records returned = " + str(json_count))
         # print(x)
         if not x['DATA']:
             print("No new data found")
@@ -213,7 +216,7 @@ def main():
             with open(room_file, 'ab') as room_output:
                 for i in room_data:
 
-                    print("______")
+                    # print("______")
                     # print(i[0])
                     carthid = i[0]
                     bldgname = i[1]
@@ -239,7 +242,6 @@ def main():
                     #     checkedindate = d1.strftime("%m-%d-%Y")
                     # print("ADD DATE = " + str(checkin))
                     checkout = i[12]
-                    print("Checkout = " + str(checkout))
                     checkedoutdate = i[13]
                     # if i[13] == None:
                     #     checkedoutdate = None
@@ -253,15 +255,12 @@ def main():
                     po_box = i[14]
                     po_box_combo = i[15]
                     canceled = i[16]
-                    print("Cancelled = " + str(canceled))
                     canceldate = i[17]
                     cancelnote = i[18]
                     cancelreason = i[19]
-                    print("Cancel Reason = " + str(cancelreason))
                     ghost = i[20]
                     # print("Ghost = " + str(ghost))
                     posted = i[21]
-                    print("Posted = " + str(posted))
                     roomassignmentid = i[22]
                     sess = i[9][:2]
                     year = i[9][-4:]
@@ -287,7 +286,6 @@ def main():
                     # one for CX.
 
                     adir_room = i[4]
-                    print(adir_room)
 
 
                     if bldg == 'CMTR':
@@ -311,13 +309,13 @@ def main():
                         room = i[4]
 
                     if posted == 2 and canceled == -1:
-                        print("Cancellation " + str(checkout))
+                        # print("Cancellation " + str(checkout))
                         billcode = 'NOCH'
                         bldg = ''
                         room = ''
 
-                    print("ROOMASSIGNMENTID = "
-                          + str(roomassignmentid))
+                    # print("ROOMASSIGNMENTID = "
+                    #       + str(roomassignmentid))
 
                     if canceled == -1 and cancelreason == 'Withdrawal':
                         rsvstat = 'W'
@@ -367,22 +365,22 @@ def main():
                             # compare rsv_stat, intend_hsg, bldg, room,
                             # billcode
                             # Update only if something has changed
-                            print("Record found " + carthid)
+                            # print("Record found " + carthid)
 
                             row = ret.fetchone()
                             if row is not None:
-                                print(row[3] + "," + str(rsvstat))
-                                print(row[4] + "," + str(intendhsg))
-                                print(row[6] + "," + str(bldg))
-                                print(row[7] + "," + str(room))
-                                print(row[10] + "," + str(billcode))
+                                # print(row[3] + "," + str(rsvstat))
+                                # print(row[4] + "," + str(intendhsg))
+                                # print(row[6] + "," + str(bldg))
+                                # print(row[7] + "," + str(room))
+                                # print(row[10] + "," + str(billcode))
                                 if row[3] != rsvstat \
                                         or row[4] != intendhsg \
                                         or row[6] != bldg \
                                         or row[7] != room \
                                         or row[10] != billcode:
-                                    print("Need to update "
-                                          "stu_serv_rec")
+                                    # print("Need to update "
+                                    #       "stu_serv_rec")
                                     q_update_stuserv_rec = '''
                                     UPDATE stu_serv_rec set  
                                     rsv_stat = ?,
@@ -409,16 +407,16 @@ def main():
                                                         term, posted)
 
                                 else:
-                                    print("No change needed in "
-                                          "stu_serv_rec")
+                                    # print("No change needed in "
+                                    #       "stu_serv_rec")
                                     fn_mark_room_posted(carthid,
                                                    adir_room, adir_hallcode,
                                                         term, posted)
 
                             else:
-                                print("fetch retuned none - No "
-                                      "stu_serv_rec for student "
-                                      + carthid + " for term " + term)
+                                # print("fetch retuned none - No "
+                                #       "stu_serv_rec for student "
+                                #       + carthid + " for term " + term)
                                 body = "Student Service Record does not " \
                                        "exist for " + carthid + " for term " \
                                         + term + ".. Please inquire why."
@@ -428,6 +426,9 @@ def main():
 
                         else:
                             print("Bill code not found")
+                            fn_write_error(
+                                "Error in room_assignments.py - Bill code not"
+                                "found: " + e.message)
                     #     # go ahead and update
                     else:
                         print("Record not found")
@@ -467,11 +468,11 @@ def main():
         # filepath = settings.ADIRONDACK_CSV_OUTPUT
 
     except Exception as e:
-        print(
-                "Error in adirondack_room_assignments_api.py- Main:  " +
-                e.message)
-        # fn_write_error("Error in adirondack_std_billing_api.py - Main: "
-        #                + e.message)
+        # print(
+        #         "Error in adirondack_room_assignments_api.py- Main:  " +
+        #         e.message)
+        fn_write_error("Error in room_assignments.py - Main: "
+                       + e.message)
 
 
 if __name__ == "__main__":
