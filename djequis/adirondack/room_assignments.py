@@ -161,7 +161,7 @@ def main():
             "TimeFrameNumericCode=" + session + "&" \
             "Posted=" + posted + "&" \
             "HALLCODE=" + hall  + "&" \
-            "STUDENTNUMBER=" + "1512144,1431943"
+            "STUDENTNUMBER=" + "1428374,1376420,1427332"
             # "CurrentFuture=-1" + "&" \
             #                      "Ghost=0" + "&" \
             # NOTE:  HALLCODE can be empty
@@ -221,7 +221,7 @@ def main():
 
 
                     print("______")
-                    print(i[0])
+                    # print(i[0])
                     carthid = i[0]
                     bldgname = i[1]
                     adir_hallcode = i[2]
@@ -245,7 +245,7 @@ def main():
                     #                            "%d %Y "
                     #                            "%H:%M:%S")
                     #     checkedindate = d1.strftime("%m-%d-%Y")
-                    print("ADD DATE = " + str(checkin))
+                    # print("ADD DATE = " + str(checkin))
                     checkout = i[12]
                     print("Checkout = " + str(checkout))
                     checkedoutdate = i[13]
@@ -257,7 +257,7 @@ def main():
                     #                            "%d %Y "
                     #                            "%H:%M:%S")
                     #     checkedoutdate = d1.strftime("%m-%d-%Y")
-                    print("OUT DATE = " + str(checkout))
+                    # print("OUT DATE = " + str(checkout))
                     po_box = i[14]
                     po_box_combo = i[15]
                     canceled = i[16]
@@ -265,8 +265,9 @@ def main():
                     canceldate = i[17]
                     cancelnote = i[18]
                     cancelreason = i[19]
+                    print("Cancel Reason = " + str(cancelreason))
                     ghost = i[20]
-                    print("Ghost = " + str(ghost))
+                    # print("Ghost = " + str(ghost))
                     posted = i[21]
                     print("Posted = " + str(posted))
                     roomassignmentid = i[22]
@@ -320,6 +321,7 @@ def main():
                         intendhsg = 'R'
                         room = i[4]
 
+                    # set the rsvstat field
                     # Use cancelation reason
                     if cancelreason == 'Withdrawal':
                         rsvstat = 'W'
@@ -332,29 +334,36 @@ def main():
                     print("ROOMASSIGNMENTID = "
                           + str(roomassignmentid))
 
-
                     # Decide to process or not
-                    TDAY = date.today()-+ timedelta(days=7)
-                    cutdate = TDAY.strftime("%m/%d/%Y")
+                    tday = date.today()-+ timedelta(days=7)
+                    cutdate = tday.strftime("%m/%d/%Y")
                     print(cutdate)
                     print(checkout)
 
+                    # Cancellation
                     if posted == 2 and canceled == -1 and checkout > cutdate:
                         print("Cancellation " + str(checkout))
+                        billcode = 'NOCH'
+                        bldg = ''
+                        room = ''
                         # In this case, the record will only update if there
                         # is a change
                         # PROCESS IT
                         process = True
+                    # Room change -  old room
                     elif posted == 2 and canceled == 0 and checkout > cutdate:
                         print("Changed record " + str(checkout))
                         # This is one record of two.  Ignore and process
                         # the more recent which should have a checkout
                         # in the future
-                        process = False
+                        process = True
+                    # Cancellation
                     elif posted == 0 and canceled == -1:
                         print("This should not happen")
                         process = False
                     else:
+                        # Room Change - New room
+                        # Posted = 0  - cancelled = 0
                         print("Process unposted record " + str(checkout))
                         # PROCESS IT
                         process = True
