@@ -209,6 +209,61 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted):
         # " + e.message)
 
 
+# def fn_mark_bill_exported(bill_id, assign_id, exported):
+#     try:
+#         utcts = fn_get_utcts()
+#         hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
+#         hash_object = hashlib.md5(hashstring.encode())
+
+    #     print("Bill id =  " + str(bill_id))
+    #     print("Assignment id = " + str(assign_id))
+    #     print("Exported = " + str(exported)
+    #
+    #     # print("In fn_mark_bill_exported " + str(stu_id) + ", " + str(room_no)
+    #     # + ", " + str(hall_code) + ", " + term)
+    #     url = "https://carthage.datacenter.adirondacksolutions.com/" \
+    #         "carthage_thd_test_support/apis/thd_api.cfc?" \
+    #         "method=studentBILLING&" \
+    #         "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
+    #         "utcts=" + \
+    #         str(utcts) + "&" \
+    #         "h=" + hash_object.hexdigest() + "&" \
+    #         "Exported=" + str(posted) + "&" \
+    #         "STUDENTBILLINGINTERNALID=" + room_no + "&" \
+    #         "ASSIGNMENTID=" + stu_id + "&" \
+    #         "ExportCharges=-1"
+    #
+    #         # "CurrentFuture=-1" + "&"
+    #         # Room number won't work for off campus types - Room set to CMTR,
+    #         # ABRD  etc. in CX.
+    #         # + "&" \
+    #     print(url)
+    #
+    #     # DEFINITIONS
+    #     # Posted: 0 returns only NEW unposted,
+    #     #         1 returns posted, as in export out to our system
+    #     #         2 changed or cancelled
+    #     # PostAssignments: -1 will mark the record as posted.
+    #     # CurrentFuture: -1 returns only current and future
+    #     # Cancelled: -1 is for cancelled, 0 for not cancelled
+    #     # Setting Ghost to -1 prevents rooms with no student from returning
+    #     # print("URL = " + url)
+    #
+    #     # response = requests.get(url)
+    #     # x = json.loads(response.content)
+    #     # print(x)
+    #     if not x['DATA']:
+    #         print("Unable to mark bill as exported - record not found")
+    #     else:
+    #         print("Bill marked as exported")
+    #
+    # except Exception as e:
+    #     print("Error in utilities.py- fn_mark_room_posted:  " +
+    #           e.message)
+    #     # fn_write_error("Error in utilities.py- fn_mark_room_posted:
+    #     # " + e.message)
+
+
 
 def fn_convert_date(ddate):
     # print(date)
