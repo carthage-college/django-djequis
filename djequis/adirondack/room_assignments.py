@@ -4,7 +4,7 @@ import os
 import sys
 import time
 import datetime
-from datetime import datetime, timedelta
+from datetime import datetime
 from datetime import date
 import requests
 import csv
@@ -21,7 +21,7 @@ from django.conf import settings
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
-from djtools.fields import TODAY
+# from djtools.fields import TODAY
 from djzbar.settings import INFORMIX_EARL_SANDBOX
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
@@ -108,10 +108,7 @@ def main():
             EARL = None
             # establish database connection
 
-
         engine = get_engine(EARL)
-
-        # try:
 
         utcts = fn_get_utcts()
         # print("Seconds from UTC Zero hour = " + str(utcts))
@@ -143,8 +140,8 @@ def main():
                 if row is None:
                     # print("Term not found")
                     fn_write_error(
-                        "Error in room_assignments.py - Main: "
-                        + e.message)
+                        "Error in room_assignments.py - Main: No term found ")
+                    quit()
                 else:
                     session = row[0]
                     hall = ''
@@ -164,14 +161,14 @@ def main():
             "TimeFrameNumericCode=" + session + "&" \
             "Posted=" + posted + "&" \
             "HALLCODE=" + hall
-            # + "&" \
-            # "STUDENTNUMBER=" + "1496904"
-            # "CurrentFuture=-1" + "&" \
-            #                      "Ghost=0" + "&" \
-            # NOTE:  HALLCODE can be empty
+        # + "&" \
+        # "STUDENTNUMBER=" + "1496904"
+        # "CurrentFuture=-1" + "&" \
+        #                      "Ghost=0" + "&" \
+        # NOTE:  HALLCODE can be empty
         # print(url)
 
-            # DO NOT MARK AS POSTED HERE - DO IT IN SECOND STEP
+        # DO NOT MARK AS POSTED HERE - DO IT IN SECOND STEP
         # "PostAssignments=-1" + "&" \
 
         # + "&" \
@@ -192,9 +189,6 @@ def main():
 
         response = requests.get(url)
         x = json.loads(response.content)
-        json_count = len(x['DATA'])
-        # print("Records returned = " + str(json_count))
-        # print(x)
         if not x['DATA']:
             print("No new data found")
         else:
@@ -265,7 +259,7 @@ def main():
                     sess = i[9][:2]
                     year = i[9][-4:]
                     term = i[9]
-                    occupants = i[7]
+                    # occupants = i[7]
                     bldg = fn_fix_bldg(i[2])
                     billcode = fn_get_bill_code(carthid, str(bldg),
                                                 room_type,
@@ -286,7 +280,6 @@ def main():
                     # one for CX.
 
                     adir_room = i[4]
-
 
                     if bldg == 'CMTR':
                         intendhsg = 'C'
@@ -322,13 +315,13 @@ def main():
                     else:
                         rsvstat = 'R'
 
-                    csvWriter = csv.writer(room_output,
+                    csvwriter = csv.writer(room_output,
                                            quoting=csv.QUOTE_NONNUMERIC
                                            )
-                    # csvWriter.writerow(i)
+                    # csvwriter.writerow(i)
                     # Need to write translated fields if csv is to
                     # be created
-                    csvWriter.writerow([carthid, bldgname, bldg,
+                    csvwriter.writerow([carthid, bldgname, bldg,
                                         floor, room, bed, room_type,
                                         occupancy, roomusage,
                                         timeframenumericcode, checkin,
@@ -382,13 +375,12 @@ def main():
                                     # print("Need to update "
                                     #       "stu_serv_rec")
                                     q_update_stuserv_rec = '''
-                                    UPDATE stu_serv_rec set  
-                                    rsv_stat = ?,
-                                    intend_hsg = ?, campus = ?, 
-                                    bldg = ?, room = ?,
-                                    bill_code = ?
-                                    where id = ? and sess = ? and 
-                                    yr = ?'''
+                                        UPDATE stu_serv_rec set rsv_stat = ?, 
+                                        intend_hsg = ?, campus = ?, 
+                                        bldg = ?, room = ?,
+                                        bill_code = ?
+                                        where id = ? and sess = ? and 
+                                        yr = ?'''
                                     q_update_stuserv_args = (rsvstat,
                                         intendhsg,
                                         "MAIN", bldg,
@@ -409,9 +401,9 @@ def main():
                                 else:
                                     # print("No change needed in "
                                     #       "stu_serv_rec")
-                                    fn_mark_room_posted(carthid,
-                                                   adir_room, adir_hallcode,
-                                                        term, posted)
+                                    fn_mark_room_posted(carthid, adir_room,
+                                                        adir_hallcode, term,
+                                                        posted)
 
                             else:
                                 # print("fetch retuned none - No "
@@ -428,7 +420,7 @@ def main():
                             print("Bill code not found")
                             fn_write_error(
                                 "Error in room_assignments.py - Bill code not"
-                                "found: " + e.message)
+                                "found")
                     #     # go ahead and update
                     else:
                         print("Record not found")
