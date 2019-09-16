@@ -4,7 +4,7 @@ import shutil
 import sys
 import time
 import datetime
-from datetime import datetime, timedelta
+from datetime import datetime
 import codecs
 import hashlib
 import json
@@ -65,12 +65,12 @@ parser.add_argument(
 )
 
 # Test with this then remove, use the standard logging mechanism
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
 
-def fn_check_cx_records(totcod,prd,jndate,stuid,amt):
+def fn_check_cx_records(totcod, prd, jndate, stuid, amt):
     # This may or may not be completely accurate.  Need more scrutiny
-    billqry ='''select  SA.id, IR.fullname, ST.subs_no, 
+    billqry = '''select  SA.id, IR.fullname, ST.subs_no, 
         SE.jrnl_date, ST.prd, ST.subs, STR.bal_code, ST.tot_code, SE.descr, 
         SE.ctgry, STR.amt, ST.amt_inv_act, SA.stat 
         from subtr_rec STR
@@ -165,9 +165,9 @@ def main():
         adirondack_term = current_term[:2] + " " + current_term[2:]
         # print(adirondack_term)
 
-        #----------------------------------------
+        # ----------------------------------------
         # Get data from Adirondack
-        #----------------------------------------
+        # ----------------------------------------
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
             "carthage_thd_test_support/apis/thd_api.cfc?" \
             "method=studentBILLING&" \
@@ -177,8 +177,8 @@ def main():
             + "&" + "TIMEFRAMENUMERICCODE=" + adirondack_term \
             + "&" + "AccountCode=2010,2040,2011,2031" \
             + "&" + "Exported=-1,0"
-            # + "&" + "ExportCharges=-1"
-            # + "&" + "STUDENTNUMBER=1532881"
+        # + "&" + "ExportCharges=-1"
+        # + "&" + "STUDENTNUMBER=1532881"
 
         # DEFINIIONS
         # Exported: -1 exported will be included, 0 only non-exported
@@ -207,7 +207,6 @@ def main():
                                 settings.ADIRONDACK_TXT_OUTPUT +
                                 "ascii_archive/" +
                                 f[:ext] + "_" + timestr + f[ext:])
-
 
             # ----------------------------------------
             # Make sure no duplicate records get into the system
@@ -351,9 +350,9 @@ def main():
 
                         with codecs.open(fee_file, 'ab',
                                          encoding='utf-8-sig') as fee_output:
-                            csvWriter = csv.writer(fee_output,
+                            csvwriter = csv.writer(fee_output,
                                                    quoting=csv.QUOTE_NONE)
-                            csvWriter.writerow(rec)
+                            csvwriter.writerow(rec)
                         fee_output.close()
 
                         # Write record of item to PROCESSED list
@@ -363,9 +362,9 @@ def main():
                         # f = current_term + '_processed.csv'
                         with codecs.open(f, 'ab',
                                          encoding='utf-8-sig') as wffile:
-                            csvWriter = csv.writer(wffile,
+                            csvwriter = csv.writer(wffile,
                                                    quoting=csv.QUOTE_MINIMAL)
-                            csvWriter.writerow(i)
+                            csvwriter.writerow(i)
                         wffile.close()
 
                 else:
@@ -395,14 +394,12 @@ def main():
                             + datetimestr + ".csv"
 
                         # print(fee_file)
-                        encoded_rows = encode_rows_to_utf8(rec)
-                        # print(encoded_rows)
 
                         with codecs.open(fee_file, 'ab',
                                          encoding='utf-8-sig') as fee_output:
-                            csvWriter = csv.writer(fee_output,
+                            csvwriter = csv.writer(fee_output,
                                                    quoting=csv.QUOTE_NONE)
-                            csvWriter.writerow(rec)
+                            csvwriter.writerow(rec)
                         fee_output.close()
 
                         # Write record of item to PROCESSED list
@@ -413,9 +410,9 @@ def main():
                         # f = current_term + '_processed.csv'
                         with codecs.open(f, 'ab',
                                          encoding='utf-8-sig') as wffile:
-                            csvWriter = csv.writer(wffile,
+                            csvwriter = csv.writer(wffile,
                                                    quoting=csv.QUOTE_MINIMAL)
-                            csvWriter.writerow(i)
+                            csvwriter.writerow(i)
                         wffile.close()
 
                         fn_mark_bill_exported(bill_id, assign_id, exported)
@@ -426,7 +423,6 @@ def main():
                 if f.find('misc_housing') != -1:
                     # print("F = " + f)
                     csv_exists = True
-
 
             # When all done, email csv file?
             # Ideally, write ASCII file to Wilson into fin_post directory
