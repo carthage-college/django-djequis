@@ -11,22 +11,25 @@ import hashlib
 from time import strftime, strptime
 # Import smtplib for the actual sending function
 import smtplib
-
 # Here are the email package modules we'll need
 # from email.mime.image import MIMEImage
 import mimetypes
+import django
+
+# ________________
+# Note to self, keep this here
+# django settings for shell environment
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
+django.setup()
+# ________________
+# django settings for script
+from django.conf import settings
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email import encoders
-
-# import argparse
 import logging
 from logging.handlers import SMTPHandler
-
-# django settings for script
-from django.conf import settings
-
 # from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
@@ -40,10 +43,7 @@ desc = """
 
 # create logger
 logger = logging.getLogger(__name__)
-
-
 # logger.setLevel(logging.DEBUG)
-
 
 
 def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session):
@@ -153,13 +153,11 @@ def fn_translate_bldg_for_adirondack(bldg_code):
     return switcher.get(bldg_code, "Invalid Building")
 
 
-
 def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted):
     try:
         utcts = fn_get_utcts()
         hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
         hash_object = hashlib.md5(hashstring.encode())
-
 
         # print("In fn_mark_room_posted " + str(stu_id) + ", " + str(room_no)
         # + ", " + str(hall_code) + ", " + term)
@@ -177,11 +175,10 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted):
             "RoomNumber=" + room_no + "&" \
             "STUDENTNUMBER=" + stu_id + "&" \
             "PostAssignments=-1"
-
-            # "CurrentFuture=-1" + "&"
-            # Room number won't work for off campus types - Room set to CMTR,
-            # ABRD  etc. in CX.
-            # + "&" \
+        # "CurrentFuture=-1" + "&"
+        # Room number won't work for off campus types - Room set to CMTR,
+        # ABRD  etc. in CX.
+        # + "&" \
         print(url)
 
         # DEFINITIONS
@@ -219,7 +216,8 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted):
     #     print("Assignment id = " + str(assign_id))
     #     print("Exported = " + str(exported)
     #
-    #     # print("In fn_mark_bill_exported " + str(stu_id) + ", " + str(room_no)
+    #     # print("In fn_mark_bill_exported " + str(stu_id) + ", "
+    #           + str(room_no)
     #     # + ", " + str(hall_code) + ", " + term)
     #     url = "https://carthage.datacenter.adirondacksolutions.com/" \
     #         "carthage_thd_test_support/apis/thd_api.cfc?" \
@@ -264,7 +262,6 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted):
     #     # " + e.message)
 
 
-
 def fn_convert_date(ddate):
     # print(date)
     if ddate != "":
@@ -280,16 +277,16 @@ def fn_write_misc_header():
     with codecs.open(settings.ADIRONDACK_ROOM_FEES, 'wb',
                      encoding='utf-8-sig') as fee_output:
         # with open('ascii_room_damages.csv', 'wb') as fee_output:
-        csvWriter = csv.writer(fee_output)
-        csvWriter.writerow(["ITEM_DATE", "BILL_DESCRIPTION", "ACCOUNT_NUMBER",
+        csvwriter = csv.writer(fee_output)
+        csvwriter.writerow(["ITEM_DATE", "BILL_DESCRIPTION", "ACCOUNT_NUMBER",
                             "AMOUNT", "STUDENT_ID", "TOT_CODE", "BILL_CODE",
                             "TERM"])
 
 
 def fn_write_billing_header(file_name):
     with open(file_name, 'wb') as room_output:
-        csvWriter = csv.writer(room_output)
-        csvWriter.writerow(["STUDENTNUMBER", "ITEMDATE", "AMOUNT", "TIMEFRAME",
+        csvwriter = csv.writer(room_output)
+        csvwriter.writerow(["STUDENTNUMBER", "ITEMDATE", "AMOUNT", "TIMEFRAME",
                             "TIMEFRAMENUMERICCODE", "BILLDESCRIPTION",
                             "ACCOUNT", "ACCOUNT_DISPLAY_NAME", "EFFECTIVEDATE",
                             "EXPORTED", "EXPORTTIMESTAMP", "BILLEXPORTDATE",
@@ -300,8 +297,8 @@ def fn_write_billing_header(file_name):
 
 def fn_write_assignment_header(file_name):
     with open(file_name, 'wb') as room_output:
-        csvWriter = csv.writer(room_output)
-        csvWriter.writerow(["STUDENTNUMBER", "HALLNAME", "HALLCODE", "FLOOR",
+        csvwriter = csv.writer(room_output)
+        csvwriter.writerow(["STUDENTNUMBER", "HALLNAME", "HALLCODE", "FLOOR",
                             "ROOMNUMBER", "BED", "ROOM_TYPE", "OCCUPANCY",
                             "ROOMUSAGE",
                             "TIMEFRAMENUMERICCODE", "CHECKIN", "CHECKEDINDATE",
@@ -314,8 +311,8 @@ def fn_write_assignment_header(file_name):
 
 def fn_write_application_header():
     with open(settings.ADIRONDACK_APPLICATONS, 'wb') as output:
-        csvWriter = csv.writer(output)
-        csvWriter.writerow(["STUDENTNUMBER", "APPLICATIONTYPENAME",
+        csvwriter = csv.writer(output)
+        csvwriter.writerow(["STUDENTNUMBER", "APPLICATIONTYPENAME",
                             "APP_RECEIVED", "APP_COMPLETE",
                             "TIMEFRAMENUMERICCODE", "ELECTRONIC_SIG_TS",
                             "CONTRACT_RECEIVED", "APP_CANCELED", "DEPOSIT",
@@ -331,8 +328,8 @@ def fn_write_student_bio_header():
 
     with open(adirondackdata, 'w') as file_out:
         # with open("carthage_students.txt", 'w') as file_out:
-        csvWriter = csv.writer(file_out, delimiter='|')
-        csvWriter.writerow(
+        csvwriter = csv.writer(file_out, delimiter='|')
+        csvwriter.writerow(
             ["STUDENT_NUMBER", "FIRST_NAME", "MIDDLE_NAME",
              "LAST_NAME", "DATE_OF_BIRTH", "GENDER",
              "IDENTIFIED_GENDER", "PREFERRED_NAME",
@@ -382,7 +379,7 @@ def fn_write_student_bio_header():
              "CONTACT3_WORK_PHONE", "CONTACT3_MOBILE_PHONE",
              "CONTACT3_EMAIL", "CONTACT3_STREET", "CONTACT3_STREET2",
              "CONTACT3_CITY", "CONTACT3_STATE", "CONTACT3_ZIP",
-             "CONTACT3_COUNTRY", "TERM", "RACECODE","SPORT","GREEK_LIFE"])
+             "CONTACT3_COUNTRY", "TERM", "RACECODE", "SPORT", "GREEK_LIFE"])
     file_out.close()
 
 
@@ -403,6 +400,7 @@ def fn_encode_rows_to_utf8(rows):
 #########################################################
 # Common functions to handle logger messages and errors
 #########################################################
+
 
 def fn_write_error(msg):
     # create error file handler and set level to error
@@ -429,10 +427,9 @@ def fn_sendmailfees(to, frum, body, subject):
     msg['From'] = frum
     msg['Subject'] = subject
 
-    text=''
+    text = ''
     # This can be outside the file collection loop
     msg.attach(MIMEText(body, 'csv'))
-
 
     files = os.listdir(settings.ADIRONDACK_TXT_OUTPUT)
     # filenames = []
@@ -440,14 +437,14 @@ def fn_sendmailfees(to, frum, body, subject):
         if f.find('misc_housing') != -1:
             # print(settings.ADIRONDACK_TXT_OUTPUT + f)
             part = MIMEBase('application', "octet-stream")
-            part.set_payload(open(settings.ADIRONDACK_TXT_OUTPUT + f, "rb").read())
+            part.set_payload(open(settings.ADIRONDACK_TXT_OUTPUT
+                                  + f, "rb").read())
             encoders.encode_base64(part)
             part.add_header('Content-Disposition',
                             'attachment; filename="%s"' % os.path.basename(f))
             msg.attach(part)
             text = msg.as_string()
             # print(text)
-
 
     print("ready to send")
     server = smtplib.SMTP('localhost')
