@@ -22,7 +22,7 @@ FROM
     INNER JOIN profile_rec PRO ON PER.id = PRO.id
     
 where PRO.priv_code != 'FERP'
-limit 2
+--limit 10
 '''
 
 LENEL_PICTURE_QUERY = """
