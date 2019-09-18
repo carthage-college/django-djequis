@@ -1,3 +1,4 @@
+import datetime
 from sqlalchemy import text
 
 ADIRONDACK_QUERY = '''
@@ -18,7 +19,8 @@ SELECT --Distinct
     TRIM(CV.ldap_name) as ADDITIONAL_ID1,
     '' AS ADDITIONAL_ID2,
      CASE 
-        WHEN (CL.CL in ('FR', 'FN', 'FF')) THEN 'Freshman'   --First time frosh 
+        WHEN (CL.CL in ('FR', 'FN', 'FF')) THEN 'Freshman'   
+        --First time frosh 
         --should be pulled prior to Aug 1 of their enrollment year
         WHEN (CL.CL = 'SO') THEN 'Sophomore' 
         WHEN (CL.CL = 'JR') THEN 'Junior' 
@@ -48,7 +50,8 @@ SELECT --Distinct
     TRIM(NVL(EML.eml2,'')) AS PERSONAL_EMAIL,
     trim(TO_CHAR(IR.id)||'.jpg') as PHOTO_FILE_NAME,
     '' AS PERM_PO_BOX, '' AS PERM_PO_BOX_COMBO, 
-    trim(PER.adm_sess)||' '||PER.adm_yr AS ADMIT_TERM,  -- Term admitted - important for incoming in particular
+    trim(PER.adm_sess)||' '||PER.adm_yr AS ADMIT_TERM,  
+    -- Term admitted - important for incoming in particular
     CASE WHEN SPORT.descr IS NULL OR TRIM(SPORT.descr) = '' THEN 0 
         ELSE -1 
         END AS STUDENT_ATHLETE,
@@ -290,6 +293,33 @@ FROM
         AND (end_date IS NULL OR end_date >= TODAY)) EMER
         ON EMER.id = PER.id
 
-
-
 '''
+
+Q_GET_TERM = '''select distinct 
+                  trim(trim(sess)||' '||trim(TO_CHAR(yr))) session
+                  from acad_cal_rec
+                  where sess in ('RA','RC')
+                  and subsess = ''
+                  and prog = 'UNDG'
+                  and trim(sess)||TO_CHAR(yr) = 
+                  CASE
+                      -- ACYR 1920 After April 20 until nov 20
+                      WHEN TODAY >= '04/20/'||YEAR(TODAY)
+                          AND TODAY < '11/20/'||YEAR(TODAY)
+                          AND LEFT(ACYR,2) = RIGHT(TO_CHAR(YEAR(TODAY)),2)
+                          THEN
+                              'RA'||YEAR(TODAY)
+                      --ACYR 2021 after nov 20
+                      WHEN TODAY >= '11/20/'||YEAR(TODAY)
+                          AND TODAY < '/04/20/'||YEAR(TODAY)+1
+                          AND LEFT(ACYR,2) = RIGHT(TO_CHAR(YEAR(TODAY+1)),2)
+                          THEN
+                              'RC'||YEAR(TODAY + 1)
+                      --ACYR 2021 after Jan 1 until April 20
+                      WHEN TODAY >= '01/01/'||YEAR(TODAY)
+                          AND TODAY < '04/20/'||YEAR(TODAY)
+                          AND LEFT(ACYR,2) = RIGHT(TO_CHAR(YEAR(TODAY)),2)
+                          THEN
+                              'RC'||YEAR(TODAY)
+                      END
+                   '''

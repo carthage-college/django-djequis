@@ -1,30 +1,35 @@
 import os
 import csv
 import datetime
+import json
 import calendar
 from datetime import date
+import requests
 import codecs
 import time
 import hashlib
 from time import strftime, strptime
 # Import smtplib for the actual sending function
 import smtplib
-
 # Here are the email package modules we'll need
 # from email.mime.image import MIMEImage
 import mimetypes
+import django
+
+# ________________
+# Note to self, keep this here
+# django settings for shell environment
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
+django.setup()
+# ________________
+# django settings for script
+from django.conf import settings
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email import encoders
-
-# import argparse
 import logging
 from logging.handlers import SMTPHandler
-
-# django settings for script
-from django.conf import settings
-
 # from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
@@ -38,9 +43,223 @@ desc = """
 
 # create logger
 logger = logging.getLogger(__name__)
-
-
 # logger.setLevel(logging.DEBUG)
+
+
+def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session):
+    try:
+        utcts = fn_get_utcts()
+        hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
+        hash_object = hashlib.md5(hashstring.encode())
+        print(session)
+        print(bldg)
+        print(idnum)
+        print(roomtype)
+        url = "https://carthage.datacenter.adirondacksolutions.com/" \
+            "carthage_thd_test_support/apis/thd_api.cfc?" \
+            "method=studentBILLING&" \
+            "Key=" + settings.ADIRONDACK_API_SECRET + "&" + "utcts=" + \
+            str(utcts) + "&" + "h=" + \
+            hash_object.hexdigest() + "&" + \
+            "ASSIGNMENTID=" + str(roomassignmentid) + "&" + \
+            "EXPORTED=0,-1"
+        # "TIMEFRAMENUMERICCODE=" + session
+
+        # As of 9/3/19, using the api to find a room by roomassignment
+        # ID requires me to set the EXPORTED flag to BOTH 0 and -1.
+        # Seems wrong.
+
+        # "ItemType=" + roomtype.strip() + "&" + \
+        # __"STUDENTNUMBER=" + idnum + "&" + \
+        #             _____________________________
+        # Need to dynamically get the term - see the misc fee file
+        # _______________________________
+        # print(url)
+
+        response = requests.get(url)
+        x = json.loads(response.content)
+        # print(x)
+        if not x['DATA']:
+            # print("No data")
+            if bldg == 'CMTR':
+                billcode = 'CMTR'
+            elif bldg == 'OFF':
+                billcode = 'OFF'
+            elif bldg == 'ABRD':
+                billcode = 'ABRD'
+            else:
+                billcode = ''
+            print("Billcode found as " + billcode)
+            return billcode
+        else:
+            for rows in x['DATA']:
+                # print(rows)
+                # print("ASSIGNMENTID = " + str(rows[14]))
+                # print("Room Assignment ID search = " + str(roomassignmentid))
+                if roomassignmentid == rows[14]:
+                    print(rows[6])
+                    billcode = rows[6]
+                    print("Billcode found as " + billcode)
+                    return billcode
+    except Exception as e:
+        print(
+                "Error in utilities.py- "
+                "fn_get_bill_code:  " + e.message)
+        fn_write_error("Error in utilities.py "
+                       "- fn_get_bill_code: " + e.message)
+
+
+def fn_fix_bldg(bldg_code):
+    if bldg_code[:3] == 'OAK':
+        x = bldg_code.replace(" ", "")
+        l = len(bldg_code.strip())
+        b = bldg_code[l - 1:l]
+        z = x[:3]
+        bldg = z + b
+        # print(bldg)
+        return bldg
+    else:
+        return bldg_code
+
+
+def fn_translate_bldg_for_adirondack(bldg_code):
+    # Hall codes in Adirondack do not match CX, primarily OAKS
+    # Allow both versions of the OAKS options
+    switcher = {
+        "OAK1": "OAKS1",
+        "OAKS1": "OAKS1",
+        "OAK2": "OAKS 2",
+        "OAKS 2": "OAKS 2",
+        "OAK3": "OAKS 3",
+        "OAKS 3": "OAKS 3",
+        "OAK4": "OAKS 4",
+        "OAKS 4": "OAKS 4",
+        "OAK5": "OAKS 5",
+        "OAKS 5": "OAKS 5",
+        "OAK6": "OAKS 6",
+        "OAKS 6": "OAKS 6",
+        "DEN": "DEN",
+        "JOH": "JOH",
+        "MADR": "MADR",
+        "SWE": "SWE",
+        "TAR": "TAR",
+        "UN": "UN",
+        "ABRD": "ABRD",
+        "CMTR": "CMTR",
+        "OFF": "OFF",
+        "TOWR": "TOWR",
+        "WD": "WD"
+    }
+    return switcher.get(bldg_code, "Invalid Building")
+
+
+def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted):
+    try:
+        utcts = fn_get_utcts()
+        hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
+        hash_object = hashlib.md5(hashstring.encode())
+
+        # print("In fn_mark_room_posted " + str(stu_id) + ", " + str(room_no)
+        # + ", " + str(hall_code) + ", " + term)
+        url = "https://carthage.datacenter.adirondacksolutions.com/" \
+            "carthage_thd_test_support/apis/thd_api.cfc?" \
+            "method=housingASSIGNMENTS&" \
+            "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
+            "utcts=" + \
+            str(utcts) + "&" \
+            "h=" + hash_object.hexdigest() + "&" \
+            "TimeFrameNumericCode=" + term + "&" \
+            "HallCode=" + hall_code + "&" \
+            "Ghost=0" + "&" \
+            "Posted=" + str(posted) + "&" \
+            "RoomNumber=" + room_no + "&" \
+            "STUDENTNUMBER=" + stu_id + "&" \
+            "PostAssignments=-1"
+        # "CurrentFuture=-1" + "&"
+        # Room number won't work for off campus types - Room set to CMTR,
+        # ABRD  etc. in CX.
+        # + "&" \
+        print(url)
+
+        # DEFINITIONS
+        # Posted: 0 returns only NEW unposted,
+        #         1 returns posted, as in export out to our system
+        #         2 changed or cancelled
+        # PostAssignments: -1 will mark the record as posted.
+        # CurrentFuture: -1 returns only current and future
+        # Cancelled: -1 is for cancelled, 0 for not cancelled
+        # Setting Ghost to -1 prevents rooms with no student from returning
+        # print("URL = " + url)
+
+        response = requests.get(url)
+        x = json.loads(response.content)
+        # print(x)
+        if not x['DATA']:
+            print("Unable to mark record as posted - record not found")
+        else:
+            print("Record marked as posted")
+
+    except Exception as e:
+        print("Error in utilities.py- fn_mark_room_posted:  " +
+              e.message)
+        # fn_write_error("Error in utilities.py- fn_mark_room_posted:
+        # " + e.message)
+
+
+# def fn_mark_bill_exported(bill_id, assign_id, exported):
+#     try:
+#         utcts = fn_get_utcts()
+#         hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
+#         hash_object = hashlib.md5(hashstring.encode())
+
+    #     print("Bill id =  " + str(bill_id))
+    #     print("Assignment id = " + str(assign_id))
+    #     print("Exported = " + str(exported)
+    #
+    #     # print("In fn_mark_bill_exported " + str(stu_id) + ", "
+    #           + str(room_no)
+    #     # + ", " + str(hall_code) + ", " + term)
+    #     url = "https://carthage.datacenter.adirondacksolutions.com/" \
+    #         "carthage_thd_test_support/apis/thd_api.cfc?" \
+    #         "method=studentBILLING&" \
+    #         "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
+    #         "utcts=" + \
+    #         str(utcts) + "&" \
+    #         "h=" + hash_object.hexdigest() + "&" \
+    #         "Exported=" + str(posted) + "&" \
+    #         "STUDENTBILLINGINTERNALID=" + room_no + "&" \
+    #         "ASSIGNMENTID=" + stu_id + "&" \
+    #         "ExportCharges=-1"
+    #
+    #         # "CurrentFuture=-1" + "&"
+    #         # Room number won't work for off campus types - Room set to CMTR,
+    #         # ABRD  etc. in CX.
+    #         # + "&" \
+    #     print(url)
+    #
+    #     # DEFINITIONS
+    #     # Posted: 0 returns only NEW unposted,
+    #     #         1 returns posted, as in export out to our system
+    #     #         2 changed or cancelled
+    #     # PostAssignments: -1 will mark the record as posted.
+    #     # CurrentFuture: -1 returns only current and future
+    #     # Cancelled: -1 is for cancelled, 0 for not cancelled
+    #     # Setting Ghost to -1 prevents rooms with no student from returning
+    #     # print("URL = " + url)
+    #
+    #     # response = requests.get(url)
+    #     # x = json.loads(response.content)
+    #     # print(x)
+    #     if not x['DATA']:
+    #         print("Unable to mark bill as exported - record not found")
+    #     else:
+    #         print("Bill marked as exported")
+    #
+    # except Exception as e:
+    #     print("Error in utilities.py- fn_mark_room_posted:  " +
+    #           e.message)
+    #     # fn_write_error("Error in utilities.py- fn_mark_room_posted:
+    #     # " + e.message)
 
 
 def fn_convert_date(ddate):
@@ -58,16 +277,16 @@ def fn_write_misc_header():
     with codecs.open(settings.ADIRONDACK_ROOM_FEES, 'wb',
                      encoding='utf-8-sig') as fee_output:
         # with open('ascii_room_damages.csv', 'wb') as fee_output:
-        csvWriter = csv.writer(fee_output)
-        csvWriter.writerow(["ITEM_DATE", "BILL_DESCRIPTION", "ACCOUNT_NUMBER",
+        csvwriter = csv.writer(fee_output)
+        csvwriter.writerow(["ITEM_DATE", "BILL_DESCRIPTION", "ACCOUNT_NUMBER",
                             "AMOUNT", "STUDENT_ID", "TOT_CODE", "BILL_CODE",
                             "TERM"])
 
 
 def fn_write_billing_header(file_name):
     with open(file_name, 'wb') as room_output:
-        csvWriter = csv.writer(room_output)
-        csvWriter.writerow(["STUDENTNUMBER", "ITEMDATE", "AMOUNT", "TIMEFRAME",
+        csvwriter = csv.writer(room_output)
+        csvwriter.writerow(["STUDENTNUMBER", "ITEMDATE", "AMOUNT", "TIMEFRAME",
                             "TIMEFRAMENUMERICCODE", "BILLDESCRIPTION",
                             "ACCOUNT", "ACCOUNT_DISPLAY_NAME", "EFFECTIVEDATE",
                             "EXPORTED", "EXPORTTIMESTAMP", "BILLEXPORTDATE",
@@ -76,10 +295,10 @@ def fn_write_billing_header(file_name):
                             "USERNAME", " ADDITIONALID1"])
 
 
-def fn_write_assignment_header():
-    with open(settings.ADIRONDACK_ROOM_ASSIGNMENTS, 'wb') as room_output:
-        csvWriter = csv.writer(room_output)
-        csvWriter.writerow(["STUDENTNUMBER", "HALLNAME", "HALLCODE", "FLOOR",
+def fn_write_assignment_header(file_name):
+    with open(file_name, 'wb') as room_output:
+        csvwriter = csv.writer(room_output)
+        csvwriter.writerow(["STUDENTNUMBER", "HALLNAME", "HALLCODE", "FLOOR",
                             "ROOMNUMBER", "BED", "ROOM_TYPE", "OCCUPANCY",
                             "ROOMUSAGE",
                             "TIMEFRAMENUMERICCODE", "CHECKIN", "CHECKEDINDATE",
@@ -92,8 +311,8 @@ def fn_write_assignment_header():
 
 def fn_write_application_header():
     with open(settings.ADIRONDACK_APPLICATONS, 'wb') as output:
-        csvWriter = csv.writer(output)
-        csvWriter.writerow(["STUDENTNUMBER", "APPLICATIONTYPENAME",
+        csvwriter = csv.writer(output)
+        csvwriter.writerow(["STUDENTNUMBER", "APPLICATIONTYPENAME",
                             "APP_RECEIVED", "APP_COMPLETE",
                             "TIMEFRAMENUMERICCODE", "ELECTRONIC_SIG_TS",
                             "CONTRACT_RECEIVED", "APP_CANCELED", "DEPOSIT",
@@ -109,8 +328,8 @@ def fn_write_student_bio_header():
 
     with open(adirondackdata, 'w') as file_out:
         # with open("carthage_students.txt", 'w') as file_out:
-        csvWriter = csv.writer(file_out, delimiter='|')
-        csvWriter.writerow(
+        csvwriter = csv.writer(file_out, delimiter='|')
+        csvwriter.writerow(
             ["STUDENT_NUMBER", "FIRST_NAME", "MIDDLE_NAME",
              "LAST_NAME", "DATE_OF_BIRTH", "GENDER",
              "IDENTIFIED_GENDER", "PREFERRED_NAME",
@@ -160,7 +379,7 @@ def fn_write_student_bio_header():
              "CONTACT3_WORK_PHONE", "CONTACT3_MOBILE_PHONE",
              "CONTACT3_EMAIL", "CONTACT3_STREET", "CONTACT3_STREET2",
              "CONTACT3_CITY", "CONTACT3_STATE", "CONTACT3_ZIP",
-             "CONTACT3_COUNTRY", "TERM", "RACECODE","SPORT","GREEK_LIFE"])
+             "CONTACT3_COUNTRY", "TERM", "RACECODE", "SPORT", "GREEK_LIFE"])
     file_out.close()
 
 
@@ -181,6 +400,7 @@ def fn_encode_rows_to_utf8(rows):
 #########################################################
 # Common functions to handle logger messages and errors
 #########################################################
+
 
 def fn_write_error(msg):
     # create error file handler and set level to error
@@ -207,10 +427,9 @@ def fn_sendmailfees(to, frum, body, subject):
     msg['From'] = frum
     msg['Subject'] = subject
 
-    text=''
+    text = ''
     # This can be outside the file collection loop
     msg.attach(MIMEText(body, 'csv'))
-
 
     files = os.listdir(settings.ADIRONDACK_TXT_OUTPUT)
     # filenames = []
@@ -218,14 +437,14 @@ def fn_sendmailfees(to, frum, body, subject):
         if f.find('misc_housing') != -1:
             # print(settings.ADIRONDACK_TXT_OUTPUT + f)
             part = MIMEBase('application', "octet-stream")
-            part.set_payload(open(settings.ADIRONDACK_TXT_OUTPUT + f, "rb").read())
+            part.set_payload(open(settings.ADIRONDACK_TXT_OUTPUT
+                                  + f, "rb").read())
             encoders.encode_base64(part)
             part.add_header('Content-Disposition',
                             'attachment; filename="%s"' % os.path.basename(f))
             msg.attach(part)
             text = msg.as_string()
             # print(text)
-
 
     print("ready to send")
     server = smtplib.SMTP('localhost')

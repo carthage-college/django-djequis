@@ -135,7 +135,9 @@ def main():
     ##########################################################################
 
     filepath = settings.ADIRONDACK_JPG_OUTPUT
-
+    # print(filepath)
+    temp_path = os.path.dirname(os.path.abspath( __file__ )) + "/pictures/"
+    print(temp_path)
     try:
         # set global variable
         global EARL
@@ -166,29 +168,32 @@ def main():
         else:
             print("Query 1 successful")
             try:
-
                 for row in retID:
                     LENEL_PICTURE_ARG = row[0]
-                    # print("Query = " + LENEL_PICTURE_QUERY)
-                    # print("ARG = " + LENEL_PICTURE_ARG)
+                    print("Query = " + LENEL_PICTURE_QUERY)
+                    print("ARG = " + LENEL_PICTURE_ARG)
                     try:
                         # query blob data form the authors table
+                        print("XXXXXXX")
                         conn = pyodbc.connect(MSSQL_LENEL_EARL)
+                        print(conn)
                         result = conn.execute(LENEL_PICTURE_QUERY.format(LENEL_PICTURE_ARG))
-
+                        print("Result..." + result)
                         for row1 in result:
                             photo = row1[0]
                             filename = str(LENEL_PICTURE_ARG) + ".jpg"
                             # write blob data into a file
-                            write_file(photo, filepath + filename)
+                            write_file(photo, temp_path + filename)
                         result.close()
                         conn.close()
+                        print("END LENEL")
                     except ValueError:
                         print("Value Error getting photo")
                     except TypeError:
                         print("Type Error getting photo")
                     except Exception as e:
                         if e.__class__ == 'pyodbc.DataError':
+                            print("DATA ERROR")
                             pass
                 print("Pictures Done")
             except Exception as e:
@@ -201,21 +206,21 @@ def main():
             # Create zip file
             # Can't create it in the Data directory
             # Put it in source directory then move it
-            shutil.make_archive("carthage_studentphotos", 'zip', filepath)
-            print("Zip created")
+            # shutil.make_archive("carthage_studentphotos", 'zip', temp_path)
+            # print("Zip created")
             # Do I need to move it?
-            shutil.move("carthage_studentphotos.zip", filepath)
+            # shutil.move("carthage_studentphotos.zip", filepath)
             # print("Move?")
 
 
             # Clean up - remove .jpgs
-            filelist = os.listdir(filepath)
+            filelist = os.listdir(temp_path)
             print(filelist)
             for filename in filelist:
                 try:
                     if filename.endswith('.jpg'):
                          print(filepath + filename)
-                         os.remove(filepath + filename)
+            #              os.remove(filepath + filename)
 
                 except Exception as e:
                     print(e.message)
