@@ -8,8 +8,6 @@ import os
 from djzbar.settings import INFORMIX_EARL_PROD as INFORMIX_EARL
 # sqlserver connection string
 MSSQL_EARL = ''
-# Lenel Server
-MSSQL_LENEL_ADDR = 'sql01.carthage.edu'
 # informix environment for shell scripts that run under cron
 INFORMIXSERVER = ''
 DBSERVERNAME = ''
