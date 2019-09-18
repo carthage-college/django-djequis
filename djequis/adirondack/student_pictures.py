@@ -135,7 +135,7 @@ def main():
     ##########################################################################
 
     filepath = settings.ADIRONDACK_JPG_OUTPUT
-    # print(filepath)
+    print(filepath)
     temp_path = os.path.dirname(os.path.abspath( __file__ )) + "/pictures/"
     print(temp_path)
     try:
@@ -167,23 +167,23 @@ def main():
             # )
         else:
             print("Query 1 successful")
+
             try:
                 for row in retID:
                     LENEL_PICTURE_ARG = row[0]
-                    print("Query = " + LENEL_PICTURE_QUERY)
-                    print("ARG = " + LENEL_PICTURE_ARG)
+                    # print("Query = " + LENEL_PICTURE_QUERY)
+                    # print("ARG = " + LENEL_PICTURE_ARG)
                     try:
                         # query blob data form the authors table
-                        print("XXXXXXX")
+                        # print(MSSQL_LENEL_EARL)
                         conn = pyodbc.connect(MSSQL_LENEL_EARL)
-                        print(conn)
-                        result = conn.execute(LENEL_PICTURE_QUERY.format(LENEL_PICTURE_ARG))
-                        print("Result..." + result)
+                        result = conn.execute(LENEL_PICTURE_QUERY.format(int(LENEL_PICTURE_ARG)))
+
                         for row1 in result:
                             photo = row1[0]
                             filename = str(LENEL_PICTURE_ARG) + ".jpg"
                             # write blob data into a file
-                            write_file(photo, temp_path + filename)
+                            write_file(photo, filepath + filename)
                         result.close()
                         conn.close()
                         print("END LENEL")
@@ -206,21 +206,20 @@ def main():
             # Create zip file
             # Can't create it in the Data directory
             # Put it in source directory then move it
-            # shutil.make_archive("carthage_studentphotos", 'zip', temp_path)
-            # print("Zip created")
+            shutil.make_archive("carthage_studentphotos", 'zip', filepath)
+            print("Zip created")
             # Do I need to move it?
-            # shutil.move("carthage_studentphotos.zip", filepath)
+            shutil.move("carthage_studentphotos.zip", filepath)
             # print("Move?")
 
-
             # Clean up - remove .jpgs
-            filelist = os.listdir(temp_path)
-            print(filelist)
+            filelist = os.listdir(filepath)
+            # print(filelist)
             for filename in filelist:
                 try:
                     if filename.endswith('.jpg'):
-                         print(filepath + filename)
-            #              os.remove(filepath + filename)
+                         # print(filepath + filename)
+                         os.remove(filepath + filename)
 
                 except Exception as e:
                     print(e.message)
