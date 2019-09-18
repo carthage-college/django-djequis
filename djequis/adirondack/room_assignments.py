@@ -108,11 +108,22 @@ def main():
             EARL = None
             # establish database connection
 
+        print(test)
+        if test != "test":
+            API_server = "carthage_thd_prod_support"
+            key = settings.ADIRONDACK_API_SECRET
+        else:
+            API_server = "carthage_thd_test_support"
+            key = settings.ADIRONDACK_TEST_API_SECRET
+
+        print(API_server)
+        print(key)
+
         engine = get_engine(EARL)
 
         utcts = fn_get_utcts()
         # print("Seconds from UTC Zero hour = " + str(utcts))
-        hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
+        hashstring = str(utcts) + key
         # print("Hashstring = " + hashstring)
 
         # Assumes the default UTF-8
@@ -152,9 +163,9 @@ def main():
         # print("hall = " + str(hall))
 
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
-            "carthage_thd_test_support/apis/thd_api.cfc?" \
+            +API_server+"/apis/thd_api.cfc?" \
             "method=housingASSIGNMENTS&" \
-            "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
+            "Key=" + key + "&" \
             "utcts=" + \
             str(utcts) + "&" \
             "h=" + hash_object.hexdigest() + "&" \
@@ -166,7 +177,6 @@ def main():
         # "CurrentFuture=-1" + "&" \
         #                      "Ghost=0" + "&" \
         # NOTE:  HALLCODE can be empty
-        # print(url)
 
         # DO NOT MARK AS POSTED HERE - DO IT IN SECOND STEP
         # "PostAssignments=-1" + "&" \
@@ -182,13 +192,14 @@ def main():
         # CurrentFuture: -1 returns only current and future
         # Cancelled: -1 is for cancelled, 0 for not cancelled
 
-        # print("URL = " + url)
+        print("URL = " + url)
 
         # In theory, every room assignment in Adirondack should have
         # a bill code
 
         response = requests.get(url)
         x = json.loads(response.content)
+        print(x)
         if not x['DATA']:
             print("No new data found")
         else:
@@ -204,7 +215,7 @@ def main():
                 os.rename(room_file, room_archive)
 
             room_data = fn_encode_rows_to_utf8(x['DATA'])
-            # print("Start Loop")
+            print("Start Loop")
             # Write header
             fn_write_assignment_header(room_file)
             with open(room_file, 'ab') as room_output:
@@ -264,7 +275,7 @@ def main():
                     billcode = fn_get_bill_code(carthid, str(bldg),
                                                 room_type,
                                                 roomassignmentid,
-                                                session)
+                                                session, API_server, key)
 
                     # Intenhsg can b R = Resident, O = Off-Campus,
                     # C = Commuter
@@ -396,14 +407,14 @@ def main():
 
                                     fn_mark_room_posted(carthid,
                                                    adir_room, adir_hallcode,
-                                                        term, posted)
+                                                        term, posted, API_server, key)
 
                                 else:
                                     # print("No change needed in "
                                     #       "stu_serv_rec")
                                     fn_mark_room_posted(carthid, adir_room,
                                                         adir_hallcode, term,
-                                                        posted)
+                                                        posted, API_server, key)
 
                             else:
                                 # print("fetch retuned none - No "
@@ -490,12 +501,20 @@ if __name__ == "__main__":
         parser.print_help()
         exit(-1)
     else:
-        database = database.lower()
+        run_mode = run_mode.lower()
 
     if run_mode != 'manual' and run_mode != 'auto':
         print "run_mode must be: 'manual' or 'auto'"
         parser.print_help()
         exit(-1)
+
+    if not test:
+        test = 'prod'
+    else:
+        test = "test"
+
+
+
 
     sys.exit(main())
 
