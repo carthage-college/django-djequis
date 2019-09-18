@@ -145,9 +145,22 @@ def main():
     # Check daily for all records for term.
     # Once written to CSV
 
+
+    print(test)
+    if test != "test":
+        API_server = "carthage_thd_prod_support"
+        key = settings.ADIRONDACK_API_SECRET
+    else:
+        API_server = "carthage_thd_test_support"
+        key = settings.ADIRONDACK_TEST_API_SECRET
+
+    print(API_server)
+    print(key)
+
+
     try:
         utcts = fn_get_utcts()
-        hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
+        hashstring = str(utcts) + key
 
         # Assumes the default UTF-8
         hash_object = hashlib.md5(hashstring.encode())
@@ -169,9 +182,9 @@ def main():
         # Get data from Adirondack
         # ----------------------------------------
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
-            "carthage_thd_test_support/apis/thd_api.cfc?" \
+            +API_server+"/apis/thd_api.cfc?" \
             "method=studentBILLING&" \
-            "Key=" + settings.ADIRONDACK_API_SECRET \
+            "Key=" + key \
             + "&" + "utcts=" + str(utcts) \
             + "&" + "h=" + hash_object.hexdigest() \
             + "&" + "TIMEFRAMENUMERICCODE=" + adirondack_term \
@@ -184,7 +197,7 @@ def main():
         # Exported: -1 exported will be included, 0 only non-exported
         # ExportCharges: if -1 then charges will be marked as exported
 
-        # print("URL = " + url)
+        print("URL = " + url)
 
         response = requests.get(url)
         x = json.loads(response.content)
@@ -459,5 +472,10 @@ if __name__ == "__main__":
         print "database must be: 'cars' or 'train' or 'sandbox'\n"
         parser.print_help()
         exit(-1)
+
+    if not test:
+        test = 'prod'
+    else:
+        test = "test"
 
     sys.exit(main())
