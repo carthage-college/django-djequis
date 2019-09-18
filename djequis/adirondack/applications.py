@@ -56,9 +56,9 @@ def main():
         # Will need to build URL dynamically based on input from user
         # Allow query by student ID
         # Include term as variable
-        searchval_id = raw_input("Enter Carthage ID ")
+        searchval_id = raw_input("Enter Carthage ID:   ")
         print(searchval_id)
-        searchval_term = raw_input("Enter Term")
+        searchval_term = raw_input("Enter Term: (Example RA 2019):  " )
         print(searchval_term)
 
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
