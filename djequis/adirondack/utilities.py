@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
-def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session):
+def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session, api_server, api_key):
     try:
         utcts = fn_get_utcts()
         hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
@@ -56,9 +56,9 @@ def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session):
         print(idnum)
         print(roomtype)
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
-            "carthage_thd_test_support/apis/thd_api.cfc?" \
+            +api_server+"/apis/thd_api.cfc?" \
             "method=studentBILLING&" \
-            "Key=" + settings.ADIRONDACK_API_SECRET + "&" + "utcts=" + \
+            "Key=" + api_key + "&" + "utcts=" + \
             str(utcts) + "&" + "h=" + \
             hash_object.hexdigest() + "&" + \
             "ASSIGNMENTID=" + str(roomassignmentid) + "&" + \
@@ -153,7 +153,7 @@ def fn_translate_bldg_for_adirondack(bldg_code):
     return switcher.get(bldg_code, "Invalid Building")
 
 
-def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted):
+def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted, api_server, api_key):
     try:
         utcts = fn_get_utcts()
         hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
@@ -162,9 +162,9 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted):
         # print("In fn_mark_room_posted " + str(stu_id) + ", " + str(room_no)
         # + ", " + str(hall_code) + ", " + term)
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
-            "carthage_thd_test_support/apis/thd_api.cfc?" \
+            +api_server+"/apis/thd_api.cfc?" \
             "method=housingASSIGNMENTS&" \
-            "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
+            "Key=" + api_key + "&" \
             "utcts=" + \
             str(utcts) + "&" \
             "h=" + hash_object.hexdigest() + "&" \
