@@ -62,7 +62,7 @@ def main():
         print(searchval_term)
 
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
-            "carthage_thd_test_support/apis/thd_api.cfc?" \
+            "carthage_thd_prod_support/apis/thd_api.cfc?" \
             "method=housingAPPLICATIONS&" \
             "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
             "utcts=" + str(utcts) + "&" \
@@ -80,7 +80,7 @@ def main():
         # + "&"
         # "UNDERAGE= "
 
-        # print("URL = " + url)
+        print("URL = " + url)
 
         response = requests.get(url)
         x = json.loads(response.content)
