@@ -89,8 +89,8 @@ def write_file(data, filename):
 
 
 def sftp_upload(upload_file):
-    print("In File Upload")
-    print(upload_file)
+    # print("In File Upload")
+    # print(upload_file)
     # by adding cnopts, I'm authorizing the program to ignore the
     # host key and just continue
     cnopts = pysftp.CnOpts()
@@ -105,23 +105,23 @@ def sftp_upload(upload_file):
     }
 
     try:
-        print("Make Connection")
+        # print("Make Connection")
         with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
             # change directory
-            print("Change Directory at SFTP Site")
-            # sftp.chdir("prod/in/studentphotos/")
-            sftp.chdir("test/in/")
+            # print("Change Directory at SFTP Site")
+            sftp.chdir("prod/in/studentphotos/")
+            # sftp.chdir("test/in/")
             sftp.put(upload_file, preserve_mtime=True)
             # close sftp connection
             sftp.close()
     except Exception, e:
         SUBJECT = 'ADIRONDACK UPLOAD failed'
         BODY = 'Unable to PUT .zip file to adirondack server.\n\n{0}'.format(str(e))
-        # sendmail(
-        #     settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
-        #     BODY, SUBJECT
-        # )
-        print(BODY)
+        sendmail(
+            settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
+            BODY, SUBJECT
+        )
+        # print(BODY)
 
 
 def main():
@@ -135,9 +135,9 @@ def main():
     ##########################################################################
 
     filepath = settings.ADIRONDACK_JPG_OUTPUT
-    print(filepath)
+    # print(filepath)
     temp_path = os.path.dirname(os.path.abspath( __file__ )) + "/pictures/"
-    print(temp_path)
+    # print(temp_path)
     try:
         # set global variable
         global EARL
@@ -161,12 +161,12 @@ def main():
             SUBJECT = '[adirondack Application] failed'
             BODY = "SQL Query returned no data."
             print(SUBJECT)
-            # sendmail(
-            #     settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
-            #     BODY, SUBJECT
-            # )
+            sendmail(
+                settings.ADIRONDACK_TO_EMAIL,settings.ADIRONDACK_FROM_EMAIL,
+                BODY, SUBJECT
+            )
         else:
-            print("Query 1 successful")
+            # print("Query 1 successful")
 
             try:
                 for row in retID:
@@ -195,9 +195,16 @@ def main():
                         if e.__class__ == 'pyodbc.DataError':
                             print("DATA ERROR")
                             pass
-                print("Pictures Done")
+                # print("Pictures Done")
             except Exception as e:
                 print("Error getting photo " + e.message)
+                SUBJECT = 'ADIRONDACK UPLOAD failed'
+                BODY = 'Unable to PUT .zip file to ' \
+                       'adirondack server.\n\n{0}'.format(str(e))
+                sendmail(
+                settings.ADIRONDACK_TO_EMAIL, settings.ADIRONDACK_FROM_EMAIL,
+                BODY, SUBJECT
+            )
 
             # Remove previous file
             if os.path.exists(filepath + "carthage_studentphotos.zip"):
@@ -207,7 +214,7 @@ def main():
             # Can't create it in the Data directory
             # Put it in source directory then move it
             shutil.make_archive("carthage_studentphotos", 'zip', filepath)
-            print("Zip created")
+            # print("Zip created")
             # Do I need to move it?
             shutil.move("carthage_studentphotos.zip", filepath)
             # print("Move?")
@@ -225,11 +232,11 @@ def main():
                     print(e.message)
                     print(e.__str__())
 
-            print("cleanup done")
+            # print("cleanup done")
 
             # send file to SFTP Site..
-            print(filepath + "carthage_studentphotos.zip")
-            # sftp_upload(filepath + "carthage_studentphotos.zip")
+            # print(filepath + "carthage_studentphotos.zip")
+            sftp_upload(filepath + "carthage_studentphotos.zip")
 
     except Exception as e:
 
