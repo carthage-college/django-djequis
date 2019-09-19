@@ -130,8 +130,8 @@ def main():
     # set global variable
     global EARL
     # determines which database is being called from the command line
-    # if database == 'cars':
-    # EARL = INFORMIX_EARL_PROD
+    if database == 'cars':
+        EARL = INFORMIX_EARL_PROD
     if database == 'train':
         EARL = INFORMIX_EARL_TEST
     else:
@@ -140,11 +140,8 @@ def main():
         # care of this scenario and we will never arrive here.
         EARL = None
     # establish database connection
-    # engine = get_engine(EARL)  #Not needed?
 
-    # Check daily for all records for term.
-    # Once written to CSV
-
+    # To run:   python misc_fees.py --database=train --test
 
     print(test)
     if test != "test":
