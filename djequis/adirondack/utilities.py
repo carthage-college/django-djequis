@@ -436,20 +436,20 @@ def fn_sendmailfees(to, frum, body, subject):
             text = msg.as_string()
             # print(text)
 
-    print("ready to send")
+    # print("ready to send")
     server = smtplib.SMTP('localhost')
     # show communication with the server
     # if debug:
     #     server.set_debuglevel(True)
     try:
-        print(msg['To'])
-        print(msg['From'])
+        # print(msg['To'])
+        # print(msg['From'])
         server.sendmail(msg['From'], msg['to'], text)
 
     finally:
         # server.quit()
-        print("Done")
-
+        # print("Done")
+        pass
 
 def fn_get_utcts():
     # GMT Zero hour is 1/1/70
