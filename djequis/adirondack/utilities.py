@@ -9,10 +9,7 @@ import codecs
 import time
 import hashlib
 from time import strftime, strptime
-# Import smtplib for the actual sending function
 import smtplib
-# Here are the email package modules we'll need
-# from email.mime.image import MIMEImage
 import mimetypes
 import django
 
@@ -46,7 +43,8 @@ logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
-def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session, api_server, api_key):
+def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session,
+                     api_server, api_key):
     try:
         utcts = fn_get_utcts()
         hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
@@ -65,9 +63,6 @@ def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session, api_serve
             "EXPORTED=0,-1"
         # "TIMEFRAMENUMERICCODE=" + session
 
-        # As of 9/3/19, using the api to find a room by roomassignment
-        # ID requires me to set the EXPORTED flag to BOTH 0 and -1.
-        # Seems wrong.
 
         # "ItemType=" + roomtype.strip() + "&" + \
         # __"STUDENTNUMBER=" + idnum + "&" + \
@@ -78,7 +73,6 @@ def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session, api_serve
 
         response = requests.get(url)
         x = json.loads(response.content)
-        # print(x)
         if not x['DATA']:
             # print("No data")
             if bldg == 'CMTR':
@@ -93,9 +87,7 @@ def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session, api_serve
             return billcode
         else:
             for rows in x['DATA']:
-                # print(rows)
                 # print("ASSIGNMENTID = " + str(rows[14]))
-                # print("Room Assignment ID search = " + str(roomassignmentid))
                 if roomassignmentid == rows[14]:
                     print(rows[6])
                     billcode = rows[6]
@@ -153,7 +145,8 @@ def fn_translate_bldg_for_adirondack(bldg_code):
     return switcher.get(bldg_code, "Invalid Building")
 
 
-def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted, api_server, api_key):
+def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted,
+                        api_server, api_key):
     try:
         utcts = fn_get_utcts()
         hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
@@ -193,17 +186,16 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted, api_server, ap
 
         response = requests.get(url)
         x = json.loads(response.content)
-        # print(x)
         if not x['DATA']:
             print("Unable to mark record as posted - record not found")
         else:
             print("Record marked as posted")
 
     except Exception as e:
-        print("Error in utilities.py- fn_mark_room_posted:  " +
-              e.message)
-        # fn_write_error("Error in utilities.py- fn_mark_room_posted:
-        # " + e.message)
+        # print("Error in utilities.py- fn_mark_room_posted:  " +
+        #       e.message)
+        fn_write_error("Error in utilities.py- fn_mark_room_posted: "
+                       + e.message)
 
 
 # def fn_mark_bill_exported(bill_id, assign_id, exported):
@@ -276,7 +268,6 @@ def fn_convert_date(ddate):
 def fn_write_misc_header():
     with codecs.open(settings.ADIRONDACK_ROOM_FEES, 'wb',
                      encoding='utf-8-sig') as fee_output:
-        # with open('ascii_room_damages.csv', 'wb') as fee_output:
         csvwriter = csv.writer(fee_output)
         csvwriter.writerow(["ITEM_DATE", "BILL_DESCRIPTION", "ACCOUNT_NUMBER",
                             "AMOUNT", "STUDENT_ID", "TOT_CODE", "BILL_CODE",
@@ -327,7 +318,6 @@ def fn_write_student_bio_header():
         settings.ADIRONDACK_TXT_OUTPUT))
 
     with open(adirondackdata, 'w') as file_out:
-        # with open("carthage_students.txt", 'w') as file_out:
         csvwriter = csv.writer(file_out, delimiter='|')
         csvwriter.writerow(
             ["STUDENT_NUMBER", "FIRST_NAME", "MIDDLE_NAME",
