@@ -143,7 +143,7 @@ def main():
 
     # To run:   python misc_fees.py --database=train --test
 
-    print(test)
+    # print(test)
     if test != "test":
         API_server = "carthage_thd_prod_support"
         key = settings.ADIRONDACK_API_SECRET
@@ -151,8 +151,8 @@ def main():
         API_server = "carthage_thd_test_support"
         key = settings.ADIRONDACK_TEST_API_SECRET
 
-    print(API_server)
-    print(key)
+    # print(API_server)
+    # print(key)
 
 
     try:
@@ -194,13 +194,13 @@ def main():
         # Exported: -1 exported will be included, 0 only non-exported
         # ExportCharges: if -1 then charges will be marked as exported
 
-        print("URL = " + url)
+        # print("URL = " + url)
 
         response = requests.get(url)
         x = json.loads(response.content)
         if not x['DATA']:
-            print("No new data found")
-
+            # print("No new data found")
+            pass
         else:
             # ----------------------------------------
             # Cleanup previous run CSV files
@@ -262,7 +262,7 @@ def main():
                 ffile.close()
 
             else:
-                print ("No file")
+                # print ("No file")
                 fn_write_billing_header(cur_file)
 
             # For extra insurance, include last term items in the list
@@ -278,7 +278,7 @@ def main():
                         the_list.append(assign_id)
                 lfile.close()
             else:
-                print ("No file")
+                # print ("No file")
                 fn_write_billing_header(last_file)
 
             # List of previously processed rows
@@ -328,7 +328,7 @@ def main():
                         pass
                         # print("Item is not in CX database")
                     else:
-                        print("WARNING:  Matching item exist in CX database")
+                        # print("WARNING:  Matching item exist in CX database")
                         continue
                         # this will jump back to the start of the loop
                     # print(the_list)
@@ -437,12 +437,12 @@ def main():
             # When all done, email csv file?
             # Ideally, write ASCII file to Wilson into fin_post directory
             if csv_exists == True:
-                print("File created, send")
+                # print("File created, send")
                 subject = 'Housing Miscellaneous Fees'
                 body = 'There are housing fees to process via ASCII ' \
                     'post'
-                print(body)
-                fn_sendmailfees(settings.ADIRONDACK_TO_EMAIL,
+                # print(body)
+                fn_sendmailfees(settings.ADIRONDACK_ASCII_EMAIL,
                                 settings.ADIRONDACK_FROM_EMAIL,
                                 body, subject
                                 )
