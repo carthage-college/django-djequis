@@ -92,11 +92,17 @@ def main():
         # Question is, for spring housing, will both RA and RC need to be
         # dealt with?
 
+        # This is the command needed to run the script
+        # python room_assignments.py --database = train --test - run_mode = auto
+        # Must specify the database, whether testing or live and whether
+        # user input is required
+
+
         # set global variable
         global EARL
         # determines which database is being called from the command line
-        # if database == 'cars':
-        # EARL = INFORMIX_EARL_PROD
+        if database == 'cars':
+            EARL = INFORMIX_EARL_PROD
         if database == 'train':
             EARL = INFORMIX_EARL_TEST
         elif database == 'sandbox':
@@ -124,12 +130,9 @@ def main():
         utcts = fn_get_utcts()
         # print("Seconds from UTC Zero hour = " + str(utcts))
         hashstring = str(utcts) + key
-        # print("Hashstring = " + hashstring)
 
         # Assumes the default UTF-8
         hash_object = hashlib.md5(hashstring.encode())
-        # print(hash_object.hexdigest())
-        # print("Time of send = " + time.strftime("%Y%m%d%H%M%S"))
         datetimestr = time.strftime("%Y%m%d%H%M%S")
 
         if run_mode == "manual":
@@ -158,9 +161,6 @@ def main():
                     hall = ''
                     posted = '0,2'
                 # IMPORTANT! won't work if string has any spaces.  NO SPACES
-
-        # print("Session = " + session)
-        # print("hall = " + str(hall))
 
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
             +API_server+"/apis/thd_api.cfc?" \
@@ -205,11 +205,9 @@ def main():
         else:
             room_file = settings.ADIRONDACK_TXT_OUTPUT + \
                         settings.ADIRONDACK_ROOM_ASSIGNMENTS + '.csv'
-            # print(room_file)
             room_archive = settings.ADIRONDACK_ROOM_ARCHIVED + \
                 settings.ADIRONDACK_ROOM_ASSIGNMENTS + \
                 datetimestr + '.csv'
-            # print(room_archive)
 
             if os.path.exists(room_file):
                 os.rename(room_file, room_archive)
@@ -221,12 +219,9 @@ def main():
             with open(room_file, 'ab') as room_output:
                 for i in room_data:
 
-                    # print("______")
-                    # print(i[0])
                     carthid = i[0]
                     bldgname = i[1]
                     adir_hallcode = i[2]
-                    # print("Adirondack Hall Code = " + adir_hallcode)
                     floor = i[3]
                     bed = i[5]
                     room_type = i[6]
@@ -248,15 +243,6 @@ def main():
                     # print("ADD DATE = " + str(checkin))
                     checkout = i[12]
                     checkedoutdate = i[13]
-                    # if i[13] == None:
-                    #     checkedoutdate = None
-                    # else:
-                    #     d1 = datetime.strptime(i[13],
-                    #                            "%B, "
-                    #                            "%d %Y "
-                    #                            "%H:%M:%S")
-                    #     checkedoutdate = d1.strftime("%m-%d-%Y")
-                    # print("OUT DATE = " + str(checkout))
                     po_box = i[14]
                     po_box_combo = i[15]
                     canceled = i[16]
@@ -264,7 +250,6 @@ def main():
                     cancelnote = i[18]
                     cancelreason = i[19]
                     ghost = i[20]
-                    # print("Ghost = " + str(ghost))
                     posted = i[21]
                     roomassignmentid = i[22]
                     sess = i[9][:2]
@@ -313,13 +298,9 @@ def main():
                         room = i[4]
 
                     if posted == 2 and canceled == -1:
-                        # print("Cancellation " + str(checkout))
                         billcode = 'NOCH'
                         bldg = ''
                         room = ''
-
-                    # print("ROOMASSIGNMENTID = "
-                    #       + str(roomassignmentid))
 
                     if canceled == -1 and cancelreason == 'Withdrawal':
                         rsvstat = 'W'
@@ -329,7 +310,6 @@ def main():
                     csvwriter = csv.writer(room_output,
                                            quoting=csv.QUOTE_NONNUMERIC
                                            )
-                    # csvwriter.writerow(i)
                     # Need to write translated fields if csv is to
                     # be created
                     csvwriter.writerow([carthid, bldgname, bldg,
@@ -373,11 +353,6 @@ def main():
 
                             row = ret.fetchone()
                             if row is not None:
-                                # print(row[3] + "," + str(rsvstat))
-                                # print(row[4] + "," + str(intendhsg))
-                                # print(row[6] + "," + str(bldg))
-                                # print(row[7] + "," + str(room))
-                                # print(row[10] + "," + str(billcode))
                                 if row[3] != rsvstat \
                                         or row[4] != intendhsg \
                                         or row[6] != bldg \
@@ -399,8 +374,6 @@ def main():
                                         billcode,
                                         carthid,
                                         sess, year)
-                                    # print(q_update_stuserv_rec)
-                                    # print(q_update_stuserv_args)
                                     engine.execute(
                                         q_update_stuserv_rec,
                                         q_update_stuserv_args)
@@ -443,7 +416,6 @@ def main():
                         sendmail("dsullivan@carthage.edu",
                                  "dsullivan@carthage.edu", body, subj)
 
-                        # Insert if no record exists, update else
                         # Dave says stu_serv_rec should NOT be created
                         # from Adirondack data.  Other offices need
                         # to create the initial record
