@@ -193,7 +193,7 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted,
         else:
             # print("Record marked as posted")
             pass
-        
+
     except Exception as e:
         # print("Error in utilities.py- fn_mark_room_posted:  " +
         #       e.message)
