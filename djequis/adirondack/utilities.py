@@ -49,10 +49,10 @@ def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session,
         utcts = fn_get_utcts()
         hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
         hash_object = hashlib.md5(hashstring.encode())
-        print(session)
-        print(bldg)
-        print(idnum)
-        print(roomtype)
+        # print(session)
+        # print(bldg)
+        # print(idnum)
+        # print(roomtype)
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
             +api_server+"/apis/thd_api.cfc?" \
             "method=studentBILLING&" \
@@ -83,15 +83,15 @@ def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session,
                 billcode = 'ABRD'
             else:
                 billcode = ''
-            print("Billcode found as " + billcode)
+            # print("Billcode found as " + billcode)
             return billcode
         else:
             for rows in x['DATA']:
                 # print("ASSIGNMENTID = " + str(rows[14]))
                 if roomassignmentid == rows[14]:
-                    print(rows[6])
+                    # print(rows[6])
                     billcode = rows[6]
-                    print("Billcode found as " + billcode)
+                    # print("Billcode found as " + billcode)
                     return billcode
     except Exception as e:
         print(
@@ -172,7 +172,7 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted,
         # Room number won't work for off campus types - Room set to CMTR,
         # ABRD  etc. in CX.
         # + "&" \
-        print(url)
+        # print(url)
 
         # DEFINITIONS
         # Posted: 0 returns only NEW unposted,
@@ -187,10 +187,13 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted,
         response = requests.get(url)
         x = json.loads(response.content)
         if not x['DATA']:
-            print("Unable to mark record as posted - record not found")
+            # print("Unable to mark record as posted - record not found")
+            fn_write_error("Unable to mark record as posted - "
+                           "record not found")
         else:
-            print("Record marked as posted")
-
+            # print("Record marked as posted")
+            pass
+        
     except Exception as e:
         # print("Error in utilities.py- fn_mark_room_posted:  " +
         #       e.message)
