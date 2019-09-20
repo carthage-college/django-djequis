@@ -192,7 +192,7 @@ def main():
         # CurrentFuture: -1 returns only current and future
         # Cancelled: -1 is for cancelled, 0 for not cancelled
 
-        print("URL = " + url)
+        # print("URL = " + url)
 
         # In theory, every room assignment in Adirondack should have
         # a bill code
