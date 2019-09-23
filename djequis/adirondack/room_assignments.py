@@ -200,7 +200,7 @@ def main():
         response = requests.get(url)
         x = json.loads(response.content)
         if not x['DATA']:
-            # print("No new data found")
+            print("No new data found")
             pass
         else:
             room_file = settings.ADIRONDACK_TXT_OUTPUT + \
@@ -298,8 +298,6 @@ def main():
 
                     if posted == 2 and canceled == -1:
                         billcode = 'NOCH'
-                        bldg = ''
-                        room = ''
 
                     if canceled == -1 and cancelreason == 'Withdrawal':
                         rsvstat = 'W'
@@ -358,7 +356,7 @@ def main():
                                         or row[7] != room \
                                         or row[10] != billcode:
                                     # print("Need to update "
-                                    #       "stu_serv_rec")
+                                    #        "stu_serv_rec")
                                     q_update_stuserv_rec = '''
                                         UPDATE stu_serv_rec set rsv_stat = ?, 
                                         intend_hsg = ?, campus = ?, 
@@ -379,14 +377,16 @@ def main():
 
                                     fn_mark_room_posted(carthid,
                                                    adir_room, adir_hallcode,
-                                                        term, posted, API_server, key)
+                                                        term, posted,
+                                                        API_server, key)
 
                                 else:
                                     # print("No change needed in "
-                                    #       "stu_serv_rec")
+                                    #        "stu_serv_rec")
                                     fn_mark_room_posted(carthid, adir_room,
                                                         adir_hallcode, term,
-                                                        posted, API_server, key)
+                                                        posted, API_server,
+                                                        key)
 
                             else:
                                 # print("fetch retuned none - No "
@@ -403,7 +403,9 @@ def main():
                             # print("Bill code not found")
                             fn_write_error(
                                 "Error in room_assignments.py - Bill code not"
-                                "found")
+                                "found  ID = " + carthid, + ", Building = "
+                                + str(bldg) + ", Room assignment ID = "
+                                + str(roomassignmentid))
                     #     # go ahead and update
                     else:
                         # print("Record not found")
