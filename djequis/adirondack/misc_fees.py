@@ -305,6 +305,7 @@ def main():
 
                 # variables for readability
                 adir_term = i[4][:2] + i[4][-4:]
+                cx_term = i[4][:2] + i[4][-2:]
 
                 # Round the amount to 2 decimal places
                 amount = '{:.2f}'.format(i[2])
@@ -313,6 +314,7 @@ def main():
                 stu_id = str(i[0])
                 item_date = i[1][-4:] + "-" + i[1][:2] + "-" + i[1][3:5]
                 tot_code = str(i[6])
+                item_type = i[13]
 
                 # print("Adirondack term to check = " + adir_term)
                 # print("CX Current Term = " + current_term)
@@ -343,7 +345,7 @@ def main():
                         rec = []
                         rec.append(i[1])
                         # Limit to 26 characters just in case
-                        descr = str(i[5][:26])
+                        descr = str(i[13][:26])
                         descr = descr.translate(None, '!@#$%.,')
                         rec.append(descr.strip())
                         rec.append("1-003-10041")
@@ -352,7 +354,7 @@ def main():
                         rec.append(stu_id)
                         rec.append("S/A")
                         rec.append(tot_code)
-                        rec.append(adir_term)
+                        rec.append(cx_term)
 
                         fee_file = settings.ADIRONDACK_TXT_OUTPUT + tot_code \
                             + "_" + settings.ADIRONDACK_ROOM_FEES \
@@ -425,7 +427,8 @@ def main():
                             csvwriter.writerow(i)
                         wffile.close()
 
-                        fn_mark_bill_exported(bill_id, assign_id, exported)
+                        # fn_mark_bill_exported(adir_term, tot_code, stu_id,
+                        #                       itemtype)
 
             files = os.listdir(settings.ADIRONDACK_TXT_OUTPUT)
             csv_exists = False
