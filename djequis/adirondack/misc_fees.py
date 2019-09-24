@@ -345,7 +345,7 @@ def main():
                         rec = []
                         rec.append(i[1])
                         # Limit to 26 characters just in case
-                        descr = str(i[13][:26])
+                        descr = str(i[5][:26])
                         descr = descr.translate(None, '!@#$%.,')
                         rec.append(descr.strip())
                         rec.append("1-003-10041")
