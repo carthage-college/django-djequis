@@ -305,7 +305,7 @@ def main():
 
                 # variables for readability
                 adir_term = i[4][:2] + i[4][-4:]
-                cx_term = i[4][:2] + i[4][-2:]
+                ascii_term = i[4][:2] + i[4][-2:]
 
                 # Round the amount to 2 decimal places
                 amount = '{:.2f}'.format(i[2])
@@ -354,7 +354,7 @@ def main():
                         rec.append(stu_id)
                         rec.append("S/A")
                         rec.append(tot_code)
-                        rec.append(cx_term)
+                        rec.append(ascii_term)
 
                         fee_file = settings.ADIRONDACK_TXT_OUTPUT + tot_code \
                             + "_" + settings.ADIRONDACK_ROOM_FEES \
@@ -399,7 +399,7 @@ def main():
                         rec.append(stu_id)
                         rec.append("S/A")
                         rec.append(tot_code)
-                        rec.append(adir_term)
+                        rec.append(ascii_term)
 
                         fee_file = settings.ADIRONDACK_TXT_OUTPUT + tot_code \
                             + "_" + settings.ADIRONDACK_ROOM_FEES \
