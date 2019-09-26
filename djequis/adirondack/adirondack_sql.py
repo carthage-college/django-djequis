@@ -171,7 +171,7 @@ FROM
                 ON PV.id = PR.id
         WHERE PV.student IN ('prog', 'stu', 'reg_clear')
             AND PR.acst IN ('GOOD' ,'LOC' ,'PROB' ,'PROC' , 'PROR' ,'READ' ,
-            'RP','SAB','SHAC' ,'SHOC', 'GRAD')
+            'RP','SAB','SHAC' ,'SHOC', 'GRAD', 'ACPR')
             AND (PR.subprog NOT IN ('KUSD', 'UWPK', 'YOP', 'ENRM'))
             AND (PR.CL != 'UP')
             AND (PR.lv_date IS NULL)

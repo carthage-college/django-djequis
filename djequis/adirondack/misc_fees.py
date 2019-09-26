@@ -143,7 +143,7 @@ def main():
 
     # To run:   python misc_fees.py --database=train --test
 
-    print(test)
+    # print(test)
     if test != "test":
         API_server = "carthage_thd_prod_support"
         key = settings.ADIRONDACK_API_SECRET
@@ -151,8 +151,8 @@ def main():
         API_server = "carthage_thd_test_support"
         key = settings.ADIRONDACK_TEST_API_SECRET
 
-    print(API_server)
-    print(key)
+    # print(API_server)
+    # print(key)
 
 
     try:
@@ -194,13 +194,13 @@ def main():
         # Exported: -1 exported will be included, 0 only non-exported
         # ExportCharges: if -1 then charges will be marked as exported
 
-        print("URL = " + url)
+        # print("URL = " + url)
 
         response = requests.get(url)
         x = json.loads(response.content)
         if not x['DATA']:
-            print("No new data found")
-
+            # print("No new data found")
+            pass
         else:
             # ----------------------------------------
             # Cleanup previous run CSV files
@@ -262,7 +262,7 @@ def main():
                 ffile.close()
 
             else:
-                print ("No file")
+                # print ("No file")
                 fn_write_billing_header(cur_file)
 
             # For extra insurance, include last term items in the list
@@ -278,7 +278,7 @@ def main():
                         the_list.append(assign_id)
                 lfile.close()
             else:
-                print ("No file")
+                # print ("No file")
                 fn_write_billing_header(last_file)
 
             # List of previously processed rows
@@ -305,6 +305,7 @@ def main():
 
                 # variables for readability
                 adir_term = i[4][:2] + i[4][-4:]
+                ascii_term = i[4][:2] + i[4][-2:]
 
                 # Round the amount to 2 decimal places
                 amount = '{:.2f}'.format(i[2])
@@ -313,6 +314,7 @@ def main():
                 stu_id = str(i[0])
                 item_date = i[1][-4:] + "-" + i[1][:2] + "-" + i[1][3:5]
                 tot_code = str(i[6])
+                item_type = i[13]
 
                 # print("Adirondack term to check = " + adir_term)
                 # print("CX Current Term = " + current_term)
@@ -328,7 +330,7 @@ def main():
                         pass
                         # print("Item is not in CX database")
                     else:
-                        print("WARNING:  Matching item exist in CX database")
+                        # print("WARNING:  Matching item exist in CX database")
                         continue
                         # this will jump back to the start of the loop
                     # print(the_list)
@@ -352,7 +354,7 @@ def main():
                         rec.append(stu_id)
                         rec.append("S/A")
                         rec.append(tot_code)
-                        rec.append(adir_term)
+                        rec.append(ascii_term)
 
                         fee_file = settings.ADIRONDACK_TXT_OUTPUT + tot_code \
                             + "_" + settings.ADIRONDACK_ROOM_FEES \
@@ -397,7 +399,7 @@ def main():
                         rec.append(stu_id)
                         rec.append("S/A")
                         rec.append(tot_code)
-                        rec.append(adir_term)
+                        rec.append(ascii_term)
 
                         fee_file = settings.ADIRONDACK_TXT_OUTPUT + tot_code \
                             + "_" + settings.ADIRONDACK_ROOM_FEES \
@@ -425,7 +427,8 @@ def main():
                             csvwriter.writerow(i)
                         wffile.close()
 
-                        fn_mark_bill_exported(bill_id, assign_id, exported)
+                        # fn_mark_bill_exported(adir_term, tot_code, stu_id,
+                        #                       itemtype)
 
             files = os.listdir(settings.ADIRONDACK_TXT_OUTPUT)
             csv_exists = False
@@ -437,12 +440,12 @@ def main():
             # When all done, email csv file?
             # Ideally, write ASCII file to Wilson into fin_post directory
             if csv_exists == True:
-                print("File created, send")
+                # print("File created, send")
                 subject = 'Housing Miscellaneous Fees'
                 body = 'There are housing fees to process via ASCII ' \
                     'post'
-                print(body)
-                fn_sendmailfees(settings.ADIRONDACK_TO_EMAIL,
+                # print(body)
+                fn_sendmailfees(settings.ADIRONDACK_ASCII_EMAIL,
                                 settings.ADIRONDACK_FROM_EMAIL,
                                 body, subject
                                 )

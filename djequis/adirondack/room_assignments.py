@@ -114,7 +114,7 @@ def main():
             EARL = None
             # establish database connection
 
-        print(test)
+        # print(test)
         if test != "test":
             API_server = "carthage_thd_prod_support"
             key = settings.ADIRONDACK_API_SECRET
@@ -122,8 +122,8 @@ def main():
             API_server = "carthage_thd_test_support"
             key = settings.ADIRONDACK_TEST_API_SECRET
 
-        print(API_server)
-        print(key)
+        # print(API_server)
+        # print(key)
 
         engine = get_engine(EARL)
 
@@ -136,14 +136,14 @@ def main():
         datetimestr = time.strftime("%Y%m%d%H%M%S")
 
         if run_mode == "manual":
-            print("Manual Mode")
+            # print("Manual Mode")
             session = raw_input("Enter target session (EX. RA 2019):  ")
             hall = fn_translate_bldg_for_adirondack(
                 raw_input("Enter Hall code: "))
             posted = raw_input("Do you want unposted or posted records?  "
                                "Enter 0 for unposted, 1 for posted, "
                                "2 for changed, 0,2 for both: ")
-            print(posted)
+            # print(posted)
 
         elif run_mode == "auto":
 
@@ -192,16 +192,16 @@ def main():
         # CurrentFuture: -1 returns only current and future
         # Cancelled: -1 is for cancelled, 0 for not cancelled
 
-        print("URL = " + url)
+        # print("URL = " + url)
 
         # In theory, every room assignment in Adirondack should have
         # a bill code
 
         response = requests.get(url)
         x = json.loads(response.content)
-        print(x)
         if not x['DATA']:
             print("No new data found")
+            pass
         else:
             room_file = settings.ADIRONDACK_TXT_OUTPUT + \
                         settings.ADIRONDACK_ROOM_ASSIGNMENTS + '.csv'
@@ -213,7 +213,6 @@ def main():
                 os.rename(room_file, room_archive)
 
             room_data = fn_encode_rows_to_utf8(x['DATA'])
-            print("Start Loop")
             # Write header
             fn_write_assignment_header(room_file)
             with open(room_file, 'ab') as room_output:
@@ -299,8 +298,6 @@ def main():
 
                     if posted == 2 and canceled == -1:
                         billcode = 'NOCH'
-                        bldg = ''
-                        room = ''
 
                     if canceled == -1 and cancelreason == 'Withdrawal':
                         rsvstat = 'W'
@@ -359,7 +356,7 @@ def main():
                                         or row[7] != room \
                                         or row[10] != billcode:
                                     # print("Need to update "
-                                    #       "stu_serv_rec")
+                                    #        "stu_serv_rec")
                                     q_update_stuserv_rec = '''
                                         UPDATE stu_serv_rec set rsv_stat = ?, 
                                         intend_hsg = ?, campus = ?, 
@@ -380,14 +377,16 @@ def main():
 
                                     fn_mark_room_posted(carthid,
                                                    adir_room, adir_hallcode,
-                                                        term, posted, API_server, key)
+                                                        term, posted,
+                                                        API_server, key)
 
                                 else:
                                     # print("No change needed in "
-                                    #       "stu_serv_rec")
+                                    #        "stu_serv_rec")
                                     fn_mark_room_posted(carthid, adir_room,
                                                         adir_hallcode, term,
-                                                        posted, API_server, key)
+                                                        posted, API_server,
+                                                        key)
 
                             else:
                                 # print("fetch retuned none - No "
@@ -401,13 +400,15 @@ def main():
                                          "dsullivan@carthage.edu", body, subj)
 
                         else:
-                            print("Bill code not found")
+                            # print("Bill code not found")
                             fn_write_error(
                                 "Error in room_assignments.py - Bill code not"
-                                "found")
+                                "found  ID = " + carthid, + ", Building = "
+                                + str(bldg) + ", Room assignment ID = "
+                                + str(roomassignmentid))
                     #     # go ahead and update
                     else:
-                        print("Record not found")
+                        # print("Record not found")
 
                         body = "Student Service Record does not " \
                                        "exist for " + carthid + " for term " \

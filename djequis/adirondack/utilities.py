@@ -49,10 +49,10 @@ def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session,
         utcts = fn_get_utcts()
         hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
         hash_object = hashlib.md5(hashstring.encode())
-        print(session)
-        print(bldg)
-        print(idnum)
-        print(roomtype)
+        # print(session)
+        # print(bldg)
+        # print(idnum)
+        # print(roomtype)
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
             +api_server+"/apis/thd_api.cfc?" \
             "method=studentBILLING&" \
@@ -83,15 +83,15 @@ def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session,
                 billcode = 'ABRD'
             else:
                 billcode = ''
-            print("Billcode found as " + billcode)
+            # print("Billcode found as " + billcode)
             return billcode
         else:
             for rows in x['DATA']:
                 # print("ASSIGNMENTID = " + str(rows[14]))
                 if roomassignmentid == rows[14]:
-                    print(rows[6])
+                    # print(rows[6])
                     billcode = rows[6]
-                    print("Billcode found as " + billcode)
+                    # print("Billcode found as " + billcode)
                     return billcode
     except Exception as e:
         print(
@@ -172,7 +172,7 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted,
         # Room number won't work for off campus types - Room set to CMTR,
         # ABRD  etc. in CX.
         # + "&" \
-        print(url)
+        # print(url)
 
         # DEFINITIONS
         # Posted: 0 returns only NEW unposted,
@@ -187,9 +187,12 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted,
         response = requests.get(url)
         x = json.loads(response.content)
         if not x['DATA']:
-            print("Unable to mark record as posted - record not found")
+            # print("Unable to mark record as posted - record not found")
+            fn_write_error("Unable to mark record as posted - "
+                           "record not found")
         else:
-            print("Record marked as posted")
+            # print("Record marked as posted")
+            pass
 
     except Exception as e:
         # print("Error in utilities.py- fn_mark_room_posted:  " +
@@ -198,60 +201,51 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted,
                        + e.message)
 
 
-# def fn_mark_bill_exported(bill_id, assign_id, exported):
-#     try:
-#         utcts = fn_get_utcts()
-#         hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
-#         hash_object = hashlib.md5(hashstring.encode())
 
-    #     print("Bill id =  " + str(bill_id))
-    #     print("Assignment id = " + str(assign_id))
-    #     print("Exported = " + str(exported)
-    #
-    #     # print("In fn_mark_bill_exported " + str(stu_id) + ", "
-    #           + str(room_no)
-    #     # + ", " + str(hall_code) + ", " + term)
-    #     url = "https://carthage.datacenter.adirondacksolutions.com/" \
-    #         "carthage_thd_test_support/apis/thd_api.cfc?" \
-    #         "method=studentBILLING&" \
-    #         "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
-    #         "utcts=" + \
-    #         str(utcts) + "&" \
-    #         "h=" + hash_object.hexdigest() + "&" \
-    #         "Exported=" + str(posted) + "&" \
-    #         "STUDENTBILLINGINTERNALID=" + room_no + "&" \
-    #         "ASSIGNMENTID=" + stu_id + "&" \
-    #         "ExportCharges=-1"
-    #
-    #         # "CurrentFuture=-1" + "&"
-    #         # Room number won't work for off campus types - Room set to CMTR,
-    #         # ABRD  etc. in CX.
-    #         # + "&" \
-    #     print(url)
-    #
-    #     # DEFINITIONS
-    #     # Posted: 0 returns only NEW unposted,
-    #     #         1 returns posted, as in export out to our system
-    #     #         2 changed or cancelled
-    #     # PostAssignments: -1 will mark the record as posted.
-    #     # CurrentFuture: -1 returns only current and future
-    #     # Cancelled: -1 is for cancelled, 0 for not cancelled
-    #     # Setting Ghost to -1 prevents rooms with no student from returning
-    #     # print("URL = " + url)
-    #
-    #     # response = requests.get(url)
-    #     # x = json.loads(response.content)
-    #     # print(x)
-    #     if not x['DATA']:
-    #         print("Unable to mark bill as exported - record not found")
-    #     else:
-    #         print("Bill marked as exported")
-    #
-    # except Exception as e:
-    #     print("Error in utilities.py- fn_mark_room_posted:  " +
-    #           e.message)
-    #     # fn_write_error("Error in utilities.py- fn_mark_room_posted:
-    #     # " + e.message)
+
+def fn_mark_bill_exported(term, acct_code, carthid, itemtype):
+    try:
+        utcts = fn_get_utcts()
+        hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
+        hash_object = hashlib.md5(hashstring.encode())
+
+        print("term =  " + str(term))
+        print("acct_code id = " + str(acct_code))
+        print("carthid = " + str(carthid))
+        print("itemtype = " + str(itemtype))
+
+        # print("In fn_mark_bill_exported " + str(stu_id) + ", "
+        #       + str(room_no)
+        # + ", " + str(hall_code) + ", " + term)
+        url = "https://carthage.datacenter.adirondacksolutions.com/" \
+            "carthage_thd_test_support/apis/thd_api.cfc?" \
+            "method=studentBILLING&" \
+            "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
+            "utcts=" + \
+            str(utcts) + "&" \
+            "h=" + hash_object.hexdigest() + "&" \
+            "TIMEFRAMENUMERICCODE=" + term + "&" \
+            "AccountCode=" + acct_code + "&" \
+            "STUDENTNUMBER="+ carthid +  "&" \
+            "Exported=0" + "&" \
+            "ITEMTYPE=" + itemtype
+
+
+        print("URL = " + url)
+
+        # response = requests.get(url)
+        # x = json.loads(response.content)
+        # print(x)
+        # if not x['DATA']:
+        #     print("Unable to mark bill as exported - record not found")
+        # else:
+        #     print("Bill marked as exported")
+
+    except Exception as e:
+        print("Error in utilities.py- fn_mark_room_posted:  " +
+              e.message)
+        # fn_write_error("Error in utilities.py- fn_mark_room_posted:
+        # " + e.message)
 
 
 def fn_convert_date(ddate):
@@ -436,20 +430,20 @@ def fn_sendmailfees(to, frum, body, subject):
             text = msg.as_string()
             # print(text)
 
-    print("ready to send")
+    # print("ready to send")
     server = smtplib.SMTP('localhost')
     # show communication with the server
     # if debug:
     #     server.set_debuglevel(True)
     try:
-        print(msg['To'])
-        print(msg['From'])
+        # print(msg['To'])
+        # print(msg['From'])
         server.sendmail(msg['From'], msg['to'], text)
 
     finally:
         # server.quit()
-        print("Done")
-
+        # print("Done")
+        pass
 
 def fn_get_utcts():
     # GMT Zero hour is 1/1/70

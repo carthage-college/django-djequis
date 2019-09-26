@@ -218,7 +218,7 @@ def main():
         # Rewrite the ADP file formatted to match the CX constraints
         # on length and different coding and date format
         #################################################################
-        print("Open New File")
+        # print("Open New File")
 
         with codecs.open(new_adp_file, 'r',
                          encoding='utf-8-sig') as f:
@@ -229,7 +229,7 @@ def main():
                 # print(row["File Number"])
                 WRITE_ROW_REFORMATTED(row)
         f.close()
-        print("Created Reformatted file")
+        # print("Created Reformatted file")
 
         #################################################################
         # STEP 3--
@@ -240,10 +240,10 @@ def main():
         # print(last_adp_file)
         data_result = engine.execute(CX_VIEW_SQL)
         ret = list(data_result.fetchall())
-        print("SQL Successful")
+        # print("SQL Successful")
 
         with open(last_adp_file, 'a') as file_out:
-            print("fill view file")
+            # print("fill view file")
             csvWriter = csv.writer(file_out, delimiter=',',
                                    dialect='myDialect')
             # encoded_rows = encode_rows_to_utf8(ret)
@@ -261,7 +261,7 @@ def main():
 
             newfile = t1.readlines()
             oldfile = t2.readlines()
-            print("Diff file created")
+            # print("Diff file created")
             # This uses sets to compare the two files
             # returns additions or changes in new but not in original
             bigb = set(newfile) - set(oldfile)
@@ -286,8 +286,8 @@ def main():
             d_reader = csv.DictReader(f, delimiter=',')
             for row in d_reader:
 
-                print('carthid = {0}, Fullname = {1}'.format(row["carth_id"],
-                                                         row["payroll_name"]))
+                # print('carthid = {0}, Fullname = {1}'.format(row["carth_id"],
+                #                                          row["payroll_name"]))
 
 
             ##############################################################
@@ -309,9 +309,10 @@ def main():
                     row1 = sql_val.fetchone()
                     # print(row1)
                     if row1 is not None:
-                        print("Found Record - do not insert duplicate")
+                        # print("Found Record - do not insert duplicate")
+                        pass
                     else:
-                        print("No Matching Record found - Insert")
+                        # print("No Matching Record found - Insert")
 
                         ######################################################
                         # STEP 4b--
@@ -320,17 +321,17 @@ def main():
                         try:
                             INS_CC_ADP_REC(row, EARL)
                         except Exception as e:
-                        # fn_write_error("Error in adptcx.py while inserting
-                        #   into cc_adp_rec.  Error = " + e.message)
+                        fn_write_error("Error in adptcx.py while inserting
+                          into cc_adp_rec.  Error = " + e.message)
                         #     continue
-                            print("ERROR = " + e.message)
+                        #     print("ERROR = " + e.message)
 
             f.close()
 
     except Exception as e:
-        print("Error in cc_adp_rec.py, Error = " + e.message)
-        # fn_write_error("Error in cc_adp_rec.py, Error = " + e.message)
-        print(e)
+        # print("Error in cc_adp_rec.py, Error = " + e.message)
+        fn_write_error("Error in cc_adp_rec.py, Error = " + e.message)
+        # print(e)
         # finally:
         #     logging.shutdown()
 
