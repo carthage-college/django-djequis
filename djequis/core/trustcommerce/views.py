@@ -3,14 +3,19 @@ from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import render
 from django.db import connections
+from django.views import generic
+
+# from djequis.core.trustcommerce.summaries import *
+from djequis.core.trustcommerce.sql import *
+
 from djtools.utils.mail import send_mail
 from djtools.utils.database import dictfetchall
+
 from djzbar.decorators.auth import portal_auth_required
-from djequis.core.trustcommerce.sql import *
-from django.views import generic
-# from djequis.core.trustcommerce.summaries import *
+
 from itertools import chain
 from operator import attrgetter, itemgetter
+
 
 @portal_auth_required(
     session_var='DJEQUIS_AUTH', redirect_url=reverse_lazy('access_denied')

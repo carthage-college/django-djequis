@@ -19,9 +19,9 @@ from django.db.models import IntegerField, Sum
 #     )
 #
 #     >>> # Create some more Clients first so we can have something to count
-# 	Transaction.objects.create(
-# 	    name='Parking',
-# 	    account_type=Transaction.2063)
+#     Transaction.objects.create(
+#         name='Parking',
+#         account_type=Transaction.2063)
 #     Transaction.objects.create(
 #         name='Enrichment',
 #         account_type=Transaction.PRDV)

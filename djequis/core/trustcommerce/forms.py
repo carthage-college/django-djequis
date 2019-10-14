@@ -1,8 +1,10 @@
 from django import forms
 from django.db import models
 
+
 class DownloadForm(forms.Form):
     fields = ('record', 'activity', )
+
 
 class ContactForm(forms.Form):
     name = forms.CharField(label='Your name', required=False)
