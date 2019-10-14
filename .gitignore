@@ -101,5 +101,6 @@ djequis/settings/development.py
 settings.py
 wsgi.py
 commonapp_output.sql
+migrations
 *_rsa
 *_rsa.pub
