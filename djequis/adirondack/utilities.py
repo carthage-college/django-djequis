@@ -172,7 +172,7 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted,
         # Room number won't work for off campus types - Room set to CMTR,
         # ABRD  etc. in CX.
         # + "&" \
-        # print(url)
+        print(url)
 
         # DEFINITIONS
         # Posted: 0 returns only NEW unposted,
@@ -184,15 +184,15 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted,
         # Setting Ghost to -1 prevents rooms with no student from returning
         # print("URL = " + url)
 
-        response = requests.get(url)
-        x = json.loads(response.content)
-        if not x['DATA']:
-            # print("Unable to mark record as posted - record not found")
-            fn_write_error("Unable to mark record as posted - "
-                           "record not found")
-        else:
-            # print("Record marked as posted")
-            pass
+        # response = requests.get(url)
+        # x = json.loads(response.content)
+        # if not x['DATA']:
+        #     # print("Unable to mark record as posted - record not found")
+        #     fn_write_error("Unable to mark record as posted - "
+        #                    "record not found")
+        # else:
+        #     # print("Record marked as posted")
+        #     pass
 
     except Exception as e:
         # print("Error in utilities.py- fn_mark_room_posted:  " +
@@ -203,43 +203,39 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted,
 
 
 
-def fn_mark_bill_exported(term, acct_code, carthid, itemtype):
+def fn_mark_bill_exported(term, acct_code, bill_id, carthid,
+                          api_server, api_key):
     try:
         utcts = fn_get_utcts()
-        hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
+        hashstring = str(utcts) + api_key
         hash_object = hashlib.md5(hashstring.encode())
 
-        print("term =  " + str(term))
-        print("acct_code id = " + str(acct_code))
-        print("carthid = " + str(carthid))
-        print("itemtype = " + str(itemtype))
+        # print("term =  " + str(term))
+        # print("acct_code id = " + str(acct_code))
+        # print("carthid = " + str(carthid))
+        # print("api_server = " + str(api_server))
 
-        # print("In fn_mark_bill_exported " + str(stu_id) + ", "
-        #       + str(room_no)
-        # + ", " + str(hall_code) + ", " + term)
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
-            "carthage_thd_test_support/apis/thd_api.cfc?" \
+            + api_server + "/apis/thd_api.cfc?" \
             "method=studentBILLING&" \
-            "Key=" + settings.ADIRONDACK_API_SECRET + "&" \
-            "utcts=" + \
-            str(utcts) + "&" \
+            "Key=" + api_key + "&" \
+            "utcts=" + str(utcts) + "&" \
             "h=" + hash_object.hexdigest() + "&" \
             "TIMEFRAMENUMERICCODE=" + term + "&" \
             "AccountCode=" + acct_code + "&" \
-            "STUDENTNUMBER="+ carthid +  "&" \
+            "STUDENTBILLINGINTERNALID=" + bill_id + "&" \
             "Exported=0" + "&" \
-            "ITEMTYPE=" + itemtype
+            "EXPORTCHARGES=-1"
+        # API Does not accept student ID as param if bill internal ID is used
+        # print("URL = " + url)
 
-
-        print("URL = " + url)
-
-        # response = requests.get(url)
-        # x = json.loads(response.content)
+        response = requests.get(url)
+        x = json.loads(response.content)
         # print(x)
-        # if not x['DATA']:
-        #     print("Unable to mark bill as exported - record not found")
-        # else:
-        #     print("Bill marked as exported")
+        if not x['DATA']:
+            print("Unable to mark bill as exported - record not found")
+        else:
+            print("Bill marked as exported")
 
     except Exception as e:
         print("Error in utilities.py- fn_mark_room_posted:  " +
@@ -260,8 +256,9 @@ def fn_convert_date(ddate):
 
 
 def fn_write_misc_header():
-    with codecs.open(settings.ADIRONDACK_ROOM_FEES, 'wb',
-                     encoding='utf-8-sig') as fee_output:
+    # with codecs.open(settings.ADIRONDACK_ROOM_FEES, 'wb',
+    #                  encoding='utf-8-sig') as fee_output:
+    with codecs.open(settings.ADIRONDACK_ROOM_FEES, 'wb') as fee_output:
         csvwriter = csv.writer(fee_output)
         csvwriter.writerow(["ITEM_DATE", "BILL_DESCRIPTION", "ACCOUNT_NUMBER",
                             "AMOUNT", "STUDENT_ID", "TOT_CODE", "BILL_CODE",
@@ -381,9 +378,7 @@ def fn_encode_rows_to_utf8(rows):
             fn_write_error("Error in encoded_rows routine " + e.message)
     return encoded_rows
 
-#########################################################
-# Common functions to handle logger messages and errors
-#########################################################
+
 
 
 def fn_write_error(msg):

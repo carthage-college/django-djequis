@@ -69,7 +69,6 @@ parser.add_argument(
 
 
 def fn_check_cx_records(totcod, prd, jndate, stuid, amt):
-    # This may or may not be completely accurate.  Need more scrutiny
     billqry = '''select  SA.id, IR.fullname, ST.subs_no, 
         SE.jrnl_date, ST.prd, ST.subs, STR.bal_code, ST.tot_code, SE.descr, 
         SE.ctgry, STR.amt, ST.amt_inv_act, SA.stat 
@@ -186,11 +185,12 @@ def main():
             + "&" + "h=" + hash_object.hexdigest() \
             + "&" + "TIMEFRAMENUMERICCODE=" + adirondack_term \
             + "&" + "AccountCode=2010,2040,2011,2031" \
-            + "&" + "Exported=-1,0"
-        # + "&" + "ExportCharges=-1"
-        # + "&" + "STUDENTNUMBER=1532881"
+            + "&" + "Exported=-0"
 
-        # DEFINIIONS
+        # + "&" + "STUDENTNUMBER=1532881"
+        # + "&" + "ExportCharges=-1"
+
+        # DEFINIION
         # Exported: -1 exported will be included, 0 only non-exported
         # ExportCharges: if -1 then charges will be marked as exported
 
@@ -356,28 +356,43 @@ def main():
                         rec.append(tot_code)
                         rec.append(ascii_term)
 
-                        fee_file = settings.ADIRONDACK_TXT_OUTPUT + tot_code \
-                            + "_" + settings.ADIRONDACK_ROOM_FEES \
-                            + datetimestr + ".csv"
+                        # fee_file = settings.ADIRONDACK_TXT_OUTPUT + tot_code \
+                        #     + "_" + settings.ADIRONDACK_ROOM_FEES \
+                        #     + datetimestr + ".csv"
 
-                        with codecs.open(fee_file, 'ab',
-                                         encoding='utf-8-sig') as fee_output:
-                            csvwriter = csv.writer(fee_output,
-                                                   quoting=csv.QUOTE_NONE)
+                        fee_file = settings.ADIRONDACK_TXT_OUTPUT + tot_code \
+                                   + "_" + item_type + "_" + datetimestr + \
+                                   ".csv"
+
+                        with open(fee_file, 'ab') as fee_output:
+                            csvwriter = csv.writer(fee_output)
                             csvwriter.writerow(rec)
                         fee_output.close()
+
+                        # with codecs.open(fee_file, 'ab',
+                        #                  encoding='utf-8-sig') as fee_output:
+                        #     csvwriter = csv.writer(fee_output,
+                        #                            quoting=csv.QUOTE_NONE)
+                        #     csvwriter.writerow(rec)
+                        # fee_output.close()
 
                         # Write record of item to PROCESSED list
                         # print("Write item " + str(
                         #     i[16]) + " to current term file")
                         f = cur_file
                         # f = current_term + '_processed.csv'
-                        with codecs.open(f, 'ab',
-                                         encoding='utf-8-sig') as wffile:
-                            csvwriter = csv.writer(wffile,
-                                                   quoting=csv.QUOTE_MINIMAL)
+
+                        with open(f, 'ab') as wffile:
+                            csvwriter = csv.writer(wffile)
                             csvwriter.writerow(i)
                         wffile.close()
+
+                        # with codecs.open(f, 'ab',
+                        #                  encoding='utf-8-sig') as wffile:
+                        #     csvwriter = csv.writer(wffile,
+                        #                            quoting=csv.QUOTE_MINIMAL)
+                        #     csvwriter.writerow(i)
+                        # wffile.close()
 
                 else:
                     # In case of a charge from the previous term
@@ -402,17 +417,26 @@ def main():
                         rec.append(ascii_term)
 
                         fee_file = settings.ADIRONDACK_TXT_OUTPUT + tot_code \
-                            + "_" + settings.ADIRONDACK_ROOM_FEES \
-                            + datetimestr + ".csv"
+                                   + "_" + item_type + "_" + datetimestr + \
+                                   ".csv"
+
+                        # fee_file = settings.ADIRONDACK_TXT_OUTPUT + tot_code \
+                        #     + "_" + settings.ADIRONDACK_ROOM_FEES \
+                        #     + datetimestr + ".csv"
 
                         # print(fee_file)
 
-                        with codecs.open(fee_file, 'ab',
-                                         encoding='utf-8-sig') as fee_output:
-                            csvwriter = csv.writer(fee_output,
-                                                   quoting=csv.QUOTE_NONE)
+                        with open(fee_file, 'ab') as fee_output:
+                            csvwriter = csv.writer(fee_output)
                             csvwriter.writerow(rec)
                         fee_output.close()
+
+                        # with codecs.open(fee_file, 'ab',
+                        #                  encoding='utf-8-sig') as fee_output:
+                        #     csvwriter = csv.writer(fee_output,
+                        #                            quoting=csv.QUOTE_NONE)
+                        #     csvwriter.writerow(rec)
+                        # fee_output.close()
 
                         # Write record of item to PROCESSED list
                         # NOTE--QUOTE_MINIMAL is because timestamp has a comma
@@ -420,12 +444,18 @@ def main():
                         #     i[16]) + " to current term file")
                         f = cur_file
                         # f = current_term + '_processed.csv'
-                        with codecs.open(f, 'ab',
-                                         encoding='utf-8-sig') as wffile:
-                            csvwriter = csv.writer(wffile,
-                                                   quoting=csv.QUOTE_MINIMAL)
+
+                        with open(f, 'ab') as wffile:
+                            csvwriter = csv.writer(wffile)
                             csvwriter.writerow(i)
                         wffile.close()
+
+                        # with codecs.open(f, 'ab',
+                        #                  encoding='utf-8-sig') as wffile:
+                        #     csvwriter = csv.writer(wffile,
+                        #                            quoting=csv.QUOTE_MINIMAL)
+                        #     csvwriter.writerow(i)
+                        # wffile.close()
 
                         # fn_mark_bill_exported(adir_term, tot_code, stu_id,
                         #                       itemtype)
@@ -444,7 +474,7 @@ def main():
                 subject = 'Housing Miscellaneous Fees'
                 body = 'There are housing fees to process via ASCII ' \
                     'post'
-                # print(body)
+                print(body)
                 fn_sendmailfees(settings.ADIRONDACK_ASCII_EMAIL,
                                 settings.ADIRONDACK_FROM_EMAIL,
                                 body, subject
