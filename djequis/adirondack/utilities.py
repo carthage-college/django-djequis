@@ -47,8 +47,9 @@ def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session,
                      api_server, api_key):
     try:
         utcts = fn_get_utcts()
-        hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
+        hashstring = str(utcts) + api_key
         hash_object = hashlib.md5(hashstring.encode())
+        # print(utcts)
         # print(session)
         # print(bldg)
         # print(idnum)
@@ -60,21 +61,17 @@ def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session,
             str(utcts) + "&" + "h=" + \
             hash_object.hexdigest() + "&" + \
             "ASSIGNMENTID=" + str(roomassignmentid) + "&" + \
-            "EXPORTED=0,-1"
-        # "TIMEFRAMENUMERICCODE=" + session
+            "EXPORTED=0,-1"\
+            # + "&" + \
+            # "TIMEFRAMENUMERICCODE=" + session
+            # __"STUDENTNUMBER=" + idnum + "&" + \
 
-
-        # "ItemType=" + roomtype.strip() + "&" + \
-        # __"STUDENTNUMBER=" + idnum + "&" + \
-        #             _____________________________
-        # Need to dynamically get the term - see the misc fee file
-        # _______________________________
         # print(url)
 
         response = requests.get(url)
         x = json.loads(response.content)
         if not x['DATA']:
-            # print("No data")
+            print("No data")
             if bldg == 'CMTR':
                 billcode = 'CMTR'
             elif bldg == 'OFF':
@@ -146,14 +143,15 @@ def fn_translate_bldg_for_adirondack(bldg_code):
 
 
 def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted,
-                        api_server, api_key):
+                        roomassignmentid, api_server, api_key):
     try:
         utcts = fn_get_utcts()
-        hashstring = str(utcts) + settings.ADIRONDACK_API_SECRET
+        hashstring = str(utcts) + api_key
         hash_object = hashlib.md5(hashstring.encode())
 
         # print("In fn_mark_room_posted " + str(stu_id) + ", " + str(room_no)
         # + ", " + str(hall_code) + ", " + term)
+
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
             +api_server+"/apis/thd_api.cfc?" \
             "method=housingASSIGNMENTS&" \
@@ -162,17 +160,10 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted,
             str(utcts) + "&" \
             "h=" + hash_object.hexdigest() + "&" \
             "TimeFrameNumericCode=" + term + "&" \
-            "HallCode=" + hall_code + "&" \
-            "Ghost=0" + "&" \
             "Posted=" + str(posted) + "&" \
-            "RoomNumber=" + room_no + "&" \
-            "STUDENTNUMBER=" + stu_id + "&" \
+            "ROOMASSIGNMENTID=" + str(roomassignmentid) + "&" \
+            "STUDENTNUMBER=" + str(stu_id) + "&" \
             "PostAssignments=-1"
-        # "CurrentFuture=-1" + "&"
-        # Room number won't work for off campus types - Room set to CMTR,
-        # ABRD  etc. in CX.
-        # + "&" \
-        print(url)
 
         # DEFINITIONS
         # Posted: 0 returns only NEW unposted,
@@ -184,15 +175,41 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted,
         # Setting Ghost to -1 prevents rooms with no student from returning
         # print("URL = " + url)
 
-        # response = requests.get(url)
-        # x = json.loads(response.content)
+        response = requests.get(url)
+        x = json.loads(response.content)
+        if not x['DATA']:
+            # print("Unable to mark record as posted - record not found")
+            fn_write_error("Unable to mark record as posted - "
+                           "record not found")
+        else:
+            # print("Record marked as posted")
+            pass
+
+        # Because we are not using Adirondack for regular room rental fees
+        # we have no need of those billing records being active
+        # Any bills related to this assignment can be marked as posted
+        # Miscellaneous charges have an assignment ID of 0,
+
+        url = "https://carthage.datacenter.adirondacksolutions.com/" \
+              + api_server + "/apis/thd_api.cfc?" \
+              "method=studentBILLING&" \
+              "Key=" + api_key + "&" \
+              "utcts=" + str(utcts) + "&" \
+              "h=" + \
+              hash_object.hexdigest() + "&" \
+              "STUDENTNUMBER=" + str(stu_id) + "&" \
+              "ASSIGNMENTID=" + str(roomassignmentid) + "&" \
+              "Exported=0" + "&" \
+              "EXPORTCHARGES=-1"
+
+        response = requests.get(url)
+        x = json.loads(response.content)
+
         # if not x['DATA']:
-        #     # print("Unable to mark record as posted - record not found")
-        #     fn_write_error("Unable to mark record as posted - "
-        #                    "record not found")
+        #     print("Unable to mark bill as exported - record not found")
         # else:
-        #     # print("Record marked as posted")
-        #     pass
+        #     print("Bill marked as exported")
+
 
     except Exception as e:
         # print("Error in utilities.py- fn_mark_room_posted:  " +
@@ -203,17 +220,18 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted,
 
 
 
-def fn_mark_bill_exported(term, acct_code, bill_id, carthid,
-                          api_server, api_key):
+def fn_mark_bill_exported(bill_id, api_server, api_key):
+
     try:
         utcts = fn_get_utcts()
         hashstring = str(utcts) + api_key
         hash_object = hashlib.md5(hashstring.encode())
 
+        print(bill_id)
         # print("term =  " + str(term))
         # print("acct_code id = " + str(acct_code))
         # print("carthid = " + str(carthid))
-        # print("api_server = " + str(api_server))
+        print("api_server = " + str(api_server))
 
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
             + api_server + "/apis/thd_api.cfc?" \
@@ -221,13 +239,11 @@ def fn_mark_bill_exported(term, acct_code, bill_id, carthid,
             "Key=" + api_key + "&" \
             "utcts=" + str(utcts) + "&" \
             "h=" + hash_object.hexdigest() + "&" \
-            "TIMEFRAMENUMERICCODE=" + term + "&" \
-            "AccountCode=" + acct_code + "&" \
             "STUDENTBILLINGINTERNALID=" + bill_id + "&" \
             "Exported=0" + "&" \
             "EXPORTCHARGES=-1"
         # API Does not accept student ID as param if bill internal ID is used
-        # print("URL = " + url)
+        print("URL = " + url)
 
         response = requests.get(url)
         x = json.loads(response.content)
@@ -238,10 +254,10 @@ def fn_mark_bill_exported(term, acct_code, bill_id, carthid,
             print("Bill marked as exported")
 
     except Exception as e:
-        print("Error in utilities.py- fn_mark_room_posted:  " +
-              e.message)
-        # fn_write_error("Error in utilities.py- fn_mark_room_posted:
-        # " + e.message)
+        # print("Error in utilities.py- fn_mark_room_posted:  " +
+        #       e.message)
+        fn_write_error("Error in utilities.py- fn_mark_room_posted: "
+                       + e.message)
 
 
 def fn_convert_date(ddate):
