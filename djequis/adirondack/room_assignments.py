@@ -200,7 +200,7 @@ def main():
         response = requests.get(url)
         x = json.loads(response.content)
         if not x['DATA']:
-            print("No new data found")
+            # print("No new data found")
             pass
         else:
             room_file = settings.ADIRONDACK_TXT_OUTPUT + \
@@ -260,7 +260,6 @@ def main():
                                                 room_type,
                                                 roomassignmentid,
                                                 session, API_server, key)
-
                     # Intenhsg can b R = Resident, O = Off-Campus,
                     # C = Commuter
                     # This if routine is needed because the adirondack
@@ -355,8 +354,7 @@ def main():
                                         or row[6] != bldg \
                                         or row[7] != room \
                                         or row[10] != billcode:
-                                    # print("Need to update "
-                                    #        "stu_serv_rec")
+                                    # print("Need to update stu_serv_rec")
                                     q_update_stuserv_rec = '''
                                         UPDATE stu_serv_rec set rsv_stat = ?, 
                                         intend_hsg = ?, campus = ?, 
@@ -375,9 +373,11 @@ def main():
                                         q_update_stuserv_rec,
                                         q_update_stuserv_args)
 
+                                    # print("Mark room as posted...")
                                     fn_mark_room_posted(carthid,
                                                    adir_room, adir_hallcode,
                                                         term, posted,
+                                                        roomassignmentid,
                                                         API_server, key)
 
                                 else:
@@ -385,8 +385,9 @@ def main():
                                     #        "stu_serv_rec")
                                     fn_mark_room_posted(carthid, adir_room,
                                                         adir_hallcode, term,
-                                                        posted, API_server,
-                                                        key)
+                                                        posted,
+                                                        roomassignmentid,
+                                                        API_server, key)
 
                             else:
                                 # print("fetch retuned none - No "
@@ -396,8 +397,8 @@ def main():
                                        "exist for " + carthid + " for term " \
                                         + term + ".. Please inquire why."
                                 subj = "Adirondack - Stu_serv_rec missing"
-                                sendmail("dsullivan@carthage.edu",
-                                         "dsullivan@carthage.edu", body, subj)
+                                # sendmail("dsullivan@carthage.edu",
+                                #          "dsullivan@carthage.edu", body, subj)
 
                         else:
                             # print("Bill code not found")
@@ -414,8 +415,8 @@ def main():
                                        "exist for " + carthid + " for term " \
                                         + term + ".. Please inquire why."
                         subj = "Adirondack - Stu_serv_rec missing"
-                        sendmail("dsullivan@carthage.edu",
-                                 "dsullivan@carthage.edu", body, subj)
+                        # sendmail("dsullivan@carthage.edu",
+                        #          "dsullivan@carthage.edu", body, subj)
 
                         # Dave says stu_serv_rec should NOT be created
                         # from Adirondack data.  Other offices need
