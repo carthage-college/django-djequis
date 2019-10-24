@@ -418,7 +418,7 @@ def fn_sendmailfees(to, frum, body, subject):
     msg = MIMEMultipart()
 
     # email to addresses may come as list
-    msg['To'] = ','.join(to)
+    msg['To'] = to
     msg['From'] = frum
     msg['Subject'] = subject
 
@@ -429,7 +429,9 @@ def fn_sendmailfees(to, frum, body, subject):
     files = os.listdir(settings.ADIRONDACK_TXT_OUTPUT)
     # filenames = []
     for f in files:
-        if f.find('misc_housing') != -1:
+        # if f.find('misc_housing') != -1:
+        if f.find('2010') != -1 or f.find('2011') != -1 \
+                    or f.find('2031') != -1 or f.find('2040') != -1:
             # print(settings.ADIRONDACK_TXT_OUTPUT + f)
             part = MIMEBase('application', "octet-stream")
             part.set_payload(open(settings.ADIRONDACK_TXT_OUTPUT
@@ -447,9 +449,8 @@ def fn_sendmailfees(to, frum, body, subject):
     # if debug:
     #     server.set_debuglevel(True)
     try:
-        # print(msg['To'])
-        # print(msg['From'])
-        server.sendmail(msg['From'], msg['to'], text)
+        print(frum)
+        server.sendmail(frum, to.split(','), text)
 
     finally:
         # server.quit()
