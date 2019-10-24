@@ -420,9 +420,15 @@ def fn_sendmailfees(to, frum, body, subject):
     # email to addresses may come as list
     msg['To'] = to
     msg['From'] = frum
-    msg['Subject'] = subject
+    msg['Subject'] = "From " + frum + " - " + subject
+    # msg.add_header('reply-to', frum)
+    msg['Reply-To'] = frum
+    # By default, SMTP will always use smtp@carthage.edu as the from address
+    # Reply to allows a different return email option
+    # If the user clicks reply, it will bring up the From address
 
     text = ''
+
     # This can be outside the file collection loop
     msg.attach(MIMEText(body, 'csv'))
 
