@@ -156,8 +156,8 @@ def main():
 
         # Figure out what terms to limit to
         last_term, current_term = fn_set_terms('', '')
-        print("new last = " + last_term)
-        print("new current = " + current_term)
+        # print("new last = " + last_term)
+        # print("new current = " + current_term)
 
         # Terms in adirondack have a space between sess and year
         # print(current_term)
