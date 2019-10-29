@@ -49,11 +49,6 @@ def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session,
         utcts = fn_get_utcts()
         hashstring = str(utcts) + api_key
         hash_object = hashlib.md5(hashstring.encode())
-        # print(utcts)
-        # print(session)
-        # print(bldg)
-        # print(idnum)
-        # print(roomtype)
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
             +api_server+"/apis/thd_api.cfc?" \
             "method=studentBILLING&" \
@@ -71,7 +66,7 @@ def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session,
         response = requests.get(url)
         x = json.loads(response.content)
         if not x['DATA']:
-            print("No data")
+            # print("No data")
             if bldg == 'CMTR':
                 billcode = 'CMTR'
             elif bldg == 'OFF':
@@ -87,9 +82,6 @@ def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session,
                     billcode = rows[6]
                     return billcode
     except Exception as e:
-        print(
-                "Error in utilities.py- "
-                "fn_get_bill_code:  " + e.message)
         fn_write_error("Error in utilities.py "
                        "- fn_get_bill_code: " + e.message)
 
@@ -171,7 +163,6 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted,
         response = requests.get(url)
         x = json.loads(response.content)
         if not x['DATA']:
-            # print("Unable to mark record as posted - record not found")
             fn_write_error("Unable to mark record as posted - "
                            "record not found")
         else:
@@ -199,8 +190,6 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted,
         x = json.loads(response.content)
 
     except Exception as e:
-        # print("Error in utilities.py- fn_mark_room_posted:  " +
-        #       e.message)
         fn_write_error("Error in utilities.py- fn_mark_room_posted: "
                        + e.message)
 
@@ -214,12 +203,6 @@ def fn_mark_bill_exported(bill_id, api_server, api_key):
         hashstring = str(utcts) + api_key
         hash_object = hashlib.md5(hashstring.encode())
 
-        print(bill_id)
-        # print("term =  " + str(term))
-        # print("acct_code id = " + str(acct_code))
-        # print("carthid = " + str(carthid))
-        print("api_server = " + str(api_server))
-
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
             + api_server + "/apis/thd_api.cfc?" \
             "method=studentBILLING&" \
@@ -230,20 +213,21 @@ def fn_mark_bill_exported(bill_id, api_server, api_key):
             "Exported=0" + "&" \
             "EXPORTCHARGES=-1"
         # API Does not accept student ID as param if bill internal ID is used
-        print("URL = " + url)
+        # print("URL = " + url)
 
         response = requests.get(url)
         x = json.loads(response.content)
-        # print(x)
         if not x['DATA']:
-            print("Unable to mark bill as exported - record not found")
+            # print("Unable to mark bill as exported - record not found")
+            fn_write_error("Error in utilities.py- fn_mark_bill_exported: "
+                           "Unable to mark as exported - record not "
+                           "found in THD "
+                           + e.message)
         else:
-            print("Bill marked as exported")
-
+            # print("Bill marked as exported")
+            pass
     except Exception as e:
-        # print("Error in utilities.py- fn_mark_room_posted:  " +
-        #       e.message)
-        fn_write_error("Error in utilities.py- fn_mark_room_posted: "
+        fn_write_error("Error in utilities.py- fn_mark_bill_exported: "
                        + e.message)
 
 
@@ -432,16 +416,13 @@ def fn_sendmailfees(to, frum, body, subject):
             text = msg.as_string()
             # print(text)
 
-    # print("ready to send")
     server = smtplib.SMTP('localhost')
     # show communication with the server
     try:
-        print(frum)
         server.sendmail(frum, to.split(','), text)
 
     finally:
         # server.quit()
-        # print("Done")
         pass
 
 def fn_get_utcts():
@@ -453,7 +434,6 @@ def fn_get_utcts():
     b = a.strftime('%a %b %d %H:%M:%S %Y')
     # convert to a struct time
     c = time.strptime(b)
-    # print("C = " + str(b))
     # Calculate seconds from GMT zero hour
     utcts = calendar.timegm(c)
     # print("Seconds from UTC Zero hour = " + str(utcts))
