@@ -142,7 +142,7 @@ def main():
         API_server = "carthage_thd_test_support"
         key = settings.ADIRONDACK_TEST_API_SECRET
 
-    print(API_server)
+    # print(API_server)
 
     try:
         utcts = fn_get_utcts()
@@ -156,8 +156,8 @@ def main():
 
         # Figure out what terms to limit to
         last_term, current_term = fn_set_terms('', '')
-        # print("new last = " + last_term)
-        # print("new current = " + current_term)
+        print("new last = " + last_term)
+        print("new current = " + current_term)
 
         # Terms in adirondack have a space between sess and year
         # print(current_term)
@@ -197,8 +197,6 @@ def main():
             # ----------------------------------------
 
             files = os.listdir(settings.ADIRONDACK_TXT_OUTPUT)
-            # if f.find('misc_housing') != -1:
-            #     ext = f.find(".csv")
             for f in files:
                 ext = f.find(".csv")
                 if (f.startswith("2010") or f.startswith("2011")
@@ -233,7 +231,6 @@ def main():
 
             # Make sure file for the current term has been created
             if os.path.isfile(cur_file):
-                # print ("Curfile exists")
                 fst = cur_file
                 with open(fst, 'r') as ffile:
                     csvf = csv.reader(ffile)
@@ -241,11 +238,9 @@ def main():
                     # File should have at least columns for term row ID
                     next(ffile)
                     for row in csvf:
-                        # print(row)
                         # This if statement traps for blank rows
                         # if not ''.join(row).strip():
                         assign_id = int(row[16].strip())
-                        # print(assign_id)
                         the_list.append(assign_id)
                         # print(the_list)
 
@@ -410,6 +405,7 @@ def main():
                         # NOTE--QUOTE_MINIMAL is because timestamp has a comma
                         # print("Write item " + str(
                         #     i[16]) + " to current term file")
+
                         f = cur_file
                         # f = current_term + '_processed.csv'
 
@@ -423,30 +419,21 @@ def main():
             for f in files:
                 if (f.startswith("2010") or f.startswith("2011")
                         or f.startswith("2031") or f.startswith("2040")):
-                    # print("F = " + f)
                     csv_exists = True
 
             # Mark bill items as exported
             for bill_id in bill_list:
-                print(bill_id)
+                # print(bill_id)
                 fn_mark_bill_exported(bill_id, API_server, key)
 
             # When all done, email csv file?
             # Ideally, write ASCII file to Wilson into fin_post directory
             if csv_exists == True:
-                print("File created, send")
-                print("EMAIL TO " + str(settings.ADIRONDACK_ASCII_EMAIL))
+                # print("File created, send")
+                # print("EMAIL TO " + str(settings.ADIRONDACK_ASCII_EMAIL))
                 subject = 'Housing Miscellaneous Fees'
                 body = 'There are housing fees to process via ASCII ' \
                     'post'
-                # if test != "test":
-                    # fn_sendmailfees('dsullivan@carthage.edu',
-                    #                 'dsullivan@carthage.edu',
-                    #                 body, subject
-                    #                 )
-                # else:
-                print(body)
-                print(settings.ADIRONDACK_FROM_EMAIL)
                 fn_sendmailfees(settings.ADIRONDACK_ASCII_EMAIL,
                                 settings.ADIRONDACK_FROM_EMAIL,
                                 body, subject
