@@ -397,8 +397,8 @@ def main():
                                        "exist for " + carthid + " for term " \
                                         + term + ".. Please inquire why."
                                 subj = "Adirondack - Stu_serv_rec missing"
-                                # sendmail("dsullivan@carthage.edu",
-                                #          "dsullivan@carthage.edu", body, subj)
+                                # sendmail(ADIRONDACK_LIS_SUPPORT,
+                                #          ADIRONDACK_FROM_EMAIL, body, subj)
 
                         else:
                             # print("Bill code not found")
