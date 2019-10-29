@@ -24,7 +24,7 @@ from django.conf import settings
 from djequis.core.utils import sendmail
 from utilities import fn_write_error, fn_write_misc_header, \
     fn_sendmailfees, fn_get_utcts, fn_write_billing_header, \
-    fn_encode_rows_to_utf8
+    fn_encode_rows_to_utf8, fn_mark_bill_exported
 
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
@@ -100,28 +100,20 @@ def fn_check_cx_records(totcod, prd, jndate, stuid, amt):
 
 
 def fn_set_terms(last_term, current_term):
-    trmqry = '''select trim(sess)||yr as cur_term, acyr, 
-                        ROW_NUMBER () OVER () as rank
-                        from acad_cal_rec a
-                        where  yr = YEAR(TODAY)
-                        and (right(acyr,2) = RIGHT(TO_CHAR(YEAR(TODAY)),2) 
-                        or left(acyr, 2) = RIGHT(TO_CHAR(YEAR(TODAY)),2))  
-                        and sess in ('RC', 'RA')
-                        AND subsess = ''
-                        and prog = 'UNDG'
-                        order by beg_date asc
-                        '''
-    # print(trmqry)
 
-    ret = do_sql(trmqry, earl=EARL)
-
-    if ret is not None:
-        for row in ret:
-            if row[2] == '1':
-                last_term = row[0]
-            else:
-                current_term = row[0]
-
+    # Only RA and RC matter.
+    # print(datetime.today().month)
+    # print(str(datetime.today()))
+    # If we are in spring RC term, last term will be RA with Year - 1
+    # EX:  RC2020 current RA2019 last
+    if datetime.today().month < 7:
+        current_term = 'RC' + str(datetime.today().year)
+        last_term = 'RA' + str(datetime.today().year - 1)
+    # If we are in summer or fall both RA and RC will be current year
+    # EX:  RA2019 current RC2019 last
+    else:
+        current_term = 'RA' + str(datetime.today().year)
+        last_term = 'RC' + str(datetime.today().year)
     return [last_term, current_term]
 
 
@@ -150,9 +142,7 @@ def main():
         API_server = "carthage_thd_test_support"
         key = settings.ADIRONDACK_TEST_API_SECRET
 
-    # print(API_server)
-    # print(key)
-
+    print(API_server)
 
     try:
         utcts = fn_get_utcts()
@@ -185,14 +175,14 @@ def main():
             + "&" + "h=" + hash_object.hexdigest() \
             + "&" + "TIMEFRAMENUMERICCODE=" + adirondack_term \
             + "&" + "AccountCode=2010,2040,2011,2031" \
-            + "&" + "Exported=-0"
+            + "&" + "Exported=0"
 
-        # + "&" + "STUDENTNUMBER=1532881"
-        # + "&" + "ExportCharges=-1"
+            # + "&" + "STUDENTNUMBER=1501237"
 
-        # DEFINIION
+        # DEFINIIONS
         # Exported: -1 exported will be included, 0 only non-exported
         # ExportCharges: if -1 then charges will be marked as exported
+        # DO NOT mark exported here.  Wait for later step
 
         # print("URL = " + url)
 
@@ -207,12 +197,12 @@ def main():
             # ----------------------------------------
 
             files = os.listdir(settings.ADIRONDACK_TXT_OUTPUT)
+            # if f.find('misc_housing') != -1:
+            #     ext = f.find(".csv")
             for f in files:
-                if f.find('misc_housing') != -1:
-                    ext = f.find(".csv")
-                    # print("source = " + settings.ADIRONDACK_TXT_OUTPUT+f)
-                    # print("destintation = " + settings.ADIRONDACK_TXT_OUTPUT
-                    # + "ascii_archive/" + f[:ext] + "_" + timestr + f[ext:])
+                ext = f.find(".csv")
+                if (f.startswith("2010") or f.startswith("2011")
+                        or f.startswith("2031") or f.startswith("2040")):
                     shutil.move(settings.ADIRONDACK_TXT_OUTPUT + f,
                                 settings.ADIRONDACK_TXT_OUTPUT +
                                 "ascii_archive/" +
@@ -298,6 +288,8 @@ def main():
             # calculated in Adirondack
 
             # Adirondack dataset
+            bill_list = []
+
             for i in x['DATA']:
                 # --------------------
                 # As the csv is being created
@@ -310,11 +302,16 @@ def main():
                 # Round the amount to 2 decimal places
                 amount = '{:.2f}'.format(i[2])
                 bill_id = str(i[16])
+                bill_list.append(bill_id)
+
+                # print(bill_id)
+                # print(str(bill_list))
 
                 stu_id = str(i[0])
                 item_date = i[1][-4:] + "-" + i[1][:2] + "-" + i[1][3:5]
                 tot_code = str(i[6])
                 item_type = i[13]
+                # print(item_type)
 
                 # print("Adirondack term to check = " + adir_term)
                 # print("CX Current Term = " + current_term)
@@ -356,25 +353,15 @@ def main():
                         rec.append(tot_code)
                         rec.append(ascii_term)
 
-                        # fee_file = settings.ADIRONDACK_TXT_OUTPUT + tot_code \
-                        #     + "_" + settings.ADIRONDACK_ROOM_FEES \
-                        #     + datetimestr + ".csv"
+                        file_descr = item_type.replace(" ", "_")
 
                         fee_file = settings.ADIRONDACK_TXT_OUTPUT + tot_code \
-                                   + "_" + item_type + "_" + datetimestr + \
-                                   ".csv"
+                            + "_" + file_descr + "_" + datetimestr + ".csv"
 
                         with open(fee_file, 'ab') as fee_output:
                             csvwriter = csv.writer(fee_output)
                             csvwriter.writerow(rec)
                         fee_output.close()
-
-                        # with codecs.open(fee_file, 'ab',
-                        #                  encoding='utf-8-sig') as fee_output:
-                        #     csvwriter = csv.writer(fee_output,
-                        #                            quoting=csv.QUOTE_NONE)
-                        #     csvwriter.writerow(rec)
-                        # fee_output.close()
 
                         # Write record of item to PROCESSED list
                         # print("Write item " + str(
@@ -386,13 +373,6 @@ def main():
                             csvwriter = csv.writer(wffile)
                             csvwriter.writerow(i)
                         wffile.close()
-
-                        # with codecs.open(f, 'ab',
-                        #                  encoding='utf-8-sig') as wffile:
-                        #     csvwriter = csv.writer(wffile,
-                        #                            quoting=csv.QUOTE_MINIMAL)
-                        #     csvwriter.writerow(i)
-                        # wffile.close()
 
                 else:
                     # In case of a charge from the previous term
@@ -416,27 +396,15 @@ def main():
                         rec.append(tot_code)
                         rec.append(ascii_term)
 
+                        file_descr = item_type.replace(" ", "_")
+
                         fee_file = settings.ADIRONDACK_TXT_OUTPUT + tot_code \
-                                   + "_" + item_type + "_" + datetimestr + \
-                                   ".csv"
-
-                        # fee_file = settings.ADIRONDACK_TXT_OUTPUT + tot_code \
-                        #     + "_" + settings.ADIRONDACK_ROOM_FEES \
-                        #     + datetimestr + ".csv"
-
-                        # print(fee_file)
+                            + "_" + file_descr + "_" + datetimestr + ".csv"
 
                         with open(fee_file, 'ab') as fee_output:
                             csvwriter = csv.writer(fee_output)
                             csvwriter.writerow(rec)
                         fee_output.close()
-
-                        # with codecs.open(fee_file, 'ab',
-                        #                  encoding='utf-8-sig') as fee_output:
-                        #     csvwriter = csv.writer(fee_output,
-                        #                            quoting=csv.QUOTE_NONE)
-                        #     csvwriter.writerow(rec)
-                        # fee_output.close()
 
                         # Write record of item to PROCESSED list
                         # NOTE--QUOTE_MINIMAL is because timestamp has a comma
@@ -450,41 +418,44 @@ def main():
                             csvwriter.writerow(i)
                         wffile.close()
 
-                        # with codecs.open(f, 'ab',
-                        #                  encoding='utf-8-sig') as wffile:
-                        #     csvwriter = csv.writer(wffile,
-                        #                            quoting=csv.QUOTE_MINIMAL)
-                        #     csvwriter.writerow(i)
-                        # wffile.close()
-
-                        # fn_mark_bill_exported(adir_term, tot_code, stu_id,
-                        #                       itemtype)
-
             files = os.listdir(settings.ADIRONDACK_TXT_OUTPUT)
             csv_exists = False
             for f in files:
-                if f.find('misc_housing') != -1:
+                if (f.startswith("2010") or f.startswith("2011")
+                        or f.startswith("2031") or f.startswith("2040")):
                     # print("F = " + f)
                     csv_exists = True
+
+            # Mark bill items as exported
+            for bill_id in bill_list:
+                print(bill_id)
+                fn_mark_bill_exported(bill_id, API_server, key)
 
             # When all done, email csv file?
             # Ideally, write ASCII file to Wilson into fin_post directory
             if csv_exists == True:
-                # print("File created, send")
+                print("File created, send")
+                print("EMAIL TO " + str(settings.ADIRONDACK_ASCII_EMAIL))
                 subject = 'Housing Miscellaneous Fees'
                 body = 'There are housing fees to process via ASCII ' \
                     'post'
+                # if test != "test":
+                    # fn_sendmailfees('dsullivan@carthage.edu',
+                    #                 'dsullivan@carthage.edu',
+                    #                 body, subject
+                    #                 )
+                # else:
                 print(body)
+                print(settings.ADIRONDACK_FROM_EMAIL)
                 fn_sendmailfees(settings.ADIRONDACK_ASCII_EMAIL,
                                 settings.ADIRONDACK_FROM_EMAIL,
                                 body, subject
                                 )
 
     except Exception as e:
-        print("Error in adirondack_misc_fees_api.py- Main:  " + e.message)
-        fn_write_error("Error in adirondack_std_billing_api.py - Main: "
+        print("Error in misc_fees.py- Main:  " + e.message)
+        fn_write_error("Error in misc_fees.py - Main: "
                        + e.message)
-
 
 if __name__ == "__main__":
     args = parser.parse_args()
