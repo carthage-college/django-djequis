@@ -80,15 +80,11 @@ def fn_get_bill_code(idnum, bldg, roomtype, roomassignmentid, session,
                 billcode = 'ABRD'
             else:
                 billcode = ''
-            # print("Billcode found as " + billcode)
             return billcode
         else:
             for rows in x['DATA']:
-                # print("ASSIGNMENTID = " + str(rows[14]))
                 if roomassignmentid == rows[14]:
-                    # print(rows[6])
                     billcode = rows[6]
-                    # print("Billcode found as " + billcode)
                     return billcode
     except Exception as e:
         print(
@@ -149,9 +145,6 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted,
         hashstring = str(utcts) + api_key
         hash_object = hashlib.md5(hashstring.encode())
 
-        # print("In fn_mark_room_posted " + str(stu_id) + ", " + str(room_no)
-        # + ", " + str(hall_code) + ", " + term)
-
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
             +api_server+"/apis/thd_api.cfc?" \
             "method=housingASSIGNMENTS&" \
@@ -205,12 +198,6 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted,
         response = requests.get(url)
         x = json.loads(response.content)
 
-        # if not x['DATA']:
-        #     print("Unable to mark bill as exported - record not found")
-        # else:
-        #     print("Bill marked as exported")
-
-
     except Exception as e:
         # print("Error in utilities.py- fn_mark_room_posted:  " +
         #       e.message)
@@ -261,19 +248,15 @@ def fn_mark_bill_exported(bill_id, api_server, api_key):
 
 
 def fn_convert_date(ddate):
-    # print(date)
     if ddate != "":
         ndate = datetime.strptime(ddate, "%Y-%m-%d")
         retdate = datetime.strftime(ndate, "%m/%d/%Y")
     else:
         retdate = ''
-    # print(str(date) + ',' + str(retdate))
     return retdate
 
 
 def fn_write_misc_header():
-    # with codecs.open(settings.ADIRONDACK_ROOM_FEES, 'wb',
-    #                  encoding='utf-8-sig') as fee_output:
     with codecs.open(settings.ADIRONDACK_ROOM_FEES, 'wb') as fee_output:
         csvwriter = csv.writer(fee_output)
         csvwriter.writerow(["ITEM_DATE", "BILL_DESCRIPTION", "ACCOUNT_NUMBER",
@@ -452,8 +435,6 @@ def fn_sendmailfees(to, frum, body, subject):
     # print("ready to send")
     server = smtplib.SMTP('localhost')
     # show communication with the server
-    # if debug:
-    #     server.set_debuglevel(True)
     try:
         print(frum)
         server.sendmail(frum, to.split(','), text)
