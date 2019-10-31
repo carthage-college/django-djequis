@@ -89,6 +89,7 @@ def main():
 
 
         # -------------------------------------------------------
+        # Read in a csv file of addresses
         # Send the CSV via the API to collect the geographic data
         # -------------------------------------------------------
         url = 'https://geocoding.geo.census.gov/geocoder/geographies/addressbatch?form'
@@ -133,7 +134,7 @@ def main():
                     coordinates = str(row[12] + ", " + str(row[11]))
                     print("Latitude and Longitude = " + str(coordinates))
                     FIPS = str(row[15]) + "-" + str(row[16])
-                    print("FIPS State and Zip = " + FIPS)
+                    print("FIPS State and county = " + FIPS)
                     print("Distance from Carthage = " + str(fn_calc_distance(row[11],row[12])))
 
                 else:
@@ -145,13 +146,11 @@ def main():
                     coordinates = str(row[12] + ", " + str(row[11]))
                     print("Latitude and Longitude = " + str(coordinates))
                     FIPS = str(row[15]) + "-" + str(row[16])
-                    print("FIPS State and Zip = " + FIPS)
+                    print("FIPS State and county = " + FIPS)
                     print("Distance from Carthage = " + str(fn_calc_distance(row[11],row[12])))
 
                     # Return file is also a csv, so no JSON
                     # Loop through csv, update tables as needed
-
-
 
                     # -------------------------------------------------------
                     # Finally, update the particular CX tables
@@ -164,7 +163,6 @@ def main():
                     # Question remains as to what else we will update
                     # Will we correct address in ID rec?
                     # Do we care about addresses in AA rec for this purpose?
-
     except Exception as e:
         # fn_write_error("Error in zip_distance.py for zip, Error = " + e.message)
         print("Error = " + e.message)
