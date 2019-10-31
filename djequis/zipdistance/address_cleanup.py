@@ -128,6 +128,7 @@ def fn_fix_unit(addr):
 
 # This code accesses the US Census Bureau API to get geographic data by address
 # It takes a csv file as a batch upload and returns a csv file with the data
+# that has the addresses formatted as USPS would standardize them
 # Return includes Latitude, longitude, FIPS state and county codes
 
 def main():
@@ -194,6 +195,7 @@ def main():
                     # + ', ' + v_zip)
                     csvWriter.writerow(row)
             CXOutput.close()
+
         #  -------------------------------------------------------
         # 3. Send the csv to Geocode
         #  -------------------------------------------------------
@@ -230,33 +232,34 @@ def main():
         #  -------------------------------------------------------
         with open('geocodeOutput.csv', 'r') as data:
             read_csv = csv.reader(data, delimiter=',')
+            print("---------------")
             for row_count, row in enumerate(read_csv):
                 # print("\n" + "Row count = " + str(row_count + 1))
-                # print("ID = " + row[0])
+                print("ID = " + row[0])
                 if row[0] == '':
                     original_address = ''
                     # could essentially do nothing
-                    # print("NO Record at row " + str(row_count + 1))
+                    print("NO Record at row " + str(row_count + 1))
                 if str(row).find('--BadAddr--') > 0:
                     original_address = str(row)
-                    raise ValueError("Bad Address: " + original_address)
+                    # raise ValueError("Bad Address: " + original_address)
                     # could essentially do nothing
-                    # print("NO Record at row " + str(row_count + 1))
+                    print("NO Record at row " + str(row_count + 1))
                 elif row[5] == 'No_Match':
                     # print("Match = " + row[5])
                     original_address = row[1] + ", " + row[2] + ", " + row[
                          3] + ", " + row[4]
-                    # print("Original Address = " + original_address)
-                    # print("FIPS State and Zip Undetermined")
+                    print("Original Address = " + original_address)
+                    print("FIPS State and Zip Undetermined")
 
                 elif row[6] == "Non_Exact":
                     # print("Match = " + row[5] + " " + row[6])
                     original_address = row[1] + ", " + row[2] + ", " + row[
                         3] + ", " + row[4]
-                    # print("Original Address = " + original_address)
+                    print("Original Address = " + original_address)
                     correct_address = row[7] + ", " + row[8] + ", " + row[
                         9] + ", " + row[10]
-                    # print("Partial Match = " + correct_address)
+                    print("Partial Match = " + correct_address)
                     # coordinates = str(row[12] + ", " + str(row[11]))
                     # print("Latitude and Longitude = " + str(coordinates))
                     FIPS = str(row[15]) + "-" + str(row[16])
@@ -273,10 +276,10 @@ def main():
                     # print("Match = " + row[5] + " " + row[6])
                     original_address = row[1] + ", " + row[2] + ", " + row[
                         3] + ", " + row[4]
-                    # print(original_address)
+                    print(original_address)
                     correct_address = row[7] + ", " + row[8] + ", " + row[
                         9] + ", " + row[10]
-                    # print(correct_address)
+                    print(correct_address)
                     # coordinates = str(row[12] + ", " + str(row[11]))
                     # print("Latitude and Longitude = " + str(coordinates))
                     FIPS = str(row[15]) + "-" + str(row[16])
@@ -292,6 +295,7 @@ def main():
                     #
                     # update_profile(str(row[15]), str(row[16]), row[0], engine)
 
+                print("---------------")
 
         # Question remains as to what else we will update
         # Will we correct address in ID rec?
@@ -299,7 +303,7 @@ def main():
 
     except ValueError as e:
         print(e.args)
-        pass
+        # pass
     except Exception as e:
         print("Error = " + e.message)
         # finally:
