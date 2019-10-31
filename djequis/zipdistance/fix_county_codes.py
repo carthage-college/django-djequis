@@ -83,66 +83,6 @@ parser.add_argument(
 # for an address
 # It returns Latitude, longitude, FIPS state and county codes
 
-def main():
-    try:
-        # set global variable
-        global EARL
-        # determines which database is being called from the command line
-        # if database == 'cars':
-        #     EARL = INFORMIX_EARL_PROD
-        if database == 'train':
-            #python address_lookup.py --database=train --test
-            EARL = INFORMIX_EARL_TEST
-        elif database == 'sandbox':
-            #python address_lookup.py --database=sandbox --test
-            EARL = INFORMIX_EARL_SANDBOX
-        else:
-            # this will raise an error when we call get_engine()
-            # below but the argument parser should have taken
-            # care of this scenario and we will never arrive here.
-            EARL = None
-        # establish database connection
-
-        engine = get_engine(EARL)
-
-        # --------------------------------------------------------
-        #This is for testing.  If an automated version is to come,
-        #  it will be passed an address so it will need to exist
-        #  as a function in a utility somewhere
-
-        qval_sql = '''select id_rec.id, id_rec.fullname, 
-		trim(id_rec.addr_line1)||' '||trim(nvl(id_rec.addr_line2,''))||' '||trim(nvl(id_rec.addr_line3,'')) street, 
-		id_rec.city, id_rec.st, id_rec.zip, profile_rec.res_st, 
-		profile_rec.res_cty, profile_rec.birth_date
-        from id_rec 
-        join profile_rec on id_rec.id = profile_rec.id
-        where id_rec.st like ('%WI%') and id_rec.id = 17231'''
-
-        print(qval_sql)
-
-        sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
-        # ---------------------------------------------------------
-        #  Should take this code and make it a function where the address
-        # is passed in
-
-        if sql_val is not None:
-            rows = sql_val.fetchall()
-            for row in rows:
-                v_id = row[0]
-                v_street = row[2]
-                v_city =row[3]
-                v_state = row[4]
-                v_zip = row[5]
-                v_bdate = row[8]
-
-                fn_single_address(v_id, v_street, v_city, v_state, v_zip, v_bdate)
-    except Exception as e:
-        # fn_write_error("Error in zip_distance.py for zip, Error = " + e.message)
-        print("Error in address_lookup.py - Error = " + str(e.message))
-        # finally:
-        #     logging.shutdown()
-
-
 def fn_single_address(v_id, v_street, v_city, v_state, v_zip, v_bdate):
     try:
         url = "https://geocoding.geo.census.gov/geocoder/geographies/address?street=" \
@@ -228,9 +168,6 @@ def fn_single_address(v_id, v_street, v_city, v_state, v_zip, v_bdate):
             print(sql_update_cty,upd_cty_args)
             # engine.execute(sql_update_cty, q_upd_prof_args)
 
-
-
-
     except Exception as e:
         # fn_write_error("Error in zip_distance.py for zip, Error = " + e.message)
         print("Error in address_lookup.py - Error = " + str(e.message))
@@ -254,6 +191,67 @@ def fn_write_error(msg):
     # logger.removeHandler(handler)
     # fn_clear_logger()
     # return("Error logged")
+
+
+def main():
+    try:
+        # set global variable
+        global EARL
+        # determines which database is being called from the command line
+        # if database == 'cars':
+        #     EARL = INFORMIX_EARL_PROD
+        if database == 'train':
+            #python address_lookup.py --database=train --test
+            EARL = INFORMIX_EARL_TEST
+        elif database == 'sandbox':
+            #python address_lookup.py --database=sandbox --test
+            EARL = INFORMIX_EARL_SANDBOX
+        else:
+            # this will raise an error when we call get_engine()
+            # below but the argument parser should have taken
+            # care of this scenario and we will never arrive here.
+            EARL = None
+        # establish database connection
+
+        engine = get_engine(EARL)
+
+        # --------------------------------------------------------
+        #This is for testing.  If an automated version is to come,
+        #  it will be passed an address so it will need to exist
+        #  as a function in a utility somewhere
+
+        qval_sql = '''select id_rec.id, id_rec.fullname, 
+        trim(id_rec.addr_line1)||' '||trim(nvl(id_rec.addr_line2,''))||' '||trim(nvl(id_rec.addr_line3,'')) street, 
+        id_rec.city, id_rec.st, id_rec.zip, profile_rec.res_st, 
+        profile_rec.res_cty, profile_rec.birth_date
+        from id_rec 
+        join profile_rec on id_rec.id = profile_rec.id
+        where id_rec.st like ('%WI%') and id_rec.id = 17231'''
+
+        print(qval_sql)
+
+        sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
+        # ---------------------------------------------------------
+        #  Should take this code and make it a function where the address
+        # is passed in
+
+        if sql_val is not None:
+            rows = sql_val.fetchall()
+            for row in rows:
+                v_id = row[0]
+                v_street = row[2]
+                v_city =row[3]
+                v_state = row[4]
+                v_zip = row[5]
+                v_bdate = row[8]
+
+                fn_single_address(v_id, v_street, v_city, v_state, v_zip, v_bdate)
+
+    except Exception as e:
+        # fn_write_error("Error in zip_distance.py for zip, Error = " + e.message)
+        print("Error in address_lookup.py - Error = " + str(e.message))
+        # finally:
+        #     logging.shutdown()
 
 
 if __name__ == "__main__":
