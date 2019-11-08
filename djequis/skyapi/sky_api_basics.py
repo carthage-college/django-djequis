@@ -17,6 +17,7 @@ import datetime
 import django
 
 import cryptography
+from datetime import datetime
 from cryptography import fernet
 from cryptography.fernet import Fernet
 # Note to self, keep this here
@@ -145,17 +146,10 @@ def token_refresh(refresh_token_file=settings.BB_SKY_REFRESH_TOKEN_FILE ,
         #                + e.message)
         return 0
 
-def call_api(current_token, url):
-    print("In call_api")
+def api_get(current_token, url):
+    print("In api_get")
     try:
-        # url='https://api.sky.blackbaud.com/constituent/v1/constituentcodetypes'):
-        # Given a url representing a SKY API Endpoint
-        # :param url: a SKY API Endpoint URL
-        # :param current_token:
-
         params = {'HOST': 'api.sky.blackbaud.com'}
-        # df_out = pd.DataFrame()
-
         status = 'Initial Value'
 
         while status != 200 or url != '':
@@ -196,7 +190,81 @@ def call_api(current_token, url):
             # except:     # No 'next_link' element, have hit last paginated response
             #     url = ''
     except Exception as e:
-        print("Error in call_api:  " + e.message)
+        print("Error in api_get:  " + e.message)
+        # fn_write_error("Error in api_get - Main: "
+        #                + e.message)
+        return 0
+
+def api_post(current_token, url, data):
+    print("In api_post")
+    try:
+        params = {'HOST': 'api.sky.blackbaud.com'}
+        status = 'Initial Value'
+
+        headers = {'Content-Type': 'application/json',
+                   'Bb-Api-Subscription-Key': settings.BB_SKY_SUBSCRIPTION_KEY,
+                   'Authorization': 'Bearer ' + current_token}
+
+        # while status != 200 or url != '':
+        #     time.sleep(.2)  # SKY API Rate limited to 5 calls/sec
+
+        # ref_token_call = requests.post(
+        #     url='url',
+        #     headers=headers,
+        #     data={'grant_type': 'refresh_token',
+        #           'refresh_token': refresh_token,
+        #           'client_id': settings.BB_SKY_CLIENT_ID,
+        #           ## **** Can we enable this? ***'preserve_refresh_token':
+        #           # 'true',
+        #           'client_secret': settings.BB_SKY_CLIENT_SECRET,
+        #           # 'redirect_uri': settings.BB_SKY_CALLBACK_URI
+        #           }
+        # )
+
+        # elif status != 200:
+        refresh_status, current_token, _ = token_refresh()
+        return 0
+
+        print(data)
+        # Might need to be sent as 'data=json.dumps(data)
+        response = requests.post(url=url, headers=headers,
+                                params=params,
+                                data=json.dumps(data)
+                                )
+        status = response.status_code
+        stat_msg = response.text
+        print(status)
+        print(stat_msg)
+
+        # if status == 400:
+        #     # Print HTML repsonse and exit function with empty DataFrame
+        #     print('ERROR:  ' + str(status) + ":" + response.text)
+        #     return 0
+        #
+        # elif status == 403:   # OUT OF API QUOTA - Quit
+        #     # Print HTML repsonse and exit function with empty DataFrame
+        #     print('ERROR:  ' + str(status) + ":" + response.text)
+        #     print('You\'re out of API Quota!')
+        #     return 0
+        #
+        # elif status != 200:
+        #     refresh_status, current_token, _ = token_refresh()
+        #     return 0
+        #
+        # else:
+        #     response_dict = json.loads(response.text)
+        #     return response_dict
+
+        # try:
+        #     if response_dict['count'] == 0:
+        #         url = ''
+        #     else:
+        #         url = response_dict['next_link']
+        # except:     # No 'next_link' element, have hit last paginated response
+        #     url = ''
+        return status
+    except Exception as e:
+        print("Error in api_get:  " + e.message)
         # fn_write_error("Error in misc_fees.py - Main: "
         #                + e.message)
         return 0
@@ -206,7 +274,7 @@ def get_const_custom_fields(current_token, id):
     try:
         urlst = 'https://api.sky.blackbaud.com/constituent/v1/constituents/' \
                 + str(id) + '/customfields'
-        x = call_api(current_token, urlst)
+        x = api_get(current_token, urlst)
         print(x)
 
         if x == 0:
@@ -214,12 +282,20 @@ def get_const_custom_fields(current_token, id):
             return 0
         else:
             for i in x['value']:
-                print(i['category'])
-                print(i['parent_id'])
-                print(i['value'])
-                print(i['type'])
-                print(i['id'])
-                print(i['date_modified'])
+                print("ID = " + i['id'])
+                print("Category = " + i['category'])
+
+                if 'comment' not in x['value']:
+                    print("Comment not entered")
+                else:
+                    print("Comment = " + str(i['comment']))
+
+                print("Date = " + i['date'])
+                print("Date Added = " + i['date_added'])
+                print("Date Modified = " + i['date_modified'])
+                print("Parent id = " + i['parent_id'])
+                print("Type = " + i['type'])
+                print("Value = " + i['value'])
             return 1
     except Exception as e:
         print("Error in get_const_custom_fields:  " + e.message)
@@ -233,7 +309,7 @@ def get_relationships(current_token, id):
             + str(id) + '/relationships'
     try:
 
-        x = call_api(current_token, urlst)
+        x = api_get(current_token, urlst)
         if x == 0:
             print("NO DATA")
             return 0
@@ -260,7 +336,7 @@ def get_relationships(current_token, id):
 def get_custom_fields(current_token):
     urlst = 'https://api.sky.blackbaud.com/constituent/v1/constituents/customfields/categories/details'
 
-    x = call_api(current_token, urlst)
+    x = api_get(current_token, urlst)
     if x == 0:
         print("NO DATA")
         return 0
@@ -271,27 +347,72 @@ def get_custom_fields(current_token):
             print(i['type'])
         return 1
 
-def set_const_custom_field(current_token, id):
+def get_custom_field_value(current_token, category):
+    try:
+        urlst = 'https://api.sky.blackbaud.com/constituent/v1/constituents/customfields/categories/values?category_name=' + category
+        x = api_get(current_token, urlst)
+        if x == 0:
+            print("NO DATA")
+            return 0
+        else:
+            # for i in x['value']:
+            print(x)
+                # print(i)
+            return 1
+    except Exception as e:
+        print("Error in get_custom_field_value:  " + e.message)
+        # fn_write_error("Error in misc_fees.py - Main: "
+        #                + e.message)
+        return 0
+
+def get_constituent_id(current_token, carthid):
+    try:
+        urlst =  'https://api.sky.blackbaud.com/constituent/v1/constituents/' \
+                 'search?search_text=1534657&search_field=lookup_id'
+
+        x = api_get(current_token, urlst)
+        if x == 0:
+            print("NO DATA")
+            return 0
+        else:
+            for i in x['value']:
+            # print(x)
+                print(i['id'])
+                print(i['name'])
+                print(i['lookup_id'])
+                print(i['inactive'])
+            return 1
+    except Exception as e:
+        print("Error in get_constituent_id:  " + e.message)
+        # fn_write_error("Error in get_constituent_id.py - Main: "
+        #                + e.message)
+        return 0
+
+
+def set_const_custom_field(current_token, id, value, category, comment):
+    # print(current_token)
+    #         "name": "Achievement",
+    #         "type": "CodeTableEntry"
+    #         "name": "Involvement",
+    #         "type": "CodeTableEntry"
+    #         "name": "Student Status",
+    #         "type": "Text"
+    #
     urlst = 'https://api.sky.blackbaud.com/constituent/v1/constituents/customfields'
 
-    x = call_api(current_token, urlst)
+    now = datetime.now()
+    date_time = now.strftime("%Y-%m-%dT%H:%M:%S")
+
+    body = {'category': category, 'comment': comment, 'date': date_time,
+            'parent_id': id, 'value': value}
+
+    print(current_token, urlst, body)
+
+    x = api_post(current_token, urlst, body)
     if x == 0:
-        print("NO DATA")
+        print("Post Failure")
         return 0
     else:
-        # body = "{
-        #         "category": "Student Status",
-        #         "comment": "Test",
-        #         "date": "2019-11-17T00:00:00",
-        #        "parent_id": "19278",
-        #         "value": "Alumni"
-        #      } "
-        for i in x['value']:
-            # print(i)
-            print(i['category'])
-            print(i['parent_id'])
-            print(i['value'])
-            print(i['comment'])
         return 1
 
 def main():
@@ -301,12 +422,34 @@ def main():
         # print("Current Token = ")
         # print(current_token)
 
-        # ret = get_const_custom_fields(current_token, 19278)
-        ret = get_custom_fields(current_token)
-        # ret = get_relationships(current_token, 1534657)
-        # ret = call_api(current_token, 'https://api.sky.blackbaud.com/constituent/v1/constituents/search?search_text=1534657')
+        # # First, we have to get the internal ID from blackbaud for
+        # the constituent
+        # ret = get_constituent_id(current_token, 1534657)
+        # print(ret)
 
+        # Also need to check to see if the custom field exists
+        # Does not appear we can filter by category or type...WHY???
+        ret = get_const_custom_fields(current_token, 20369)
         print(ret)
+
+        # Then we can deal with the custom fields...
+        # If there is an entry, we have to decide if we are posting a new item
+        #   or patching an existing one
+        # ret = set_const_custom_field(current_token, 20369, 'Not a student',
+        #                              'Student Status', 'Testing a post')
+        # print(ret)
+
+        # Then we can check on the update
+        ret = get_const_custom_fields(current_token, 20369)
+        print(ret)
+
+
+        # ret = get_const_custom_fields(current_token, 1534657)
+        # ret = get_custom_fields(current_token)
+        # ret = get_custom_field_value(current_token, 'Student Status')
+        # ret = get_relationships(current_token, 1534657)
+        # ret = api_get(current_token, 'https://api.sky.blackbaud.com/constituent/v1/constituents/search?search_text=1534657')
+
     except Exception as e:
         print("Error in main:  " + e.message)
         # fn_write_error("Error in misc_fees.py - Main: "
@@ -314,40 +457,39 @@ def main():
 
 
 
-
 # Once we have the tokens, we can make calls to the API
 # since these return different things, will need separate code blocks
 # to parse the results
-# ret = call_api(current_token,
+# ret = api_get(current_token,
 #                'https://api.sky.blackbaud.com/constituent/v1/constituentcodetypes')
-# x = call_api(current_token,
+# x = api_get(current_token,
 # 'https://api.sky.blackbaud.com/constituent/v1/constituentcodetypes')
-# x = call_api(current_token,
+# x = api_get(current_token,
 # 'https://api.sky.blackbaud.com/constituent/v1/relationshiptypes')
-# x = call_api(current_token,
+# x = api_get(current_token,
 # 'https://api.sky.blackbaud.com/constituent/v1/constituents/customfields
 # /categories')
-# x = call_api(current_token,
+# x = api_get(current_token,
 # 'https://api.sky.blackbaud.com/constituent/v1/educations/statuses')
-# x = call_api(current_token,
+# x = api_get(current_token,
 # 'https://api.sky.blackbaud.com/constituent/v1/educations/schools')
-# x = call_api(current_token,
+# x = api_get(current_token,
 # 'https://api.sky.blackbaud.com/constituent/v1/constituents/search
 # ?search_text=1534657')
-# x = call_api(current_token,
+# x = api_get(current_token,
 # 'https://api.sky.blackbaud.com/constituent/v1/countries')
 
 # THIS ONE DOESN'T SEEM TO WORK...
-# x = call_api(current_token,
+# x = api_get(current_token,
 # 'https://api.sky.blackbaud.com/constituent/v1/constituents/1590307
 # /relationships')
-# x = call_api(current_token,
+# x = api_get(current_token,
 # 'https://api.sky.blackbaud.com/constituent/v1/constituents/19278
 # /constituentcodes')
 
 # This will return the name and type of the custom field categories
 # "Student Status", "Text"
-# x = call_api(current_token,
+# x = api_get(current_token,
 # 'https://api.sky.blackbaud.com/constituent/v1/constituents/customfields
 # /categories/details')
 
