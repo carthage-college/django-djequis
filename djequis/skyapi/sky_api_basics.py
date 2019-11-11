@@ -57,11 +57,11 @@ def get_refresh_token(refresh_token_file=settings.BB_SKY_REFRESH_TOKEN_FILE):
     # print(y)
 
     refresh_token = cache.get('refreshkey')
-    if refresh_token is None:
-        # Read the file storing the latest access token
-        with open(refresh_token_file, 'rb') as f:
-            refresh_token = f.readline()
-
+    # if refresh_token is None:
+    #     # Read the file storing the latest access token
+    #     with open(refresh_token_file, 'rb') as f:
+    #         refresh_token = f.readline()
+    #
     # print(refresh_token)
 
     return refresh_token
@@ -89,7 +89,7 @@ def token_refresh(refresh_token_file=settings.BB_SKY_REFRESH_TOKEN_FILE ,
                 url='https://oauth2.sky.blackbaud.com/token',
                 headers={'Content-Type': 'application/x-www-form-urlencoded'},
                 data={'grant_type': 'refresh_token',
-                      'refresh_token': refresh_tokenf,
+                      'refresh_token': refresh_token,
                       'client_id': settings.BB_SKY_CLIENT_ID,
                       ## **** Can we enable this?
                       # ***'preserve_refresh_token': 'true',
@@ -121,13 +121,13 @@ def token_refresh(refresh_token_file=settings.BB_SKY_REFRESH_TOKEN_FILE ,
         refresh_token = tokens_dict['refresh_token']
         access_token = tokens_dict['access_token']
 
-        with open(token_file, 'w') as f:
-            f.write(access_token)
-            cache.set('tokenkey', access_token)
+        # with open(token_file, 'w') as f:
+        #     f.write(access_token)
+        cache.set('tokenkey', access_token)
 
-        with open(refresh_token_file, 'w') as f:
-            f.write(refresh_token)
-            cache.set('refreshkey', refresh_token)
+        # with open(refresh_token_file, 'w') as f:
+        #     f.write(refresh_token)
+        cache.set('refreshkey', refresh_token)
 
         # print(ref_token_call.status_code)
         # print(access_token)
