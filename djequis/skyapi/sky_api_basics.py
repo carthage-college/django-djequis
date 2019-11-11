@@ -16,10 +16,8 @@ import base64
 import datetime
 import django
 
-import cryptography
+# import cryptography
 from datetime import datetime
-from cryptography import fernet
-from cryptography.fernet import Fernet
 # Note to self, keep this here
 # django settings for shell environment
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
@@ -40,19 +38,39 @@ def get_local_token(token_file=settings.BB_SKY_TOKEN_FILE):
     # print(x)
     # print(y)
 
-    # Read the file storing the latest access token
-    with open(token_file, 'rb') as f:
-        current_token = f.readline()
+
+    current_token = cache.get('tokenkey')
+    if current_token is None:
+        # Read the file storing the latest access token
+        with open(token_file, 'rb') as f:
+            current_token = f.readline()
 
     # print(current_token)
 
     return current_token
 
+def get_refresh_token(refresh_token_file=settings.BB_SKY_REFRESH_TOKEN_FILE):
+    # x = cache.get('tokenkey')
+    # y = cache.get('refreshkey')
+    # print("Cache..")
+    # print(x)
+    # print(y)
+
+    refresh_token = cache.get('refreshkey')
+    if refresh_token is None:
+        # Read the file storing the latest access token
+        with open(refresh_token_file, 'rb') as f:
+            refresh_token = f.readline()
+
+    # print(refresh_token)
+
+    return refresh_token
 
 def token_refresh(refresh_token_file=settings.BB_SKY_REFRESH_TOKEN_FILE ,
                   token_file=settings.BB_SKY_TOKEN_FILE):
     print("In token_refresh")
-
+    # x = cache.get('tokenkey')
+    # y = cache.get('refreshkey')
     try:
         # Generates a new OAUTH2 access token and refresh token using
         # the current (unexpired) refresh token. Writes updated tokens
@@ -63,14 +81,15 @@ def token_refresh(refresh_token_file=settings.BB_SKY_REFRESH_TOKEN_FILE ,
         # here.  It may be that converting the encode(ASCII) necessary to do
         # the encryption needs to be reversed after the read
         with open(refresh_token_file, 'r') as f:
-            refresh_token = f.readline()
-            # print(refresh_token)
-
+            refresh_tokenf = f.readline()
+            print(refresh_tokenf)
+            refresh_token = get_refresh_token()
+            print(refresh_token)
             ref_token_call = requests.post(
                 url='https://oauth2.sky.blackbaud.com/token',
                 headers={'Content-Type': 'application/x-www-form-urlencoded'},
                 data={'grant_type': 'refresh_token',
-                      'refresh_token': refresh_token,
+                      'refresh_token': refresh_tokenf,
                       'client_id': settings.BB_SKY_CLIENT_ID,
                       ## **** Can we enable this?
                       # ***'preserve_refresh_token': 'true',
@@ -114,7 +133,9 @@ def token_refresh(refresh_token_file=settings.BB_SKY_REFRESH_TOKEN_FILE ,
         # print(access_token)
         # print(refresh_token)
 
-        return (ref_token_call.status_code, access_token, refresh_token)
+        return 1
+        # return refresh_token
+        # return (ref_token_call.status_code, access_token, refresh_token)
 
     except Exception as e:
         print("Error in token_refresh:  " + e.message)
@@ -412,7 +433,8 @@ def main():
         print(ret)
 
         # Refreshthe API tokens
-        refresh_status, current_token, = token_refresh()
+        r = token_refresh()
+        print(r)
 
     except Exception as e:
         print("Error in main:  " + e.message)
