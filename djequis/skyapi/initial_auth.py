@@ -15,6 +15,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 django.setup()
 # ________________
 from django.conf import settings
+from django.core.cache import cache
 
 AUTHORIZATION = 'Basic ' + settings.BB_SKY_CLIENT_ID + ":" + settings.BB_SKY_CLIENT_SECRET
 urlSafeEncodedBytes = base64.urlsafe_b64encode(AUTHORIZATION.encode("utf-8"))
@@ -92,7 +93,7 @@ def get_initial_token():
 
     with open(settings.BB_SKY_TOKEN_FILE, 'w') as f:
         f.write(access_token)
-
+        cache.set('tokenkey', access_token)
     # with open(settings.BB_SKY_TOKEN_FILE, 'r') as f:
     #         decrypted = f.readline()
     # txt3 = frn.decrypt(decrypted)
@@ -100,11 +101,17 @@ def get_initial_token():
 
     with open(settings.BB_SKY_REFRESH_TOKEN_FILE, 'w') as f:
         f.write(refresh_token)
+        cache.set('refreshkey', refresh_token)
 
     # with open(settings.BB_SKY_REFRESH_TOKEN_FILE, 'r') as f:
     #         decrypted2 = f.readline()
     # txt4 = frn.decrypt(decrypted2)
     # # print txt4
+
+    x = cache.get('tokenkey')
+    y = cache.get('refreshkey')
+    print(x)
+    print(y)
 
     return 1
 
