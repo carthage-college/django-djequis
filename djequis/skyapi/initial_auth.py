@@ -17,7 +17,8 @@ django.setup()
 from django.conf import settings
 from django.core.cache import cache
 
-AUTHORIZATION = 'Basic ' + settings.BB_SKY_CLIENT_ID + ":" + settings.BB_SKY_CLIENT_SECRET
+AUTHORIZATION = 'Basic ' + settings.BB_SKY_CLIENT_ID + ":" \
+                + settings.BB_SKY_CLIENT_SECRET
 urlSafeEncodedBytes = base64.urlsafe_b64encode(AUTHORIZATION.encode("utf-8"))
 urlSafeEncodedStr = str(urlSafeEncodedBytes)
 # print(urlSafeEncodedStr)
@@ -44,8 +45,10 @@ def get_initial_token():
                                  settings.BB_SKY_CLIENT_ID + '&redirect_uri=' \
                                  + settings.BB_SKY_CALLBACK_URI
 
-    print("Click the following url and authorize. It will redirect you to a blank website with the url"
-          " 'https://127.0.0.1/?code=xxxx'. Copy the value of the code (after the '=' sign). "
+    print("Click the following url and authorize. It will redirect you to a "
+          "blank website with the url"
+          " 'https://127.0.0.1/?code=xxxx'. Copy the value of the code "
+          "(after the '=' sign). "
           "Paste that code into the prompt below.")
     print("---  " + authorization_redirect_url + "  ---")
     authorization_code = raw_input("Paste code here: ")
