@@ -31,56 +31,36 @@ urlSafeEncodedBytes = base64.urlsafe_b64encode(AUTHORIZATION.encode("utf-8"))
 urlSafeEncodedStr = str(urlSafeEncodedBytes)
 # print(urlSafeEncodedStr)
 
-def get_local_token(token_file=settings.BB_SKY_TOKEN_FILE):
-    # x = cache.get('tokenkey')
-    # y = cache.get('refreshkey')
-    # print("Cache..")
-    # print(x)
-    # print(y)
-
-
+def get_local_token():
     current_token = cache.get('tokenkey')
     if current_token is None:
         # Read the file storing the latest access token
-        with open(token_file, 'rb') as f:
+        with open(settings.BB_SKY_TOKEN_FILE, 'rb') as f:
             current_token = f.readline()
-
     # print(current_token)
-
     return current_token
 
-def get_refresh_token(refresh_token_file=settings.BB_SKY_REFRESH_TOKEN_FILE):
-    # x = cache.get('tokenkey')
-    # y = cache.get('refreshkey')
-    # print("Cache..")
-    # print(x)
-    # print(y)
-
+def get_refresh_token():
     refresh_token = cache.get('refreshkey')
-    # if refresh_token is None:
-    #     # Read the file storing the latest access token
-    #     with open(refresh_token_file, 'rb') as f:
-    #         refresh_token = f.readline()
-    #
-    # print(refresh_token)
+    if refresh_token is None:
+        # Read the file storing the latest access token
+        with open(settings.BB_SKY_REFRESH_TOKEN_FILE, 'rb') as f:
+            refresh_token = f.readline()
+    print(refresh_token)
 
     return refresh_token
 
-def token_refresh(refresh_token_file=settings.BB_SKY_REFRESH_TOKEN_FILE ,
-                  token_file=settings.BB_SKY_TOKEN_FILE):
+def token_refresh():
     print("In token_refresh")
     # x = cache.get('tokenkey')
     # y = cache.get('refreshkey')
+    # Cache location: /var/tmp/django_djequis_cache (Same level as home dir)
     try:
         # Generates a new OAUTH2 access token and refresh token using
         # the current (unexpired) refresh token. Writes updated tokens
         # to appropriate files for subsequent reference
         # :return: Tuple containing (return_code, access_token, refresh_token)
-
-        # NOTE for some reason if I encrypt the token files, something crashes
-        # here.  It may be that converting the encode(ASCII) necessary to do
-        # the encryption needs to be reversed after the read
-        with open(refresh_token_file, 'r') as f:
+        with open(settings.BB_SKY_REFRESH_TOKEN_FILE, 'r') as f:
             refresh_tokenf = f.readline()
             print(refresh_tokenf)
             refresh_token = get_refresh_token()
@@ -98,44 +78,42 @@ def token_refresh(refresh_token_file=settings.BB_SKY_REFRESH_TOKEN_FILE ,
                       }
             )
 
-        # Todo: confirm ref_token_call.status_Code == 200,
-        #  otherwise raise error, log and message user
-        # print('Token Refresh call return code: '
-        #       + str(ref_token_call.status_code))
         status = ref_token_call.status_code
         response = ref_token_call.text
 
-        if status == 400:
-            # Print HTML repsonse and exit function with empty DataFrame
-            print('ERROR:  ' + str(status) + ":" + response)
-            # return df_out
+        if status == 200:
+            tokens_dict = dict(json.loads(ref_token_call.text))
+            refresh_token = tokens_dict['refresh_token']
+            access_token = tokens_dict['access_token']
 
-        if status == 403:  # OUT OF API QUOTA - Quit
+            # with open(settings.BB_SKY_TOKEN_FILE, 'w') as f:
+            #     f.write(access_token)
+            # (set, key,  value, expire time -- 0 means never)
+            cache.set('tokenkey', access_token)
+
+            # with open(settings.BB_SKY_REFRESH_TOKEN_FILE, 'w') as f:
+            #     f.write(refresh_token)
+            cache.set('refreshkey', refresh_token)
+
+            # print("Setting new cache values")
+            # print(ref_token_call.status_code)
+            # print(access_token)
+            # print(refresh_token)
+
+            return 1
+            # return refresh_token
+            # return (ref_token_call.status_code, access_token, refresh_token)
+
+        elif status == 403:  # OUT OF API QUOTA - Quit
             # Print HTML repsonse and exit function with empty DataFrame
             print('ERROR:  ' + str(status) + ":" + response)
             print('You\'re out of API Quota!')
             exit()
-            return None
+            return 0
+        else:
+            print('ERROR:  ' + str(status) + ":" + response)
+            return 0
 
-        tokens_dict = dict(json.loads(ref_token_call.text))
-        refresh_token = tokens_dict['refresh_token']
-        access_token = tokens_dict['access_token']
-
-        # with open(token_file, 'w') as f:
-        #     f.write(access_token)
-        cache.set('tokenkey', access_token)
-
-        # with open(refresh_token_file, 'w') as f:
-        #     f.write(refresh_token)
-        cache.set('refreshkey', refresh_token)
-
-        # print(ref_token_call.status_code)
-        # print(access_token)
-        # print(refresh_token)
-
-        return 1
-        # return refresh_token
-        # return (ref_token_call.status_code, access_token, refresh_token)
 
     except Exception as e:
         print("Error in token_refresh:  " + e.message)
@@ -146,9 +124,10 @@ def token_refresh(refresh_token_file=settings.BB_SKY_REFRESH_TOKEN_FILE ,
 def api_get(current_token, url):
     print("In api_get")
     try:
+
         params = {'HOST': 'api.sky.blackbaud.com'}
         status = 'Initial Value'
-
+        # Setting status to something other than 200 initially
         while status != 200 or url != '':
             time.sleep(.2)  # SKY API Rate limited to 5 calls/sec
 
@@ -187,28 +166,11 @@ def api_post(current_token, url, data):
     print("In api_post")
     try:
         params = {'HOST': 'api.sky.blackbaud.com'}
-        status = 'Initial Value'
+        # status = 'Initial Value'
 
         headers = {'Content-Type': 'application/json',
                    'Bb-Api-Subscription-Key': settings.BB_SKY_SUBSCRIPTION_KEY,
                    'Authorization': 'Bearer ' + current_token}
-
-        # while status != 200 or url != '':
-        #     time.sleep(.2)  # SKY API Rate limited to 5 calls/sec
-
-        # ref_token_call = requests.post(
-        #     url='url',
-        #     headers=headers,
-        #     data={'grant_type': 'refresh_token',
-        #           'refresh_token': refresh_token,
-        #           'client_id': settings.BB_SKY_CLIENT_ID,
-        #           ## **** Can we enable this? ***'preserve_refresh_token':
-        #           # 'true',
-        #           'client_secret': settings.BB_SKY_CLIENT_SECRET,
-        #           # 'redirect_uri': settings.BB_SKY_CALLBACK_URI
-        #           }
-        # )
-
 
         # print(data)
         # Might need to be sent as 'data=json.dumps(data)
@@ -221,36 +183,66 @@ def api_post(current_token, url, data):
         print(status)
         print(stat_msg)
 
-        # if status == 400:
-        #     # Print HTML repsonse and exit function with empty DataFrame
-        #     print('ERROR:  ' + str(status) + ":" + response.text)
-        #     return 0
-        #
-        # elif status == 403:   # OUT OF API QUOTA - Quit
-        #     # Print HTML repsonse and exit function with empty DataFrame
-        #     print('ERROR:  ' + str(status) + ":" + response.text)
-        #     print('You\'re out of API Quota!')
-        #     return 0
-        #
-        #
-        # else:
-        #     response_dict = json.loads(response.text)
-        #     return response_dict
-
-        # try:
-        #     if response_dict['count'] == 0:
-        #         url = ''
-        #     else:
-        #         url = response_dict['next_link']
-        # except:     # No 'next_link' element, have hit last paginated
-        # response
-        #     url = ''
         return status
     except Exception as e:
-        print("Error in api_get:  " + e.message)
-        # fn_write_error("Error in misc_fees.py - Main: "
+        print("Error in api_post:  " + e.message)
+        # fn_write_error("Error in api_post.py - Main: "
         #                + e.message)
         return 0
+
+
+def api_patch(current_token, url, data):
+    print("In api_patch")
+    try:
+        params = {'HOST': 'api.sky.blackbaud.com'}
+        # status = 'Initial Value'
+
+        headers = {'Content-Type': 'application/json',
+                   'Bb-Api-Subscription-Key': settings.BB_SKY_SUBSCRIPTION_KEY,
+                   'Authorization': 'Bearer ' + current_token}
+
+        # print(data)
+        # Might need to be sent as 'data=json.dumps(data)
+        response = requests.patch(url=url, headers=headers,
+                                 params=params,
+                                 data=json.dumps(data)
+                                 )
+        status = response.status_code
+        stat_msg = response.text
+        print(status)
+        print(stat_msg)
+
+        return status
+    except Exception as e:
+        print("Error in api_patch:  " + e.message)
+        # fn_write_error("Error in api_patch.py - Main: "
+        #                + e.message)
+        return 0
+
+def api_delete(current_token, url):
+    print("In api_delete")
+    try:
+        params = {'HOST': 'api.sky.blackbaud.com'}
+
+        headers = {'Content-Type': 'application/json',
+                   'Bb-Api-Subscription-Key': settings.BB_SKY_SUBSCRIPTION_KEY,
+                   'Authorization': 'Bearer ' + current_token}
+
+        # Might need to be sent as 'data=json.dumps(data)
+        response = requests.delete(url=url, headers=headers, params=params)
+        status = response.status_code
+        stat_msg = response.text
+        print(status)
+        print(stat_msg)
+
+        return status
+    except Exception as e:
+        print("Error in api_delete:  " + e.message)
+        # fn_write_error("Error in api_delete.py - Main: "
+        #                + e.message)
+        return 0
+
+
 
 def get_const_custom_fields(current_token, id):
     print("In get_const_custom_fields")
@@ -260,26 +252,30 @@ def get_const_custom_fields(current_token, id):
         x = api_get(current_token, urlst)
         # print(x)
 
+        # This will return multiple records...How to parse things to get the
+        # one item I want...
         if x == 0:
             print("NO DATA")
             return 0
         else:
             for i in x['value']:
-                print("ID = " + i['id'])
-                print("Category = " + i['category'])
+                # print(i)
+                if i['category'] == 'Involvement':
+                    item_id = i['id']
+                    print("ID = " + i['id'])
+                    print("Category = " + i['category'])
+                    if 'comment' not in x['value']:
+                        print("Comment not entered")
+                    else:
+                        print("Comment = " + str(i['comment']))
+                    print("Date = " + i['date'])
+                    print("Date Added = " + i['date_added'])
+                    print("Date Modified = " + i['date_modified'])
+                    print("Parent id = " + i['parent_id'])
+                    print("Type = " + i['type'])
+                    print("Value = " + i['value'])
+                    return item_id
 
-                if 'comment' not in x['value']:
-                    print("Comment not entered")
-                else:
-                    print("Comment = " + str(i['comment']))
-
-                # print("Date = " + i['date'])
-                # print("Date Added = " + i['date_added'])
-                # print("Date Modified = " + i['date_modified'])
-                print("Parent id = " + i['parent_id'])
-                print("Type = " + i['type'])
-                print("Value = " + i['value'])
-            return 1
     except Exception as e:
         print("Error in get_const_custom_fields:  " + e.message)
         # fn_write_error("Error in misc_fees.py - Main: "
@@ -298,7 +294,7 @@ def get_relationships(current_token, id):
             return 0
         else:
             for i in x['value']:
-                # print(i)
+                print(i)
                 print(i['relation_id'])
                 print(i['type'])
                 print(i['constituent_id'])
@@ -353,7 +349,8 @@ def get_custom_field_value(current_token, category):
 def get_constituent_id(current_token, carthid):
     try:
         urlst =  'https://api.sky.blackbaud.com/constituent/v1/constituents/' \
-                 'search?search_text=1534657&search_field=lookup_id'
+                 'search?search_text=' + str(carthid) \
+                 + '&search_field=lookup_id'
 
         x = api_get(current_token, urlst)
         if x == 0:
@@ -363,16 +360,70 @@ def get_constituent_id(current_token, carthid):
             for i in x['value']:
             # print(x)
                 print(i['id'])
+                id = i['id']
                 print(i['name'])
                 print(i['lookup_id'])
                 print(i['inactive'])
-            return 1
+
+            return id
+
     except Exception as e:
         print("Error in get_constituent_id:  " + e.message)
         # fn_write_error("Error in get_constituent_id.py - Main: "
         #                + e.message)
         return 0
 
+
+
+def delete_const_custom_fields(current_token, itemid):
+    try:
+        urlst = 'https://api.sky.blackbaud.com/constituent/v1/constituents/' \
+                'customfields/' + str(itemid)
+
+        # now = datetime.now()
+        # date_time = now.strftime("%Y-%m-%dT%H:%M:%S")
+        #
+        # body = {"comment": "A patch test", "date_modified": "2019-11-12T01:25:00",
+        #         "date": "2019-11-12T01:25:00", "value": "Campus employment"}
+
+        print(urlst)
+        x = api_delete(current_token, urlst)
+        if x == 0:
+            print("Delete Failure")
+            return 1
+        else:
+            return 0
+
+    except Exception as e:
+        print("Error in delete_const_custom_fields:  " + e.message)
+        # fn_write_error("Error in delete_const_custom_fields ")
+        #                + e.message)
+        return 0
+
+
+def update_const_custom_fields(current_token, itemid, category, comment, val):
+    try:
+        urlst = 'https://api.sky.blackbaud.com/constituent/v1/constituents/customfields/75448'
+
+        now = datetime.now()
+        date_time = now.strftime("%Y-%m-%dT%H:%M:%S")
+
+        body = {"comment": "A patch test", "date_modified": "2019-11-12T01:25:00",
+                "date": "2019-11-12T01:25:00", "value": "Campus employment"}
+
+        print(urlst, body)
+        x = api_patch(current_token, urlst, body)
+        if x == 0:
+            print("Patch Failure")
+            return 1
+        else:
+            return 0
+
+    except Exception as e:
+        print("Error in update_const_custom_fields:  " + e.message)
+        # fn_write_error("Error in update_const_custom_fields ")
+        #                + e.message)
+        return 0
 
 def set_const_custom_field(current_token, id, value, category, comment):
     # print(current_token)
@@ -410,27 +461,44 @@ def main():
 
         # # First, we have to get the internal ID from blackbaud for
         # the constituent
-        ret = get_constituent_id(current_token, 1534657)
-        print(ret)
+        const_id = get_constituent_id(current_token, 1534657)
+        print("Constituent id = " + str(const_id))
 
         # Also need to check to see if the custom field exists
         # Does not appear we can filter by category or type...WHY???
-        # ret = get_const_custom_fields(current_token, 20369)
+        # NEED TO GRAB THE ITEM ID FROM THE SPECIFIC CUSTOM FIELD
+        ret = get_const_custom_fields(current_token, const_id)
+        print(ret)
+        item_id = ret
+        category = 'Involvement'
+        comment = 'A patch test'
+        valu = 'Campus employment'
+
+        print("Item ID = " + str(item_id))
+
+        # Required:  Token, Item ID
+        # Need to test to see if all remaining params must be passed or if
+        # we only pass the ones that change...We shouldn't need to change the
+        # category or type...Would think date added should also
+        # remain unchanged
+        # ret = update_const_custom_fields(current_token, 75448, category,
+        #                                  comment, valu)
         # print(ret)
+
+        ret = delete_const_custom_fields(current_token, 75448)
+        print(ret)
 
         # Then we can deal with the custom fields...
         # If there is an entry, we have to decide if we are posting a new item
         #   or patching an existing one
-        # ret = set_const_custom_field(current_token, 20369, 'Not a student',
-        #                              'Student Status', 'Testing a post')
+        # ret = set_const_custom_field(current_token, 20369, 'Administrative Full Time',
+        #                              'Involvement', 'Testing a post')
         # print(ret)
 
-
-
         # ret = get_custom_fields(current_token)
-        # ret = get_custom_field_value(current_token, 'Student Status')
-        ret = get_relationships(current_token, 20369)
-        print(ret)
+        # ret = get_custom_field_value(current_token, 'Involvment')
+        # ret = get_relationships(current_token, const_id)
+        # print(ret)
 
         # Refreshthe API tokens
         r = token_refresh()
