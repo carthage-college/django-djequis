@@ -137,7 +137,7 @@ def api_delete(current_token, url):
         return 0
 
 
-def get_const_custom_fields(current_token, id):
+def get_const_custom_fields(current_token, id, category):
     print("In get_const_custom_fields")
     try:
         urlst = 'https://api.sky.blackbaud.com/constituent/v1/constituents/' \
@@ -153,19 +153,19 @@ def get_const_custom_fields(current_token, id):
         else:
             for i in x['value']:
                 # print(i)
-                if i['category'] == 'Involvement':
+                if i['category'] == category:
                     item_id = i['id']
                     print("ID = " + i['id'])
                     print("Category = " + i['category'])
-                    if 'comment' not in x['value']:
-                        print("Comment not entered")
-                    else:
-                        print("Comment = " + str(i['comment']))
-                    print("Date = " + i['date'])
+                    # if 'comment' not in x['value']:
+                    #     print("Comment not entered")
+                    # else:
+                    #     print("Comment = " + str(i['comment']))
+                    # print("Date = " + i['date'])
                     print("Date Added = " + i['date_added'])
                     print("Date Modified = " + i['date_modified'])
                     print("Parent id = " + i['parent_id'])
-                    print("Type = " + i['type'])
+                    # print("Type = " + i['type'])
                     print("Value = " + i['value'])
                     return item_id
 
@@ -227,7 +227,9 @@ def get_custom_field_value(current_token, category):
     try:
         urlst = 'https://api.sky.blackbaud.com/constituent/v1/constituents/' \
                 'customfields/categories/values?category_name=' + category
+        # print(urlst)
         x = api_get(current_token, urlst)
+        # print(x)
         if x == 0:
             print("NO DATA")
             return 0
@@ -291,15 +293,17 @@ def delete_const_custom_fields(current_token, itemid):
         return 0
 
 
-def update_const_custom_fields(current_token, itemid, category, comment, val):
+def update_const_custom_fields(current_token, itemid, comment, val):
     try:
-        urlst = 'https://api.sky.blackbaud.com/constituent/v1/constituents/customfields/75448'
+        print(itemid)
+        urlst = 'https://api.sky.blackbaud.com/constituent/v1/constituents/' \
+                'customfields/' + itemid
 
         now = datetime.now()
         date_time = now.strftime("%Y-%m-%dT%H:%M:%S")
 
-        body = {"comment": "A patch test", "date_modified": "2019-11-12T01:25:00",
-                "date": "2019-11-12T01:25:00", "value": "Campus employment"}
+        body = {"comment": comment, "date_modified": "2019-11-13T01:25:00",
+                "date": "2019-11-12T01:25:00", "value": val}
 
         print(urlst, body)
         x = api_patch(current_token, urlst, body)
@@ -309,6 +313,7 @@ def update_const_custom_fields(current_token, itemid, category, comment, val):
         else:
             return 0
 
+
     except Exception as e:
         print("Error in update_const_custom_fields:  " + e.message)
         # fn_write_error("Error in update_const_custom_fields ")
@@ -317,24 +322,18 @@ def update_const_custom_fields(current_token, itemid, category, comment, val):
 
 
 def set_const_custom_field(current_token, id, value, category, comment):
-    # print(current_token)
-    #         "name": "Achievement",
-    #         "type": "CodeTableEntry"
-    #         "name": "Involvement",
-    #         "type": "CodeTableEntry"
-    #         "name": "Student Status",
-    #         "type": "Text"
-    #
+    # Not passing an item id - this is a create, one will be created
     urlst = 'https://api.sky.blackbaud.com/constituent/v1/constituents/' \
             'customfields'
 
     now = datetime.now()
     date_time = now.strftime("%Y-%m-%dT%H:%M:%S")
 
+    # Constituent ID is passed in as Parent ID
     body = {'category': category, 'comment': comment, 'date': date_time,
             'parent_id': id, 'value': value}
 
-    # print(urlst, body)
+    print(urlst, body)
 
     x = api_post(current_token, urlst, body)
     if x == 0:
