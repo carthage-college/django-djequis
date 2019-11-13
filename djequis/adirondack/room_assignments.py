@@ -317,7 +317,7 @@ def main():
                                         po_box_combo, canceled,
                                         canceldate, cancelnote,
                                         cancelreason, ghost, posted,
-                                        roomassignmentid])
+                                        roomassignmentid, billcode])
                     # print(str(carthid) + ', ' + str(billcode) + ', '
                     #       + str(bldg) + ', ' + str(room) + ', ' +
                     #       + str(room_type))
