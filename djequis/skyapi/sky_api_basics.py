@@ -34,6 +34,11 @@ from sky_api_calls import api_get, get_const_custom_fields, \
 
 def main():
     try:
+        # for now, possible actions include get_id = which will bypass
+        # all the others, set_status, update_status, delete_field,
+        # get_relationships
+        action = 'get_id'
+
         """"--------GET THE TOKEN------------------"""
         # Token is stored in a text file
         current_token = get_local_token()
@@ -50,13 +55,12 @@ def main():
         # Also need to check to see if the custom field exists
         # Does not appear we can filter by category or type...WHY???
         # NEED TO GRAB THE ITEM ID FROM THE SPECIFIC CUSTOM FIELD
-        ret = get_const_custom_fields(current_token, const_id)
+        # NOTE:  There seems to be a delay between successfully creating a
+        # custom field value and being able to retrieve it for the student
+        category = 'Student Status'
+        ret = get_const_custom_fields(current_token, const_id, category)
         print(ret)
         item_id = ret
-        # category = 'Involvement'
-        # comment = 'A patch test'
-        # valu = 'Campus employment'
-
         print("Item ID = " + str(item_id))
 
         """
@@ -67,36 +71,41 @@ def main():
         ---------------------------
         """
 
-        """-----SET-------"""
-        # Then we can deal with the custom fields...
-        # If there is an entry, we have to decide if we are posting a new item
-        #   or patching an existing one
-        # ret = set_const_custom_field(current_token, 20369, 'Administrative Full Time',
-        #                              'Involvement', 'Testing a post')
-        # print(ret)
+        if action == 'set_status':
+            """-----SET-------"""
+            # Then we can deal with the custom fields...
+            comment = 'Testing an add'
+            val = 'Administrator'
+            category = 'Student Status'
+            ret = set_const_custom_field(current_token, const_id, val,
+                                         category, comment)
+            print(ret)
 
-        """-----PATCH-------"""
-        # Required:  Token, Item ID
-        # Need to test to see if all remaining params must be passed or if
-        # we only pass the ones that change...We shouldn't need to change the
-        # category or type...Would think date added should also
-        # remain unchanged
-        # ret = update_const_custom_fields(current_token, 75448, category,
-        #                                  comment, valu)
-        # print(ret)
+        if action == 'update_status':
+            """-----PATCH-------"""
+            # Required:  Token, Item ID
+            # Need to test to see if all remaining params must be passed or if
+            # we only pass the ones that change...We shouldn't need to change the
+            # category or type...Would think date added should also
+            # remain unchanged
+            # category = 'Involvement'
+            comment = 'Test 110319'
+            valu = 'Not a Student'
+            ret = update_const_custom_fields(current_token, item_id, comment, valu)
+            print(ret)
 
-        """-----DELETE-------"""
-        # ret = delete_const_custom_fields(current_token, 75448)
-        # print(ret)
+            """-----DELETE-------"""
+        if action == 'delete_field':
+            ret = delete_const_custom_fields(current_token, item_id)
+            print(ret)
+
+        if action == 'get_relationships':
+            """-----RELATIONSHIPS FOR A CONSTITUENT-------"""
+            ret = get_relationships(current_token, const_id)
+            print(ret)
 
 
-        """-----RELATIONSHIPS FOR A CONSTITUENT-------"""
-        ret = get_relationships(current_token, const_id)
-        print(ret)
-
-
-
-        """ --------These are generic and not specific to a constituent---"""
+        # """ --------These are generic and not specific to a constituent---"""
         # ret = get_custom_fields(current_token)
         # ret = get_custom_field_value(current_token, 'Involvment')
 
