@@ -31,13 +31,25 @@ from sky_api_calls import api_get, get_const_custom_fields, \
     delete_const_custom_fields, get_relationships, api_post, api_patch, \
     api_delete, get_custom_fields, get_custom_field_value
 
+"""
+    The process would have to involve finding the status of active students
+    in CX, (Look for a change date...to limit the number.  Maybe audit table)
+    Then determine if the student is in Raiser's Edge
+    If not add student, then add the custom field record
+    Else - find out of custom field record exists
+        If not add
+        else update
+    So each student will require 2-3 API calls
+    --
+    No way to test any of this because there are no students in RE yet...
+"""
 
 def main():
     try:
         # for now, possible actions include get_id = which will bypass
         # all the others, set_status, update_status, delete_field,
         # get_relationships
-        action = 'get_id'
+        action = 'get_relationships'
 
         """"--------GET THE TOKEN------------------"""
         # Token is stored in a text file
