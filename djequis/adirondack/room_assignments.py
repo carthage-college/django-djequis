@@ -30,7 +30,7 @@ from utilities import fn_write_error, fn_write_billing_header, \
     fn_write_assignment_header, fn_get_utcts, fn_encode_rows_to_utf8, \
     fn_get_bill_code, fn_fix_bldg, fn_mark_room_posted, \
     fn_translate_bldg_for_adirondack
-
+from assign_notify import fn_notify
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
 os.environ['DBSERVERNAME'] = settings.DBSERVERNAME
@@ -379,6 +379,8 @@ def main():
                                                         term, posted,
                                                         roomassignmentid,
                                                         API_server, key)
+                                    # Notify Marietta of changes
+                                    fn_notify(room_output, EARL)
 
                                 else:
                                     # print("No change needed in "
@@ -388,6 +390,9 @@ def main():
                                                         posted,
                                                         roomassignmentid,
                                                         API_server, key)
+                                    # Notify Marietta of changes
+                                    fn_notify(room_output, EARL)
+
 
                             else:
                                 # print("fetch retuned none - No "
@@ -410,39 +415,18 @@ def main():
                     #     # go ahead and update
                     else:
                         # print("Record not found")
-
                         body = "Student Service Record does not " \
                                        "exist for " + carthid + " for term " \
                                         + term + ".. Please inquire why."
                         subj = "Adirondack - Stu_serv_rec missing"
-                        # sendmail("dsullivan@carthage.edu",
-                        #          "dsullivan@carthage.edu", body, subj)
 
-                        # Dave says stu_serv_rec should NOT be created
-                        # from Adirondack data.  Other offices need
-                        # to create the initial record
-                        # Need to send something to Marietta
-                        # if billcode > 0:
-                        #     q_insert_stuserv_rec = '''
-                        #             INSERT INTO stu_serv_rec (id,
-                        #             sess, yr, rsv_stat, intend_hsg,
-                        #             campus, bldg, room, no_per_room,
-                        #             add_date,bill_code, hous_wd_date)
-                        #             VALUES (?,?,?,?,?,?,?,?,?,?,?)'''
-                        #     q_insert_stuserv_args = (
-                        #         carthid, term, yr, rsvstat, 'R',
-                        #         'MAIN', bldg, room, occupants,
-                        #         checkedindate, billcode,
-                        #         checkedoutdate)
-                        #     print(q_insert_stuserv_rec)
-                        #     print(q_insert_stuserv_args)
-                        #     # engine.execute(q_insert_stuserv_rec,
-                        #     # q_insert_stuserv_args)
+        # # Remove this after testing - only for testing when no
+        # recent changes are found via the API
+        # room_output = settings.ADIRONDACK_TXT_OUTPUT + \
+        #             settings.ADIRONDACK_ROOM_ASSIGNMENTS + '.csv'
+        #
+        # fn_notify(room_output, EARL)
 
-                        # else:
-                        #     print("Bill code not found")
-
-        # filepath = settings.ADIRONDACK_CSV_OUTPUT
 
     except Exception as e:
         # print(
