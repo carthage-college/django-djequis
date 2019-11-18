@@ -13,11 +13,13 @@ import os
 import json
 import time
 import base64
-import datetime
+import datetime as dt
 import django
+import os.path
 
 # import cryptography
 from datetime import datetime
+
 # Note to self, keep this here
 # django settings for shell environment
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
@@ -25,7 +27,7 @@ django.setup()
 # ________________
 from django.conf import settings
 from django.core.cache import cache
-from sky_api_auth import get_local_token, get_refresh_token, token_refresh
+from sky_api_auth import token_refresh
 from sky_api_calls import api_get, get_const_custom_fields, \
     get_constituent_id, set_const_custom_field, update_const_custom_fields, \
     delete_const_custom_fields, get_relationships, api_post, api_patch, \
@@ -46,14 +48,44 @@ from sky_api_calls import api_get, get_const_custom_fields, \
 
 def main():
     try:
+
         # for now, possible actions include get_id = which will bypass
         # all the others, set_status, update_status, delete_field,
         # get_relationships
+
+        # action = 'set_status'
+        # action = 'update_status'
+        # action = 'delete_field'
         action = 'get_relationships'
 
+        """--------REFRESH THE TOKEN------------------"""
+        """ Because the token only lasts for 60 minutes when things are idle
+            it will be necessary to refresh the token before attempting
+            anything else.   The refresh token will be valid for 60 days,
+            so it should return a new token with no problem.  All the API
+            calls will get new tokens, resetting the 60 minute clock, 
+            so to avoid calling for a token every time, I may have to 
+            either set a timer or see if I can read the date and time from the
+            cache files and compare to current time
+         """
+
+        """Check to see if the token has expired, if so refresh it
+            the token expires in 60 minutes, but the refresh token
+            is good for 60 days"""
+        t = cache.get('refreshtime')
+
+        if t < datetime.now() - dt.timedelta(minutes=59):
+            print('Out of limit')
+            print(t)
+            print(datetime.now() - dt.timedelta(minutes=59))
+            r = token_refresh()
+            print(r)
+        else:
+            print("within limit")
+
+
         """"--------GET THE TOKEN------------------"""
-        # Token is stored in a text file
-        current_token = get_local_token()
+        current_token = cache.get('tokenkey')
         # print("Current Token = ")
         # print(current_token)
 
@@ -77,14 +109,17 @@ def main():
 
         """
         --------------------------
-        Here we will need some logic.   If the constituent exists and
-        has the specific custom field Student Status, then we need to update
+        Here we will need some logic.   
+        API options are POST, PATCH, DELETE   
+        If the constituent exists and has the specific custom field 
+        Student Status, then we need to update
         the existing record, if not we need to add it
         ---------------------------
         """
 
+
         if action == 'set_status':
-            """-----SET-------"""
+            """-----POST-------"""
             # Then we can deal with the custom fields...
             comment = 'Testing an add'
             val = 'Administrator'
@@ -111,21 +146,24 @@ def main():
             ret = delete_const_custom_fields(current_token, item_id)
             print(ret)
 
+        '''
+        -----------------------------------
+        A different routine from the custom fields.
+        -----------------------------------
+        '''
         if action == 'get_relationships':
             """-----RELATIONSHIPS FOR A CONSTITUENT-------"""
             ret = get_relationships(current_token, const_id)
             print(ret)
 
-
         # """ --------These are generic and not specific to a constituent---"""
         # ret = get_custom_fields(current_token)
         # ret = get_custom_field_value(current_token, 'Involvment')
 
-
-        """-----Once done, the token must be refreshed-------"""
+        # """-----Once done, the token must be refreshed-------"""
         # Refreshthe API tokens
-        r = token_refresh()
-        print(r)
+        # r = token_refresh()
+        # print(r)
 
     except Exception as e:
         print("Error in main:  " + e.message)
