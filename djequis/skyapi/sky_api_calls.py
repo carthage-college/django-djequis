@@ -17,8 +17,6 @@ django.setup()
 # ________________
 from django.conf import settings
 from django.core.cache import cache
-from sky_api_auth import get_local_token, get_refresh_token, token_refresh
-
 
 def api_get(current_token, url):
     print("In api_get")
