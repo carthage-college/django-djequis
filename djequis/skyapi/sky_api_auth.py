@@ -7,7 +7,7 @@ import django
 
 # import time
 # import datetime
-# from datetime import datetime
+from datetime import datetime
 
 # Note to self, keep this here
 # django settings for shell environment
@@ -21,23 +21,6 @@ AUTHORIZATION = 'Basic ' + settings.BB_SKY_CLIENT_ID + ":" + settings.BB_SKY_CLI
 urlSafeEncodedBytes = base64.urlsafe_b64encode(AUTHORIZATION.encode("utf-8"))
 urlSafeEncodedStr = str(urlSafeEncodedBytes)
 
-def get_local_token():
-    current_token = cache.get('tokenkey')
-    if current_token is None:
-        # Read the file storing the latest access token
-        with open(settings.BB_SKY_TOKEN_FILE, 'rb') as f:
-            current_token = f.readline()
-    return current_token
-
-
-def get_refresh_token():
-    refresh_token = cache.get('refreshkey')
-    if refresh_token is None:
-        # Read the file storing the latest access token
-        with open(settings.BB_SKY_REFRESH_TOKEN_FILE, 'rb') as f:
-            refresh_token = f.readline()
-    return refresh_token
-
 
 def token_refresh():
     print("In token_refresh")
@@ -47,9 +30,7 @@ def token_refresh():
         # to appropriate files for subsequent reference
         # :return: Tuple containing (return_code, access_token, refresh_token)
         with open(settings.BB_SKY_REFRESH_TOKEN_FILE, 'r') as f:
-            refresh_tokenf = f.readline()
-            print(refresh_tokenf)
-            refresh_token = get_refresh_token()
+            refresh_token = cache.get('refreshkey')
             print(refresh_token)
             ref_token_call = requests.post(
                 url='https://oauth2.sky.blackbaud.com/token',
@@ -72,14 +53,9 @@ def token_refresh():
             refresh_token = tokens_dict['refresh_token']
             access_token = tokens_dict['access_token']
 
-            # with open(settings.BB_SKY_TOKEN_FILE, 'w') as f:
-            #     f.write(access_token)
-            # (set, key,  value, expire time -- 0 means never)
             cache.set('tokenkey', access_token)
-
-            # with open(settings.BB_SKY_REFRESH_TOKEN_FILE, 'w') as f:
-            #     f.write(refresh_token)
             cache.set('refreshkey', refresh_token)
+            cache.set('refreshtime', datetime.now())
 
             # print(access_token)
             # print(refresh_token)
