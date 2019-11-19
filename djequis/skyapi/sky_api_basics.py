@@ -3,7 +3,8 @@ Modified from code by Mitch Hollberg
 (mhollberg@gmail.com, mhollberg@cfgreateratlanta.org)
 Python functions to
     a) Get an initial SKYApi token/refresh token and write them to a local file
-    b) Make subsequent refreshes and updates to the SKYApi authentication based on tokens in the files.
+    b) Make subsequent refreshes and updates to the SKYApi authentication
+    based on tokens in the files.
 """
 
 # from pathlib import Path
@@ -53,10 +54,11 @@ def main():
         # all the others, set_status, update_status, delete_field,
         # get_relationships
 
+        action = ''
         # action = 'set_status'
         # action = 'update_status'
         # action = 'delete_field'
-        action = 'get_relationships'
+        # action = 'get_relationships'
 
         """--------REFRESH THE TOKEN------------------"""
         """ Because the token only lasts for 60 minutes when things are idle
@@ -161,7 +163,8 @@ def main():
         # ret = get_custom_field_value(current_token, 'Involvment')
 
         # """-----Once done, the token must be refreshed-------"""
-        # Refreshthe API tokens
+        # Changed this.   Test at top to see if token has expired, then
+        # Refresh the API tokens
         # r = token_refresh()
         # print(r)
 
