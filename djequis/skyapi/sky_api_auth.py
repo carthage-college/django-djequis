@@ -29,21 +29,20 @@ def token_refresh():
         # the current (unexpired) refresh token. Writes updated tokens
         # to appropriate files for subsequent reference
         # :return: Tuple containing (return_code, access_token, refresh_token)
-        with open(settings.BB_SKY_REFRESH_TOKEN_FILE, 'r') as f:
-            refresh_token = cache.get('refreshkey')
-            print(refresh_token)
-            ref_token_call = requests.post(
-                url='https://oauth2.sky.blackbaud.com/token',
-                headers={'Content-Type': 'application/x-www-form-urlencoded'},
-                data={'grant_type': 'refresh_token',
-                      'refresh_token': refresh_token,
-                      'client_id': settings.BB_SKY_CLIENT_ID,
-                      ## **** Can we enable this?
-                      # ***'preserve_refresh_token': 'true',
-                      'client_secret': settings.BB_SKY_CLIENT_SECRET,
-                      # 'redirect_uri': settings.BB_SKY_CALLBACK_URI
-                      }
-            )
+        refresh_token = cache.get('refreshkey')
+        print(refresh_token)
+        ref_token_call = requests.post(
+            url='https://oauth2.sky.blackbaud.com/token',
+            headers={'Content-Type': 'application/x-www-form-urlencoded'},
+            data={'grant_type': 'refresh_token',
+                  'refresh_token': refresh_token,
+                  'client_id': settings.BB_SKY_CLIENT_ID,
+                  ## **** Can we enable this?
+                  # ***'preserve_refresh_token': 'true',
+                  'client_secret': settings.BB_SKY_CLIENT_SECRET,
+                  # 'redirect_uri': settings.BB_SKY_CALLBACK_URI
+                  }
+        )
 
         status = ref_token_call.status_code
         response = ref_token_call.text
