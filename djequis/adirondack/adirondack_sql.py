@@ -305,16 +305,16 @@ Q_GET_TERM = '''select distinct
                   CASE
                       -- ACYR 1920 After April 20 until nov 20
                       WHEN TODAY >= '04/20/'||YEAR(TODAY)
-                          AND TODAY < '11/20/'||YEAR(TODAY)
+                          AND TODAY < '12/30/'||YEAR(TODAY)
                           AND LEFT(ACYR,2) = RIGHT(TO_CHAR(YEAR(TODAY)),2)
                           THEN
                               'RA'||YEAR(TODAY)
-                      --ACYR 2021 after nov 20
-                      WHEN TODAY >= '11/20/'||YEAR(TODAY)
-                          AND TODAY < '/04/20/'||YEAR(TODAY)+1
-                          AND LEFT(ACYR,2) = RIGHT(TO_CHAR(YEAR(TODAY+1)),2)
-                          THEN
-                              'RC'||YEAR(TODAY + 1)
+                      --ACYR 2021 after DEC 18???
+--                      WHEN TODAY >= '11/20/'||YEAR(TODAY)
+--                          AND TODAY < '/04/20/'||YEAR(TODAY)+1
+--                          AND LEFT(ACYR,2) = RIGHT(TO_CHAR(YEAR(TODAY+1)),2)
+--                          THEN
+--                              'RC'||YEAR(TODAY + 1)
                       --ACYR 2021 after Jan 1 until April 20
                       WHEN TODAY >= '01/01/'||YEAR(TODAY)
                           AND TODAY < '04/20/'||YEAR(TODAY)
