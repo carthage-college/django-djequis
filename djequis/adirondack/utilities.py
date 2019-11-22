@@ -125,7 +125,8 @@ def fn_translate_bldg_for_adirondack(bldg_code):
         "CMTR": "CMTR",
         "OFF": "OFF",
         "TOWR": "TOWR",
-        "WD": "WD"
+        "WD": "WD",
+        "ALL": "",
     }
     return switcher.get(bldg_code, "Invalid Building")
 
@@ -158,7 +159,6 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted,
         # CurrentFuture: -1 returns only current and future
         # Cancelled: -1 is for cancelled, 0 for not cancelled
         # Setting Ghost to -1 prevents rooms with no student from returning
-        # print("URL = " + url)
 
         response = requests.get(url)
         x = json.loads(response.content)
@@ -168,11 +168,12 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted,
         else:
             # print("Record marked as posted")
             pass
-
-        # Because we are not using Adirondack for regular room rental fees
-        # we have no need of those billing records being active
-        # Any bills related to this assignment can be marked as posted
-        # Miscellaneous charges have an assignment ID of 0,
+        """
+        Because we are not using Adirondack for regular room rental fees
+        we have no need of those billing records being active
+        Any bills related to this assignment can be marked as posted
+        Miscellaneous charges have an assignment ID of 0,
+        """
 
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
               + api_server + "/apis/thd_api.cfc?" \
@@ -194,10 +195,7 @@ def fn_mark_room_posted(stu_id, room_no, hall_code, term, posted,
                        + e.message)
 
 
-
-
 def fn_mark_bill_exported(bill_id, api_server, api_key):
-
     try:
         utcts = fn_get_utcts()
         hashstring = str(utcts) + api_key
@@ -212,7 +210,9 @@ def fn_mark_bill_exported(bill_id, api_server, api_key):
             "STUDENTBILLINGINTERNALID=" + bill_id + "&" \
             "Exported=0" + "&" \
             "EXPORTCHARGES=-1"
-        # API Does not accept student ID as param if bill internal ID is used
+
+        """ API Does not accept student ID as param if bill internal ID 
+        is used """
         # print("URL = " + url)
 
         response = requests.get(url)
@@ -362,8 +362,6 @@ def fn_encode_rows_to_utf8(rows):
     return encoded_rows
 
 
-
-
 def fn_write_error(msg):
     # create error file handler and set level to error
     handler = logging.FileHandler(
@@ -381,7 +379,7 @@ def fn_write_error(msg):
 
 
 def fn_sendmailfees(to, frum, body, subject):
-    # Create the message
+    """Create the message """
     msg = MIMEMultipart()
 
     # email to addresses may come as list
@@ -390,10 +388,12 @@ def fn_sendmailfees(to, frum, body, subject):
     msg['Subject'] = "From " + frum + " - " + subject
     # msg.add_header('reply-to', frum)
     msg['Reply-To'] = frum
-    # By default, SMTP will always use smtp@carthage.edu as the from address
-    # Reply to allows a different return email option
-    # If the user clicks reply, it will bring up the From address
 
+    """
+    By default, SMTP will always use smtp@carthage.edu as the from address
+    Reply to allows a different return email option
+    If the user clicks reply, it will bring up the From address
+    """
     text = ''
 
     # This can be outside the file collection loop
@@ -425,16 +425,46 @@ def fn_sendmailfees(to, frum, body, subject):
         # server.quit()
         pass
 
+
+def fn_send_mail(to, frum, body, subject):
+    """
+    Stock sendmail in core does not have reply to or split of to emails
+    --email to addresses may come as list
+    """
+
+    msg = MIMEText(body)
+    msg['To'] = to
+    msg['From'] = frum
+    msg['Subject'] = subject
+    msg['Reply-To'] = frum
+
+    print("ready to send")
+    server = smtplib.SMTP('localhost')
+    # show communication with the server
+    # if debug:
+    #     server.set_debuglevel(True)
+    try:
+        # print(msg['To'])
+        # print(msg['From'])
+        server.sendmail(frum, to.split(','), msg.as_string())
+
+    finally:
+        server.quit()
+        # print("Done")
+        pass
+
+
 def fn_get_utcts():
-    # GMT Zero hour is 1/1/70
-    # Zero hour in seconds = 0
-    # Current date and time
+    """GMT Zero hour is 1/1/70
+    Zero hour in seconds = 0
+
+    Current date and time"""
     a = datetime.datetime.now()
-    # Format properly
+    """Format properly"""
     b = a.strftime('%a %b %d %H:%M:%S %Y')
-    # convert to a struct time
+    """convert to a struct time"""
     c = time.strptime(b)
-    # Calculate seconds from GMT zero hour
+    """Calculate seconds from GMT zero hour"""
     utcts = calendar.timegm(c)
     # print("Seconds from UTC Zero hour = " + str(utcts))
     return utcts
