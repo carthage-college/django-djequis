@@ -31,6 +31,7 @@ from utilities import fn_write_error, fn_write_billing_header, \
     fn_write_assignment_header, fn_get_utcts, fn_encode_rows_to_utf8, \
     fn_get_bill_code, fn_fix_bldg, fn_mark_room_posted, \
     fn_translate_bldg_for_adirondack
+from assign_notify import fn_notify
 
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
@@ -71,33 +72,36 @@ parser.add_argument(
 
 def main():
     try:
-        #    Term will be RA+Current year
-        #  One big push for returning students May 1 for RC term
-        #    Only returning will be in the system, no need to screen out frosh
-        #  Push again June 30 and July 30  for RC term (will include frosh)
-        #  Aug 1 start automation for fall term
-        #  For spring RC+Nextyear push...third Wednesday in December
-        #  Stop automation for RC on last day of class - appr May 20
-        #  Automation could just take the current term
-        #  May 1, June 30, July 30 December  for upcoming term
+        '''
+        Term will be RA + Current year
+        One big push for returning students for RC term happens in December
+        Only returning will be in the system, no need to screen out frosh
 
-        # From Aug to Dec, grab all RA current year
-        # From Jan to May 1 grab all RC current year
-        # On MAY 1, grab all RA current year
-        # on June 30 grab all RA current year
-        # On third wednesday in December grab all RC Next
-        # On Next day in Dec, go back to RA Current
+        Push again June 30 and July 30  for RC term (will include frosh)
+        Aug 1 start automation for fall term
+        Stop automation for RC on last day of class - appr May 20
+ 
+        May 1, June 30, July 30 December  for upcoming term
 
-        # Only options are RC20xx and RA20xx, so I only need to determine
-        # which year to pass during each time frame.
-        # Question is, for spring housing, will both RA and RC need to be
-        # dealt with?
+        From Aug to Dec, grab all RA current year
+        From Jan to May 1 grab all RC current year
+        On MAY 1, grab all RA current year
+        on June 30 grab all RA current year
+        On third wednesday in December grab all RC Next
+        On Next day in Dec, go back to RA Current
 
-        # This is the command needed to run the script
-        # python room_assignments.py --database = train --test - run_mode =
-        # auto
-        # Must specify the database, whether testing or live and whether
-        # user input is required
+        Only options are RC20xx and RA20xx, so I only need to determine
+        which year to pass during each time frame.
+        Question is, for spring housing, will both RA and RC need to be
+        dealt with?
+        '''
+
+        '''
+        This is the command needed to run the script
+        python room_assignments.py --database=train --test -run_mode=auto
+        Must specify the database, whether testing or live and whether
+        user input is required
+        '''
 
         # set global variable
         global EARL
@@ -125,14 +129,12 @@ def main():
 
         # print(API_server)
         # print(key)
-
         engine = get_engine(EARL)
-
         utcts = fn_get_utcts()
         # print("Seconds from UTC Zero hour = " + str(utcts))
         hashstring = str(utcts) + key
 
-        # Assumes the default UTF-8
+        '''Assumes the default UTF-8'''
         hash_object = hashlib.md5(hashstring.encode())
         datetimestr = time.strftime("%Y%m%d%H%M%S")
 
@@ -140,15 +142,18 @@ def main():
             # print("Manual Mode")
             session = raw_input("Enter target session (EX. RA 2019):  ")
             hall = fn_translate_bldg_for_adirondack(
-                raw_input("Enter Hall code: "))
+                raw_input("Enter Hall code - use ALL or specifec bldg: "))
+            if hall == 'ALL':
+                hall = ""
             posted = raw_input("Do you want unposted or posted records?  "
                                "Enter 0 for unposted, 1 for posted, "
                                "2 for changed, 0,2 for both: ")
+
             # print(posted)
 
         elif run_mode == "auto":
 
-            # Get the current term
+            '''Get the current term'''
             ret = do_sql(Q_GET_TERM, key=DEBUG, earl=EARL)
             if ret is not None:
                 row = ret.fetchone()
@@ -161,7 +166,8 @@ def main():
                     session = row[0]
                     hall = ''
                     posted = '0,2'
-                # IMPORTANT! won't work if string has any spaces.  NO SPACES
+                '''IMPORTANT! won't work if string has any spaces. NO SPACES'''
+
 
         url = "https://carthage.datacenter.adirondacksolutions.com/" \
               + API_server + "/apis/thd_api.cfc?" \
@@ -169,34 +175,30 @@ def main():
                              "Key=" + key + "&" \
                                             "utcts=" + \
               str(utcts) + "&" \
-                   "h=" + hash_object.hexdigest() + "&" \
-                   "TimeFrameNumericCode=" + session + "&" \
-                   "Posted=" + posted + "&" \
-                   "HALLCODE=" + hall
+                  "h=" + hash_object.hexdigest() + "&" \
+                  "TimeFrameNumericCode=" + session + "&" \
+                  "Posted=" + posted + "&" \
+                  "HALLCODE=" + hall
         # + "&" \
         # "STUDENTNUMBER=" + "1496904"
         # "CurrentFuture=-1" + "&" \
         #                      "Ghost=0" + "&" \
-        # NOTE:  HALLCODE can be empty
-
-        # DO NOT MARK AS POSTED HERE - DO IT IN SECOND STEP
-        # "PostAssignments=-1" + "&" \
-
-        # + "&" \
         # "HallCode=" + 'SWE'
+        ''' NOTE:  HALLCODE can be empty'''
 
-        # DEFINITIONS
-        # Posted: 0 returns only NEW unposted,
-        # 1 returns posted, as in out to our system
-        # 2 changed or cancelled
-        # PostAssignments: -1 will mark the record as posted.
-        # CurrentFuture: -1 returns only current and future
-        # Cancelled: -1 is for cancelled, 0 for not cancelled
+        '''
+        DEFINITIONS
+        Posted: 0 returns only NEW unposted,
+        1 returns posted, as in out to our system
+        2 changed or cancelled
+        PostAssignments: -1 will mark the record as posted.
+        CurrentFuture: -1 returns only current and future
+        Cancelled: -1 is for cancelled, 0 for not cancelled
+        
+        'In theory, every room assignment in Adirondack should have
+        a bill code'''
 
         # print("URL = " + url)
-
-        # In theory, every room assignment in Adirondack should have
-        # a bill code
 
         response = requests.get(url)
         x = json.loads(response.content)
@@ -261,19 +263,20 @@ def main():
                                                 room_type,
                                                 roomassignmentid,
                                                 session, API_server, key)
-                    # Intenhsg can b R = Resident, O = Off-Campus,
-                    # C = Commuter
-                    # This if routine is needed because the adirondack
-                    # hall codes match to multiple descriptions and
-                    # hall descriptions have added qualifiers such as
-                    # FOFF, MOFF, UNF, LOCA that are not available
-                    # elsewhere using the API.  Have to parse it to
-                    # assign a generic room
-                    # For non residents, we have a generic room for
-                    # CX and a dummy room on the Adirondack side
-                    # So we need two variables, on for Adirondack and
-                    # one for CX.
-
+                    '''
+                    Intenhsg can be: 
+                    R = Resident, O = Off-Campus, C = Commuter
+                    This routine is needed because the adirondack
+                    hall codes match to multiple descriptions and
+                    hall descriptions have added qualifiers such as
+                    FOFF, MOFF, UNF, LOCA that are not available
+                    elsewhere using the API.  Have to parse it to
+                    assign a generic room
+                    For non residents, we have a generic room for
+                    CX and a dummy room on the Adirondack side
+                    So we need two variables, on for Adirondack and
+                    one for CX.
+                    '''
                     adir_room = i[4]
 
                     if bldg == 'CMTR':
@@ -307,8 +310,8 @@ def main():
                     csvwriter = csv.writer(room_output,
                                            quoting=csv.QUOTE_NONNUMERIC
                                            )
-                    # Need to write translated fields if csv is to
-                    # be created
+                    '''Need to write translated fields if csv is to
+                    be created'''
                     csvwriter.writerow([carthid, bldgname, bldg,
                                         floor, room, bed, room_type,
                                         occupancy, roomusage,
@@ -318,13 +321,15 @@ def main():
                                         po_box_combo, canceled,
                                         canceldate, cancelnote,
                                         cancelreason, ghost, posted,
-                                        roomassignmentid])
+                                        roomassignmentid, billcode])
                     # print(str(carthid) + ', ' + str(billcode) + ', '
                     #       + str(bldg) + ', ' + str(room) + ', ' +
                     #       + str(room_type))
-                    # Validate if the stu_serv_rec exists first
-                    # update stu_serv_rec id, sess, yr, rxv_stat,
-                    # intend_hsg, campus, bldg, room, bill_code
+                    '''
+                    Validate if the stu_serv_rec exists first
+                     update stu_serv_rec id, sess, yr, rxv_stat,
+                    intend_hsg, campus, bldg, room, bill_code
+                    '''
                     q_validate_stuserv_rec = '''
                                   select id, sess, yr, rsv_stat, 
                                   intend_hsg, campus, bldg, room, 
@@ -344,8 +349,7 @@ def main():
                     if ret is not None:
                         if billcode > 0:
                             # compare rsv_stat, intend_hsg, bldg, room,
-                            # billcode
-                            # Update only if something has changed
+                            # billcode - Update only if something has changed
                             # print("Record found " + carthid)
 
                             row = ret.fetchone()
@@ -381,6 +385,9 @@ def main():
                                                         term, posted,
                                                         roomassignmentid,
                                                         API_server, key)
+                                    # Notify Marietta of changes
+                                    if run_mode == 'auto':
+                                        fn_notify(room_file, EARL)
 
                                 else:
                                     # print("No change needed in "
@@ -390,8 +397,12 @@ def main():
                                                         posted,
                                                         roomassignmentid,
                                                         API_server, key)
+                                    # Notify Marietta of changes
+                                    if run_mode == 'auto':
+                                        fn_notify(room_file, EARL)
 
                             else:
+                                # NO STU_SERV_REC -  should not happen
                                 # print("fetch retuned none - No "
                                 #       "stu_serv_rec for student "
                                 #       + carthid + " for term " + term)
@@ -399,8 +410,8 @@ def main():
                                        "exist for " + carthid + " for term " \
                                        + term + ".. Please inquire why."
                                 subj = "Adirondack - Stu_serv_rec missing"
-                                sendmail(ADIRONDACK_LIS_SUPPORT,
-                                         ADIRONDACK_FROM_EMAIL, body, subj)
+                                # sendmail(ADIRONDACK_LIS_SUPPORT,
+                                #          ADIRONDACK_FROM_EMAIL, body, subj)
 
                         else:
                             # print("Bill code not found")
@@ -412,39 +423,18 @@ def main():
                     #     # go ahead and update
                     else:
                         # print("Record not found")
-
                         body = "Student Service Record does not " \
                                "exist for " + carthid + " for term " \
                                + term + ".. Please inquire why."
                         subj = "Adirondack - Stu_serv_rec missing"
-                        sendmail("dsullivan@carthage.edu",
-                                 "dsullivan@carthage.edu", body, subj)
 
-                        # Dave says stu_serv_rec should NOT be created
-                        # from Adirondack data.  Other offices need
-                        # to create the initial record
-                        # Need to send something to Marietta
-                        # if billcode > 0:
-                        #     q_insert_stuserv_rec = '''
-                        #             INSERT INTO stu_serv_rec (id,
-                        #             sess, yr, rsv_stat, intend_hsg,
-                        #             campus, bldg, room, no_per_room,
-                        #             add_date,bill_code, hous_wd_date)
-                        #             VALUES (?,?,?,?,?,?,?,?,?,?,?)'''
-                        #     q_insert_stuserv_args = (
-                        #         carthid, term, yr, rsvstat, 'R',
-                        #         'MAIN', bldg, room, occupants,
-                        #         checkedindate, billcode,
-                        #         checkedoutdate)
-                        #     print(q_insert_stuserv_rec)
-                        #     print(q_insert_stuserv_args)
-                        #     # engine.execute(q_insert_stuserv_rec,
-                        #     # q_insert_stuserv_args)
+        # # Remove this after testing - only for testing when no
+        # recent changes are found via the API
+        room_file = settings.ADIRONDACK_TXT_OUTPUT + \
+                    settings.ADIRONDACK_ROOM_ASSIGNMENTS + '.csv'
+        if run_mode == 'auto':
+            fn_notify(room_file, EARL)
 
-                        # else:
-                        #     print("Bill code not found")
-
-        # filepath = settings.ADIRONDACK_CSV_OUTPUT
 
     except Exception as e:
         # print(
