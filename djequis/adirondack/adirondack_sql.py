@@ -182,22 +182,25 @@ FROM
 
     INNER JOIN    id_rec        IR    ON    PER.id            =    IR.id
         
-    LEFT JOIN (
-        SELECT a1.id, a1.aa, a1.line1 eml1, a1.beg_date, a1.end_date, 
-                a2.id, a2.aa, a2.eml2, a2.beg_date, a2.end_date
-        FROM aa_rec a1
-        LEFT JOIN
-             (SELECT id, aa, line1 eml2, beg_date, end_date 
-            FROM aa_rec) a2 
-            on a2.id = a1.id 
-            where (a1.aa = 'EML1'
-            AND    a1.beg_date < TODAY
-            AND NVL(a1.end_date, TODAY) >= TODAY)
-            and (a2.aa= 'EML2'            
-            AND    a2.beg_date < TODAY
-            AND NVL(a2.end_date, TODAY) >= TODAY)     
-            ) EML ON EML.id = PER.id 
-
+    LEFT JOIN 
+    	(  SELECT a1.id id1, a1.line1 eml1, a2.id id2, a2.eml2
+           FROM aa_rec a1
+	       LEFT JOIN
+              (
+            	SELECT id, aa, line1 eml2, beg_date, end_date 
+            	FROM aa_rec 
+            	WHERE aa = 'EML2'            
+            	AND  beg_date < TODAY
+            	AND NVL(end_date, TODAY) >= TODAY     
+              ) a2 
+            ON a2.id = a1.id 
+          WHERE 
+       		  (
+       			a1.aa = 'EML1'
+	       		AND    a1.beg_date < TODAY
+	       		AND NVL(a1.end_date, TODAY) >= TODAY
+       		  )
+    	) EML on EML.id1 = PER.id 
 
     LEFT JOIN
         (SELECT id, line1, line2, line3, city, st, zip, ctry, phone 
