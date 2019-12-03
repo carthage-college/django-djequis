@@ -196,5 +196,34 @@ FACSTAFF_UPLOAD = '''
         TODAY   BETWEEN pos_table.active_date   AND NVL(pos_table.inactive_date, TODAY)
         AND
         job_rec.title_rank  IS  NOT NULL
+    UNION
+    SELECT
+        TRIM(id_rec.firstname) firstname, id_rec.middlename[1,1] middleinitial,
+        TRIM(id_rec.lastname) lastname, TRIM(id_rec.suffixname) suffix,
+        id_rec.id::varchar(10) AS ExternalID, 'United States' as Country,
+        'Carthage College' as BusinessName, 'Employee' as RecordType,
+        CASE WHEN   NVL(ens_rec.opt_out, 1) =   1   THEN    ens_rec.phone
+                                                       ELSE    ''
+        END as Phone1, 'United States' as PhoneCountry1,
+        CASE WHEN   school_rec.phone    =   '___-___-____'  THEN    ''
+                                                           ELSE    TRIM(school_rec.phone)
+        END as Phone2, 'United States' as PhoneCountry2,
+        TRIM(email_rec.line1) as EmailAddress1,
+        TRIM(ens_rec.line1) || TRIM(ens_rec.line2) as EmailAddress2,
+        CASE WHEN   NVL(ens_rec.opt_out, 1) =   1   THEN    TRIM(ens_rec.phone)
+                                                   ELSE    ''
+        END as SMS1, 'United States' as SMS1Country, 'Office Building' as CustomField1,
+        '' AS CustomValue1, 'Standing' as CustomField2,
+        'STF' AS CustomValue2, 'Full/Part Time' as CustomField3,
+        'Full-Time' AS CustomValue3, 'END' as END
+    FROM
+        id_rec    LEFT JOIN    aa_rec    ens_rec    ON    id_rec.id        =    ens_rec.id
+                                        AND    ens_rec.aa    =    'ENS'
+                LEFT JOIN    aa_rec    school_rec    ON    id_rec.id    =    school_rec.id
+                                            AND    school_rec.aa    =    'SCHL'
+                LEFT JOIN    aa_rec    email_rec    ON    id_rec.id        =    email_rec.id
+                                        AND    email_rec.aa    =    'EML1'
+    WHERE
+        id_rec.id    =    1518708
     ORDER BY lastname, firstname
 '''
