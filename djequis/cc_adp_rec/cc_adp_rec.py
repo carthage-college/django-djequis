@@ -31,7 +31,7 @@ os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 
 from cc_adp_sql import CX_VIEW_SQL, Q_CC_ADP_VERIFY, INS_CC_ADP_REC
 from cc_adp_utilities import WRITE_ADP_HEADER, WRITE_HEADER, \
-    WRITE_ROW_REFORMATTED, fn_write_error, fn_write_log, fn_clear_logger
+    WRITE_ROW_REFORMATTED, fn_write_error
 
 from djequis.core.utils import sendmail
 from djzbar.utils.informix import get_engine
