@@ -409,9 +409,9 @@ def INS_CC_ADP_REC(row, EARL):
 
     engine.execute(q_cc_adp_rec, cc_adp_args)
     # scr.write(q_cc_adp_rec + '\n' + str(cc_adp_args) + '\n');
-    fn_write_log("Inserted data into cc_adp_rec table for "
-                 + row["payroll_name"] + " ID = "
-                 + row["carth_id"]);
+    # fn_write_log("Inserted data into cc_adp_rec table for "
+    #              + row["payroll_name"] + " ID = "
+    #              + row["carth_id"]);
     # print("Inserted data into cc_adp_rec table for "
     #        + row["payroll_name"] + " ID = "
     #        + row["carth_id"]);
