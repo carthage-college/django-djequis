@@ -36,16 +36,29 @@ from sky_api_calls import api_get, get_const_custom_fields, \
     api_delete, get_custom_fields, get_custom_field_value, get_constituent_list
 
 """
-    The process would have to involve finding the status of active students
-    in CX, (Look for a change date...to limit the number.  Maybe audit table)
-    Then determine if the student is in Raiser's Edge
-    If not add student, then add the custom field record
-    Else - find out of custom field record exists
+    12/9/19 - The API call to get_constituent_list can be filtered by student
+      status and add date.   
+      So the process would involve getting a current list of those with 
+      a custom_field_category=Student Status where date added > whatever date
+      
+      Then I can write the CX id numbers and the Blackbaud ID numbers to a
+      file or table, read them back, and use the blackbaud ID to pass any 
+      changes to Blackbaud
+
+      The process would have to involve finding the status of active students
+      in CX, (Look for a change date...to limit the number.  Maybe audit table)
+    
+      Then determine if the student is in Raiser's Edge by readint the list
+      just retrieved. 
+      If not add student, 
+         then add the custom field record
+      Else - find out of custom field record exists
         If not add
         else update
-    So each student will require 2-3 API calls
-    --
-    No way to test any of this because there are no students in RE yet...
+
+      So each student will require 1-2 API calls
+    
+      No way to test any of this because there are no students in RE yet...
 """
 
 def main():
