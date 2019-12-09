@@ -8,6 +8,7 @@ import time
 # import base64
 import datetime
 import django
+import csv
 
 from datetime import datetime
 # Note to self, keep this here
@@ -270,6 +271,43 @@ def get_constituent_id(current_token, carthid):
         #                + e.message)
         return 0
 
+
+def get_constituent_list(current_token):
+    try:
+
+        urlst = 'https://api.sky.blackbaud.com/constituent/v1/constituents?' \
+                'custom_field_category=Student Status' \
+                '&date_added>2019-11-13T10:59:03.761-05:00&limit=10'
+        # urlst =  'https://api.sky.blackbaud.com/constituent/v1/constituents/' \
+        #          'search?search_text=' + str(carthid) \
+        #          + '&search_field=lookup_id'
+
+        x = api_get(current_token, urlst)
+        if x == 0:
+            print("NO DATA")
+            return 0
+        else:
+            with open("id_list.csv", 'w') as id_lst:
+                for i in x['value']:
+                # print(x)
+                #     print(i['id'])
+                    bb_id = i['id']
+                    carth_id = i['lookup_id']
+                    name = i['name']
+                    type = i['type']
+                    if type == 'Individual':
+                        # print('Name = ' + name + ', CarthID = ' + str(carth_id)
+                        #   + ', BlackbaudID = ' + str(bb_id) + ', type = '
+                        #   + type)
+                        csvwriter = csv.writer(id_lst, quoting=csv.QUOTE_NONE)
+                        csvwriter.writerow([carth_id, bb_id, name, type])
+            return 1
+
+    except Exception as e:
+        print("Error in get_constituent_id:  " + e.message)
+        # fn_write_error("Error in get_constituent_id.py - Main: "
+        #                + e.message)
+        return 0
 
 def delete_const_custom_fields(current_token, itemid):
     try:
