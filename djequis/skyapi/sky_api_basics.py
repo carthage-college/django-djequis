@@ -8,23 +8,34 @@ Python functions to
 """
 
 # from pathlib import Path
-import requests
-import sys
 import os
+import sys
+import requests
 import json
 import time
 import base64
 import datetime as dt
+from datetime import datetime
 import django
 import os.path
-
-# import cryptography
-from datetime import datetime
+import csv
 
 # Note to self, keep this here
 # django settings for shell environment
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
+import django
 django.setup()
+
+# django settings for script
+from django.conf import settings
+
+# informix environment
+os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
+os.environ['DBSERVERNAME'] = settings.DBSERVERNAME
+os.environ['INFORMIXDIR'] = settings.INFORMIXDIR
+os.environ['ODBCINI'] = settings.ODBCINI
+os.environ['ONCONFIG'] = settings.ONCONFIG
+os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 # ________________
 from django.conf import settings
 from django.core.cache import cache
@@ -33,6 +44,15 @@ from sky_api_calls import api_get, get_const_custom_fields, \
     get_constituent_id, set_const_custom_field, update_const_custom_fields, \
     delete_const_custom_fields, get_relationships, api_post, api_patch, \
     api_delete, get_custom_fields, get_custom_field_value, get_constituent_list
+from djzbar.utils.informix import get_engine
+from djzbar.utils.informix import do_sql
+from djzbar.settings import INFORMIX_EARL_SANDBOX
+from djzbar.settings import INFORMIX_EARL_TEST
+from djzbar.settings import INFORMIX_EARL_PROD
+from djtools.fields import TODAY
+
+# normally set as 'debug" in SETTINGS
+DEBUG = settings.INFORMIX_DEBUG
 
 """
     The process would have to involve finding the status of active students
@@ -49,6 +69,24 @@ from sky_api_calls import api_get, get_const_custom_fields, \
 
 def main():
     try:
+
+        # set global variable
+        global EARL
+        # determines which database is being called from the command line
+        # if database == 'cars':
+        EARL = INFORMIX_EARL_PROD
+        # if database == 'train':
+        #     EARL = INFORMIX_EARL_TEST
+        # elif database == 'sandbox':
+        #     EARL = INFORMIX_EARL_SANDBOX
+        # else:
+            # this will raise an error when we call get_engine()
+            # below but the argument parser should have taken
+            # care of this scenario and we will never arrive here.
+            # EARL = None
+        # establish database connection
+        engine = get_engine(EARL)
+
 
         # for now, possible actions include get_id = which will bypass
         # all the others, set_status, update_status, delete_field,
@@ -77,13 +115,13 @@ def main():
         t = cache.get('refreshtime')
 
         if t < datetime.now() - dt.timedelta(minutes=59):
-            print('Out of limit')
+            print('Out of token refresh limit')
             print(t)
             print(datetime.now() - dt.timedelta(minutes=59))
             r = token_refresh()
             print(r)
         else:
-            print("within limit")
+            print("within token refresh limit")
 
 
         """"--------GET THE TOKEN------------------"""
@@ -92,9 +130,43 @@ def main():
         # print(current_token)
 
         """ --------GET THE BLACKBAUD CONSTITUENT ID-----------------"""
-        # # First, we have to get the internal ID from blackbaud for
-        # the constituent
-        const_id = get_constituent_id(current_token, 1534657)
+        """ I will either have a list of students in a csv file or possibly
+            in  a to be determined database
+            That way I can get the blackbaud internal id en masse and
+            not need to make multiple calls based on the carthage ID
+            I may also look to see if the student status has changed in 
+            CX
+
+            select * from cars_audit:prog_enr_rec
+            where acst =  'WD'
+            and audit_timestamp > TODAY - 1
+            
+            select * from cars_audit:stu_acad_rec
+            where acst =  'WD'
+            and yr = 2019 and sess = 'RA'
+            and audit_timestamp > TODAY - 100
+        
+        """
+        statquery= '''select distinct id, acst 
+            from cars_audit:prog_enr_rec 
+            where acst =  'WD'
+            and audit_event = 'AU'
+            and audit_timestamp > TODAY - 1'''
+
+        ret = do_sql(statquery, key=DEBUG, earl=EARL)
+        for i in ret:
+            print(i)
+
+
+        with open("id_list.csv", 'r') as id_lst:
+            reed = csv.reader(id_lst, delimiter=',')
+            for row in reed:
+                # print(row)
+                const_id = row[1]
+
+        # # # First, we have to get the internal ID from blackbaud for
+        # # the constituent
+        # const_id = get_constituent_id(current_token, 1534657)
         print("Constituent id = " + str(const_id))
 
 
@@ -121,7 +193,6 @@ def main():
         the existing record, if not we need to add it
         ---------------------------
         """
-
 
         if action == 'set_status':
             """-----POST-------"""
