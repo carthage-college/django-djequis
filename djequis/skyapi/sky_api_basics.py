@@ -32,7 +32,7 @@ from sky_api_auth import token_refresh
 from sky_api_calls import api_get, get_const_custom_fields, \
     get_constituent_id, set_const_custom_field, update_const_custom_fields, \
     delete_const_custom_fields, get_relationships, api_post, api_patch, \
-    api_delete, get_custom_fields, get_custom_field_value
+    api_delete, get_custom_fields, get_custom_field_value, get_constituent_list
 
 """
     The process would have to involve finding the status of active students
@@ -97,6 +97,9 @@ def main():
         const_id = get_constituent_id(current_token, 1534657)
         print("Constituent id = " + str(const_id))
 
+
+
+
         """------GET CUSTOM FIELDS FOR A CONSTITUENT----------"""
         # Also need to check to see if the custom field exists
         # Does not appear we can filter by category or type...WHY???
@@ -105,9 +108,9 @@ def main():
         # custom field value and being able to retrieve it for the student
         category = 'Student Status'
         ret = get_const_custom_fields(current_token, const_id, category)
-        print(ret)
+        # print(ret)
         item_id = ret
-        print("Item ID = " + str(item_id))
+        # print("Item ID = " + str(item_id))
 
         """
         --------------------------
