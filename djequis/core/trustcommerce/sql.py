@@ -1,5 +1,3 @@
-from djequis.core.trustcommerce.views import *
-
 # Query for main page home.html
 PCE_SUMMARY = '''
     SELECT activities.name as activity, transactions.activityID as id, 

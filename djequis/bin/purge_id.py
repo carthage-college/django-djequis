@@ -1,22 +1,7 @@
 # Added a few imports from primary_id.py on wilson..
 import os
 import sys
-import sqlalchemy
-from sqlalchemy import create_engine
-from sqlalchemy.engine.url import URL
-from sqlalchemy import text
-# for testing comment out local settings file and point to another
-# import settings
-# import settings_purge_temp
-
-import datetime
-from time import strftime
-import requests
-import json
-import string
 import argparse
-import shutil
-from math import sin, cos, sqrt, atan2, radians
 
 # import logging
 # from logging.handlers import SMTPHandler
@@ -25,10 +10,7 @@ from math import sin, cos, sqrt, atan2, radians
 # django settings for script
 import django
 from django.conf import settings
-from django.core.urlresolvers import reverse
-from django.db import connections
 
-from djequis.core.utils import sendmail
 from djzbar.utils.informix import do_sql
 from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_SANDBOX
@@ -46,7 +28,6 @@ sys.path.append('/usr/local/lib/python2.7/dist-packages/')
 # django settings for shell environment
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djequis.settings")
 
-
 # informix environment
 # This matches code on Wilson for dup merge files
 # Should NOT have to point to any other variables or constants
@@ -58,7 +39,6 @@ os.environ['ONCONFIG'] = settings.ONCONFIG
 os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
-
 
 # Probably only need the log directory
 # CONSTANT_PMC_Log_Directory = '/opt/carthage/pmc/log'
@@ -134,8 +114,8 @@ def main():
         #----------------------------------------------------
         # First go find the records marked for purging
         #----------------------------------------------------
-        q_get_pool = '''SELECT cc_stage_merge_no, prim_id, sec_id, id1, id2, 
-            fullname1, fullname2 
+        q_get_pool = '''SELECT cc_stage_merge_no, prim_id, sec_id, id1, id2,
+            fullname1, fullname2
             FROM cc_stage_merge
             WHERE analysis_status not like '%PURGE%'
             AND adm_review = 'PURGE'
@@ -264,7 +244,7 @@ if __name__ == "__main__":
     database = args.database
 
     if not database:
-        print "mandatory option missing: database name\n"
+        print("mandatory option missing: database name\n")
         parser.print_help()
         exit(-1)
     else:
@@ -272,7 +252,7 @@ if __name__ == "__main__":
 
     if database != 'cars' and database != 'train' and database != \
             'sandbox':
-        print "database must be: 'cars' or 'train' or 'sandbox'\n"
+        print("database must be: 'cars' or 'train' or 'sandbox'\n")
         parser.print_help()
         exit(-1)
 

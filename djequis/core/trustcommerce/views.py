@@ -17,13 +17,6 @@ from itertools import chain
 from operator import attrgetter, itemgetter
 
 
-@portal_auth_required(
-    session_var='DJEQUIS_AUTH', redirect_url=reverse_lazy('access_denied')
-)
-def download2(request):
-    return render(request, 'core/trustcommerce/download.html' )
-
-
 def details(request, activity):
     tcpayflow = connections['tcpayflow'].cursor()
     djforms = connections['djforms'].cursor()
