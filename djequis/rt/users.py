@@ -44,9 +44,6 @@ def main():
     users = Users.objects.using('rt4').exclude(id__in = admins).exclude(
         name__isnull=True
     )
-    #users = Users.objects.using('rt4').exclude(id__in = admins).filter(
-    #   Q(name__contains="carthage.edu") | Q(emailaddress__isnull=True)
-    #)
     save = False
     for u in users:
         elist = u.name.split('@')

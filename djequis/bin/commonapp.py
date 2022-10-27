@@ -44,7 +44,7 @@ os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 from djequis.core.utils import sendmail
 
 from djzbar.utils.informix import do_sql
-from djzbar.utils.informix import get_engine
+#from djzbar.utils.informix import get_engine
 from djzbar.settings import INFORMIX_EARL_TEST
 from djzbar.settings import INFORMIX_EARL_PROD
 
@@ -211,7 +211,7 @@ def main():
                             EARL = None
                         # establish mySQL database connection
                         cursor = connections['admissions'].cursor()
-                        engine = get_engine(EARL)
+                        #engine = get_engine(EARL)
                         # set directory and filename where to read from
                         filename=('{0}carthage_applications.txt'.format(
                             settings.COMMONAPP_CSV_OUTPUT
